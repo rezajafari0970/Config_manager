@@ -91,3 +91,15 @@ def intelligence():
  import json
  from .intelligence import learn_snapshot
  c=connect(); snap=learn_snapshot(c); states={r[0]:r[1] for r in c.execute('SELECT state,COUNT(*) FROM intelligence_events WHERE seen_at>? GROUP BY state',(time.time()-3600,))}; c.close(); return {**snap,'recent_states':states}
+@app.get('/api/intelligence/rules')
+def intelligence_rules():
+ from .rules import RULEPACK_VERSION,RULES
+ return {'version':RULEPACK_VERSION,'rules':RULES}
+@app.post('/api/intelligence/discover')
+def intelligence_discover():
+ from .learning import discover
+ return discover()
+@app.get('/api/intelligence/proposals')
+def intelligence_proposals():
+ from .learning import list_proposals
+ return {'items':list_proposals()}

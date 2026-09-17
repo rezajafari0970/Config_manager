@@ -52,3 +52,11 @@ def test_intelligence_warning_state():
 def test_intelligence_repairable_xray():
  from collector.intelligence import analyze
  assert analyze('json-xray','{"outbounds":[{"protocol":"freedom","settings":[]}]}')['state']=='repairable'
+def test_rulepack_repairs_only_known_safe_codes():
+ from collector.rules import policy
+ assert policy('XRAY_SETTINGS_NOT_OBJECT')['action']=='repair' and policy('UNKNOWN')['action']=='observe'
+def test_regression_gate_repair_is_valid():
+ from collector.repair import repair
+ from collector.validator import validate,hard_errors
+ raw='{"outbounds":[{"protocol":"freedom","settings":[]}],"stats":[]}'
+ x=repair('json-xray',raw); assert x and not hard_errors(validate('json-xray',x['raw']))
