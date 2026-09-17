@@ -177,3 +177,13 @@ def test_vless_unknown_transport_preserved():
 def test_vless_raw_query_preserved():
  raw='vless://00000000-0000-0000-0000-000000000000@example.com:443?type=ws&path=%2Fa%3Fb%3D1&host=x.example&extra=future#name'
  assert extract(raw)[0]['raw']==raw
+def test_vless_ipv6_and_reality_full_clean():
+ from collector.validator import validate
+ u='00000000-0000-0000-0000-000000000000'
+ assert not validate('vless',f'vless://{u}@[2001:db8::1]:443?type=tcp&security=none')
+ assert not validate('vless',f'vless://{u}@example.com:443?type=tcp&security=reality&sni=x&pbk=abc&sid=01&spx=%2F&fp=chrome')
+def test_vless_duplicate_query_and_bad_percent_warn():
+ from collector.validator import validate
+ u='00000000-0000-0000-0000-000000000000'
+ a=validate('vless',f'vless://{u}@example.com:443?type=ws&type=grpc');b=validate('vless',f'vless://{u}@example.com:443?type=ws&path=%ZZ')
+ assert any(x['code']=='VLESS_DUPLICATE_QUERY' for x in a) and any(x['code']=='VLESS_BAD_PERCENT_ENCODING' for x in b)
