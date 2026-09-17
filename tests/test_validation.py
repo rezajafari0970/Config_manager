@@ -293,3 +293,6 @@ def test_sandbox_uses_loopback_ephemeral_port():
 def test_probe_policy_requires_real_bytes_for_download():
  from collector.health_policy import initial_action
  assert initial_action(1,True,False)=='retry_after_30s' and initial_action(2,True,False)=='delete'
+def test_health_policy_requires_traffic_plus_both_directions():
+ from collector.health_policy import accepted
+ assert accepted(True,True) and not accepted(True,False) and not accepted(False,True)
