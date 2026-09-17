@@ -40,3 +40,9 @@ def delete_all_sources():
 @app.delete('/api/configs')
 def delete_all_configs():
  c=connect(); n=c.execute('SELECT COUNT(*) FROM configs').fetchone()[0]; c.execute('DELETE FROM source_configs'); c.execute('DELETE FROM configs'); c.execute('UPDATE sources SET lifetime_seen=0,unique_count=0,new_count=0,known_count=0'); c.commit(); c.close(); return {'ok':True,'deleted':n}
+@app.get('/api/review')
+def review():
+ from .runtime import review_reason
+ c=connect(); rows=[dict(x) for x in c.execute("SELECT * FROM sources WHERE status IN ('error','empty','warning') ORDER BY CASE status WHEN 'error' THEN 1 WHEN 'warning' THEN 2 ELSE 3 END,id DESC")];
+ for x in rows: x['reason']=review_reason(x)
+ c.close(); return {'items':rows,'count':len(rows)}

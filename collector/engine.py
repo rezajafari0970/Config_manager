@@ -1,11 +1,14 @@
 import asyncio,time,httpx
 from .db import connect
 from .parser import extract
+from .runtime import semaphore
 running=set()
 async def fetch_one(row):
  sid=row['id']; running.add(sid); start=time.monotonic(); now=time.time()
  try:
-  async with httpx.AsyncClient(timeout=httpx.Timeout(8,connect=4),follow_redirects=True,headers={'User-Agent':'ConfigManager/2.0'}) as client: resp=await client.get(row['url']); resp.raise_for_status(); items=extract(resp.text)
+  async with semaphore:
+   async with httpx.AsyncClient(timeout=httpx.Timeout(8,connect=4),follow_redirects=True,headers={'User-Agent':'ConfigManager/2.0'}) as client:
+    resp=await client.get(row['url']); resp.raise_for_status(); items=extract(resp.text)
   c=connect(); c.execute('DELETE FROM issues WHERE source_id=?',(sid,)); raw_count=len(items); valid=invalid=dups=new=known=0; seen=set()
   for it in items:
    fp=it['fingerprint']
