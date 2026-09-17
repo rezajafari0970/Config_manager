@@ -279,3 +279,11 @@ def test_wireguard_raw_preserved():
 def test_health_requires_both_upload_and_download():
  from collector.test_queue import mark_result
  assert not mark_result('__missing__',True,False) and not mark_result('__missing__',False,True)
+def test_health_policy_requires_bidirectional_success():
+ from collector.health_policy import accepted,initial_action,recheck_action
+ assert accepted(True,True) and not accepted(True,False) and not accepted(False,True)
+ assert initial_action(1,False,True)=='retry_after_30s' and initial_action(2,True,False)=='delete'
+ assert recheck_action(True,True)=='keep' and recheck_action(True,False)=='delete'
+def test_health_policy_location_only_after_health():
+ from collector.health_policy import POLICY
+ assert POLICY['location_after_health_only'] and POLICY['cdn_classification'] and POLICY['healthy_recheck_seconds']==300
