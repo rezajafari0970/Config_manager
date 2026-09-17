@@ -216,3 +216,7 @@ def smart_tune_state():
  import json,pathlib
  try:return json.loads(pathlib.Path('/root/Config_manager/data/smart_tune.json').read_text())
  except:return {'status':'warming-up'}
+@app.get('/api/profile')
+def profile_summary():
+ from .profiler import summary
+ return summary()

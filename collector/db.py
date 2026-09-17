@@ -22,5 +22,6 @@ def init():
  for cname,ctype in [('lane',"TEXT DEFAULT 'fast'"),('cost_ms','REAL DEFAULT 0')]:
   try:c.execute('ALTER TABLE test_candidates ADD COLUMN '+cname+' '+ctype)
   except:pass
+ c.execute('''CREATE TABLE IF NOT EXISTS profile_samples(id INTEGER PRIMARY KEY,ts REAL NOT NULL,fingerprint TEXT,kind TEXT,sandbox_ms REAL,probe_ms REAL,db_ms REAL,enrich_ms REAL,total_ms REAL,state TEXT)''')
  for n,d in [('raw_count','INTEGER DEFAULT 0'),('new_count','INTEGER DEFAULT 0'),('known_count','INTEGER DEFAULT 0'),('lifetime_seen','INTEGER DEFAULT 0'),('consecutive_errors','INTEGER DEFAULT 0'),('issue_count','INTEGER DEFAULT 0')]: col(c,'sources',n,d)
  c.commit(); c.close()
