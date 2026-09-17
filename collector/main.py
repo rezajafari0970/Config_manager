@@ -58,3 +58,9 @@ def system_state():
  from .resources import sample
  from .runtime import STATE
  r=sample(); return {**r,'active_fetches':STATE['active'],'completed_fetches':STATE['completed'],'uptime_sec':round(time.time()-STATE['started'])}
+@app.get('/api/quarantine')
+def quarantine(limit:int=100):
+ c=connect(); rows=[dict(x) for x in c.execute('''SELECT q.id,q.kind,q.reasons,q.first_seen,q.last_seen,q.hits,q.raw,s.url source_url FROM quarantine q LEFT JOIN sources s ON s.id=q.source_id ORDER BY q.last_seen DESC LIMIT ?''',(max(1,min(limit,500)),))]; total=c.execute('SELECT COUNT(*) FROM quarantine').fetchone()[0]; c.close(); return {'items':rows,'count':total}
+@app.delete('/api/quarantine')
+def clear_quarantine():
+ c=connect(); n=c.execute('SELECT COUNT(*) FROM quarantine').fetchone()[0]; c.execute('DELETE FROM quarantine'); c.commit(); c.close(); return {'ok':True,'deleted':n}

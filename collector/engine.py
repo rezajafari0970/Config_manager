@@ -19,7 +19,7 @@ async def fetch_one(row):
    if it['issues']:
     for problem in it['issues']: c.execute('INSERT INTO issues(source_id,seen_at,kind,code,raw,repairable) VALUES(?,?,?,?,?,0)',(sid,now,it['kind'],problem['code']+': '+problem['message'],it['raw'][:4000]))
    if it['hard']:
-    invalid+=1; continue
+    invalid+=1; reasons=' | '.join(x['code']+': '+x['message'] for x in it['hard']); c.execute('INSERT INTO quarantine(fingerprint,source_id,kind,raw,reasons,first_seen,last_seen,hits) VALUES(?,?,?,?,?,?,?,1) ON CONFLICT(fingerprint,source_id) DO UPDATE SET reasons=excluded.reasons,last_seen=excluded.last_seen,hits=quarantine.hits+1',(fp,sid,it['kind'],it['raw'][:16000],reasons,now,now)); continue
    valid+=1; exists=c.execute('SELECT id FROM configs WHERE fingerprint=?',(fp,)).fetchone()
    if exists: cid=exists[0]; known+=1; c.execute('UPDATE configs SET last_seen=? WHERE id=?',(now,cid))
    else:
