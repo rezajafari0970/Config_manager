@@ -249,3 +249,7 @@ def test_ss_adapter_rejects_opaque_for_core_only():
  raw='ss://18f1b94e-35f1-4c7f-953c-7b4681c52339@example.com:443?encryption=none&type=tcp'
  try:parse(raw);assert False
  except ValueError:pass
+def test_ss_classifier_identifies_vless_like_without_mutation():
+ from collector.ss_classifier import classify
+ raw='ss://00000000-0000-0000-0000-000000000000@example.com:443?encryption=none&security=none&type=tcp&headerType=http';before=raw
+ x=classify(raw);assert x['class']=='vless-like-mislabeled' and x['suggested_scheme']=='vless' and raw==before
