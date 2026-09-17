@@ -7,7 +7,9 @@ def parse(raw):
  creds,server=main.rsplit('@',1)
  try:dec=b64(creds).decode('utf8') if ':' not in creds else urllib.parse.unquote(creds)
  except:dec=urllib.parse.unquote(creds)
- method,sep,password=dec.partition(':');host,_,prt=server.rpartition(':');return method,password,host,int(prt)
+ method,sep,password=dec.partition(':')
+ if not sep: raise ValueError('opaque-userinfo')
+ host,_,prt=server.rpartition(':');return method,password,host,int(prt)
 def audit(raw):
  try:m,p,h,prt=parse(raw)
  except Exception:return [] # base validator owns opaque/non-SIP002 compatibility

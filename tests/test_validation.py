@@ -244,3 +244,8 @@ def test_ss_unknown_method_warning():
 def test_ss_opaque_userinfo_is_warning_only():
  raw='ss://18f1b94e-35f1-4c7f-953c-7b4681c52339@example.com:443?encryption=none&type=tcp'
  x=extract(raw)[0];assert not x['hard'] and any(i['code']=='SS_OPAQUE_USERINFO' for i in x['issues'])
+def test_ss_adapter_rejects_opaque_for_core_only():
+ from collector.ss_deep import parse
+ raw='ss://18f1b94e-35f1-4c7f-953c-7b4681c52339@example.com:443?encryption=none&type=tcp'
+ try:parse(raw);assert False
+ except ValueError:pass
