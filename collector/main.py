@@ -123,3 +123,7 @@ def xray_audit(limit:int=0,offset:int=0):
 def xray_worker_state():
  from .xray_worker import load
  return load()
+@app.get('/api/xray-freeze-gate')
+def xray_freeze_gate():
+ from .xray_freeze import gate
+ return gate()
