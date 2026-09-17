@@ -333,3 +333,7 @@ def test_health_settings_bounds():
 def test_provider_shortage_defers_not_fails(monkeypatch):
  import collector.dynamic_probes as d
  monkeypatch.setattr(d,'active',lambda:[{'base':'a'}]);monkeypatch.setattr(d,'load',lambda:{'min_active_providers':2});r=d.pair(1);assert r['defer'] and not r['ok']
+def test_health_settings_probe_sizes_and_quorum():
+ from collector.health_settings import save
+ x=save({'upload_bytes':2048,'download_kb':8,'min_active_providers':3,'enabled':False});assert x['upload_bytes']==2048 and x['download_kb']==8 and x['min_active_providers']==3 and x['enabled'] is False
+ save({'upload_bytes':32768,'download_kb':64,'min_active_providers':2,'enabled':True})
