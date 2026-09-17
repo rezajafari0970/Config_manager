@@ -111,3 +111,11 @@ def intelligence_audit():
 def intelligence_audit_state():
  from .auto_audit import STATE
  return STATE
+@app.get('/api/xray-audit')
+def xray_audit_state():
+ from .xray_auditor import STATE
+ return STATE
+@app.post('/api/xray-audit')
+def xray_audit(limit:int=0):
+ from .xray_auditor import run
+ return run(max(0,min(limit,5000)))

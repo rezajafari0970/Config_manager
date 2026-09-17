@@ -64,3 +64,11 @@ def test_xray_dns_hosts_array_safe_repair():
  from collector.repair import repair
  raw='{"dns":{"hosts":[]},"outbounds":[{"protocol":"freedom","settings":{}}]}'
  x=extract(raw)[0]; assert any(i['code']=='XRAY_DNS_HOSTS_NOT_OBJECT' for i in x['issues']); r=repair('json-xray',raw); assert '"hosts":{}' in r['raw']
+def test_xray_http_inbound_settings_array_repair():
+ from collector.repair import repair
+ raw='{"inbounds":[{"protocol":"http","settings":[]}],"outbounds":[{"protocol":"freedom","settings":{}}]}'
+ r=repair('json-xray',raw); assert r and '"settings":{}' in r['raw']
+def test_xray_stream_array_objects_repair():
+ from collector.repair import repair
+ raw='{"outbounds":[{"protocol":"vless","settings":{},"streamSettings":{"sockopt":[],"realitySettings":[]}}]}'
+ r=repair('json-xray',raw); assert r and '"sockopt":{}' in r['raw'] and '"realitySettings":{}' in r['raw']

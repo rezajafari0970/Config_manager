@@ -81,6 +81,14 @@ def xray_deep(raw):
  for key in ('inbounds','routing'):
   if key=='inbounds' and key in o and not isinstance(o[key],list): z.append(issue('XRAY_INBOUNDS_NOT_ARRAY','inbounds must be an array'))
  if 'stats' in o and not isinstance(o['stats'],dict): z.append(issue('XRAY_STATS_NOT_OBJECT','stats should be an object',WARN))
+ for i,x in enumerate(o.get('inbounds',[])):
+  if isinstance(x,dict) and x.get('protocol')=='http' and x.get('settings')==[]: z.append(issue('XRAY_HTTP_INBOUND_SETTINGS_ARRAY',f'inbounds[{i}].settings should be object',WARN))
+ for i,x in enumerate(o.get('outbounds',[])):
+  if not isinstance(x,dict): continue
+  st=x.get('streamSettings')
+  if isinstance(st,dict):
+   if st.get('sockopt')==[]: z.append(issue('XRAY_SOCKOPT_ARRAY',f'outbounds[{i}].streamSettings.sockopt should be object',WARN))
+   if st.get('realitySettings')==[]: z.append(issue('XRAY_REALITY_SETTINGS_ARRAY',f'outbounds[{i}].streamSettings.realitySettings should be object',WARN))
  dns=o.get('dns')
  if isinstance(dns,dict) and 'hosts' in dns and not isinstance(dns['hosts'],dict): z.append(issue('XRAY_DNS_HOSTS_NOT_OBJECT','dns.hosts should be an object',WARN))
  return z
