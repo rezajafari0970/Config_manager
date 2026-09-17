@@ -1,5 +1,6 @@
 import sqlite3,pathlib
-DB=pathlib.Path(__file__).resolve().parent.parent/'data'/'collector.db'
+import os
+DB=pathlib.Path(os.environ.get('CONFIG_MANAGER_DB',str(pathlib.Path(__file__).resolve().parent.parent/'data'/'collector.db')))
 def connect():
  c=sqlite3.connect(DB,timeout=15,check_same_thread=False); c.row_factory=sqlite3.Row; c.execute('PRAGMA journal_mode=WAL'); c.execute('PRAGMA busy_timeout=10000'); return c
 def col(c,t,n,d):
