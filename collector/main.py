@@ -127,3 +127,11 @@ def xray_worker_state():
 def xray_freeze_gate():
  from .xray_freeze import gate
  return gate()
+@app.get('/api/singbox-worker')
+def singbox_worker_state():
+ from .singbox_worker import load
+ return load()
+@app.get('/api/singbox-freeze-gate')
+def singbox_freeze_gate():
+ from .singbox_freeze import gate
+ return gate()
