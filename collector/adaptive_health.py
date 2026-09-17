@@ -8,7 +8,7 @@ def capacity():
  free=mem.get('MemAvailable',0)/max(mem.get('MemTotal',1),1)
  if free<.15 or loadavg>cpus*.85:return 1
  if free<.30 or loadavg>cpus*.60:return 2
- return min(cfg['max_concurrency'],max(2,cpus//2))
+ return min(cfg['max_concurrency'],max(4,cpus*2))
 def run_batch():
  if not load()['enabled']:return {'disabled':True}
  n=capacity()

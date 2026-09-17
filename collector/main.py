@@ -183,3 +183,18 @@ from fastapi.responses import PlainTextResponse
 def sub_all():
  from .remark import apply
  c=connect();rows=c.execute('SELECT kind,raw,remark FROM healthy_configs WHERE upload_ok=1 AND download_ok=1 ORDER BY country_name,kind,id').fetchall();c.close();return '\n'.join(apply(r['kind'],r['raw'],r['remark'] or '🌐 Unknown') for r in rows)
+
+def _healthy_sub(where='',args=()):
+ from .remark import apply
+ c=connect();rows=c.execute('SELECT kind,raw,remark FROM healthy_configs WHERE upload_ok=1 AND download_ok=1 '+where+' ORDER BY country_name,kind,id',args).fetchall();c.close();return '\n'.join(apply(r['kind'],r['raw'],r['remark'] or '🌐 Unknown') for r in rows)
+@app.get('/sub/country/{code}',response_class=PlainTextResponse)
+def sub_country(code:str):return _healthy_sub('AND UPPER(country_code)=?',(code.upper(),))
+@app.get('/sub/cdn',response_class=PlainTextResponse)
+def sub_cdn():return _healthy_sub("AND cdn_state='cdn'")
+@app.get('/sub/non-cdn',response_class=PlainTextResponse)
+def sub_noncdn():return _healthy_sub("AND cdn_state!='cdn'")
+@app.get('/sub/datacenter/{asn}',response_class=PlainTextResponse)
+def sub_datacenter(asn:str):return _healthy_sub('AND asn=?',(asn,))
+@app.get('/api/subscription-index')
+def subscription_index():
+ c=connect();countries=[dict(r) for r in c.execute('SELECT country_code code,country_flag flag,country_name name,COUNT(*) count FROM healthy_configs GROUP BY country_code,country_flag,country_name ORDER BY country_name')];dcs=[dict(r) for r in c.execute("SELECT asn,network_org name,COUNT(*) count FROM healthy_configs WHERE asn IS NOT NULL AND asn!='' GROUP BY asn,network_org ORDER BY count DESC")];cdn=c.execute("SELECT SUM(cdn_state='cdn') cdn,SUM(cdn_state!='cdn') noncdn FROM healthy_configs").fetchone();total=c.execute('SELECT COUNT(*) FROM healthy_configs').fetchone()[0];c.close();return {'total':total,'countries':countries,'datacenters':dcs,'cdn':cdn['cdn'] or 0,'noncdn':cdn['noncdn'] or 0}

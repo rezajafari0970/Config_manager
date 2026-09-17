@@ -343,3 +343,9 @@ def test_remark_uri_country_replaces_fragment():
 def test_sub_all_only_healthy_rule_present():
  import inspect,collector.main as m
  s=inspect.getsource(m.sub_all);assert 'healthy_configs' in s and 'upload_ok=1' in s and 'download_ok=1' in s
+def test_subscription_routes_exist():
+ import collector.main as m
+ paths={r.path for r in m.app.routes};assert {'/sub/all','/sub/cdn','/sub/non-cdn','/sub/country/{code}','/sub/datacenter/{asn}'}.issubset(paths)
+def test_high_throughput_capacity_bounded():
+ from collector.adaptive_health import capacity
+ assert 1<=capacity()<=16
