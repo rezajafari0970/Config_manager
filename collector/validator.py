@@ -45,6 +45,9 @@ def link(kind,raw):
   if kind in ('hy','hy2') and not user: z.append(issue('HY_MISSING_AUTH','Hysteria authentication is missing'))
   if kind=='ss' and not (p.username or p.netloc): z.append(issue('SS_MISSING_CREDENTIALS','Shadowsocks credentials are missing'))
  except Exception as e: z.append(issue('LINK_PARSE_ERROR',type(e).__name__))
+ if kind=='vless':
+  from .vless_deep import audit as vless_audit
+  z.extend(vless_audit(raw))
  return z
 def json_config(raw):
  try: o=json.loads(raw)

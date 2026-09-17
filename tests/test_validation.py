@@ -166,3 +166,14 @@ def test_singbox_core_checker_valid_and_invalid():
  from collector.singbox_core import check
  assert check(json.dumps({'outbounds':[{'type':'direct','tag':'direct'}],'route':{'final':'direct'}}))['ok']
  assert not check(json.dumps({'outbounds':[{'type':'vless','server':'a','server_port':70000,'uuid':'bad'}]}))['ok']
+def test_vless_deep_reality_and_grpc_warnings():
+ from collector.validator import validate
+ raw='vless://00000000-0000-0000-0000-000000000000@example.com:443?type=grpc&security=reality'
+ codes={i['code'] for i in validate('vless',raw)}; assert {'VLESS_GRPC_SERVICE_MISSING','VLESS_SNI_MISSING','VLESS_REALITY_KEY_MISSING'}<=codes
+def test_vless_unknown_transport_preserved():
+ from collector.validator import validate
+ raw='vless://00000000-0000-0000-0000-000000000000@example.com:443?type=futuretransport&security=none#x'
+ z=validate('vless',raw); assert any(i['code']=='VLESS_UNKNOWN_TRANSPORT' for i in z)
+def test_vless_raw_query_preserved():
+ raw='vless://00000000-0000-0000-0000-000000000000@example.com:443?type=ws&path=%2Fa%3Fb%3D1&host=x.example&extra=future#name'
+ assert extract(raw)[0]['raw']==raw
