@@ -21,9 +21,12 @@ def start(kind,raw):
  prof('spawn_ms',(time.time()-a)*1000);a=time.time();deadline=time.time()+load()['startup_timeout_ms']/1000
  while time.time()<deadline:
   if p.poll() is not None:break
-  s=socket.socket();s.settimeout(.05)
-  try:s.connect(('127.0.0.1',port));s.close();prof('ready_wait_ms',(time.time()-a)*1000);prof('ok',1);return {'ok':True,'process':p,'file':f.name,'port':port,'started':time.time()}
-  except:time.sleep(.03)
+  s=socket.socket();s.setblocking(False)
+  try:
+   rc=s.connect_ex(('127.0.0.1',port));s.close()
+   if rc==0:prof('ready_wait_ms',(time.time()-a)*1000);prof('ok',1);return {'ok':True,'process':p,'file':f.name,'port':port,'started':time.time()}
+  except:pass
+  time.sleep(.007)
  prof('ready_wait_ms',(time.time()-a)*1000);prof('fail',1);err=(p.stderr.read()[-500:] if p.poll() is not None else 'startup-timeout');stop({'process':p,'file':f.name});return {'ok':False,'error':err}
 def stop(h):
  p=h.get('process');
