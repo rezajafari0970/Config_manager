@@ -237,3 +237,8 @@ def governor_feedback():
  import json,pathlib
  try:return json.loads(pathlib.Path('/root/Config_manager/data/governor_feedback.json').read_text())
  except:return {'status':'warming-up'}
+@app.get('/api/health-feedback')
+def health_feedback():
+ import json,pathlib
+ try:return json.loads(pathlib.Path('/root/Config_manager/data/health_feedback.json').read_text())
+ except:return {'status':'warming-up'}
