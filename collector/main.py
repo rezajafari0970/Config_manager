@@ -71,3 +71,9 @@ def configs_raw():
 @app.get('/api/quarantine/raw',response_class=PlainTextResponse)
 def quarantine_raw():
  c=connect(); rows=c.execute('SELECT raw FROM quarantine ORDER BY id').fetchall(); c.close(); return '\n'.join(x[0] for x in rows)
+@app.get('/api/warnings')
+def warnings(limit:int=150):
+ c=connect(); rows=[dict(x) for x in c.execute('''SELECT w.id,w.kind,w.code,w.message,w.raw,w.first_seen,w.last_seen,w.hits,s.url source_url FROM warnings w LEFT JOIN sources s ON s.id=w.source_id ORDER BY w.last_seen DESC LIMIT ?''',(max(1,min(limit,500)),))]; total=c.execute('SELECT COUNT(*) FROM warnings').fetchone()[0]; by_code={x[0]:x[1] for x in c.execute('SELECT code,COUNT(*) FROM warnings GROUP BY code ORDER BY 2 DESC')}; c.close(); return {'items':rows,'count':total,'by_code':by_code}
+@app.delete('/api/warnings')
+def clear_warnings():
+ c=connect(); n=c.execute('SELECT COUNT(*) FROM warnings').fetchone()[0]; c.execute('DELETE FROM warnings'); c.commit(); c.close(); return {'ok':True,'deleted':n}
