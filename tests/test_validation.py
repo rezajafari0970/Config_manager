@@ -161,3 +161,8 @@ def test_singbox_fuzz_key_mutations_detected():
  '{"outbounds":[{"type":"vless","server":"a","server_port":70000,"uuid":"00000000-0000-0000-0000-000000000000"}]}',
  '{"outbounds":[{"type":"direct","tag":"d","detour":"gone"}]}' ]
  assert all(validate('json-singbox',x) for x in cases)
+def test_singbox_core_checker_valid_and_invalid():
+ import json
+ from collector.singbox_core import check
+ assert check(json.dumps({'outbounds':[{'type':'direct','tag':'direct'}],'route':{'final':'direct'}}))['ok']
+ assert not check(json.dumps({'outbounds':[{'type':'vless','server':'a','server_port':70000,'uuid':'bad'}]}))['ok']
