@@ -302,3 +302,6 @@ def test_provider_health_schema():
 def test_provider_catalog_has_multi_region_duplex_endpoints():
  from collector.provider_catalog import load
  x=load();assert len(x)>=20 and all('download' in a and 'upload' in a for a in x)
+def test_dynamic_probe_requires_independent_provider_bases():
+ from collector.provider_pool import active
+ x=active();assert len({i['base'] for i in x})>=2

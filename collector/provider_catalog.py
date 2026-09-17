@@ -6,7 +6,7 @@ def norm(base,path):
 def refresh():
  a=json.load(urllib.request.urlopen(URL,timeout=10));out=[]
  for x in a:
-  try:out.append({'name':x['name'],'download':norm(x['server'],x['dlURL']),'upload':norm(x['server'],x['ulURL']),'source':'librespeed'})
+  try:out.append({'name':x['name'],'download':norm(x['server'],x['dlURL']),'upload':norm(x['server'],x['ulURL']),'base':norm(x['server'],'').rstrip('/'),'source':'librespeed'})
   except:pass
  CACHE.write_text(json.dumps({'updated':time.time(),'items':out}));return out
 def load():
