@@ -196,3 +196,7 @@ def test_vless_reality_singbox_adapter_has_utls():
  from collector.vless_adapter import singbox
  raw='vless://00000000-0000-0000-0000-000000000000@example.com:443?type=tcp&security=reality&sni=x&pbk=abc&fp=chrome'
  o=json.loads(singbox(raw))['outbounds'][0]; assert o['tls']['utls']['enabled'] and o['tls']['reality']['enabled']
+def test_vless_reality_missing_key_is_hard():
+ from collector.validator import validate,hard_errors
+ raw='vless://00000000-0000-0000-0000-000000000000@example.com:443?type=xhttp&security=reality&sni='
+ assert any(i['code']=='VLESS_REALITY_KEY_MISSING' for i in hard_errors(validate('vless',raw)))
