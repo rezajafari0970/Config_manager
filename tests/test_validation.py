@@ -76,3 +76,12 @@ def test_xray_finalmask_zero_warns_but_not_repaired():
  from collector.repair import repair
  raw='{"outbounds":[{"protocol":"vless","settings":{},"streamSettings":{"finalmask":{"tcp":[{"type":"fragment","settings":{"packets":"tlshello","lengths":["0","104","1"],"delays":["0"],"maxSplit":"0"}}]}}}]}'
  x=extract(raw)[0]; assert any(i['code']=='XRAY_FINALMASK_ZERO' for i in x['issues']); assert repair('json-xray',raw) is None
+def test_xray_deep_transport_shape_warning():
+ raw='{"outbounds":[{"protocol":"vless","settings":{},"streamSettings":{"network":"ws","wsSettings":[]}}]}'
+ x=extract(raw)[0]; assert any(i['code']=='XRAY_TRANSPORT_SETTINGS_SHAPE' for i in x['issues']) and not x['hard']
+def test_xray_deep_unknown_network_preserved():
+ raw='{"outbounds":[{"protocol":"vless","settings":{},"streamSettings":{"network":"future-net","futureSettings":{"x":1}}}]}'
+ x=extract(raw)[0]; assert any(i['code']=='XRAY_UNKNOWN_NETWORK' for i in x['issues']) and x['raw']==raw
+def test_xray_deep_routing_rules_shape():
+ raw='{"routing":{"rules":{}},"outbounds":[{"protocol":"freedom","settings":{}}]}'
+ assert any(i['code']=='XRAY_ROUTING_RULES_SHAPE' for i in extract(raw)[0]['issues'])

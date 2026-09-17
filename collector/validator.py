@@ -116,7 +116,9 @@ def singbox_config(raw):
  return z
 
 def validate(kind,raw):
- if kind=='json-xray': return xray_deep(raw)
+ if kind=='json-xray':
+  from .xray_deep import audit
+  return xray_deep(raw)+audit(raw)
  if kind=='json-singbox': return singbox_config(raw)
  if kind=='json-custom': return json_config(raw)[1]
  return link(kind,raw)
