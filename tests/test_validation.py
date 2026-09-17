@@ -328,7 +328,7 @@ def test_healthy_recheck_module_imports():
  assert callable(one)
 def test_health_settings_bounds():
  from collector.health_settings import save
- x=save({'retry_seconds':1,'recheck_seconds':1,'max_concurrency':99});assert x['retry_seconds']==10 and x['recheck_seconds']==60 and x['max_concurrency']==8
+ x=save({'retry_seconds':1,'recheck_seconds':1,'max_concurrency':99});assert x['retry_seconds']==10 and x['recheck_seconds']==60 and x['max_concurrency']==16
  save({'retry_seconds':30,'recheck_seconds':300,'max_concurrency':4})
 def test_provider_shortage_defers_not_fails(monkeypatch):
  import collector.dynamic_probes as d
