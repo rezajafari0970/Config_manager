@@ -80,3 +80,9 @@ def warnings(limit:int=150):
 @app.delete('/api/warnings')
 def clear_warnings():
  c=connect(); n=c.execute('SELECT COUNT(*) FROM warnings').fetchone()[0]; c.execute('DELETE FROM warnings'); c.commit(); c.close(); return {'ok':True,'deleted':n}
+@app.get('/api/repairs')
+def repairs(limit:int=100):
+ c=connect(); rows=[dict(x) for x in c.execute('SELECT id,kind,changes,created_at,raw_original,raw_repaired FROM repairs ORDER BY created_at DESC LIMIT ?',(max(1,min(limit,500)),))]; total=c.execute('SELECT COUNT(*) FROM repairs').fetchone()[0]; c.close(); return {'items':rows,'count':total}
+@app.get('/api/configs/repaired',response_class=PlainTextResponse)
+def repaired_configs():
+ c=connect(); rows=c.execute('''SELECT COALESCE(r.raw_repaired,c.raw) FROM configs c LEFT JOIN repairs r ON r.fingerprint=c.fingerprint ORDER BY c.id''').fetchall(); c.close(); return '\n'.join(x[0] for x in rows)

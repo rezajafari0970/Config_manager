@@ -22,3 +22,10 @@ def test_json_unknown_shape_never_mutated():
 def test_xray_empty_outbounds_hard(): assert extract('{"outbounds":[]}')[0]['hard']
 def test_hard_invalid_never_changes_raw():
  raw='vless://bad@example.com:443?x=1#keep-me'; x=extract(raw)[0]; assert x['raw']==raw and not x['hard']
+def test_safe_xray_repair_keeps_original_immutable():
+ from collector.repair import repair
+ raw='{"outbounds":[{"protocol":"freedom","settings":[]}],"stats":[]}'
+ x=repair('json-xray',raw); assert x and raw.endswith('[]}') and '"settings":{}' in x['raw'] and '"stats":{}' in x['raw']
+def test_custom_json_never_auto_repaired():
+ from collector.repair import repair
+ assert repair('json-custom','{"settings":[],"stats":[]}') is None
