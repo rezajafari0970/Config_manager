@@ -134,3 +134,14 @@ def test_singbox_deep_tls_transport_shapes():
 def test_singbox_deep_route_dns_shapes():
  raw='{"outbounds":[{"type":"direct","tag":"d"}],"route":[],"dns":[]}'
  codes={i['code'] for i in extract(raw)[0]['issues']}; assert {'SINGBOX_ROUTE_SHAPE','SINGBOX_DNS_SHAPE'}<=codes
+def test_singbox_protocol_credentials():
+ cases=[
+ '{"outbounds":[{"type":"vless","server":"a","server_port":443,"uuid":"bad"}]}',
+ '{"outbounds":[{"type":"trojan","server":"a","server_port":443}]}',
+ '{"outbounds":[{"type":"shadowsocks","server":"a","server_port":443,"password":"x"}]}',
+ '{"outbounds":[{"type":"hysteria2","server":"a","server_port":443}]}',
+ '{"outbounds":[{"type":"tuic","server":"a","server_port":443,"uuid":"x"}]}' ]
+ assert all(extract(x)[0]['issues'] for x in cases)
+def test_singbox_transport_type_missing_warns():
+ raw='{"outbounds":[{"type":"vless","server":"a","server_port":443,"uuid":"00000000-0000-0000-0000-000000000000","transport":{}}]}'
+ assert any(i['code']=='SINGBOX_TRANSPORT_TYPE_MISSING' for i in extract(raw)[0]['issues'])
