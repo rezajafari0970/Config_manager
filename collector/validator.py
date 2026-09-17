@@ -26,6 +26,8 @@ def link(kind,raw):
    host,sep,prt=server.rpartition(':')
    if not host: z.append(issue('MISSING_HOST','Server host is missing'))
    if not sep or not port(prt): z.append(issue('INVALID_PORT','Server port is missing or invalid'))
+   from .ss_deep import audit as ss_audit
+   z.extend(ss_audit(raw))
    return z
   if kind=='vmess':
    o=json.loads(b64(raw.split('://',1)[1]).decode());

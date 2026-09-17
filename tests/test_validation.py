@@ -232,3 +232,15 @@ def test_trojan_validation_adapters_preserve_raw():
  from collector.trojan_adapter import xray,singbox
  raw='trojan://pass@example.com:443?type=ws&security=tls&sni=x&path=%2F#n';before=raw
  assert 'outbounds' in xray(raw) and 'outbounds' in singbox(raw) and raw==before
+def test_ss_sip002_and_legacy_preserved():
+ import base64
+ sip='ss://'+base64.urlsafe_b64encode(b'aes-128-gcm:password').decode().rstrip('=')+'@example.com:443#x'
+ legacy='ss://'+base64.urlsafe_b64encode(b'aes-128-gcm:password@example.com:443').decode().rstrip('=')+'#x'
+ assert not extract(sip)[0]['hard'] and not extract(legacy)[0]['hard'] and extract(sip)[0]['raw']==sip
+def test_ss_unknown_method_warning():
+ import base64
+ raw='ss://'+base64.urlsafe_b64encode(b'future-cipher:pass').decode().rstrip('=')+'@example.com:443'
+ assert any(x['code']=='SS_UNKNOWN_METHOD' for x in extract(raw)[0]['issues'])
+def test_ss_opaque_userinfo_is_warning_only():
+ raw='ss://18f1b94e-35f1-4c7f-953c-7b4681c52339@example.com:443?encryption=none&type=tcp'
+ x=extract(raw)[0];assert not x['hard'] and any(i['code']=='SS_OPAQUE_USERINFO' for i in x['issues'])
