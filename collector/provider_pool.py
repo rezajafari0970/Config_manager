@@ -7,7 +7,7 @@ def check(x):
 def refresh():
  with concurrent.futures.ThreadPoolExecutor(max_workers=8) as e:items=[x for x in e.map(check,load()) if x]
  CACHE.write_text(json.dumps({'updated':time.time(),'items':items}));return items
-def active(max_age=30):
+def active(max_age=120):
  try:
-  d=json.loads(CACHE.read_text());return d['items'] if time.time()-d['updated']<max_age else refresh()
- except:return refresh()
+  d=json.loads(CACHE.read_text());return d['items'] if time.time()-d['updated']<max_age else d['items']
+ except:return []
