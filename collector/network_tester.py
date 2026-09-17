@@ -6,11 +6,12 @@ from .health_policy import initial_action
 from .traffic_verify import snapshot,verified
 from .profiler import record
 from .stage_metrics import enter,leave
+from .stage_limits import startup_enter,startup_leave,probe_enter,probe_leave
 from .protocol_timeout import get as protocol_timeout
 def test_one(row,attempt=1):
- t=time.time();x=time.time();enter('startup')
+ t=time.time();x=time.time();startup_enter();enter('startup')
  try:h=start(row['kind'],row['raw'])
- finally:leave('startup')
+ finally:leave('startup');startup_leave()
  sandbox_ms=(time.time()-x)*1000;d=u=False;details={'sandbox':h.get('ok',False)}
  if h.get('ok'):
   try:
