@@ -154,3 +154,10 @@ def test_singbox_dns_reference():
 def test_singbox_refs_valid_links_clean():
  raw='{"inbounds":[{"type":"mixed","tag":"in"}],"outbounds":[{"type":"direct","tag":"d"}],"route":{"rules":[{"inbound":["in"],"outbound":"d"}]},"dns":{"servers":[{"tag":"cf","address":"1.1.1.1"}],"rules":[{"server":"cf"}]}}'
  codes={i['code'] for i in extract(raw)[0]['issues']}; assert not any(x.startswith('SINGBOX_ROUTE_') or x=='SINGBOX_DNS_SERVER_REF' for x in codes)
+def test_singbox_fuzz_key_mutations_detected():
+ from collector.validator import validate
+ cases=[
+ '{"outbounds":[{"type":"vless","server":"","server_port":443,"uuid":"bad"}]}',
+ '{"outbounds":[{"type":"vless","server":"a","server_port":70000,"uuid":"00000000-0000-0000-0000-000000000000"}]}',
+ '{"outbounds":[{"type":"direct","tag":"d","detour":"gone"}]}' ]
+ assert all(validate('json-singbox',x) for x in cases)
