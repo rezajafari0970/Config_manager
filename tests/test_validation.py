@@ -305,3 +305,6 @@ def test_provider_catalog_has_multi_region_duplex_endpoints():
 def test_dynamic_probe_requires_independent_provider_bases():
  from collector.provider_pool import active
  x=active();assert len({i['base'] for i in x})>=2
+def test_adaptive_health_capacity_bounded():
+ from collector.adaptive_health import capacity
+ assert 1<=capacity()<=4

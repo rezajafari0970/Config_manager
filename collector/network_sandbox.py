@@ -12,7 +12,10 @@ def build(kind,raw,port):
  else:raise ValueError('unsupported-sandbox-kind')
  o.setdefault('log',{})['loglevel']='none';o['inbounds']=[{'listen':'127.0.0.1','port':port,'protocol':'socks','settings':{'udp':True}}];return o
 def start(kind,raw):
- port=free_port();f=tempfile.NamedTemporaryFile('w',suffix='.json',delete=False);json.dump(build(kind,raw,port),f);f.close();p=subprocess.Popen(['/usr/local/bin/xray','run','-c',f.name],stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,text=True,start_new_session=True)
+ try:
+  port=free_port();f=tempfile.NamedTemporaryFile('w',suffix='.json',delete=False);json.dump(build(kind,raw,port),f);f.close()
+ except Exception as e:return {'ok':False,'error':'build:'+type(e).__name__}
+ p=subprocess.Popen(['/usr/local/bin/xray','run','-c',f.name],stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,text=True,start_new_session=True)
  for _ in range(30):
   if p.poll() is not None:break
   s=socket.socket();s.settimeout(.1)
