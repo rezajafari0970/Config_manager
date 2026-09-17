@@ -110,9 +110,11 @@ def test_xray_refs_virtual_dns_tags_preserved():
  raw='{"routing":{"rules":[{"inboundTag":["dns-proxy","dns-direct"],"outboundTag":"api"}]},"outbounds":[{"tag":"direct","protocol":"freedom","settings":{}}]}'
  codes={i['code'] for i in extract(raw)[0]['issues']}; assert 'XRAY_ROUTE_INBOUND_REF' not in codes and 'XRAY_ROUTE_OUTBOUND_REF' not in codes
 def test_xray_mutation_core_shapes_detected():
+ from collector.validator import validate
  import json
  cases=['{"outbounds":{}}','{"outbounds":[]}','{"outbounds":[{}]}','{"outbounds":[{"protocol":"freedom","settings":[]}]}']
  assert all(validate('json-xray',x) for x in cases)
 def test_xray_mutation_broken_reference_detected():
+ from collector.validator import validate
  raw='{"routing":{"rules":[{"outboundTag":"gone"}]},"outbounds":[{"tag":"direct","protocol":"freedom","settings":{}}]}'
  assert any(i['code']=='XRAY_ROUTE_OUTBOUND_REF' for i in validate('json-xray',raw))
