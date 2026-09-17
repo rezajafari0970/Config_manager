@@ -232,3 +232,8 @@ def system_pressure():
 def governor():
  from .global_governor import snapshot
  return snapshot()
+@app.get('/api/governor-feedback')
+def governor_feedback():
+ import json,pathlib
+ try:return json.loads(pathlib.Path('/root/Config_manager/data/governor_feedback.json').read_text())
+ except:return {'status':'warming-up'}
