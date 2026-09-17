@@ -19,7 +19,10 @@ def link(kind,raw):
     except Exception: return [issue('SS_INVALID_BASE64','Shadowsocks payload is not valid base64')]
    if '@' not in payload: return [issue('SS_MISSING_SERVER','Shadowsocks server is missing')]
    creds,server=payload.rsplit('@',1)
-   if ':' not in creds: return [issue('SS_INVALID_CREDENTIALS','Shadowsocks method/password is incomplete')]
+   if ':' not in creds:
+    try: decoded=b64(creds).decode('utf8')
+    except Exception: decoded=''
+    if ':' not in decoded: return [issue('SS_NONSTANDARD_CREDENTIALS','Shadowsocks credentials are non-standard; preserved for client compatibility',WARN)]
    host,sep,prt=server.rpartition(':')
    if not host: z.append(issue('MISSING_HOST','Server host is missing'))
    if not sep or not port(prt): z.append(issue('INVALID_PORT','Server port is missing or invalid'))
