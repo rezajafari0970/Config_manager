@@ -5,11 +5,12 @@ from .dynamic_probes import pair
 from .health_policy import initial_action
 from .traffic_verify import snapshot,verified
 from .profiler import record
+from .protocol_timeout import get as protocol_timeout
 def test_one(row,attempt=1):
  t=time.time();x=time.time();h=start(row['kind'],row['raw']);sandbox_ms=(time.time()-x)*1000;d=u=False;details={'sandbox':h.get('ok',False)}
  if h.get('ok'):
   try:
-   before=snapshot(h);x=time.time();pr=pair(h['port']);probe_ms=(time.time()-x)*1000;after=snapshot(h)
+   before=snapshot(h);x=time.time();pr=pair(h['port'],protocol_timeout(row['kind'],row['raw']));probe_ms=(time.time()-x)*1000;after=snapshot(h)
    if pr.get('defer'):return 'defer',{'sandbox':True,'probe':pr}
    traffic=verified(before,after);d=bool(pr.get('download',{}).get('ok'));u=bool(pr.get('upload',{}).get('ok'));details.update(probe=pr,download=[pr.get('download',{})],upload=[pr.get('upload',{})],traffic_verified=traffic,io_delta=after['io']-before['io']);d=d and traffic;u=u and traffic
   finally:stop(h)
