@@ -17,9 +17,9 @@ async def fetch_one(row):
    if fp in seen: dups+=1; continue
    seen.add(fp)
    if it['issues']:
-    invalid+=1
-    for code in it['issues']: c.execute('INSERT INTO issues(source_id,seen_at,kind,code,raw,repairable) VALUES(?,?,?,?,?,?)',(sid,now,it['kind'],code,it['raw'][:4000],int(it['fixed']!=it['raw'])))
-    continue
+    for problem in it['issues']: c.execute('INSERT INTO issues(source_id,seen_at,kind,code,raw,repairable) VALUES(?,?,?,?,?,0)',(sid,now,it['kind'],problem['code']+': '+problem['message'],it['raw'][:4000]))
+   if it['hard']:
+    invalid+=1; continue
    valid+=1; exists=c.execute('SELECT id FROM configs WHERE fingerprint=?',(fp,)).fetchone()
    if exists: cid=exists[0]; known+=1; c.execute('UPDATE configs SET last_seen=? WHERE id=?',(now,cid))
    else:
