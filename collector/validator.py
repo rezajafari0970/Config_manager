@@ -89,6 +89,12 @@ def xray_deep(raw):
   if isinstance(st,dict):
    if st.get('sockopt')==[]: z.append(issue('XRAY_SOCKOPT_ARRAY',f'outbounds[{i}].streamSettings.sockopt should be object',WARN))
    if st.get('realitySettings')==[]: z.append(issue('XRAY_REALITY_SETTINGS_ARRAY',f'outbounds[{i}].streamSettings.realitySettings should be object',WARN))
+   fm=st.get('finalmask')
+   if isinstance(fm,dict):
+    for part in fm.get('tcp',[]):
+     if isinstance(part,dict) and part.get('type')=='fragment' and isinstance(part.get('settings'),dict):
+      fs=part['settings']; vals=list(fs.get('lengths',[]))+list(fs.get('delays',[]))+[fs.get('maxSplit')]
+      if any(str(v).strip() in ('0','0-0') for v in vals if v is not None): z.append(issue('XRAY_FINALMASK_ZERO','finalmask fragment contains zero values rejected by current Xray Core; preserved unchanged',WARN)); break
  dns=o.get('dns')
  if isinstance(dns,dict) and 'hosts' in dns and not isinstance(dns['hosts'],dict): z.append(issue('XRAY_DNS_HOSTS_NOT_OBJECT','dns.hosts should be an object',WARN))
  return z

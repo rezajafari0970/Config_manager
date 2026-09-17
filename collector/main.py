@@ -116,6 +116,6 @@ def xray_audit_state():
  from .xray_auditor import STATE
  return STATE
 @app.post('/api/xray-audit')
-def xray_audit(limit:int=0):
+def xray_audit(limit:int=0,offset:int=0):
  from .xray_auditor import run
- return run(max(0,min(limit,5000)))
+ return run(max(0,min(limit,5000)),max(0,offset))

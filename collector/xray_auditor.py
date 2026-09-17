@@ -13,11 +13,12 @@ def category(s):
  if 'invalid DNS hosts' in s:return 'DNS_HOSTS'
  if 'Config.stats' in s:return 'STATS_ARRAY'
  return 'OTHER'
-def run(limit=0):
+def run(limit=0,offset=0):
  if STATE['running']:return dict(STATE)
  STATE['running']=True;t=time.monotonic();C={};tested=ok=failed=0
  try:
   c=connect();rows=c.execute("SELECT id,kind,raw FROM configs WHERE kind='json-xray' ORDER BY id").fetchall();c.close()
+  if offset: rows=rows[offset:]
   if limit:rows=rows[:limit]
   for row in rows:
    while sample()['level'] in ('busy','critical'):time.sleep(.5)

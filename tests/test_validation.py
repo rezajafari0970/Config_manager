@@ -72,3 +72,7 @@ def test_xray_stream_array_objects_repair():
  from collector.repair import repair
  raw='{"outbounds":[{"protocol":"vless","settings":{},"streamSettings":{"sockopt":[],"realitySettings":[]}}]}'
  r=repair('json-xray',raw); assert r and '"sockopt":{}' in r['raw']
+def test_xray_finalmask_zero_warns_but_not_repaired():
+ from collector.repair import repair
+ raw='{"outbounds":[{"protocol":"vless","settings":{},"streamSettings":{"finalmask":{"tcp":[{"type":"fragment","settings":{"packets":"tlshello","lengths":["0","104","1"],"delays":["0"],"maxSplit":"0"}}]}}}]}'
+ x=extract(raw)[0]; assert any(i['code']=='XRAY_FINALMASK_ZERO' for i in x['issues']); assert repair('json-xray',raw) is None
