@@ -317,3 +317,9 @@ def test_network_intel_never_invents_facility():
 def test_network_intel_detects_known_cdn_org():
  from collector.network_intel import classify
  r=classify('__test_cdn__',{'network_org':'Cloudflare, Inc.','asn':'13335','egress_ip':'1.1.1.1'});assert r['cdn'] and r['cdn_provider']=='Cloudflare'
+def test_datacenter_intel_unknown_without_facility_evidence():
+ from collector.datacenter_intel import assess
+ r=assess({'egress_ip':None,'network_org':'Example Hosting','asn':'64500'});assert r['facility'] is None and r['facility_confidence']==0
+def test_network_intel_exposes_rdap_ptr_fields():
+ from collector.network_intel import classify
+ r=classify('__test_dc_fields__',{'egress_ip':None,'network_org':'Example','asn':'64500'});assert 'rdap_network' in r and 'reverse_dns' in r

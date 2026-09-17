@@ -13,5 +13,9 @@ def init():
  c.execute('''CREATE TABLE IF NOT EXISTS health_attempts(id INTEGER PRIMARY KEY,fingerprint TEXT NOT NULL,attempt INTEGER NOT NULL,phase TEXT NOT NULL,upload_ok INTEGER NOT NULL,download_ok INTEGER NOT NULL,external_ok INTEGER NOT NULL DEFAULT 0,server_traffic_ok INTEGER NOT NULL DEFAULT 0,providers TEXT,bytes_up INTEGER DEFAULT 0,bytes_down INTEGER DEFAULT 0,started_at REAL,finished_at REAL,result TEXT NOT NULL)''')
  c.execute('CREATE TABLE IF NOT EXISTS health_claims(fingerprint TEXT PRIMARY KEY,claimed_at REAL NOT NULL)')
  c.execute('''CREATE TABLE IF NOT EXISTS network_intelligence(fingerprint TEXT PRIMARY KEY,provider TEXT,hosting INTEGER,cdn INTEGER,cdn_provider TEXT,facility TEXT,facility_confidence REAL DEFAULT 0,evidence TEXT,updated_at REAL NOT NULL)''')
+
+ for cname,ctype in [('rdap_network','TEXT'),('reverse_dns','TEXT')]:
+  try:c.execute('ALTER TABLE network_intelligence ADD COLUMN '+cname+' '+ctype)
+  except:pass
  for n,d in [('raw_count','INTEGER DEFAULT 0'),('new_count','INTEGER DEFAULT 0'),('known_count','INTEGER DEFAULT 0'),('lifetime_seen','INTEGER DEFAULT 0'),('consecutive_errors','INTEGER DEFAULT 0'),('issue_count','INTEGER DEFAULT 0')]: col(c,'sources',n,d)
  c.commit(); c.close()
