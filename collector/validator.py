@@ -119,7 +119,8 @@ def validate(kind,raw):
  if kind=='json-xray':
   from .xray_deep import audit
   from .xray_protocol import audit as protocol_audit
-  return xray_deep(raw)+audit(raw)+protocol_audit(raw)
+  from .xray_system import audit as system_audit
+  return xray_deep(raw)+audit(raw)+protocol_audit(raw)+system_audit(raw)
  if kind=='json-singbox': return singbox_config(raw)
  if kind=='json-custom': return json_config(raw)[1]
  return link(kind,raw)

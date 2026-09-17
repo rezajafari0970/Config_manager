@@ -91,3 +91,12 @@ def test_xray_flattened_vless_preserved():
 def test_xray_protocol_missing_vnext_warns():
  raw='{"outbounds":[{"protocol":"vless","settings":{}}]}'
  assert any(i['code']=='XRAY_VNEXT_MISSING' for i in extract(raw)[0]['issues'])
+def test_xray_system_dns_shapes_warn():
+ raw='{"dns":{"servers":"1.1.1.1","hosts":[]},"outbounds":[{"protocol":"freedom","settings":{}}]}'
+ codes={i['code'] for i in extract(raw)[0]['issues']}; assert 'XRAY_DNS_SERVERS_SHAPE' in codes and 'XRAY_DNS_HOSTS_SHAPE' in codes
+def test_xray_system_inbound_duplicate_tag_warn():
+ raw='{"inbounds":[{"tag":"x","protocol":"socks"},{"tag":"x","protocol":"http"}],"outbounds":[{"protocol":"freedom","settings":{}}]}'
+ assert any(i['code']=='XRAY_DUPLICATE_INBOUND_TAG' for i in extract(raw)[0]['issues'])
+def test_xray_system_policy_api_shape_warn():
+ raw='{"policy":[],"api":[],"outbounds":[{"protocol":"freedom","settings":{}}]}'
+ codes={i['code'] for i in extract(raw)[0]['issues']}; assert {'XRAY_POLICY_SHAPE','XRAY_API_SHAPE'}<=codes
