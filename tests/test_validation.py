@@ -296,3 +296,6 @@ def test_probe_policy_requires_real_bytes_for_download():
 def test_health_policy_requires_traffic_plus_both_directions():
  from collector.health_policy import accepted
  assert accepted(True,True) and not accepted(True,False) and not accepted(False,True)
+def test_provider_health_schema():
+ from collector.provider_health import PROVIDERS
+ assert len(PROVIDERS['download'])>=3 and len(PROVIDERS['upload'])>=1
