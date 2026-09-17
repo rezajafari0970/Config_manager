@@ -15,6 +15,8 @@ def step():
  r=due_retry() or pick()
  if not r:return {'idle':True}
  n=attempt_no(r['fingerprint']);state,details=test_one(r,n)
+ if state=='defer':
+  c=connect();c.execute('DELETE FROM health_claims WHERE fingerprint=?',(r['fingerprint'],));c.commit();c.close();return {'id':r['id'],'kind':r['kind'],'attempt':n,'state':'defer','reason':details.get('probe',{}).get('reason')}
  if state=='healthy':details['enrichment']=promote(r)
  c=connect()
  if state=='remove':c.execute("DELETE FROM test_candidates WHERE fingerprint=?",(r['fingerprint'],))

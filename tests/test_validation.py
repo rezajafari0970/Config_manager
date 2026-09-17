@@ -330,3 +330,6 @@ def test_health_settings_bounds():
  from collector.health_settings import save
  x=save({'retry_seconds':1,'recheck_seconds':1,'max_concurrency':99});assert x['retry_seconds']==10 and x['recheck_seconds']==60 and x['max_concurrency']==8
  save({'retry_seconds':30,'recheck_seconds':300,'max_concurrency':4})
+def test_provider_shortage_defers_not_fails(monkeypatch):
+ import collector.dynamic_probes as d
+ monkeypatch.setattr(d,'active',lambda:[{'base':'a'}]);monkeypatch.setattr(d,'load',lambda:{'min_active_providers':2});r=d.pair(1);assert r['defer'] and not r['ok']
