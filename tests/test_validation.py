@@ -145,3 +145,12 @@ def test_singbox_protocol_credentials():
 def test_singbox_transport_type_missing_warns():
  raw='{"outbounds":[{"type":"vless","server":"a","server_port":443,"uuid":"00000000-0000-0000-0000-000000000000","transport":{}}]}'
  assert any(i['code']=='SINGBOX_TRANSPORT_TYPE_MISSING' for i in extract(raw)[0]['issues'])
+def test_singbox_refs_detour_and_route():
+ raw='{"inbounds":[{"type":"mixed","tag":"in"}],"outbounds":[{"type":"direct","tag":"d","detour":"gone"}],"route":{"rules":[{"inbound":["missing"],"outbound":"gone"}]}}'
+ codes={i['code'] for i in extract(raw)[0]['issues']}; assert {'SINGBOX_DETOUR_REF','SINGBOX_ROUTE_OUTBOUND_REF','SINGBOX_ROUTE_INBOUND_REF'}<=codes
+def test_singbox_dns_reference():
+ raw='{"outbounds":[{"type":"direct","tag":"d"}],"dns":{"servers":[{"tag":"cf","address":"1.1.1.1"}],"rules":[{"server":"gone"}]}}'
+ assert any(i['code']=='SINGBOX_DNS_SERVER_REF' for i in extract(raw)[0]['issues'])
+def test_singbox_refs_valid_links_clean():
+ raw='{"inbounds":[{"type":"mixed","tag":"in"}],"outbounds":[{"type":"direct","tag":"d"}],"route":{"rules":[{"inbound":["in"],"outbound":"d"}]},"dns":{"servers":[{"tag":"cf","address":"1.1.1.1"}],"rules":[{"server":"cf"}]}}'
+ codes={i['code'] for i in extract(raw)[0]['issues']}; assert not any(x.startswith('SINGBOX_ROUTE_') or x=='SINGBOX_DNS_SERVER_REF' for x in codes)
