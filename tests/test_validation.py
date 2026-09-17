@@ -287,3 +287,9 @@ def test_health_policy_requires_bidirectional_success():
 def test_health_policy_location_only_after_health():
  from collector.health_policy import POLICY
  assert POLICY['location_after_health_only'] and POLICY['cdn_classification'] and POLICY['healthy_recheck_seconds']==300
+def test_sandbox_uses_loopback_ephemeral_port():
+ from collector.network_sandbox import free_port
+ p=free_port();assert 1024<p<65536
+def test_probe_policy_requires_real_bytes_for_download():
+ from collector.health_policy import decide
+ assert decide(True,False,1)=='retry' and decide(True,False,2)=='remove'
