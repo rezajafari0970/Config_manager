@@ -147,3 +147,17 @@ def vmess_core_worker_state():
 def trojan_core_worker_state():
  from .trojan_worker import load
  return load()
+@app.get('/api/ss-recovery-worker')
+def ss_recovery_worker_state():
+ from .ss_recovery_worker import load
+ return load()
+@app.get('/api/ss-recovery-candidates')
+def ss_recovery_candidates(limit:int=50):
+ from .ss_classifier import classify
+ from .ss_recovery import candidate
+ c=connect();rows=c.execute("select id,raw from configs where kind='ss' order by id desc").fetchall();c.close();out=[]
+ for r in rows:
+  x=classify(r['raw'])
+  if x['class']=='vless-like-mislabeled':out.append({'id':r['id'],'class':x['class'],'confidence':x['confidence'],'original':r['raw'],'candidate':candidate(r['raw'])})
+  if len(out)>=min(limit,200):break
+ return {'items':out,'count':len(out)}
