@@ -1,0 +1,41 @@
+==================================================
+CONFIG MANAGER RUN
+==================================================
+Run ID: 20260917T011132Z-runner-selftest-32f2
+Name: runner-selftest
+Started UTC: 2026-09-17T01:11:32Z
+Host: serverprojects.ptr.network
+Kernel: Linux 7.0.0-31-generic
+Git before: 1ceb2f8
+==================================================
+
+[1/7] Config Manager Runner self-test
+[2/7] Go
+go version go1.27.1 linux/amd64
+[3/7] Xray
+Xray 26.3.27 (Xray, Penetrates Everything.) d2758a0 (go1.26.1 linux/amd64)
+[4/7] PostgreSQL
+psql (PostgreSQL) 18.6 (Ubuntu 18.6-0ubuntu0.26.04.1)
+PostgreSQL: active
+[5/7] GitHub remote
+origin	git@github-config-manager:rezajafari0970/Config_manager.git (fetch)
+origin	git@github-config-manager:rezajafari0970/Config_manager.git (push)
+[6/7] Resources
+CPU: 4
+               total        used        free      shared  buff/cache   available
+Mem:           7.8Gi       517Mi       6.1Gi        18Mi       1.4Gi       7.2Gi
+Swap:             0B          0B          0B
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/vda2       118G  4.9G  108G   5% /
+[7/7] Background execution
+
+RUNNER SELF-TEST SUCCESS
+
+==================================================
+FINISH
+==================================================
+Finished UTC: 2026-09-17T01:11:36Z
+Duration seconds: 4
+Exit code: 0
+Git after: 1ceb2f8
+==================================================
