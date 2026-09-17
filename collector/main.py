@@ -68,3 +68,6 @@ from fastapi.responses import PlainTextResponse
 @app.get('/api/configs/raw',response_class=PlainTextResponse)
 def configs_raw():
  c=connect(); rows=c.execute('SELECT raw FROM configs ORDER BY id').fetchall(); c.close(); return '\n'.join(x[0] for x in rows)
+@app.get('/api/quarantine/raw',response_class=PlainTextResponse)
+def quarantine_raw():
+ c=connect(); rows=c.execute('SELECT raw FROM quarantine ORDER BY id').fetchall(); c.close(); return '\n'.join(x[0] for x in rows)
