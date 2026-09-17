@@ -326,3 +326,7 @@ def test_network_intel_exposes_rdap_ptr_fields():
 def test_healthy_recheck_module_imports():
  from collector.healthy_recheck import one
  assert callable(one)
+def test_health_settings_bounds():
+ from collector.health_settings import save
+ x=save({'retry_seconds':1,'recheck_seconds':1,'max_concurrency':99});assert x['retry_seconds']==10 and x['recheck_seconds']==60 and x['max_concurrency']==8
+ save({'retry_seconds':30,'recheck_seconds':300,'max_concurrency':4})

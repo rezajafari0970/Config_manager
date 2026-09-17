@@ -170,3 +170,11 @@ def recovered_candidates(limit:int=50):
 @app.get('/api/health-dashboard')
 def health_dashboard():
  c=connect();st={r['stage']:r['n'] for r in c.execute('SELECT stage,COUNT(*) n FROM test_candidates GROUP BY stage')};res={r['result']:r['n'] for r in c.execute('SELECT result,COUNT(*) n FROM health_attempts GROUP BY result')};healthy=c.execute('SELECT COUNT(*) FROM healthy_configs').fetchone()[0];countries=[dict(r) for r in c.execute("SELECT country_flag,country_name,COUNT(*) count FROM healthy_configs GROUP BY country_code,country_name,country_flag ORDER BY count DESC")];cdn=[dict(r) for r in c.execute("SELECT cdn_state,COUNT(*) count FROM healthy_configs GROUP BY cdn_state")];items=[dict(r) for r in c.execute('SELECT h.remark,h.kind,h.country_name,h.asn,h.network_org,h.cdn_state,h.egress_ip,h.last_healthy,h.next_check,n.provider,n.hosting,n.cdn,n.cdn_provider,n.facility,n.facility_confidence FROM healthy_configs h LEFT JOIN network_intelligence n ON n.fingerprint=h.fingerprint ORDER BY h.last_healthy DESC LIMIT 50')];c.close();return {'stages':st,'results':res,'healthy':healthy,'countries':countries,'cdn':cdn,'items':items}
+@app.get('/api/health-settings')
+def get_health_settings():
+ from .health_settings import load
+ return load()
+@app.post('/api/health-settings')
+def set_health_settings(payload:dict):
+ from .health_settings import save
+ return save(payload)
