@@ -3,6 +3,7 @@ from .db import connect
 from .network_tester import test_one
 from .promote import promote
 from .health_settings import load
+from .lane_budget import enter as lane_enter,leave as lane_leave
 def claim(where,args=()):
  c=connect();c.execute('BEGIN IMMEDIATE');r=c.execute('SELECT * FROM test_candidates t WHERE '+where+' AND NOT EXISTS(SELECT 1 FROM health_claims h WHERE h.fingerprint=t.fingerprint) ORDER BY t.id LIMIT 1',args).fetchone()
  if r:c.execute('INSERT OR IGNORE INTO health_claims(fingerprint,claimed_at) VALUES(?,?)',(r['fingerprint'],time.time()))
@@ -18,7 +19,10 @@ def attempt_no(fp):
 def step():
  r=due_retry() or pick()
  if not r:return {'idle':True}
- n=attempt_no(r['fingerprint']);started=time.time();state,details=test_one(r,n);cost=(time.time()-started)*1000
+ n=attempt_no(r['fingerprint']);budget=lane_enter(r['lane'] or 'fast');started=time.time()
+ try:state,details=test_one(r,n)
+ finally:lane_leave(budget)
+ cost=(time.time()-started)*1000
  if state=='defer':
   c=connect();c.execute('DELETE FROM health_claims WHERE fingerprint=?',(r['fingerprint'],));c.commit();c.close();return {'id':r['id'],'kind':r['kind'],'attempt':n,'state':'defer','reason':details.get('probe',{}).get('reason')}
  if state=='healthy':details['enrichment']=promote(r)
