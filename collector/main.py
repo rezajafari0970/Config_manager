@@ -103,3 +103,11 @@ def intelligence_discover():
 def intelligence_proposals():
  from .learning import list_proposals
  return {'items':list_proposals()}
+@app.post('/api/intelligence/audit')
+def intelligence_audit():
+ from .auto_audit import run
+ return run()
+@app.get('/api/intelligence/audit')
+def intelligence_audit_state():
+ from .auto_audit import STATE
+ return STATE
