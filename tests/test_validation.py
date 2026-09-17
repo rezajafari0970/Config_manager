@@ -352,3 +352,6 @@ def test_high_throughput_capacity_bounded():
 def test_resource_scheduler_bounds():
  from collector.resource_scheduler import health_concurrency
  assert 1<=health_concurrency(8)<=8
+def test_autotune_module_loads():
+ from collector.autotune import throughput
+ assert throughput(60)>=0

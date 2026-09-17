@@ -203,3 +203,8 @@ def performance():
  from .throughput import sample
  from .resource_scheduler import snapshot
  return {**sample(),**snapshot()}
+@app.get('/api/autotune')
+def autotune_state():
+ import json,pathlib
+ try:return json.loads(pathlib.Path('/root/Config_manager/data/autotune.json').read_text())
+ except:return {'status':'warming-up'}
