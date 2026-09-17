@@ -6,7 +6,7 @@ from .db import init,connect
 from .engine import scheduler,fetch_one
 app=FastAPI(title='Config Manager'); app.mount('/static',StaticFiles(directory='collector/static'),name='static')
 @app.on_event('startup')
-async def start(): init(); asyncio.create_task(scheduler())
+async def start(): init()
 @app.get('/',response_class=HTMLResponse)
 def home(): return open('collector/templates/index.html',encoding='utf8').read()
 _stats_cache={'at':0.0,'data':None}
