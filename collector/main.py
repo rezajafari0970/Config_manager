@@ -119,3 +119,7 @@ def xray_audit_state():
 def xray_audit(limit:int=0,offset:int=0):
  from .xray_auditor import run
  return run(max(0,min(limit,5000)),max(0,offset))
+@app.get('/api/xray-worker')
+def xray_worker_state():
+ from .xray_worker import load
+ return load()
