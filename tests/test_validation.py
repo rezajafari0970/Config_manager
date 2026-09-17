@@ -253,3 +253,7 @@ def test_ss_classifier_identifies_vless_like_without_mutation():
  from collector.ss_classifier import classify
  raw='ss://00000000-0000-0000-0000-000000000000@example.com:443?encryption=none&security=none&type=tcp&headerType=http';before=raw
  x=classify(raw);assert x['class']=='vless-like-mislabeled' and x['suggested_scheme']=='vless' and raw==before
+def test_ss_recovery_candidate_does_not_mutate_raw():
+ from collector.ss_recovery import candidate
+ raw='ss://00000000-0000-0000-0000-000000000000@example.com:443?encryption=none&security=none&type=tcp';before=raw
+ v=candidate(raw);assert v.startswith('vless://') and raw==before
