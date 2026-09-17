@@ -200,3 +200,7 @@ def test_vless_reality_missing_key_is_hard():
  from collector.validator import validate,hard_errors
  raw='vless://00000000-0000-0000-0000-000000000000@example.com:443?type=xhttp&security=reality&sni='
  assert any(i['code']=='VLESS_REALITY_KEY_MISSING' for i in hard_errors(validate('vless',raw)))
+def test_vless_reality_missing_key_never_enters_healthy_extract():
+ from collector.validator import hard_errors
+ raw='vless://00000000-0000-0000-0000-000000000000@example.com:443?type=tcp&security=reality&sni=x'
+ x=extract(raw)[0]; assert hard_errors(x['issues']) and x['hard']
