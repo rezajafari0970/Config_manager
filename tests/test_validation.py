@@ -355,3 +355,6 @@ def test_resource_scheduler_bounds():
 def test_autotune_module_loads():
  from collector.autotune import throughput
  assert throughput(60)>=0
+def test_queue_lane_endpoint_policy():
+ import collector.main as m
+ assert m.queue_lanes()['policy']=={'fast':70,'normal':20,'slow':10,'idle_capacity':'borrowed'}

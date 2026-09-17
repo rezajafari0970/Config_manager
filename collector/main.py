@@ -208,3 +208,6 @@ def autotune_state():
  import json,pathlib
  try:return json.loads(pathlib.Path('/root/Config_manager/data/autotune.json').read_text())
  except:return {'status':'warming-up'}
+@app.get('/api/queue-lanes')
+def queue_lanes():
+ c=connect();rows=[dict(r) for r in c.execute("SELECT COALESCE(lane,'fast') lane,COUNT(*) count,ROUND(AVG(cost_ms),1) avg_ms FROM test_candidates WHERE stage='queued' GROUP BY COALESCE(lane,'fast')")];retry=c.execute("SELECT COUNT(*) FROM test_candidates WHERE stage='retry_wait'").fetchone()[0];c.close();return {'policy':{'fast':70,'normal':20,'slow':10,'idle_capacity':'borrowed'},'lanes':rows,'retry_wait':retry}

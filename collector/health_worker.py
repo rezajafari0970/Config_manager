@@ -7,7 +7,11 @@ def claim(where,args=()):
  c=connect();c.execute('BEGIN IMMEDIATE');r=c.execute('SELECT * FROM test_candidates t WHERE '+where+' AND NOT EXISTS(SELECT 1 FROM health_claims h WHERE h.fingerprint=t.fingerprint) ORDER BY t.id LIMIT 1',args).fetchone()
  if r:c.execute('INSERT OR IGNORE INTO health_claims(fingerprint,claimed_at) VALUES(?,?)',(r['fingerprint'],time.time()))
  c.commit();c.close();return r
-def pick():return claim("t.stage='queued' ORDER BY CASE COALESCE(t.lane,'fast') WHEN 'fast' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END,t.cost_ms,t.id --")
+def pick():
+ slot=int(time.time()*10)%10
+ lane='slow' if slot==0 else ('normal' if slot in (1,2) else 'fast')
+ r=claim("t.stage='queued' AND COALESCE(t.lane,'fast')=?",(lane,))
+ return r or claim("t.stage='queued'")
 def due_retry():return claim("t.stage='retry_wait' AND EXISTS(SELECT 1 FROM health_attempts a WHERE a.fingerprint=t.fingerprint GROUP BY a.fingerprint HAVING MAX(a.finished_at)<=?)",(time.time()-load()['retry_seconds'],))
 def attempt_no(fp):
  c=connect();n=c.execute('SELECT COUNT(*) FROM health_attempts WHERE fingerprint=?',(fp,)).fetchone()[0];c.close();return n+1
