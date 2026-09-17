@@ -311,3 +311,9 @@ def test_adaptive_health_capacity_bounded():
 def test_country_flag_and_remark_full_name():
  from collector.enrichment import flag
  assert flag('DE')=='🇩🇪' and flag('IR')=='🇮🇷'
+def test_network_intel_never_invents_facility():
+ from collector.network_intel import classify
+ r=classify('__test_facility__',{'network_org':'Hetzner Online GmbH','asn':'24940','egress_ip':'1.2.3.4'});assert r['hosting'] and not r['cdn'] and r['facility'] is None and r['facility_confidence']==0
+def test_network_intel_detects_known_cdn_org():
+ from collector.network_intel import classify
+ r=classify('__test_cdn__',{'network_org':'Cloudflare, Inc.','asn':'13335','egress_ip':'1.1.1.1'});assert r['cdn'] and r['cdn_provider']=='Cloudflare'
