@@ -257,3 +257,6 @@ def test_ss_recovery_candidate_does_not_mutate_raw():
  from collector.ss_recovery import candidate
  raw='ss://00000000-0000-0000-0000-000000000000@example.com:443?encryption=none&security=none&type=tcp';before=raw
  v=candidate(raw);assert v.startswith('vless://') and raw==before
+def test_recovered_pool_never_labels_core_pass_as_healthy():
+ from collector.recovered_pool import sync
+ x=sync();assert x['status']=='structurally_verified' and 'healthy' not in x['status']

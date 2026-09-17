@@ -164,3 +164,6 @@ def ss_recovery_candidates(limit:int=50):
 @app.get('/api/recovery-registry')
 def recovery_registry(limit:int=50):
  c=connect();rows=c.execute('SELECT id,original_kind,candidate_kind,class,confidence,validator_ok,xray_ok,singbox_ok,recoverable,first_seen,last_seen,hits FROM recovery_registry ORDER BY last_seen DESC LIMIT ?',(min(limit,200),)).fetchall();total=c.execute('SELECT COUNT(*) FROM recovery_registry').fetchone()[0];c.close();return {'total':total,'items':[dict(r) for r in rows]}
+@app.get('/api/recovered-candidates')
+def recovered_candidates(limit:int=50):
+ c=connect();rows=c.execute('SELECT id,kind,status,source,first_seen,last_seen FROM recovered_candidates ORDER BY last_seen DESC LIMIT ?',(min(limit,200),)).fetchall();total=c.execute('SELECT COUNT(*) FROM recovered_candidates').fetchone()[0];c.close();return {'total':total,'health_definition':'NOT_HEALTHY_UNTIL_UPLOAD_AND_DOWNLOAD_PASS','items':[dict(r) for r in rows]}
