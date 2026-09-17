@@ -100,3 +100,12 @@ def test_xray_system_inbound_duplicate_tag_warn():
 def test_xray_system_policy_api_shape_warn():
  raw='{"policy":[],"api":[],"outbounds":[{"protocol":"freedom","settings":{}}]}'
  codes={i['code'] for i in extract(raw)[0]['issues']}; assert {'XRAY_POLICY_SHAPE','XRAY_API_SHAPE'}<=codes
+def test_xray_refs_missing_outbound_warns():
+ raw='{"routing":{"rules":[{"outboundTag":"missing"}]},"outbounds":[{"tag":"direct","protocol":"freedom","settings":{}}]}'
+ assert any(i['code']=='XRAY_ROUTE_OUTBOUND_REF' for i in extract(raw)[0]['issues'])
+def test_xray_refs_proxy_missing_warns():
+ raw='{"outbounds":[{"tag":"proxy","protocol":"freedom","settings":{},"proxySettings":{"tag":"gone"}}]}'
+ assert any(i['code']=='XRAY_PROXY_REF' for i in extract(raw)[0]['issues'])
+def test_xray_refs_virtual_dns_tags_preserved():
+ raw='{"routing":{"rules":[{"inboundTag":["dns-proxy","dns-direct"],"outboundTag":"api"}]},"outbounds":[{"tag":"direct","protocol":"freedom","settings":{}}]}'
+ codes={i['code'] for i in extract(raw)[0]['issues']}; assert 'XRAY_ROUTE_INBOUND_REF' not in codes and 'XRAY_ROUTE_OUTBOUND_REF' not in codes
