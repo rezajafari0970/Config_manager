@@ -349,3 +349,6 @@ def test_subscription_routes_exist():
 def test_high_throughput_capacity_bounded():
  from collector.adaptive_health import capacity
  assert 1<=capacity()<=16
+def test_resource_scheduler_bounds():
+ from collector.resource_scheduler import health_concurrency
+ assert 1<=health_concurrency(8)<=8

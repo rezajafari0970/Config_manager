@@ -17,5 +17,6 @@ def init():
  for cname,ctype in [('rdap_network','TEXT'),('reverse_dns','TEXT')]:
   try:c.execute('ALTER TABLE network_intelligence ADD COLUMN '+cname+' '+ctype)
   except:pass
+ c.execute('''CREATE TABLE IF NOT EXISTS throughput_samples(id INTEGER PRIMARY KEY,ts REAL NOT NULL,attempts INTEGER NOT NULL,healthy INTEGER NOT NULL,queued INTEGER NOT NULL)''')
  for n,d in [('raw_count','INTEGER DEFAULT 0'),('new_count','INTEGER DEFAULT 0'),('known_count','INTEGER DEFAULT 0'),('lifetime_seen','INTEGER DEFAULT 0'),('consecutive_errors','INTEGER DEFAULT 0'),('issue_count','INTEGER DEFAULT 0')]: col(c,'sources',n,d)
  c.commit(); c.close()

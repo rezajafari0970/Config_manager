@@ -198,3 +198,8 @@ def sub_datacenter(asn:str):return _healthy_sub('AND asn=?',(asn,))
 @app.get('/api/subscription-index')
 def subscription_index():
  c=connect();countries=[dict(r) for r in c.execute('SELECT country_code code,country_flag flag,country_name name,COUNT(*) count FROM healthy_configs GROUP BY country_code,country_flag,country_name ORDER BY country_name')];dcs=[dict(r) for r in c.execute("SELECT asn,network_org name,COUNT(*) count FROM healthy_configs WHERE asn IS NOT NULL AND asn!='' GROUP BY asn,network_org ORDER BY count DESC")];cdn=c.execute("SELECT SUM(cdn_state='cdn') cdn,SUM(cdn_state!='cdn') noncdn FROM healthy_configs").fetchone();total=c.execute('SELECT COUNT(*) FROM healthy_configs').fetchone()[0];c.close();return {'total':total,'countries':countries,'datacenters':dcs,'cdn':cdn['cdn'] or 0,'noncdn':cdn['noncdn'] or 0}
+@app.get('/api/performance')
+def performance():
+ from .throughput import sample
+ from .resource_scheduler import snapshot
+ return {**sample(),**snapshot()}
