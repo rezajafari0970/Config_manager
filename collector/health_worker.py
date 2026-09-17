@@ -1,6 +1,7 @@
 import time,json
 from .db import connect
 from .network_tester import test_one
+from .promote import promote
 def claim(where,args=()):
  c=connect();c.execute('BEGIN IMMEDIATE');r=c.execute('SELECT * FROM test_candidates t WHERE '+where+' AND NOT EXISTS(SELECT 1 FROM health_claims h WHERE h.fingerprint=t.fingerprint) ORDER BY t.id LIMIT 1',args).fetchone()
  if r:c.execute('INSERT OR IGNORE INTO health_claims(fingerprint,claimed_at) VALUES(?,?)',(r['fingerprint'],time.time()))
@@ -13,6 +14,7 @@ def step():
  r=due_retry() or pick()
  if not r:return {'idle':True}
  n=attempt_no(r['fingerprint']);state,details=test_one(r,n)
+ if state=='healthy':details['enrichment']=promote(r)
  c=connect()
  if state=='remove':c.execute("DELETE FROM test_candidates WHERE fingerprint=?",(r['fingerprint'],))
  c.execute('DELETE FROM health_claims WHERE fingerprint=?',(r['fingerprint'],));c.commit();c.close()

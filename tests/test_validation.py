@@ -308,3 +308,6 @@ def test_dynamic_probe_requires_independent_provider_bases():
 def test_adaptive_health_capacity_bounded():
  from collector.adaptive_health import capacity
  assert 1<=capacity()<=4
+def test_country_flag_and_remark_full_name():
+ from collector.enrichment import flag
+ assert flag('DE')=='🇩🇪' and flag('IR')=='🇮🇷'
