@@ -1,4 +1,5 @@
 import json,tempfile,subprocess,time,os,socket
+from .health_settings import load
 from .vless_adapter import xray as vx
 from .vmess_adapter import xray as mx
 from .trojan_adapter import xray as tx
@@ -16,11 +17,12 @@ def start(kind,raw):
   port=free_port();f=tempfile.NamedTemporaryFile('w',suffix='.json',delete=False);json.dump(build(kind,raw,port),f);f.close()
  except Exception as e:return {'ok':False,'error':'build:'+type(e).__name__}
  p=subprocess.Popen(['/usr/local/bin/xray','run','-c',f.name],stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,text=True,start_new_session=True)
- for _ in range(30):
+ deadline=time.time()+load()['startup_timeout_ms']/1000
+ while time.time()<deadline:
   if p.poll() is not None:break
-  s=socket.socket();s.settimeout(.1)
+  s=socket.socket();s.settimeout(.05)
   try:s.connect(('127.0.0.1',port));s.close();return {'ok':True,'process':p,'file':f.name,'port':port,'started':time.time()}
-  except:time.sleep(.1)
+  except:time.sleep(.03)
  err=(p.stderr.read()[-500:] if p.poll() is not None else 'startup-timeout');stop({'process':p,'file':f.name});return {'ok':False,'error':err}
 def stop(h):
  p=h.get('process');

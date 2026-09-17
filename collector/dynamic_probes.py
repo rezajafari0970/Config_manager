@@ -2,7 +2,7 @@ import os,random,subprocess,time
 from .provider_pool import active
 from .health_settings import load
 def run(port,url,upload=False):
- cmd=['/usr/bin/curl','-fsS','--max-time','8','--socks5-hostname',f'127.0.0.1:{port}'];payload=None
+ cfg=load();cmd=['/usr/bin/curl','-fsS','--connect-timeout',str(cfg['connect_timeout']),'--max-time',str(cfg['probe_timeout']),'--socks5-hostname',f'127.0.0.1:{port}'];payload=None
  if upload:payload=os.urandom(load()['upload_bytes']);cmd+=['-X','POST','--data-binary','@-']
  else:
   kb=load()['download_kb'];url+=(('?ckSize='+str(kb)) if '?' not in url else ('&ckSize='+str(kb)))
