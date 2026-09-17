@@ -81,6 +81,8 @@ def xray_deep(raw):
  for key in ('inbounds','routing'):
   if key=='inbounds' and key in o and not isinstance(o[key],list): z.append(issue('XRAY_INBOUNDS_NOT_ARRAY','inbounds must be an array'))
  if 'stats' in o and not isinstance(o['stats'],dict): z.append(issue('XRAY_STATS_NOT_OBJECT','stats should be an object',WARN))
+ dns=o.get('dns')
+ if isinstance(dns,dict) and 'hosts' in dns and not isinstance(dns['hosts'],dict): z.append(issue('XRAY_DNS_HOSTS_NOT_OBJECT','dns.hosts should be an object',WARN))
  return z
 _old_validate=validate
 def singbox_config(raw):

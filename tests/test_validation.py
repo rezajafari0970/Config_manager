@@ -60,3 +60,7 @@ def test_regression_gate_repair_is_valid():
  from collector.validator import validate,hard_errors
  raw='{"outbounds":[{"protocol":"freedom","settings":[]}],"stats":[]}'
  x=repair('json-xray',raw); assert x and not hard_errors(validate('json-xray',x['raw']))
+def test_xray_dns_hosts_array_safe_repair():
+ from collector.repair import repair
+ raw='{"dns":{"hosts":[]},"outbounds":[{"protocol":"freedom","settings":{}}]}'
+ x=extract(raw)[0]; assert any(i['code']=='XRAY_DNS_HOSTS_NOT_OBJECT' for i in x['issues']); r=repair('json-xray',raw); assert '"hosts":{}' in r['raw']
