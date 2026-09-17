@@ -49,3 +49,25 @@ def validate(kind,raw):
  if kind.startswith('json-'): return json_config(raw)[1]
  return link(kind,raw)
 def hard_errors(issues): return [x for x in issues if x['level']==HARD]
+def xray_deep(raw):
+ kind,z=json_config(raw)
+ if kind!='json-xray' or hard_errors(z): return z
+ o=json.loads(raw); tags=set()
+ for i,x in enumerate(o.get('outbounds',[])):
+  tag=x.get('tag')
+  if tag:
+   if tag in tags: z.append(issue('XRAY_DUPLICATE_OUTBOUND_TAG',f'duplicate outbound tag: {tag}'))
+   tags.add(tag)
+  settings=x.get('settings')
+  if settings is not None and not isinstance(settings,dict): z.append(issue('XRAY_SETTINGS_NOT_OBJECT',f'outbounds[{i}].settings should be object',WARN))
+  stream=x.get('streamSettings')
+  if stream is not None and not isinstance(stream,dict): z.append(issue('XRAY_STREAM_NOT_OBJECT',f'outbounds[{i}].streamSettings must be object'))
+ for key in ('inbounds','routing'):
+  if key=='inbounds' and key in o and not isinstance(o[key],list): z.append(issue('XRAY_INBOUNDS_NOT_ARRAY','inbounds must be an array'))
+ if 'stats' in o and not isinstance(o['stats'],dict): z.append(issue('XRAY_STATS_NOT_OBJECT','stats should be an object',WARN))
+ return z
+_old_validate=validate
+def validate(kind,raw):
+ if kind=='json-xray': return xray_deep(raw)
+ if kind=='json-custom': return json_config(raw)[1]
+ return link(kind,raw)

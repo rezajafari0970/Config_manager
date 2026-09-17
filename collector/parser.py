@@ -16,7 +16,7 @@ def extract(text):
   b=body.strip()
   if b.startswith(('{','[')):
    kind,issues=json_config(b)
-   if kind!='json-invalid': found.append((kind,b,issues))
+   if kind!='json-invalid': found.append((kind,b,validate(kind,b)))
  out=[]; seen=set()
  for kind,raw,issues in found:
   fp=hashlib.sha256(raw.encode()).hexdigest()
