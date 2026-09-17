@@ -10,14 +10,15 @@ from .stage_limits import startup_enter,startup_leave,probe_enter,probe_leave
 from .canary_route import group as canary_group,limits as canary_limits,record as canary_record
 from .canary_stats import add as canary_sample
 from .protocol_timeout import get as protocol_timeout
+from .stage_profiler import add as sp_add
 def test_one(row,attempt=1):
- t=time.time();cg=canary_group(row['fingerprint']);cl=canary_limits(cg);x=time.time();startup_enter(cl[0]);enter('startup')
+ t=time.time();cg=canary_group(row['fingerprint']);cl=canary_limits(cg);x=time.time();w=time.time();startup_enter(cl[0]);sp_add('startup_wait_ms',(time.time()-w)*1000);enter('startup')
  try:h=start(row['kind'],row['raw'])
  finally:leave('startup');startup_leave()
- sandbox_ms=(time.time()-x)*1000;d=u=False;details={'sandbox':h.get('ok',False)}
+ sandbox_ms=(time.time()-x)*1000;sp_add('startup_exec_ms',sandbox_ms);d=u=False;details={'sandbox':h.get('ok',False)}
  if h.get('ok'):
   try:
-   before=snapshot(h);x=time.time();pr=pair(h['port'],protocol_timeout(row['kind'],row['raw']));probe_ms=(time.time()-x)*1000;after=snapshot(h)
+   before=snapshot(h);x=time.time();w=time.time();probe_enter(cl[1]);sp_add('probe_wait_ms',(time.time()-w)*1000);pr=pair(h['port'],protocol_timeout(row['kind'],row['raw']));probe_ms=(time.time()-x)*1000;sp_add('probe_exec_ms',probe_ms);probe_leave();after=snapshot(h)
    if pr.get('defer'):return 'defer',{'sandbox':True,'probe':pr}
    traffic=verified(before,after);d=bool(pr.get('download',{}).get('ok'));u=bool(pr.get('upload',{}).get('ok'));details.update(probe=pr,download=[pr.get('download',{})],upload=[pr.get('upload',{})],traffic_verified=traffic,io_delta=after['io']-before['io']);d=d and traffic;u=u and traffic
   finally:stop(h)
