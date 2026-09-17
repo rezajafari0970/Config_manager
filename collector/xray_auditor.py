@@ -25,7 +25,7 @@ def run(limit=0,offset=0):
    x=repair(row['kind'],row['raw']);data=x['raw'] if x else row['raw'];fn=None
    try:
     with tempfile.NamedTemporaryFile('w',suffix='.json',delete=False) as f:f.write(data);fn=f.name
-    p=subprocess.run(['/usr/local/bin/xray','run','-test','-c',fn],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=3);tested+=1
+    p=subprocess.run(['/usr/bin/timeout','2s','/usr/local/bin/xray','run','-test','-c',fn],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=2.5);tested+=1
     if p.returncode==0:ok+=1
     else:failed+=1;k=category(p.stdout);C[k]=C.get(k,0)+1
    except subprocess.TimeoutExpired:failed+=1;C['TIMEOUT']=C.get('TIMEOUT',0)+1
