@@ -118,3 +118,10 @@ def test_xray_mutation_broken_reference_detected():
  from collector.validator import validate
  raw='{"routing":{"rules":[{"outboundTag":"gone"}]},"outbounds":[{"tag":"direct","protocol":"freedom","settings":{}}]}'
  assert any(i['code']=='XRAY_ROUTE_OUTBOUND_REF' for i in validate('json-xray',raw))
+def test_xray_advanced_mutations_detected():
+ from collector.validator import validate
+ cases=[
+ '{"outbounds":[{"protocol":"vless","settings":{"vnext":[{"address":"","port":443,"users":[{"id":"x"}]}]}}]}',
+ '{"outbounds":[{"protocol":"vless","settings":{"vnext":[{"address":"a","port":70000,"users":[]}]}}]}',
+ '{"outbounds":[{"protocol":"vless","settings":{},"streamSettings":{"network":"ws","wsSettings":[]}}]}' ]
+ assert all(validate('json-xray',x) for x in cases)
