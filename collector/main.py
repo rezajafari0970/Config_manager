@@ -64,3 +64,7 @@ def quarantine(limit:int=100):
 @app.delete('/api/quarantine')
 def clear_quarantine():
  c=connect(); n=c.execute('SELECT COUNT(*) FROM quarantine').fetchone()[0]; c.execute('DELETE FROM quarantine'); c.commit(); c.close(); return {'ok':True,'deleted':n}
+from fastapi.responses import PlainTextResponse
+@app.get('/api/configs/raw',response_class=PlainTextResponse)
+def configs_raw():
+ c=connect(); rows=c.execute('SELECT raw FROM configs ORDER BY id').fetchall(); c.close(); return '\n'.join(x[0] for x in rows)
