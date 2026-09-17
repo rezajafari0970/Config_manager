@@ -276,3 +276,6 @@ def test_wireguard_deep_required_fields():
 def test_wireguard_raw_preserved():
  import base64
  k=base64.b64encode(b'x'*32).decode();raw=f'wireguard://{k}@example.com:51820?publickey={k}&address=10.0.0.2%2F32#n';x=extract(raw)[0];assert x['raw']==raw and not x['hard']
+def test_health_requires_both_upload_and_download():
+ from collector.test_queue import mark_result
+ assert not mark_result('__missing__',True,False) and not mark_result('__missing__',False,True)
