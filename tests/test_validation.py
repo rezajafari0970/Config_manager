@@ -43,3 +43,12 @@ def test_wireguard_fixture():
  x=extract('wireguard://key@example.com:51820#x')[0]; assert x['kind']=='wireguard' and not x['hard']
 def test_custom_json_fixture_preserved():
  raw='{"vendor":"custom","servers":[{"host":"example.com","port":443}],"opaque":{"a":[1,2]}}'; x=extract(raw)[0]; assert x['kind']=='json-custom' and x['raw']==raw
+def test_intelligence_valid_state():
+ from collector.intelligence import analyze
+ assert analyze('vless','vless://11111111-1111-1111-1111-111111111111@example.com:443')['state']=='valid'
+def test_intelligence_warning_state():
+ from collector.intelligence import analyze
+ assert analyze('vless','vless://custom-id@example.com:443')['state']=='compatible-nonstandard'
+def test_intelligence_repairable_xray():
+ from collector.intelligence import analyze
+ assert analyze('json-xray','{"outbounds":[{"protocol":"freedom","settings":[]}]}')['state']=='repairable'

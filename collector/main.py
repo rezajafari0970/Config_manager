@@ -86,3 +86,8 @@ def repairs(limit:int=100):
 @app.get('/api/configs/repaired',response_class=PlainTextResponse)
 def repaired_configs():
  c=connect(); rows=c.execute('''SELECT COALESCE(r.raw_repaired,c.raw) FROM configs c LEFT JOIN repairs r ON r.fingerprint=c.fingerprint ORDER BY c.id''').fetchall(); c.close(); return '\n'.join(x[0] for x in rows)
+@app.get('/api/intelligence')
+def intelligence():
+ import json
+ from .intelligence import learn_snapshot
+ c=connect(); snap=learn_snapshot(c); states={r[0]:r[1] for r in c.execute('SELECT state,COUNT(*) FROM intelligence_events WHERE seen_at>? GROUP BY state',(time.time()-3600,))}; c.close(); return {**snap,'recent_states':states}

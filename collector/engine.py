@@ -1,6 +1,7 @@
 import asyncio,time,httpx
 from .db import connect
 from .parser import extract
+from .intelligence import analyze
 from .runtime import STATE
 from .resources import allowed
 running=set()
@@ -15,9 +16,10 @@ async def fetch_one(row):
    items=extract(resp.text)
   c=connect(); c.execute('DELETE FROM issues WHERE source_id=?',(sid,)); raw_count=len(items); valid=invalid=dups=new=known=0; seen=set()
   for it in items:
-   fp=it['fingerprint']
+   fp=it['fingerprint']; intel=analyze(it['kind'],it['raw'])
    if fp in seen: dups+=1; continue
    seen.add(fp)
+   if intel['state']!='valid': c.execute('INSERT INTO intelligence_events(fingerprint,source_id,kind,state,confidence,engine_version,details,seen_at) VALUES(?,?,?,?,?,?,?,?)',(fp,sid,it['kind'],intel['state'],intel['confidence'],intel['version'],';'.join(x['code'] for x in intel['issues']),now))
    if it['issues']:
     for problem in it['issues']:
      c.execute('INSERT INTO issues(source_id,seen_at,kind,code,raw,repairable) VALUES(?,?,?,?,?,0)',(sid,now,it['kind'],problem['code']+': '+problem['message'],it['raw'][:4000]))
