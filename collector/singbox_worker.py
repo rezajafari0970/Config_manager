@@ -1,5 +1,6 @@
 import json,os,time
 from .db import connect
+from .workload_gate import allow_background
 from .singbox_core import check
 STATE='/root/Config_manager/data/singbox_audit_state.json'
 def load():
@@ -8,6 +9,7 @@ def load():
 def save(s):
  t=STATE+'.tmp';open(t,'w').write(json.dumps(s));os.replace(t,STATE)
 def step():
+ if not allow_background():return {'deferred':True,'reason':'health-priority'}
  s=load();c=connect();rows=c.execute("select id,raw from configs where kind='json-singbox' order by id").fetchall();c.close();total=len(rows);s['total']=total
  if not total:s.update(offset=0,last={'tested':0,'ok':0,'failed':0,'idle':True},updated=time.time());save(s);return s
  if s['offset']>=total:s['offset']=0;s['round']+=1
