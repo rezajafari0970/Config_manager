@@ -228,3 +228,7 @@ def server_telemetry():
 def system_pressure():
  from .system_pressure import snapshot
  return snapshot()
+@app.get('/api/governor')
+def governor():
+ from .global_governor import snapshot
+ return snapshot()

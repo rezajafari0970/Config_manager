@@ -4,11 +4,12 @@ from .parser import extract
 from .intelligence import analyze
 from .runtime import STATE
 from .resources import allowed
+from .global_governor import fetch_limit
 running=set()
 async def fetch_one(row):
  sid=row['id']; running.add(sid); start=time.monotonic(); now=time.time()
  try:
-  while not allowed(STATE['active']): await asyncio.sleep(.15)
+  while STATE['active']>=fetch_limit(): await asyncio.sleep(.15)
   STATE['active']+=1
   async with httpx.AsyncClient(timeout=httpx.Timeout(8,connect=4),follow_redirects=True,headers={'User-Agent':'ConfigManager/2.0'}) as client:
    resp=await client.get(row['url']); resp.raise_for_status()
