@@ -33,6 +33,8 @@ def link(kind,raw):
    if not str(o.get('add','')).strip(): z.append(issue('VMESS_MISSING_ADDRESS','VMess address is missing'))
    if not port(o.get('port')): z.append(issue('VMESS_INVALID_PORT','VMess port is missing or invalid'))
    if not uuid_ok(o.get('id')): z.append(issue('VMESS_INVALID_UUID','VMess UUID is invalid'))
+   from .vmess_deep import audit as vmess_audit
+   z.extend(vmess_audit(raw))
    return z
   p=urllib.parse.urlsplit(raw); host=p.hostname
   if not host: z.append(issue('MISSING_HOST','Server host is missing'))

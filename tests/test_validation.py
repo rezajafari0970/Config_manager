@@ -204,3 +204,14 @@ def test_vless_reality_missing_key_never_enters_healthy_extract():
  from collector.validator import hard_errors
  raw='vless://00000000-0000-0000-0000-000000000000@example.com:443?type=tcp&security=reality&sni=x'
  x=extract(raw)[0]; assert hard_errors(x['issues']) and x['hard']
+def test_vmess_deep_fuzz_fields():
+ import json,base64
+ from collector.validator import validate
+ def e(o):return 'vmess://'+base64.urlsafe_b64encode(json.dumps(o).encode()).decode().rstrip('=')
+ b={'add':'a','port':'443','id':'00000000-0000-0000-0000-000000000000','net':'tcp'}
+ assert any(x['code']=='VMESS_UNKNOWN_NETWORK' for x in validate('vmess',e({**b,'net':'future'})))
+ assert any(x['code']=='VMESS_ALTERID_INVALID' for x in validate('vmess',e({**b,'aid':'x'})))
+def test_vmess_raw_preserved():
+ import json,base64
+ o={'add':'a','port':'443','id':'00000000-0000-0000-0000-000000000000','net':'ws','extra':'future'};raw='vmess://'+base64.urlsafe_b64encode(json.dumps(o).encode()).decode().rstrip('=')
+ assert extract(raw)[0]['raw']==raw
