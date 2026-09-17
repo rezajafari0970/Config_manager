@@ -29,3 +29,17 @@ def test_safe_xray_repair_keeps_original_immutable():
 def test_custom_json_never_auto_repaired():
  from collector.repair import repair
  assert repair('json-custom','{"settings":[],"stats":[]}') is None
+def test_singbox_detect_preserve():
+ raw='{"log":{"level":"info"},"outbounds":[{"type":"direct","tag":"direct"}],"route":{"rules":[]}}'; x=extract(raw)[0]; assert x['kind']=='json-singbox' and x['raw']==raw and not x['hard']
+def test_singbox_missing_type_hard(): assert extract('{"outbounds":[{"tag":"x","type":"direct"},{"tag":"y"}]}')[0]['hard']
+def test_singbox_duplicate_tag_hard(): assert extract('{"outbounds":[{"type":"direct","tag":"x"},{"type":"block","tag":"x"}]}')[0]['hard']
+def test_singbox_unknown_fields_preserved():
+ raw='{"outbounds":[{"type":"direct","tag":"d","future":{"x":1}}],"experimental":{"cache_file":{"enabled":true}}}'; x=extract(raw)[0]; assert x['raw']==raw and not x['hard']
+def test_hy2_fixture():
+ x=extract('hy2://auth@example.com:443?sni=example.com#x')[0]; assert x['kind']=='hy2' and not x['hard']
+def test_hy_fixture():
+ x=extract('hysteria://auth@example.com:443?sni=example.com#x')[0]; assert x['kind']=='hy' and not x['hard']
+def test_wireguard_fixture():
+ x=extract('wireguard://key@example.com:51820#x')[0]; assert x['kind']=='wireguard' and not x['hard']
+def test_custom_json_fixture_preserved():
+ raw='{"vendor":"custom","servers":[{"host":"example.com","port":443}],"opaque":{"a":[1,2]}}'; x=extract(raw)[0]; assert x['kind']=='json-custom' and x['raw']==raw

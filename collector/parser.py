@@ -16,7 +16,12 @@ def extract(text):
   b=body.strip()
   if b.startswith(('{','[')):
    kind,issues=json_config(b)
-   if kind!='json-invalid': found.append((kind,b,validate(kind,b)))
+   if kind!='json-invalid':
+    try:
+     jo=json.loads(b)
+     if isinstance(jo,dict) and isinstance(jo.get('outbounds'),list) and jo['outbounds'] and all(isinstance(x,dict) for x in jo['outbounds']) and any('type' in x for x in jo['outbounds']) and not any('protocol' in x for x in jo['outbounds']): kind='json-singbox'
+    except: pass
+    found.append((kind,b,validate(kind,b)))
  out=[]; seen=set()
  for kind,raw,issues in found:
   fp=hashlib.sha256(raw.encode()).hexdigest()

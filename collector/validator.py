@@ -83,7 +83,24 @@ def xray_deep(raw):
  if 'stats' in o and not isinstance(o['stats'],dict): z.append(issue('XRAY_STATS_NOT_OBJECT','stats should be an object',WARN))
  return z
 _old_validate=validate
+def singbox_config(raw):
+ try:o=json.loads(raw)
+ except Exception as e:return [issue('SINGBOX_JSON_PARSE_ERROR',type(e).__name__)]
+ if not isinstance(o,dict):return [issue('SINGBOX_NOT_OBJECT','sing-box config must be an object')]
+ z=[]; outs=o.get('outbounds')
+ if not isinstance(outs,list) or not outs:return [issue('SINGBOX_NO_OUTBOUNDS','sing-box outbounds are missing')]
+ tags=set()
+ for i,x in enumerate(outs):
+  if not isinstance(x,dict):z.append(issue('SINGBOX_OUTBOUND_NOT_OBJECT',f'outbounds[{i}] is not an object'));continue
+  typ=x.get('type')
+  if not isinstance(typ,str) or not typ:z.append(issue('SINGBOX_MISSING_TYPE',f'outbounds[{i}].type is missing'))
+  tag=x.get('tag')
+  if tag and tag in tags:z.append(issue('SINGBOX_DUPLICATE_TAG',f'duplicate outbound tag: {tag}'))
+  if tag:tags.add(tag)
+ return z
+
 def validate(kind,raw):
  if kind=='json-xray': return xray_deep(raw)
+ if kind=='json-singbox': return singbox_config(raw)
  if kind=='json-custom': return json_config(raw)[1]
  return link(kind,raw)
