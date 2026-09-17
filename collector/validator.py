@@ -46,7 +46,7 @@ def link(kind,raw):
   user=urllib.parse.unquote(p.username or '')
   if kind=='vless' and not uuid_ok(user): z.append(issue('VLESS_NONSTANDARD_ID','VLESS user id is non-standard; preserved for client compatibility',WARN))
   if kind=='trojan' and not user: z.append(issue('TROJAN_MISSING_PASSWORD','Trojan password is missing'))
-  if kind in ('hy','hy2') and not user: z.append(issue('HY_MISSING_AUTH','Hysteria authentication is missing'))
+  if kind=='hy2' and not user: z.append(issue('HY_MISSING_AUTH','Hysteria2 authentication is missing'))
   if kind=='ss' and not (p.username or p.netloc): z.append(issue('SS_MISSING_CREDENTIALS','Shadowsocks credentials are missing'))
  except Exception as e: z.append(issue('LINK_PARSE_ERROR',type(e).__name__))
  if kind=='vless':
@@ -55,6 +55,9 @@ def link(kind,raw):
  if kind=='trojan':
   from .trojan_deep import audit as trojan_audit
   z.extend(trojan_audit(raw))
+ if kind in ('hy','hy2'):
+  from .hysteria_deep import audit as hy_audit
+  z.extend(hy_audit(kind,raw))
  return z
 def json_config(raw):
  try: o=json.loads(raw)

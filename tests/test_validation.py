@@ -260,3 +260,13 @@ def test_ss_recovery_candidate_does_not_mutate_raw():
 def test_recovered_pool_never_labels_core_pass_as_healthy():
  from collector.recovered_pool import sync
  x=sync();assert x['status']=='structurally_verified' and 'healthy' not in x['status']
+def test_hy2_deep_valid_and_missing_auth():
+ from collector.validator import validate,hard_errors
+ good='hy2://pass@example.com:443?sni=x.example';bad='hy2://@example.com:443?sni=x.example'
+ assert not hard_errors(validate('hy2',good)) and any(x['code'] in ('HY_MISSING_AUTH','HY2_AUTH_MISSING') for x in hard_errors(validate('hy2',bad)))
+def test_hy1_query_auth_and_raw_preserved():
+ raw='hy://example.com:443?auth=token&peer=x.example&upmbps=10&downmbps=20#n';x=extract(raw)[0]
+ assert not x['hard'] and x['raw']==raw
+def test_hysteria_bad_port_detected():
+ from collector.validator import validate,hard_errors
+ assert hard_errors(validate('hy2','hy2://pass@example.com:70000?sni=x'))
