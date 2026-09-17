@@ -13,5 +13,5 @@ def main():
   t=time.time()
   try:r=run_batch();busy=any(not x.get('idle') and x.get('state')!='defer' for x in r.get('results',[]));idle=0 if busy else min(idle+1,10)
   except Exception:idle=min(idle+1,10)
-  delay=.03 if idle==0 else min(1,.05*(2**idle));time.sleep(max(0,delay-(time.time()-t)*.01))
+  delay=.005 if idle==0 else min(2,.1*(2**idle));time.sleep(max(0,delay-(time.time()-t)*.01))
 if __name__=='__main__':main()
