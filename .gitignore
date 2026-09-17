@@ -1,0 +1,9 @@
+.env
+.env.*
+*.key
+*.pem
+data/
+tmp/
+logs/
+secrets/
+config.local.*
