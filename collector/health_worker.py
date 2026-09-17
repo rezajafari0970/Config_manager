@@ -7,15 +7,21 @@ from .lane_budget import enter as lane_enter,leave as lane_leave
 from .lifecycle_trace import event
 from .dispatch_metrics import add as dm_add,start as dm_start,finish as dm_finish
 def claim(where,args=()):
- c=connect();c.execute('BEGIN IMMEDIATE');r=c.execute('SELECT * FROM test_candidates t WHERE '+where+' AND NOT EXISTS(SELECT 1 FROM health_claims h WHERE h.fingerprint=t.fingerprint) ORDER BY t.updated_at ASC,t.id ASC LIMIT 1',args).fetchone()
- if r:c.execute('INSERT OR IGNORE INTO health_claims(fingerprint,claimed_at) VALUES(?,?)',(r['fingerprint'],time.time()))
- c.commit();c.close();return r
+ c=connect();now=time.time()
+ try:
+  c.execute('BEGIN IMMEDIATE')
+  r=c.execute('SELECT * FROM test_candidates t WHERE '+where+' AND NOT EXISTS(SELECT 1 FROM health_claims h WHERE h.fingerprint=t.fingerprint) ORDER BY t.updated_at ASC,t.id ASC LIMIT 1',args).fetchone()
+  if not r:c.rollback();return None
+  c.execute('INSERT INTO health_claims(fingerprint,claimed_at) VALUES(?,?)',(r['fingerprint'],now));c.commit();return r
+ except:
+  c.rollback();raise
+ finally:c.close()
 def pick():
  slot=int(time.time()*10)%10
  lane='slow' if slot==0 else ('normal' if slot in (1,2) else 'fast')
  r=claim("t.stage='queued' AND COALESCE(t.lane,'fast')=?",(lane,))
  return r or claim("t.stage='queued'")
-def due_retry():return claim("t.stage='retry_wait' AND EXISTS(SELECT 1 FROM health_attempts a WHERE a.fingerprint=t.fingerprint GROUP BY a.fingerprint HAVING MAX(a.finished_at)<=?)",(time.time()-load()['retry_seconds'],))
+def due_retry():return claim("t.stage='retry_wait' AND t.updated_at<=?",(time.time()-load()['retry_seconds'],))
 def attempt_no(fp):
  c=connect();n=c.execute('SELECT COUNT(*) FROM health_attempts WHERE fingerprint=?',(fp,)).fetchone()[0];c.close();return n+1
 def step():
