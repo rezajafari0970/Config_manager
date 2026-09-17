@@ -242,3 +242,7 @@ def health_feedback():
  import json,pathlib
  try:return json.loads(pathlib.Path('/root/Config_manager/data/health_feedback.json').read_text())
  except:return {'status':'warming-up'}
+@app.get('/api/stage-metrics')
+def stage_metrics():
+ from .stage_metrics import snapshot
+ return snapshot()

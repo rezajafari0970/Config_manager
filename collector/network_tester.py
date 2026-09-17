@@ -5,9 +5,13 @@ from .dynamic_probes import pair
 from .health_policy import initial_action
 from .traffic_verify import snapshot,verified
 from .profiler import record
+from .stage_metrics import enter,leave
 from .protocol_timeout import get as protocol_timeout
 def test_one(row,attempt=1):
- t=time.time();x=time.time();h=start(row['kind'],row['raw']);sandbox_ms=(time.time()-x)*1000;d=u=False;details={'sandbox':h.get('ok',False)}
+ t=time.time();x=time.time();enter('startup')
+ try:h=start(row['kind'],row['raw'])
+ finally:leave('startup')
+ sandbox_ms=(time.time()-x)*1000;d=u=False;details={'sandbox':h.get('ok',False)}
  if h.get('ok'):
   try:
    before=snapshot(h);x=time.time();pr=pair(h['port'],protocol_timeout(row['kind'],row['raw']));probe_ms=(time.time()-x)*1000;after=snapshot(h)
