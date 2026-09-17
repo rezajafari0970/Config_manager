@@ -220,3 +220,7 @@ def smart_tune_state():
 def profile_summary():
  from .profiler import summary
  return summary()
+@app.get('/api/server-telemetry')
+def server_telemetry():
+ from .server_telemetry import snapshot
+ return snapshot()
