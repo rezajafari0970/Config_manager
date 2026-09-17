@@ -291,5 +291,5 @@ def test_sandbox_uses_loopback_ephemeral_port():
  from collector.network_sandbox import free_port
  p=free_port();assert 1024<p<65536
 def test_probe_policy_requires_real_bytes_for_download():
- from collector.health_policy import decide
- assert decide(True,False,1)=='retry' and decide(True,False,2)=='remove'
+ from collector.health_policy import initial_action
+ assert initial_action(1,True,False)=='retry_after_30s' and initial_action(2,True,False)=='delete'
