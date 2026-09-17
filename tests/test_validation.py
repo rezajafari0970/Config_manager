@@ -299,3 +299,6 @@ def test_health_policy_requires_traffic_plus_both_directions():
 def test_provider_health_schema():
  from collector.provider_health import PROVIDERS
  assert len(PROVIDERS['download'])>=3 and len(PROVIDERS['upload'])>=1
+def test_provider_catalog_has_multi_region_duplex_endpoints():
+ from collector.provider_catalog import load
+ x=load();assert len(x)>=20 and all('download' in a and 'upload' in a for a in x)
