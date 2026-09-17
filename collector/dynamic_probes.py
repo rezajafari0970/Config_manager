@@ -7,7 +7,7 @@ def run(port,url,upload=False):
  if upload:payload=os.urandom(load()['upload_bytes']);cmd+=['-X','POST','--data-binary','@-']
  else:
   kb=load()['download_kb'];url+=(('?ckSize='+str(kb)) if '?' not in url else ('&ckSize='+str(kb)))
- t=time.time();p=subprocess.run(cmd+[url],input=payload,stdout=subprocess.PIPE,stderr=subprocess.PIPE);ms=round((time.time()-t)*1000);return {'ok':p.returncode==0,'ms':ms,'bytes':len(payload) if upload else len(p.stdout),'error':p.stderr.decode(errors='ignore')[-120:]}
+ t=time.time();p=subprocess.run(cmd+[url],input=payload,stdout=subprocess.DEVNULL if upload else subprocess.PIPE,stderr=subprocess.PIPE);ms=round((time.time()-t)*1000);return {'ok':p.returncode==0,'ms':ms,'bytes':len(payload) if upload else len(p.stdout),'error':p.stderr.decode(errors='ignore')[-120:]}
 def pair(port):
  items=active();cfg=load();bases={x.get('base') for x in items};
  if len(bases)<cfg['min_active_providers']:return {'ok':False,'defer':True,'reason':'insufficient-independent-providers','active':len(items),'independent':len(bases),'required':cfg['min_active_providers']}
