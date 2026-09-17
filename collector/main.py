@@ -178,3 +178,8 @@ def get_health_settings():
 def set_health_settings(payload:dict):
  from .health_settings import save
  return save(payload)
+from fastapi.responses import PlainTextResponse
+@app.get('/sub/all',response_class=PlainTextResponse)
+def sub_all():
+ from .remark import apply
+ c=connect();rows=c.execute('SELECT kind,raw,remark FROM healthy_configs WHERE upload_ok=1 AND download_ok=1 ORDER BY country_name,kind,id').fetchall();c.close();return '\n'.join(apply(r['kind'],r['raw'],r['remark'] or '🌐 Unknown') for r in rows)

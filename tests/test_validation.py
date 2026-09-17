@@ -337,3 +337,9 @@ def test_health_settings_probe_sizes_and_quorum():
  from collector.health_settings import save
  x=save({'upload_bytes':2048,'download_kb':8,'min_active_providers':3,'enabled':False});assert x['upload_bytes']==2048 and x['download_kb']==8 and x['min_active_providers']==3 and x['enabled'] is False
  save({'upload_bytes':32768,'download_kb':64,'min_active_providers':2,'enabled':True})
+def test_remark_uri_country_replaces_fragment():
+ from collector.remark import apply
+ x=apply('vless','vless://u@h:443?type=tcp#old','🇩🇪 Germany');assert '#%F0%9F%87%A9%F0%9F%87%AA%20Germany' in x and 'old' not in x
+def test_sub_all_only_healthy_rule_present():
+ import inspect,collector.main as m
+ s=inspect.getsource(m.sub_all);assert 'healthy_configs' in s and 'upload_ok=1' in s and 'download_ok=1' in s
