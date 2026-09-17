@@ -11,7 +11,7 @@ async def start(): init(); asyncio.create_task(scheduler())
 def home(): return open('collector/templates/index.html',encoding='utf8').read()
 @app.get('/api/stats')
 def stats():
- c=connect(); sources=[dict(x) for x in c.execute('SELECT * FROM sources ORDER BY id DESC')]; total=c.execute('SELECT COUNT(*) FROM configs').fetchone()[0]; kinds={r[0]:r[1] for r in c.execute('SELECT kind,COUNT(*) FROM configs GROUP BY kind')}; c.close(); return {'sources':sources,'configs':total,'kinds':kinds,'now':time.time()}
+ c=connect(); sources=[dict(x) for x in c.execute('SELECT * FROM sources ORDER BY id DESC')]; total=c.execute('SELECT COUNT(*) FROM configs').fetchone()[0]; kinds={r[0]:r[1] for r in c.execute('SELECT kind,COUNT(*) FROM configs GROUP BY kind')}; c.close(); issues=c.execute('SELECT COUNT(*) FROM issues').fetchone()[0] if False else 0; return {'sources':sources,'configs':total,'kinds':kinds,'now':time.time()}
 @app.post('/api/sources')
 async def add(req:Request):
  d=await req.json(); interval=max(2,min(86400,int(d.get('interval',10)))); urls=[x.strip() for x in d.get('urls','').splitlines() if x.strip()]; c=connect(); added=0
