@@ -50,6 +50,9 @@ def link(kind,raw):
  if kind=='vless':
   from .vless_deep import audit as vless_audit
   z.extend(vless_audit(raw))
+ if kind=='trojan':
+  from .trojan_deep import audit as trojan_audit
+  z.extend(trojan_audit(raw))
  return z
 def json_config(raw):
  try: o=json.loads(raw)

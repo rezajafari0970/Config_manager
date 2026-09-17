@@ -220,3 +220,11 @@ def test_vmess_validation_adapters_preserve_raw():
  import json,base64
  o={'add':'a','port':'443','id':'00000000-0000-0000-0000-000000000000','net':'ws','path':'/'};raw='vmess://'+base64.urlsafe_b64encode(json.dumps(o).encode()).decode().rstrip('=');before=raw
  assert 'outbounds' in xray(raw) and 'outbounds' in singbox(raw) and raw==before
+def test_trojan_deep_fuzz_fields():
+ from collector.validator import validate
+ b='trojan://pass@example.com:443'
+ assert any(x['code']=='TROJAN_UNKNOWN_TRANSPORT' for x in validate('trojan',b+'?type=future&sni=x'))
+ assert any(x['code']=='TROJAN_GRPC_SERVICE_MISSING' for x in validate('trojan',b+'?type=grpc&sni=x'))
+ assert any(x['code']=='TROJAN_DUPLICATE_QUERY' for x in validate('trojan',b+'?type=ws&type=grpc&sni=x'))
+def test_trojan_raw_preserved():
+ raw='trojan://pass@example.com:443?type=ws&security=tls&sni=x&path=%2Fa&extra=future#n';assert extract(raw)[0]['raw']==raw
