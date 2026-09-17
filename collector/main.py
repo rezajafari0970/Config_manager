@@ -53,3 +53,8 @@ def ready():
  from .runtime import STATE
  age=time.time()-STATE['last_loop'] if STATE['last_loop'] else 999
  return {'ok':age<5,'scheduler_age_sec':round(age,3),'active_fetches':STATE['active'],'completed_fetches':STATE['completed']}
+@app.get('/api/system')
+def system_state():
+ from .resources import sample
+ from .runtime import STATE
+ r=sample(); return {**r,'active_fetches':STATE['active'],'completed_fetches':STATE['completed'],'uptime_sec':round(time.time()-STATE['started'])}
