@@ -125,3 +125,12 @@ def test_xray_advanced_mutations_detected():
  '{"outbounds":[{"protocol":"vless","settings":{"vnext":[{"address":"a","port":70000,"users":[]}]}}]}',
  '{"outbounds":[{"protocol":"vless","settings":{},"streamSettings":{"network":"ws","wsSettings":[]}}]}' ]
  assert all(validate('json-xray',x) for x in cases)
+def test_singbox_deep_server_and_port():
+ raw='{"outbounds":[{"type":"vless","tag":"p","server":"","server_port":70000}]}'
+ codes={i['code'] for i in extract(raw)[0]['issues']}; assert {'SINGBOX_SERVER_MISSING','SINGBOX_PORT_INVALID'}<=codes
+def test_singbox_deep_tls_transport_shapes():
+ raw='{"outbounds":[{"type":"vless","server":"a","server_port":443,"tls":[],"transport":[]}]}'
+ codes={i['code'] for i in extract(raw)[0]['issues']}; assert {'SINGBOX_TLS_SHAPE','SINGBOX_TRANSPORT_SHAPE'}<=codes
+def test_singbox_deep_route_dns_shapes():
+ raw='{"outbounds":[{"type":"direct","tag":"d"}],"route":[],"dns":[]}'
+ codes={i['code'] for i in extract(raw)[0]['issues']}; assert {'SINGBOX_ROUTE_SHAPE','SINGBOX_DNS_SHAPE'}<=codes

@@ -122,6 +122,8 @@ def validate(kind,raw):
   from .xray_system import audit as system_audit
   from .xray_refs import audit as refs_audit
   return xray_deep(raw)+audit(raw)+protocol_audit(raw)+system_audit(raw)+refs_audit(raw)
- if kind=='json-singbox': return singbox_config(raw)
+ if kind=='json-singbox':
+  from .singbox_deep import audit as singbox_deep
+  return singbox_config(raw)+singbox_deep(raw)
  if kind=='json-custom': return json_config(raw)[1]
  return link(kind,raw)
