@@ -10,7 +10,9 @@ async def fetch_one(row):
   while not allowed(STATE['active']): await asyncio.sleep(.15)
   STATE['active']+=1
   async with httpx.AsyncClient(timeout=httpx.Timeout(8,connect=4),follow_redirects=True,headers={'User-Agent':'ConfigManager/2.0'}) as client:
-   resp=await client.get(row['url']); resp.raise_for_status(); items=extract(resp.text)
+   resp=await client.get(row['url']); resp.raise_for_status()
+   if len(resp.content)>4*1024*1024: raise ValueError('RESPONSE_TOO_LARGE: maximum 4 MiB')
+   items=extract(resp.text)
   c=connect(); c.execute('DELETE FROM issues WHERE source_id=?',(sid,)); raw_count=len(items); valid=invalid=dups=new=known=0; seen=set()
   for it in items:
    fp=it['fingerprint']
