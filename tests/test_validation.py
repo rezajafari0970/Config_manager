@@ -228,3 +228,7 @@ def test_trojan_deep_fuzz_fields():
  assert any(x['code']=='TROJAN_DUPLICATE_QUERY' for x in validate('trojan',b+'?type=ws&type=grpc&sni=x'))
 def test_trojan_raw_preserved():
  raw='trojan://pass@example.com:443?type=ws&security=tls&sni=x&path=%2Fa&extra=future#n';assert extract(raw)[0]['raw']==raw
+def test_trojan_validation_adapters_preserve_raw():
+ from collector.trojan_adapter import xray,singbox
+ raw='trojan://pass@example.com:443?type=ws&security=tls&sni=x&path=%2F#n';before=raw
+ assert 'outbounds' in xray(raw) and 'outbounds' in singbox(raw) and raw==before

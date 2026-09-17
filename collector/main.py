@@ -143,3 +143,7 @@ def vless_core_worker_state():
 def vmess_core_worker_state():
  from .vmess_worker import load
  return load()
+@app.get('/api/trojan-core-worker')
+def trojan_core_worker_state():
+ from .trojan_worker import load
+ return load()
