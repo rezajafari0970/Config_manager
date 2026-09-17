@@ -29,3 +29,14 @@ def delete(sid:int):
  c=connect(); c.execute('DELETE FROM source_configs WHERE source_id=?',(sid,)); c.execute('DELETE FROM sources WHERE id=?',(sid,)); c.commit(); c.close(); return {'ok':True}
 @app.get('/health')
 def health(): return {'ok':True}
+@app.post('/api/sources/delete-selected')
+async def delete_selected(req:Request):
+ d=await req.json(); ids=[int(x) for x in d.get('ids',[]) if str(x).isdigit()]
+ if not ids: return {'ok':True,'deleted':0}
+ q=','.join('?'*len(ids)); c=connect(); c.execute(f'DELETE FROM issues WHERE source_id IN ({q})',ids); c.execute(f'DELETE FROM source_configs WHERE source_id IN ({q})',ids); cur=c.execute(f'DELETE FROM sources WHERE id IN ({q})',ids); c.commit(); n=cur.rowcount; c.close(); return {'ok':True,'deleted':n}
+@app.delete('/api/sources')
+def delete_all_sources():
+ c=connect(); n=c.execute('SELECT COUNT(*) FROM sources').fetchone()[0]; c.execute('DELETE FROM issues'); c.execute('DELETE FROM source_configs'); c.execute('DELETE FROM sources'); c.commit(); c.close(); return {'ok':True,'deleted':n}
+@app.delete('/api/configs')
+def delete_all_configs():
+ c=connect(); n=c.execute('SELECT COUNT(*) FROM configs').fetchone()[0]; c.execute('DELETE FROM source_configs'); c.execute('DELETE FROM configs'); c.execute('UPDATE sources SET lifetime_seen=0,unique_count=0,new_count=0,known_count=0'); c.commit(); c.close(); return {'ok':True,'deleted':n}
