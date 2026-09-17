@@ -139,3 +139,7 @@ def singbox_freeze_gate():
 def vless_core_worker_state():
  from .vless_worker import load
  return load()
+@app.get('/api/vmess-core-worker')
+def vmess_core_worker_state():
+ from .vmess_worker import load
+ return load()

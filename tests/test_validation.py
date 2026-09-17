@@ -215,3 +215,8 @@ def test_vmess_raw_preserved():
  import json,base64
  o={'add':'a','port':'443','id':'00000000-0000-0000-0000-000000000000','net':'ws','extra':'future'};raw='vmess://'+base64.urlsafe_b64encode(json.dumps(o).encode()).decode().rstrip('=')
  assert extract(raw)[0]['raw']==raw
+def test_vmess_validation_adapters_preserve_raw():
+ from collector.vmess_adapter import xray,singbox
+ import json,base64
+ o={'add':'a','port':'443','id':'00000000-0000-0000-0000-000000000000','net':'ws','path':'/'};raw='vmess://'+base64.urlsafe_b64encode(json.dumps(o).encode()).decode().rstrip('=');before=raw
+ assert 'outbounds' in xray(raw) and 'outbounds' in singbox(raw) and raw==before
