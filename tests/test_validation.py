@@ -270,3 +270,9 @@ def test_hy1_query_auth_and_raw_preserved():
 def test_hysteria_bad_port_detected():
  from collector.validator import validate,hard_errors
  assert hard_errors(validate('hy2','hy2://pass@example.com:70000?sni=x'))
+def test_wireguard_deep_required_fields():
+ from collector.validator import validate,hard_errors
+ bad='wireguard://@example.com:51820';assert hard_errors(validate('wireguard',bad))
+def test_wireguard_raw_preserved():
+ import base64
+ k=base64.b64encode(b'x'*32).decode();raw=f'wireguard://{k}@example.com:51820?publickey={k}&address=10.0.0.2%2F32#n';x=extract(raw)[0];assert x['raw']==raw and not x['hard']

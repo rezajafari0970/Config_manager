@@ -58,6 +58,9 @@ def link(kind,raw):
  if kind in ('hy','hy2'):
   from .hysteria_deep import audit as hy_audit
   z.extend(hy_audit(kind,raw))
+ if kind=='wireguard':
+  from .wireguard_deep import audit as wg_audit
+  z.extend(wg_audit(raw))
  return z
 def json_config(raw):
  try: o=json.loads(raw)
