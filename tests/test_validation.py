@@ -323,3 +323,6 @@ def test_datacenter_intel_unknown_without_facility_evidence():
 def test_network_intel_exposes_rdap_ptr_fields():
  from collector.network_intel import classify
  r=classify('__test_dc_fields__',{'egress_ip':None,'network_org':'Example','asn':'64500'});assert 'rdap_network' in r and 'reverse_dns' in r
+def test_healthy_recheck_module_imports():
+ from collector.healthy_recheck import one
+ assert callable(one)
