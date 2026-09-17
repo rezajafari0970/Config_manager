@@ -1,0 +1,5 @@
+import hashlib,time
+from .db import connect
+def put(original,candidate,result):
+ now=time.time();ofp=hashlib.sha256(original.encode()).hexdigest();cfp=hashlib.sha256(candidate.encode()).hexdigest();c=connect()
+ c.execute('INSERT INTO recovery_registry(original_fingerprint,original_kind,original_raw,candidate_fingerprint,candidate_kind,candidate_raw,class,confidence,validator_ok,xray_ok,singbox_ok,recoverable,first_seen,last_seen,hits) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,1) ON CONFLICT(original_fingerprint) DO UPDATE SET candidate_fingerprint=excluded.candidate_fingerprint,candidate_raw=excluded.candidate_raw,validator_ok=excluded.validator_ok,xray_ok=excluded.xray_ok,singbox_ok=excluded.singbox_ok,recoverable=excluded.recoverable,last_seen=excluded.last_seen,hits=recovery_registry.hits+1',(ofp,'ss',original,cfp,'vless',candidate,'vless-like-mislabeled',0.99,1,int(result['xray_ok']),int(result['singbox_ok']),int(result['recoverable']),now,now));c.commit();c.close()

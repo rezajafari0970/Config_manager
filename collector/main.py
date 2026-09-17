@@ -161,3 +161,6 @@ def ss_recovery_candidates(limit:int=50):
   if x['class']=='vless-like-mislabeled':out.append({'id':r['id'],'class':x['class'],'confidence':x['confidence'],'original':r['raw'],'candidate':candidate(r['raw'])})
   if len(out)>=min(limit,200):break
  return {'items':out,'count':len(out)}
+@app.get('/api/recovery-registry')
+def recovery_registry(limit:int=50):
+ c=connect();rows=c.execute('SELECT id,original_kind,candidate_kind,class,confidence,validator_ok,xray_ok,singbox_ok,recoverable,first_seen,last_seen,hits FROM recovery_registry ORDER BY last_seen DESC LIMIT ?',(min(limit,200),)).fetchall();total=c.execute('SELECT COUNT(*) FROM recovery_registry').fetchone()[0];c.close();return {'total':total,'items':[dict(r) for r in rows]}

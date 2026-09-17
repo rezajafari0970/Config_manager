@@ -2,6 +2,7 @@ import json,os,time
 from .db import connect
 from .ss_classifier import classify
 from .ss_recovery import assess
+from .recovery_registry import put
 STATE='/root/Config_manager/data/ss_recovery_state.json'
 def load():
  try:return json.load(open(STATE))
@@ -14,5 +15,6 @@ def step():
  part=rows[s['offset']:s['offset']+s['batch']];ok=0;fail=0;ids=[]
  for r in part:
   a=assess(r['raw']);ok+=int(a['recoverable']);fail+=int(not a['recoverable']);ids.append({'id':r['id'],'recoverable':a['recoverable']})
+  if a.get('candidate'):put(r['raw'],a['candidate'],a)
  s['offset']+=len(part);s['last']={'tested':len(part),'recoverable':ok,'failed':fail,'items':ids};s['updated']=time.time();save(s);return s
 if __name__=='__main__':print(json.dumps(step()))
