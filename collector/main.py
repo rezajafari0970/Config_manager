@@ -224,3 +224,7 @@ def profile_summary():
 def server_telemetry():
  from .server_telemetry import snapshot
  return snapshot()
+@app.get('/api/system-pressure')
+def system_pressure():
+ from .system_pressure import snapshot
+ return snapshot()
