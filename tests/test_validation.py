@@ -1,7 +1,7 @@
 from collector.parser import extract
 import json,base64
 def enc(o): return base64.urlsafe_b64encode(json.dumps(o).encode()).decode().rstrip('=')
-def test_bad_vless_rejected(): assert extract('vless://bad@example.com:443')[0]['hard']
+def test_nonstandard_vless_preserved(): assert not extract('vless://bad@example.com:443')[0]['hard']
 def test_good_vless(): assert not extract('vless://11111111-1111-1111-1111-111111111111@example.com:443')[0]['hard']
 def test_bad_vmess(): assert extract('vmess://'+enc({'add':'a','port':443,'id':'bad'}))[0]['hard']
 def test_custom_json_preserved():
@@ -21,4 +21,4 @@ def test_json_unknown_shape_never_mutated():
  raw='{"version":9,"servers":[{"mystery":true}],"extra":null}'; x=extract(raw)[0]; assert x['kind']=='json-custom' and x['raw']==raw and not x['hard']
 def test_xray_empty_outbounds_hard(): assert extract('{"outbounds":[]}')[0]['hard']
 def test_hard_invalid_never_changes_raw():
- raw='vless://bad@example.com:443?x=1#keep-me'; x=extract(raw)[0]; assert x['raw']==raw and x['hard']
+ raw='vless://bad@example.com:443?x=1#keep-me'; x=extract(raw)[0]; assert x['raw']==raw and not x['hard']

@@ -11,6 +11,19 @@ def b64(s): return base64.urlsafe_b64decode(s+'='*((4-len(s)%4)%4))
 def link(kind,raw):
  z=[]
  try:
+  if kind=='ss':
+   payload=raw.split('://',1)[1].split('#',1)[0].split('?',1)[0]
+   # SIP002 supports both userinfo-base64@host:port and legacy full-base64 method:password@host:port.
+   if '@' not in payload:
+    try: payload=b64(payload).decode('utf8')
+    except Exception: return [issue('SS_INVALID_BASE64','Shadowsocks payload is not valid base64')]
+   if '@' not in payload: return [issue('SS_MISSING_SERVER','Shadowsocks server is missing')]
+   creds,server=payload.rsplit('@',1)
+   if ':' not in creds: return [issue('SS_INVALID_CREDENTIALS','Shadowsocks method/password is incomplete')]
+   host,sep,prt=server.rpartition(':')
+   if not host: z.append(issue('MISSING_HOST','Server host is missing'))
+   if not sep or not port(prt): z.append(issue('INVALID_PORT','Server port is missing or invalid'))
+   return z
   if kind=='vmess':
    o=json.loads(b64(raw.split('://',1)[1]).decode());
    if not isinstance(o,dict): return [issue('VMESS_NOT_OBJECT','VMess payload is not an object')]
@@ -24,7 +37,7 @@ def link(kind,raw):
    if p.port is None or not port(p.port): z.append(issue('INVALID_PORT','Server port is missing or invalid'))
   except: z.append(issue('INVALID_PORT','Server port is invalid'))
   user=urllib.parse.unquote(p.username or '')
-  if kind=='vless' and not uuid_ok(user): z.append(issue('VLESS_INVALID_UUID','VLESS UUID is invalid'))
+  if kind=='vless' and not uuid_ok(user): z.append(issue('VLESS_NONSTANDARD_ID','VLESS user id is non-standard; preserved for client compatibility',WARN))
   if kind=='trojan' and not user: z.append(issue('TROJAN_MISSING_PASSWORD','Trojan password is missing'))
   if kind in ('hy','hy2') and not user: z.append(issue('HY_MISSING_AUTH','Hysteria authentication is missing'))
   if kind=='ss' and not (p.username or p.netloc): z.append(issue('SS_MISSING_CREDENTIALS','Shadowsocks credentials are missing'))
