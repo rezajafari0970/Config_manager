@@ -1,6 +1,6 @@
 import json
 from .validator import validate,hard_errors
-SAFE_CODES={'XRAY_SETTINGS_NOT_OBJECT','XRAY_STATS_NOT_OBJECT','XRAY_DNS_HOSTS_NOT_OBJECT','XRAY_HTTP_INBOUND_SETTINGS_ARRAY','XRAY_SOCKOPT_ARRAY','XRAY_REALITY_SETTINGS_ARRAY'}
+SAFE_CODES={'XRAY_SETTINGS_NOT_OBJECT','XRAY_STATS_NOT_OBJECT','XRAY_DNS_HOSTS_NOT_OBJECT','XRAY_HTTP_INBOUND_SETTINGS_ARRAY','XRAY_SOCKOPT_ARRAY'}
 def repair(kind,raw):
  before=validate(kind,raw); codes={x['code'] for x in before}
  if kind!='json-xray' or not (codes & SAFE_CODES): return None
@@ -14,7 +14,6 @@ def repair(kind,raw):
   if isinstance(x,dict) and isinstance(x.get('streamSettings'),dict):
    st=x['streamSettings']
    if 'XRAY_SOCKOPT_ARRAY' in codes and st.get('sockopt')==[]: st['sockopt']={}; changes.append(f'outbounds[{i}].streamSettings.sockopt: [] -> {{}}')
-   if 'XRAY_REALITY_SETTINGS_ARRAY' in codes and st.get('realitySettings')==[]: st['realitySettings']={}; changes.append(f'outbounds[{i}].streamSettings.realitySettings: [] -> {{}}')
  if 'XRAY_SETTINGS_NOT_OBJECT' in codes:
   for i,x in enumerate(o.get('outbounds',[])):
    if x.get('settings')==[]: x['settings']={}; changes.append(f'outbounds[{i}].settings: [] -> {{}}')

@@ -6,6 +6,10 @@ STATE={'running':False,'last_run':0,'tested':0,'ok':0,'failed':0,'categories':{}
 def category(s):
  if 'FreedomConfig' in s:return 'FREEDOM_SETTINGS_ARRAY'
  if "LengthMin can't be 0" in s:return 'FRAGMENT_LENGTHMIN_ZERO'
+ if 'empty "password"' in s:return 'REALITY_MISSING_REQUIRED_DATA'
+ if 'HTTPServerConfig' in s:return 'HTTP_SETTINGS_ARRAY'
+ if 'SocketConfig' in s:return 'SOCKOPT_ARRAY'
+ if 'REALITYConfig' in s:return 'REALITY_SETTINGS_ARRAY'
  if 'invalid DNS hosts' in s:return 'DNS_HOSTS'
  if 'Config.stats' in s:return 'STATS_ARRAY'
  return 'OTHER'

@@ -71,4 +71,4 @@ def test_xray_http_inbound_settings_array_repair():
 def test_xray_stream_array_objects_repair():
  from collector.repair import repair
  raw='{"outbounds":[{"protocol":"vless","settings":{},"streamSettings":{"sockopt":[],"realitySettings":[]}}]}'
- r=repair('json-xray',raw); assert r and '"sockopt":{}' in r['raw'] and '"realitySettings":{}' in r['raw']
+ r=repair('json-xray',raw); assert r and '"sockopt":{}' in r['raw']
