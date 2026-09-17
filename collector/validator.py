@@ -22,7 +22,7 @@ def link(kind,raw):
    if ':' not in creds:
     try: decoded=b64(creds).decode('utf8')
     except Exception: decoded=''
-    if ':' not in decoded: return [issue('SS_NONSTANDARD_CREDENTIALS','Shadowsocks credentials are non-standard; preserved for client compatibility',WARN)]
+    if ':' not in decoded: return [issue('SS_OPAQUE_USERINFO','Shadowsocks userinfo is opaque/non-SIP002; preserved unchanged for compatible clients',WARN)]
    host,sep,prt=server.rpartition(':')
    if not host: z.append(issue('MISSING_HOST','Server host is missing'))
    if not sep or not port(prt): z.append(issue('INVALID_PORT','Server port is missing or invalid'))
