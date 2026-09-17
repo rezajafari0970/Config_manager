@@ -85,3 +85,9 @@ def test_xray_deep_unknown_network_preserved():
 def test_xray_deep_routing_rules_shape():
  raw='{"routing":{"rules":{}},"outbounds":[{"protocol":"freedom","settings":{}}]}'
  assert any(i['code']=='XRAY_ROUTING_RULES_SHAPE' for i in extract(raw)[0]['issues'])
+def test_xray_flattened_vless_preserved():
+ raw='{"outbounds":[{"protocol":"vless","settings":{"address":"a.example","port":443,"id":"custom","encryption":"none"}}]}'
+ x=extract(raw)[0]; assert not any(i['code']=='XRAY_VNEXT_MISSING' for i in x['issues'])
+def test_xray_protocol_missing_vnext_warns():
+ raw='{"outbounds":[{"protocol":"vless","settings":{}}]}'
+ assert any(i['code']=='XRAY_VNEXT_MISSING' for i in extract(raw)[0]['issues'])
