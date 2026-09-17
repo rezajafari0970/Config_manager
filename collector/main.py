@@ -46,3 +46,10 @@ def review():
  c=connect(); rows=[dict(x) for x in c.execute("SELECT * FROM sources WHERE status IN ('error','empty','warning') ORDER BY CASE status WHEN 'error' THEN 1 WHEN 'warning' THEN 2 ELSE 3 END,id DESC")];
  for x in rows: x['reason']=review_reason(x)
  c.close(); return {'items':rows,'count':len(rows)}
+@app.get('/health/live')
+def live(): return {'ok':True}
+@app.get('/health/ready')
+def ready():
+ from .runtime import STATE
+ age=time.time()-STATE['last_loop'] if STATE['last_loop'] else 999
+ return {'ok':age<5,'scheduler_age_sec':round(age,3),'active_fetches':STATE['active'],'completed_fetches':STATE['completed']}

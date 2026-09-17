@@ -1,10 +1,10 @@
 import asyncio,time,httpx
 from .db import connect
 from .parser import extract
-from .runtime import semaphore
+from .runtime import semaphore,STATE
 running=set()
 async def fetch_one(row):
- sid=row['id']; running.add(sid); start=time.monotonic(); now=time.time()
+ sid=row['id']; running.add(sid); STATE['active']+=1; start=time.monotonic(); now=time.time()
  try:
   async with semaphore:
    async with httpx.AsyncClient(timeout=httpx.Timeout(8,connect=4),follow_redirects=True,headers={'User-Agent':'ConfigManager/2.0'}) as client:
@@ -27,10 +27,10 @@ async def fetch_one(row):
   c.execute("UPDATE sources SET last_fetch=?,last_ok=?,next_fetch=?,status=?,http_status=?,duration_ms=?,total=?,raw_count=?,valid=?,invalid=?,duplicates=?,unique_count=?,new_count=?,known_count=?,lifetime_seen=?,issue_count=?,consecutive_errors=0,error='' WHERE id=?",(now,now,now+row['interval_sec'],status,resp.status_code,ms,raw_count,raw_count,valid,invalid,dups,valid,new,known,lifetime,issues,sid)); c.commit(); c.close()
  except Exception as e:
   ms=int((time.monotonic()-start)*1000); c=connect(); c.execute("UPDATE sources SET last_fetch=?,next_fetch=?,status='error',duration_ms=?,consecutive_errors=consecutive_errors+1,error=? WHERE id=?",(now,now+row['interval_sec'],ms,(str(e) or repr(e))[:500],sid)); c.commit(); c.close()
- finally: running.discard(sid)
+ finally: running.discard(sid); STATE['active']=max(0,STATE['active']-1); STATE['completed']+=1
 async def scheduler():
  while True:
-  now=time.time(); c=connect(); rows=c.execute('SELECT * FROM sources WHERE enabled=1 AND (next_fetch IS NULL OR next_fetch<=?)',(now,)).fetchall(); c.close()
+  STATE['loops']+=1; STATE['last_loop']=time.time(); now=STATE['last_loop']; c=connect(); rows=c.execute('SELECT * FROM sources WHERE enabled=1 AND (next_fetch IS NULL OR next_fetch<=?)',(now,)).fetchall(); c.close()
   for r in rows:
    if r['id'] not in running: asyncio.create_task(fetch_one(r))
   await asyncio.sleep(.25)
