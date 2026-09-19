@@ -11,8 +11,8 @@ def run(port,url,upload=False,timeout_ms=None):
 def pair(port,timeout_ms=None):
  items=active();cfg=load();bases={x.get('base') for x in items};
  if len(bases)<cfg['min_active_providers']:return {'ok':False,'defer':True,'reason':'insufficient-independent-providers','active':len(items),'independent':len(bases),'required':cfg['min_active_providers']}
- items=rank(items);down=items[0] if items else None;up=next((x for x in items[1:] if x['base']!=down['base']),None) if down else None
+ downs=rank(items,'download');ups=rank(items,'upload');down=downs[0] if downs else None;up=next((x for x in ups if x['base']!=down['base']),None) if down else None
  if not down or not up:return {'ok':False,'reason':'insufficient-independent-providers','active':len(items)}
  with concurrent.futures.ThreadPoolExecutor(max_workers=2) as e:
   fd=e.submit(run,port,down['download'],False,timeout_ms);fu=e.submit(run,port,up['upload'],True,timeout_ms);d=fd.result();u=fu.result()
- record(down['base'],d['ok'],d['ms']);record(up['base'],u['ok'],u['ms']);return {'ok':bool(d['ok'] and u['ok']),'download':{**d,'provider':down['name'],'base':down['base']},'upload':{**u,'provider':up['name'],'base':up['base']},'active':len(items)}
+ record(down['base'],d['ok'],d['ms'],'download');record(up['base'],u['ok'],u['ms'],'upload');return {'ok':bool(d['ok'] and u['ok']),'download':{**d,'provider':down['name'],'base':down['base']},'upload':{**u,'provider':up['name'],'base':up['base']},'active':len(items)}
