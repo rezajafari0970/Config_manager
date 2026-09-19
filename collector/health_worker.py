@@ -22,13 +22,13 @@ def pick():
  r=claim("t.stage='queued' AND COALESCE(t.lane,'fast')=?",(lane,))
  return r or claim("t.stage='queued'")
 def due_retry():return claim("t.stage='retry_wait' AND t.updated_at<=?",(time.time()-load()['retry_seconds'],))
-def attempt_no(fp):
- c=connect();n=c.execute('SELECT COUNT(*) FROM health_attempts WHERE fingerprint=?',(fp,)).fetchone()[0];c.close();return n+1
+def attempt_no(fp,created_at=0):
+ c=connect();n=c.execute('SELECT COUNT(*) FROM health_attempts WHERE fingerprint=? AND finished_at>=?',(fp,created_at or 0)).fetchone()[0];c.close();return n+1
 def step():
  ct=time.time();r=due_retry() or pick();dm_add('claim_ms',(time.time()-ct)*1000)
  if not r:return {'idle':True}
  event(r['fingerprint'],'PICK',stage=r['stage'],lane=r['lane'])
- n=attempt_no(r['fingerprint']);wt=time.time();budget=lane_enter(r['lane'] or 'fast');dm_add('lane_wait_ms',(time.time()-wt)*1000);dm_start();event(r['fingerprint'],'START',attempt=n);started=time.time()
+ n=attempt_no(r['fingerprint'],r['created_at']);wt=time.time();budget=lane_enter(r['lane'] or 'fast');dm_add('lane_wait_ms',(time.time()-wt)*1000);dm_start();event(r['fingerprint'],'START',attempt=n);started=time.time()
  try:state,details=test_one(r,n)
  finally:lane_leave(budget);dm_finish()
  cost=(time.time()-started)*1000;event(r['fingerprint'],'RESULT',attempt=n,state=state,cost_ms=round(cost))
