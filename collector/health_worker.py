@@ -33,8 +33,8 @@ def step():
  finally:lane_leave(budget);dm_finish()
  cost=(time.time()-started)*1000;event(r['fingerprint'],'RESULT',attempt=n,state=state,cost_ms=round(cost))
  if state=='defer':
-  c=connect();c.execute('DELETE FROM health_claims WHERE fingerprint=?',(r['fingerprint'],));c.commit();c.close();return {'id':r['id'],'kind':r['kind'],'attempt':n,'state':'defer','reason':details.get('probe',{}).get('reason')}
- if state=='healthy':details['enrichment']=promote(r)
+  c=connect();c.execute("UPDATE test_candidates SET stage='retry_wait',updated_at=? WHERE fingerprint=?",(time.time(),r['fingerprint']));c.execute('DELETE FROM health_claims WHERE fingerprint=?',(r['fingerprint'],));c.commit();c.close();return {'id':r['id'],'kind':r['kind'],'attempt':n,'state':'defer','reason':details.get('probe',{}).get('reason')}
+ if state=='healthy':details['enrichment']=promote(r,details.get('enrichment_meta'))
  lane='fast' if cost<1500 else ('normal' if cost<3500 else 'slow')
  c=connect();c.execute('UPDATE test_candidates SET lane=?,cost_ms=? WHERE fingerprint=?',(lane,cost,r['fingerprint']))
  if state=='remove':c.execute("DELETE FROM test_candidates WHERE fingerprint=?",(r['fingerprint'],))

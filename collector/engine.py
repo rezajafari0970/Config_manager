@@ -32,6 +32,7 @@ async def fetch_one(row):
    else:
     cur=c.execute('INSERT INTO configs(fingerprint,kind,raw,first_seen,last_seen) VALUES(?,?,?,?,?)',(fp,it['kind'],it['raw'],now,now)); cid=cur.lastrowid; new+=1
    c.execute('INSERT INTO source_configs(source_id,config_id,last_seen) VALUES(?,?,?) ON CONFLICT(source_id,config_id) DO UPDATE SET last_seen=excluded.last_seen',(sid,cid,now))
+   c.execute("INSERT INTO test_candidates(fingerprint,kind,raw,origin,stage,created_at,updated_at) VALUES(?,?,?,'source','queued',?,?) ON CONFLICT(fingerprint) DO UPDATE SET raw=excluded.raw,kind=excluded.kind",(fp,it['kind'],it['raw'],now,now))
   lifetime=c.execute('SELECT COUNT(*) FROM source_configs WHERE source_id=?',(sid,)).fetchone()[0]; issues=c.execute('SELECT COUNT(*) FROM issues WHERE source_id=?',(sid,)).fetchone()[0]; ms=int((time.monotonic()-start)*1000); status='ok' if valid else ('warning' if invalid else 'empty')
   c.execute("UPDATE sources SET last_fetch=?,last_ok=?,next_fetch=?,status=?,http_status=?,duration_ms=?,total=?,raw_count=?,valid=?,invalid=?,duplicates=?,unique_count=?,new_count=?,known_count=?,lifetime_seen=?,issue_count=?,consecutive_errors=0,error='' WHERE id=?",(now,now,now+row['interval_sec'],status,resp.status_code,ms,raw_count,raw_count,valid,invalid,dups,valid,new,known,lifetime,issues,sid)); c.commit(); c.close()
  except Exception as e:

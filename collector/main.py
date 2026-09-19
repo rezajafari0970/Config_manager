@@ -14,7 +14,7 @@ _stats_cache={'at':0.0,'data':None}
 def stats():
  now=time.time()
  if _stats_cache['data'] is not None and now-_stats_cache['at']<0.75: return _stats_cache['data']
- c=connect(); sources=[dict(x) for x in c.execute('SELECT * FROM sources ORDER BY id DESC')]; total=c.execute('SELECT COUNT(*) FROM configs').fetchone()[0]; kinds={r[0]:r[1] for r in c.execute('SELECT kind,COUNT(*) FROM configs GROUP BY kind')}; c.close(); data={'sources':sources,'configs':total,'kinds':kinds,'now':now}; _stats_cache.update(at=now,data=data); return data
+ c=connect(); sources=[dict(x) for x in c.execute('SELECT * FROM sources ORDER BY id DESC')]; total=c.execute('SELECT COUNT(*) FROM configs').fetchone()[0]; healthy=c.execute('SELECT COUNT(*) FROM healthy_configs').fetchone()[0]; kinds={r[0]:r[1] for r in c.execute('SELECT kind,COUNT(*) FROM configs GROUP BY kind')}; c.close(); data={'sources':sources,'configs':total,'healthy':healthy,'kinds':kinds,'now':now}; _stats_cache.update(at=now,data=data); return data
 @app.post('/api/sources')
 async def add(req:Request):
  d=await req.json(); interval=max(2,min(86400,int(d.get('interval',10)))); urls=[x.strip() for x in d.get('urls','').splitlines() if x.strip()]; c=connect(); added=0
