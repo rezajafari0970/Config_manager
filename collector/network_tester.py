@@ -20,7 +20,10 @@ def test_one(row,attempt=1):
  sandbox_ms=(time.time()-x)*1000;sp_add('startup_exec_ms',sandbox_ms);d=u=False;details={'sandbox':h.get('ok',False)}
  if h.get('ok'):
   try:
-   before=snapshot(h);x=time.time();w=time.time();probe_enter(cl[1]);sp_add('probe_wait_ms',(time.time()-w)*1000);pr=pair(h['port'],protocol_timeout(row['kind'],row['raw']));probe_ms=(time.time()-x)*1000;sp_add('probe_exec_ms',probe_ms);probe_leave();after=snapshot(h)
+   before=snapshot(h);x=time.time();w=time.time();probe_enter(cl[1]);sp_add('probe_wait_ms',(time.time()-w)*1000)
+   try:pr=pair(h['port'],protocol_timeout(row['kind'],row['raw']))
+   finally:probe_leave()
+   probe_ms=(time.time()-x)*1000;sp_add('probe_exec_ms',probe_ms);after=snapshot(h)
    if pr.get('defer'):return 'defer',{'sandbox':True,'probe':pr}
    traffic=verified(before,after);d=bool(pr.get('download',{}).get('ok'));u=bool(pr.get('upload',{}).get('ok'));details.update(probe=pr,download=[pr.get('download',{})],upload=[pr.get('upload',{})],traffic_verified=traffic,io_delta=after['io']-before['io']);d=d and traffic;u=u and traffic
    if d and u:

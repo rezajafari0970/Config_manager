@@ -29,7 +29,10 @@ def step():
  if not r:return {'idle':True}
  event(r['fingerprint'],'PICK',stage=r['stage'],lane=r['lane'])
  n=attempt_no(r['fingerprint'],r['created_at']);wt=time.time();budget=lane_enter(r['lane'] or 'fast');dm_add('lane_wait_ms',(time.time()-wt)*1000);dm_start();event(r['fingerprint'],'START',attempt=n);started=time.time()
- try:state,details=test_one(r,n)
+ try:
+  state,details=test_one(r,n)
+ except Exception as e:
+  c=connect();c.execute('DELETE FROM health_claims WHERE fingerprint=?',(r['fingerprint'],));c.commit();c.close();event(r['fingerprint'],'ERROR',attempt=n,error=type(e).__name__);return {'id':r['id'],'kind':r['kind'],'attempt':n,'state':'defer','reason':'worker-error:'+type(e).__name__}
  finally:lane_leave(budget);dm_finish()
  cost=(time.time()-started)*1000;event(r['fingerprint'],'RESULT',attempt=n,state=state,cost_ms=round(cost))
  if state=='defer':
