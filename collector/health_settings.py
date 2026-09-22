@@ -1,5 +1,5 @@
-import json,pathlib
-P=pathlib.Path('/root/Config_manager/data/health_settings.json')
+import json,pathlib,os
+P=pathlib.Path(os.environ.get('CONFIG_MANAGER_HEALTH_SETTINGS','/root/Config_manager/data/health_settings.json'))
 DEFAULT={'enabled':True,'retry_seconds':30,'recheck_seconds':300,'upload_bytes':32768,'download_kb':64,'max_concurrency':8,'min_active_providers':2,'probe_timeout':4,'connect_timeout':2,'startup_timeout_ms':1200,'batch_multiplier':3,'config_lifetime_seconds':7200}
 def load():
  try:return {**DEFAULT,**json.loads(P.read_text())}
