@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "target_id": "v2rayng-2.3.6-lib40-xray-26.7.28",
+  "client": {
+    "repository": "https://github.com/2dust/v2rayNG",
+    "tag": "2.3.6",
+    "commit": "13138dddcab291ba3618cc54721ce4c7dd926be0",
+    "screenshot_library_version": "40",
+    "apk_sha256": null,
+    "android_acceptance": "not_run"
+  },
+  "core": {
+    "repository": "https://github.com/XTLS/Xray-core",
+    "tag": "v26.7.28",
+    "commit": "5ca6f4b7d4dc20a881d4330e498892697627ec0c",
+    "linux_amd64_url": "https://github.com/XTLS/Xray-core/releases/download/v26.7.28/Xray-linux-64.zip",
+    "linux_amd64_zip_sha256": "8195d909f1109b8f3d99eefe401a3c451d7bf4af71f24d3815420f77e5dd2a40",
+    "linux_amd64_binary_sha256": "64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d"
+  }
+}

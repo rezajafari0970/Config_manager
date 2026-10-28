@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "checkpoint": "P0-foundation-20261029",
+  "deployment_target": "server_only",
+  "repository": "rezajafari0970/Config_manager",
+  "development_branch": "go/v2rayng-2.3.6",
+  "target_id": "v2rayng-2.3.6-lib40-xray-26.7.28",
+  "phase_status": {
+    "P0": "foundation_verified",
+    "P1": "initial_source_audit_complete_full_matrix_in_progress",
+    "P2": "pending",
+    "P3": "pending",
+    "P4": "one_stats_rule_only",
+    "P5": "core_fixture_validation_only",
+    "P6": "blocked_no_android_test_device",
+    "P7": "pending",
+    "P8": "pending"
+  },
+  "verification": {
+    "gofmt": "passed",
+    "go_vet": "passed",
+    "go_test_race": "passed_with_verified_isolated_go_1.27.1",
+    "go_build": "passed",
+    "pinned_core_cases_passed": 13,
+    "android_import": "not_run",
+    "real_proxy_connection": "not_run",
+    "public_panel_deployed": false,
+    "production_installer_released": false
+  },
+  "next": [
+    "Complete target protocol/transport/client-import compatibility matrix and fixture corpus",
+    "Implement persistent sources and authenticated Persian add/edit/delete management panel",
+    "Provision an isolated Android acceptance environment and pin APK/native hashes"
+  ],
+  "known_environment_issue": "Existing host Go race object differs from official archive; project checks pass using isolated checksum-verified toolchain. Global installation was not changed."
+}

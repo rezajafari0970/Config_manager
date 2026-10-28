@@ -1,0 +1,9 @@
+{
+  "adb_available": false,
+  "emulator_available": false,
+  "hardware_acceleration_available": false,
+  "authorized_device_count": 0,
+  "android_acceptance": "not_run",
+  "ready_for_device_setup": false,
+  "blocker": "no_authorized_android_test_device"
+}

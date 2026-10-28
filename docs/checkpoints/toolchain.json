@@ -1,0 +1,12 @@
+{
+  "source": "https://go.dev/dl/?mode=json&include=all",
+  "version": "go1.27.1",
+  "filename": "go1.27.1.linux-amd64.tar.gz",
+  "sha256": "63d339f0da5ab53635a56f2490a7984dfe12dfcff22ad749f63edaf590168445",
+  "checks": "gofmt, go vet, go test -race ./..., go build: passed",
+  "host_object": "src/runtime/race/internal/amd64v1/race_linux.syso",
+  "host_object_sha256": "86855463b2f8b780e9d83f68501731943a8bfcdd056b7a0279aff7a6a24c6ace",
+  "official_object_sha256": "5bdd6b292a1d7bb4a21c3134bafec7545f23133e2e640fed265a7f8c5b67a638",
+  "global_installation_changed": false,
+  "underlying_cause": "not_determined"
+}

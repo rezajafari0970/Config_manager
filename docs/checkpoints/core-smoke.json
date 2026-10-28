@@ -1,0 +1,86 @@
+{
+  "core": "Xray 26.7.28 (Xray, Penetrates Everything.) 5ca6f4b (go1.26.5 linux/amd64)",
+  "binary_sha256": "64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d",
+  "tests": [
+    {
+      "name": "vless_flat",
+      "expected_core_acceptance": true,
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "name": "vless_legacy_vnext",
+      "expected_core_acceptance": true,
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "name": "vmess_flat",
+      "expected_core_acceptance": true,
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "name": "vmess_legacy_vnext",
+      "expected_core_acceptance": true,
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "name": "trojan_flat",
+      "expected_core_acceptance": true,
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "name": "trojan_legacy_servers",
+      "expected_core_acceptance": true,
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "name": "ss_flat",
+      "expected_core_acceptance": true,
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "name": "hysteria2",
+      "expected_core_acceptance": true,
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "name": "hysteria1_rejected",
+      "expected_core_acceptance": false,
+      "exit_code": 23,
+      "passed": true
+    },
+    {
+      "name": "wireguard",
+      "expected_core_acceptance": true,
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "name": "stats_array_rejected",
+      "expected_core_acceptance": false,
+      "exit_code": 23,
+      "passed": true
+    },
+    {
+      "name": "core_accepts_missing_routing_android_envelope_differs",
+      "expected_core_acceptance": true,
+      "exit_code": 0,
+      "passed": true
+    },
+    {
+      "name": "go_stats_repair_accepted_by_pinned_core",
+      "passed": true,
+      "cli_exit_code": 0
+    }
+  ],
+  "passed": true,
+  "android_acceptance": "not_run",
+  "network_connection": "not_run"
+}
