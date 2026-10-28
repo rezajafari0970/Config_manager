@@ -1,0 +1,21 @@
+# Replace SERVER_NAME, TLS_CERTIFICATE, TLS_PRIVATE_KEY with operator values.
+# Keep this independent from other projects. The application only binds loopback.
+server {
+    listen 18443 ssl;
+    server_name SERVER_NAME;
+    ssl_certificate TLS_CERTIFICATE;
+    ssl_certificate_key TLS_PRIVATE_KEY;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    client_max_body_size 16k;
+    server_tokens off;
+    access_log off;
+    location = /healthz { return 404; }
+    location / {
+        proxy_pass http://127.0.0.1:18191;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_read_timeout 25s;
+        proxy_connect_timeout 3s;
+    }
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint": "P0-foundation-20261029",
+  "checkpoint": "P2-panel-20261029",
   "deployment_target": "server_only",
   "repository": "rezajafari0970/Config_manager",
   "development_branch": "go/v2rayng-2.3.6",
@@ -8,7 +8,7 @@
   "phase_status": {
     "P0": "foundation_verified",
     "P1": "initial_source_audit_complete_full_matrix_in_progress",
-    "P2": "pending",
+    "P2": "persistent_authenticated_source_management_verified",
     "P3": "pending",
     "P4": "one_stats_rule_only",
     "P5": "core_fixture_validation_only",
@@ -24,13 +24,24 @@
     "pinned_core_cases_passed": 13,
     "android_import": "not_run",
     "real_proxy_connection": "not_run",
-    "public_panel_deployed": false,
-    "production_installer_released": false
+    "public_panel_deployed": true,
+    "production_installer_released": false,
+    "panel_browser_crud": "passed_chrome_154_desktop_and_mobile",
+    "panel_restart_persistence": "passed_sources_and_sessions",
+    "panel_tls_login": "passed_TLS_1.3",
+    "go_mod_verify": "passed"
   },
   "next": [
-    "Complete target protocol/transport/client-import compatibility matrix and fixture corpus",
-    "Implement persistent sources and authenticated Persian add/edit/delete management panel",
-    "Provision an isolated Android acceptance environment and pin APK/native hashes"
+    "Implement P3 bounded fetch worker with durable jobs, SSRF-safe dialing/redirects, HTTP validators and atomic source generations",
+    "Complete target protocol/transport/client-import matrix and fixture corpus before broad repair activation",
+    "Provision isolated Android acceptance and pin APK/native hashes"
   ],
-  "known_environment_issue": "Existing host Go race object differs from official archive; project checks pass using isolated checksum-verified toolchain. Global installation was not changed."
+  "known_environment_issue": "Existing host Go race object differs from official archive; project checks pass using isolated checksum-verified toolchain. Global installation was not changed.",
+  "runtime": {
+    "service": "config-repair.service",
+    "source_management": "active",
+    "fetch_worker": "not_implemented",
+    "config_collection": "not_started",
+    "binary_sha256": "139b56d2a8199a989a017f48cd5c415dc25f7a25186bdc5b6dcc6e3e39792429"
+  }
 }

@@ -1,0 +1,31 @@
+[Unit]
+Description=Config Repair administration panel
+After=network.target
+
+[Service]
+Type=simple
+User=config-repair
+Group=config-repair
+ExecStart=/opt/config-repair/current/config-panel -config /etc/config-repair/panel.json
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/config-repair
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+LockPersonality=true
+MemoryMax=512M
+TasksMax=128
+
+[Install]
+WantedBy=multi-user.target

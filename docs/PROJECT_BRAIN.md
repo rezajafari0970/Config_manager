@@ -16,13 +16,14 @@ Preserve raw healthy configuration. Try minimal URI repair before an equivalent 
 |---|---|---|
 | Version identity | internal/target | implemented |
 | Driver boundaries | internal/driver | contracts only |
-| Interval sampling | internal/schedule | implemented; persistence pending |
+| Interval sampling | internal/schedule | implemented; next deadline persisted in sources |
 | Source generation decisions | internal/lifecycle | pure policy implemented; database integration pending |
 | Conservative JSON diagnosis/repair | internal/repair | initial rule only |
 | Developer CLI | cmd/config-repair | implemented |
 | Core fixture verification | scripts/core-smoke.py | controlled fixtures, no live proxy test |
 | Android readiness | scripts/android-preflight.py | preflight only; Android acceptance pending |
-| Panel/source store/fetch/probe/exporter | future phases | not implemented |
+| Persian panel and encrypted source store | internal/panel, cmd/config-panel | implemented, restart and browser verified |
+| Fetch/probe/exporter | future phases | not implemented |
 
 ## Durable evidence
 

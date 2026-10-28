@@ -1,4 +1,4 @@
-# Handoff — P0 foundation
+# Handoff — P2 source management
 
 ## Verified product state
 
@@ -6,7 +6,7 @@ Go development lives on branch `go/v2rayng-2.3.6` of `rezajafari0970/Config_mana
 
 The server working directory is `/root/projects/v2ray-config-repair`. Its `.local/` directory contains pinned upstream clones, the Xray oracle, an isolated Go toolchain, development logs and generated receipts. None of that private working material is committed.
 
-Implemented: target identity, driver contracts, random interval helper, generation/fallback decision policy, initial Custom JSON diagnosis, a byte-local stats empty-array repair, CLI, Go CI and controlled core tests. No source URL collection, database, scheduler service, panel or exporter runs yet.
+Implemented: target identity, driver contracts, random interval helper, generation/fallback decision policy, initial Custom JSON diagnosis, a byte-local stats empty-array repair, CLI, Go CI and controlled core tests. An authenticated Persian source-management panel and encrypted SQLite store now run as an independent systemd service. Fetch worker and exporter are not implemented. Sources and sessions survive a process restart.
 
 ## Checks
 
@@ -27,9 +27,12 @@ python3 scripts/core-smoke.py --core .local/xray-26.7.28/xray
 
 GitHub connector publication is available. The current server's default SSH identity did not authorize this repository; the origin uses public HTTPS for fetch/readback. Do not assume automated server pushes are configured. Do not read or copy unrelated project secrets to work around this.
 
-## Next work
+## Runtime and next work
+
+The independent panel service is `config-repair.service`; loopback is `127.0.0.1:18191`, the TLS reverse proxy listens on port `18443` of the server IP. Runtime config is `/etc/config-repair/panel.json`, initial password `/etc/config-repair/initial-admin-password` (root-only), database `/var/lib/config-repair/panel.db`, and binary `/opt/config-repair/current/config-panel`. Do not print/commit runtime secrets. Public browser login/logout and TLS 1.3 were tested. Read `docs/PANEL.md` and `docs/checkpoints/P2-panel-20261029.md`. `.local/p2-published-readback.json` records the exact published/deployed revision after publication.
+
 
 1. Expand P1 source/fixture matrix from exact upstream commits; include Android settings, URI query edge cases, Custom mixed subscriptions, legacy vs flat settings and WireGuard IPv6/multi-peer cases.
-2. Implement P2 persistent source model/migrations and authenticated Persian mobile panel with add/edit/delete, enable/disable, interval bounds/unit and source revision. Only then wire P3 jobs.
+2. Implement P3 bounded, durable fetch jobs, SSRF-safe actual dialing and redirects, HTTP validators, source revisions and atomic generations. Persisted P2 next_run deadlines are not running jobs. Define behavior for overdue deadlines on first worker startup. Run-now becomes available with the worker.
 3. Prepare Android acceptance infrastructure. Mark tests not_run until actual APK/device evidence exists.
 4. Keep the final automatic installer in P8. No curl installer or production-ready release is advertised at this checkpoint.
