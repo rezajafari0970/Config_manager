@@ -1,6 +1,6 @@
 # Project Brain
 
-Read this file → PROJECT_STATE.json → HANDOFF.md → current checkpoint → relevant source/tests. Current user instruction supersedes P2 authentication and repair-in-collection plans.
+Read this file → PROJECT_STATE.json → HANDOFF.md → current checkpoint → relevant source/tests. Current user instruction supersedes P2 authentication and repair-in-collection plans. P3b focuses on acquisition/settings, batch management and honest diagnostics.
 
 ## Active contract
 
@@ -19,3 +19,12 @@ Raw Output is not a healthy output. Existing repair CLI and pinned V2RayNG 2.3.6
 | Core / Android acceptance | scripts/core-smoke.py, android-preflight.py | controlled core fixtures; Android not_run |
 
 Evidence: compatibility/target.lock.json, docs/compatibility/, docs/checkpoints/. Private operational receipts/toolchains/fixtures are ignored under .local/. Deployment and source publication require independent readback.
+
+
+## P3b invariants
+
+- Source revisions/cancellations isolate bulk management; no old completion can revive deleted sources.
+- Expiring config controls isolate disabled/deleted identities from concurrent fetch. Raw bytes are immutable.
+- Inspection plugins produce metadata only. Empty, malformed, unrecognized and transport failure are distinct.
+- Per-source timeout overrides default in seconds, including actual headers/body wait. Expose effective parallel capacity.
+- Live acceptance must preserve current source URLs/settings; destructive scenarios run against synthetic/isolated databases.

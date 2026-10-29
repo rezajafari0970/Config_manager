@@ -16,12 +16,13 @@ var ErrConflict = errors.New("source changed or duplicate")
 var ErrNotFound = errors.New("not found")
 
 type SourceInput struct {
-	Name    string  `json:"name"`
-	URL     string  `json:"url"`
-	Min     float64 `json:"min"`
-	Max     float64 `json:"max"`
-	Unit    string  `json:"unit"`
-	Enabled bool    `json:"enabled"`
+	Name           string  `json:"name"`
+	URL            string  `json:"url"`
+	Min            float64 `json:"min"`
+	Max            float64 `json:"max"`
+	Unit           string  `json:"unit"`
+	Enabled        bool    `json:"enabled"`
+	TimeoutSeconds int64   `json:"timeout_seconds"`
 }
 type Source struct {
 	SourceInput
@@ -41,6 +42,13 @@ type Source struct {
 	ConfigCount    int       `json:"config_count"`
 	DuplicateCount int       `json:"duplicates"`
 	HasResponse    bool      `json:"has_response"`
+	ContentState   string    `json:"content_state"`
+	ValidCount     int       `json:"valid_count"`
+	InvalidCount   int       `json:"invalid_count"`
+	UnknownCount   int       `json:"unknown_count"`
+	ReceivedCount  int       `json:"received_count"`
+	ResponseBytes  int64     `json:"response_bytes"`
+	ErrorStreak    int       `json:"error_streak"`
 }
 
 func (s SourceInput) durations() (time.Duration, time.Duration, error) {
@@ -55,7 +63,7 @@ func (s SourceInput) durations() (time.Duration, time.Duration, error) {
 	return min, max, nil
 }
 func validateSource(s SourceInput) (string, error) {
-	if s.URL == "" {
+	if s.URL == "" || s.TimeoutSeconds < 0 || s.TimeoutSeconds > int64((1<<63-1)/int64(time.Second))-30 {
 		return "", ErrInvalid
 	}
 	for _, value := range []string{s.Name, s.URL} {
@@ -96,7 +104,7 @@ func AutoName(raw string) string {
 	if decoded, e := url.PathUnescape(name); e == nil {
 		name = decoded
 	}
-	return name
+	return strings.TrimSpace(name)
 }
 func normalizeDigits(v string) string {
 	return strings.Map(func(r rune) rune {
@@ -114,7 +122,7 @@ func normalizeDigits(v string) string {
 }
 func parseInterval(v string) (float64, float64, error) {
 	v = normalizeDigits(strings.TrimSpace(v))
-	for _, sep := range []string{"تا", "–", "—"} {
+	for _, sep := range []string{"تا", "–", "—", "to"} {
 		v = strings.ReplaceAll(v, sep, "-")
 	}
 	parts := strings.Split(v, "-")

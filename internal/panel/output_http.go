@@ -14,6 +14,7 @@ type outputModule struct{ s *Server }
 
 func (m outputModule) Register(mux *http.ServeMux) {
 	s := m.s
+	mux.HandleFunc("POST /api/configs/batch", s.configBatch)
 	mux.HandleFunc("GET /output/raw/{id}", s.raw)
 	mux.HandleFunc("GET /output/archive.zip", s.archive)
 }
@@ -36,6 +37,10 @@ func (s *Server) raw(w http.ResponseWriter, r *http.Request) {
 	a, e := s.store.Output(r.Context(), r.PathValue("id"))
 	if e != nil {
 		failure(w, e)
+		return
+	}
+	if a.Disabled && r.URL.Query().Get("preview") != "1" {
+		respond(w, 409, map[string]string{"error": "این کانفیگ غیرفعال است."})
 		return
 	}
 	ext := "txt"

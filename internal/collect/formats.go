@@ -188,6 +188,9 @@ func (textFormat) Extract(ctx context.Context, path string, emit Emitter) error 
 	defer unix.Munmap(data)
 	_ = unix.Madvise(data, unix.MADV_SEQUENTIAL)
 	trim := bytes.TrimSpace(bytes.TrimPrefix(data, []byte{0xef, 0xbb, 0xbf}))
+	if len(trim) > 1 && trim[0] == '"' && json.Valid(trim) {
+		return emitJSONString(ctx, trim, emit)
+	}
 	if len(trim) > 0 && (trim[0] == '{' || trim[0] == '[') && json.Valid(trim) {
 		if trim[0] == '{' {
 			keys, e := documentKeys(trim)
@@ -201,6 +204,7 @@ func (textFormat) Extract(ctx context.Context, path string, emit Emitter) error 
 		}
 		return emitJSON(ctx, trim, emit)
 	}
+	var contentErr error
 	for pos := 0; pos < len(data); {
 		if e = ctx.Err(); e != nil {
 			return e
@@ -221,7 +225,12 @@ func (textFormat) Extract(ctx context.Context, path string, emit Emitter) error 
 			start := pos + bytes.Index(line, trim)
 			stop, e := valueEnd(ctx, data, start)
 			if e != nil {
-				return e
+				if !IsContentError(e) {
+					return e
+				}
+				contentErr = e
+				pos = end
+				continue
 			}
 			end = stop
 			for end < len(data) && (data[end] == ' ' || data[end] == '\t' || data[end] == '\r') {
@@ -232,12 +241,15 @@ func (textFormat) Extract(ctx context.Context, path string, emit Emitter) error 
 			}
 			span := data[pos:end]
 			if e = emitJSON(ctx, span, emit); e != nil {
-				return e
+				if !IsContentError(e) {
+					return e
+				}
+				contentErr = e
 			}
 		}
 		pos = end
 	}
-	return nil
+	return contentErr
 }
 func valueEnd(ctx context.Context, b []byte, start int) (int, error) {
 	depth := 0
@@ -329,22 +341,32 @@ func emitJSON(ctx context.Context, raw []byte, emit Emitter) error {
 					break
 				}
 			}
-			reader := &jsonStringReader{data: b[start+1 : pos-1]}
-			prefix := make([]byte, 4096)
-			n, e := reader.Read(prefix)
-			if e != nil && e != io.EOF {
+			if e := emitJSONString(ctx, b[start:pos], emit); e != nil {
 				return e
-			}
-			if kind := kindOf(prefix[:n]); kind != "" {
-				if e = emit(ctx, &contextReader{ctx, io.MultiReader(bytes.NewReader(prefix[:n]), reader)}, kind); e != nil {
-					return e
-				}
 			}
 			continue
 		}
 		for pos < len(b)-1 && b[pos] != ',' {
 			pos++
 		}
+	}
+	return nil
+}
+
+func emitJSONString(ctx context.Context, b []byte, emit Emitter) error {
+	reader := &jsonStringReader{data: b[1 : len(b)-1]}
+	prefix := make([]byte, 4096)
+	n, e := reader.Read(prefix)
+	if e != nil && e != io.EOF {
+		return e
+	}
+	kind := kindOf(prefix[:n])
+	trim := bytes.TrimSpace(prefix[:n])
+	if kind == "" && len(trim) > 0 && (trim[0] == '{' || trim[0] == '[') {
+		kind = "json"
+	}
+	if kind != "" {
+		return emit(ctx, &contextReader{ctx, io.MultiReader(bytes.NewReader(prefix[:n]), reader)}, kind)
 	}
 	return nil
 }

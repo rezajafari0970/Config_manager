@@ -31,3 +31,6 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json and HANDOFF.md first. Verify actu
 
 ## Continuity
 Update state, handoff and checkpoint together. Keep source review, test and runtime receipts separate; do not put a commit's own hash inside the same commit. No broad reread of unrelated projects is necessary.
+- Bulk action acceptance must use isolated data; adding delete controls does not authorize deleting the user's current data. Source batches are revision-checked transactions. Config delete/disable controls expire with the original retention window.
+- Panel timeouts are the actual per-request deadline, including waiting for headers/body; no shorter hidden HTTP timeout. Zero per-source override inherits the shared setting.
+- Content inspection drivers label raw content without modification. Readable syntax is not core/import/network acceptance.

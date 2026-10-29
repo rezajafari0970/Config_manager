@@ -71,7 +71,7 @@ func failure(w http.ResponseWriter, e error) {
 	switch {
 	case errors.Is(e, ErrInvalid):
 		status = 422
-		message = "لینک و بازهٔ درخواست را بررسی کنید؛ نمونهٔ بازه: ۲ تا ۳."
+		message = "لینک، بازهٔ درخواست و تایم‌اوت را بررسی کنید؛ نمونهٔ بازه: ۲ تا ۳."
 	case errors.Is(e, ErrConflict):
 		status = 409
 		message = "لینک تکراری است یا وضعیت آن تغییر کرده است."
@@ -96,7 +96,7 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	static, _ := fs.Sub(assets, "web")
 	files := http.StripPrefix("/assets/", http.FileServer(http.FS(static)))
-	for _, asset := range []string{"style.css", "app.js", "core.js", "input.js", "output.js", "setting.js", "Vazirmatn.woff2"} {
+	for _, asset := range []string{"style.css", "app.js", "core.js", "input.js", "output.js", "setting.js", "actions.js", "Vazirmatn.woff2"} {
 		mux.Handle("GET /assets/"+asset, files)
 	}
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -185,11 +185,13 @@ func (s *Server) state(w http.ResponseWriter, r *http.Request) {
 	}
 	running, active, tick := false, 0, int64(0)
 	blocked := ""
+	capacity := 0
 	if s.engine != nil {
 		running, active, tick = s.engine.Status()
 		blocked = s.engine.BlockedReason()
+		capacity = s.engine.Capacity()
 	}
-	respond(w, 200, map[string]any{"sources": sources, "outputs": outputs, "settings": settings, "stats": stats, "worker": map[string]any{"running": running, "active": active, "tick": tick, "blocked": blocked}, "now": time.Now().UnixMilli()})
+	respond(w, 200, map[string]any{"sources": sources, "outputs": outputs, "settings": settings, "stats": stats, "worker": map[string]any{"running": running, "active": active, "tick": tick, "blocked": blocked, "capacity": capacity}, "now": time.Now().UnixMilli()})
 }
 
 // PanelModule is the compiled extension boundary for independent feature routes.

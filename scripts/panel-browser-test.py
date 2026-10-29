@@ -51,6 +51,6 @@ with zipfile.ZipFile(WORK / 'configs-raw.zip') as archive:
         assert raw.endswith(b'\r\n')
         if name.endswith('.json'):
             assert b'"stats" : []' in raw and b'9007199254740993' in raw
-receipt = {'phases': RECEIPTS, 'passed': True, 'tests': ['no_login', 'bulk_import', 'automatic_names', 'Persian_intervals', 'independent_source_status', 'raw_SHA256', 'original_response_bytes', 'global_deduplication', 'edit', 'pause', 'delete', 'restart_persistence', 'fixed_TTL', 'ZIP_exact_bytes', 'mobile_drawer', '1440_and_390_no_overflow']}
+receipt = {'phases': RECEIPTS, 'passed': True, 'tests': ['no_login', 'bulk_import', 'automatic_names', 'Persian_intervals', 'independent_source_status', 'raw_SHA256', 'original_response_bytes', 'global_deduplication', 'edit', 'pause', 'delete', 'restart_persistence', 'fixed_TTL', 'ZIP_exact_bytes', 'mobile_drawer', '1440_and_390_no_overflow', 'bulk_source_enable_disable_delete', 'bulk_config_enable_disable_delete', 'clear_all_sources', 'clear_all_configs', 'source_timeout_seconds', 'global_timeout_seconds', 'content_quality_status', 'disabled_restart_persistence', 'mobile_interval_text_keyboard']}
 (WORK / 'receipt.json').write_text(json.dumps(receipt, indent=2))
 print(json.dumps({'receipt': str(WORK / 'receipt.json'), 'passed': True}))

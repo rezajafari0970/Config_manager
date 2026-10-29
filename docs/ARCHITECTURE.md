@@ -38,3 +38,10 @@ Collection is immutable raw acquisition, without auto-repair or claims of health
 Passwordless Input / Output / Setting replaces login-first UI. The user explicitly authorized public management. CSRF, HTTPS, encrypted secrets and public-IP-only dialing remain. Artificial byte/count quotas are removed; streaming/file-backed parsing, bounded work, deadlines, disk admission guard and OS resource budgets keep resource use controlled. Every source gets a separate transport, context and state; SQLite/scheduler/disk remain shared infrastructure, so physical isolation of all possible failures is not claimed.
 
 Driver boundaries: collect.FetchDriver, collect.FormatDriver/Registry, collect.Repository, and panel.PanelModule.Register. Built-in modules and extensions are compiled and tested together. This is not a runtime marketplace or an unsandboxed dynamic code-upload mechanism. Core execution remains outside this raw pipeline.
+
+
+## ADR-010: acquisition diagnostics and bulk controls
+
+Schema 3 adds independent timeout override, content state/counts and expiring config controls. Global config identity remains independent of raw bytes. Config tombstones are checked during generation publication, so a concurrent fetch cannot resurrect a selected deletion. Clear-all also revokes job revisions and leases. Disable excludes ordinary exports while retaining administrative raw preview; flags do not mutate blobs and cannot slide TTL. Source batches compare revisions atomically.
+
+InspectionDriver annotates one item, recovers plugin panic locally and makes no core/network claim. Partial content errors preserve successfully extracted siblings and the original full response. Per-row source decoding/interval failure no longer aborts all due jobs. HTTP transport waits are bounded by the actual configured request context, not shorter hidden constants. Bounded scheduling, fairness, background cleanup and supervisor remain shared infrastructure; absolute host-failure independence is not claimed.

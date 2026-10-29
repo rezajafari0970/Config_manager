@@ -1,0 +1,4 @@
+import {$,api,toast,fa} from './core.js';
+export function confirmAction(message,operation){const dialog=$('#confirm-dialog'),button=$('#confirm-delete');$('#confirm-message').textContent=message;button.onclick=async()=>{button.disabled=true;try{await operation();dialog.close()}catch(error){toast(error.message)}finally{button.disabled=false}};dialog.showModal()}
+export async function batch(kind,body,ctx){const result=await api('/api/'+kind+'/batch',{method:'POST',body});await ctx.refresh();toast(fa.format(result.affected)+' مورد به‌روزرسانی شد.');return result}
+export function clearAll(kind,ctx){const message=kind==='sources'?'همهٔ لینک‌ها و دریافت‌های در حال اجرای آن‌ها حذف شوند؟':'همهٔ کانفیگ‌ها و پاسخ‌های ذخیره‌شده حذف شوند؟ لینک‌ها باقی می‌مانند. موارد حذف‌شده تا پایان عمر فعلی دوباره وارد فهرست نمی‌شوند؛ دریافت کانفیگ‌های جدید ادامه دارد.';confirmAction(message,()=>batch(kind,{action:'delete',all:true},ctx))}

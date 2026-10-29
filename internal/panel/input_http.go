@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -12,6 +13,7 @@ type inputModule struct{ s *Server }
 
 func (m inputModule) Register(mux *http.ServeMux) {
 	s := m.s
+	mux.HandleFunc("POST /api/sources/batch", s.sourceBatch)
 	mux.HandleFunc("GET /api/sources/{id}", func(w http.ResponseWriter, r *http.Request) {
 		v, e := s.store.Get(r.Context(), r.PathValue("id"))
 		if e != nil {
@@ -28,6 +30,15 @@ func (m inputModule) Register(mux *http.ServeMux) {
 func (s *Server) bulk(w http.ResponseWriter, r *http.Request) {
 	min, max, e := parseInterval(r.URL.Query().Get("interval"))
 	unit := r.URL.Query().Get("unit")
+	timeout, parseError := strconv.ParseInt(normalizeDigits(r.URL.Query().Get("timeout_seconds")), 10, 64)
+	if r.URL.Query().Get("timeout_seconds") == "" {
+		timeout = 0
+		parseError = nil
+	}
+	if parseError != nil || timeout < 0 || timeout > int64((1<<63-1)/1000000000)-30 {
+		failure(w, ErrInvalid)
+		return
+	}
 	probe := SourceInput{Min: min, Max: max, Unit: unit}
 	if e != nil {
 		failure(w, e)
@@ -44,7 +55,7 @@ func (s *Server) bulk(w http.ResponseWriter, r *http.Request) {
 		lineNo++
 		raw := strings.TrimSpace(strings.TrimPrefix(line, "\ufeff"))
 		if raw != "" {
-			input := SourceInput{URL: raw, Min: min, Max: max, Unit: unit, Enabled: true}
+			input := SourceInput{URL: raw, Min: min, Max: max, Unit: unit, Enabled: true, TimeoutSeconds: timeout}
 			_, e = s.store.Save(r.Context(), "", 0, input)
 			switch {
 			case e == nil:

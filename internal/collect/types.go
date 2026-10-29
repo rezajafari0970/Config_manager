@@ -17,20 +17,24 @@ type Job struct {
 	ID, URL, Token, ETag, Modified string
 	Revision                       int64
 	Min, Max                       time.Duration
+	TimeoutSeconds                 int64
 }
 type Item struct {
 	blob.Ref
 	Identity string `json:"identity"`
 	Kind     string `json:"kind"`
+	Quality  string `json:"quality"`
 }
 type Result struct {
-	State, ErrorCode, ETag, Modified string
-	HTTPStatus                       int
-	DurationMS                       int64
-	Raw                              blob.Ref
-	Items                            []Item
-	Extracted                        int
-	Staged                           bool
+	State, ErrorCode, ETag, Modified       string
+	HTTPStatus                             int
+	DurationMS                             int64
+	Raw                                    blob.Ref
+	Items                                  []Item
+	Extracted                              int
+	Staged                                 bool
+	ContentState                           string
+	ValidCount, InvalidCount, UnknownCount int
 }
 type Repository interface {
 	Settings(context.Context) (Settings, error)
@@ -55,4 +59,10 @@ type FormatDriver interface {
 	Name() string
 	Match([]byte) bool
 	Extract(context.Context, string, Emitter) error
+}
+
+// Inspection drivers annotate content without transforming or executing it.
+type InspectionDriver interface {
+	Kind() string
+	Inspect([]byte, bool) string
 }

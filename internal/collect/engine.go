@@ -21,6 +21,7 @@ type Engine struct {
 	vault       *blob.Vault
 	fetch       FetchDriver
 	formats     *Registry
+	inspectors  *InspectionRegistry
 	mu          sync.Mutex
 	active      map[string]context.CancelFunc
 	wake        chan struct{}
@@ -29,10 +30,11 @@ type Engine struct {
 	running     atomic.Bool
 	cleaning    atomic.Bool
 	diskBlocked atomic.Bool
+	capacity    atomic.Int64
 }
 
 func NewEngine(repo Repository, vault *blob.Vault, driver FetchDriver) *Engine {
-	return &Engine{repo: repo, vault: vault, fetch: driver, formats: NewRegistry(), active: map[string]context.CancelFunc{}, wake: make(chan struct{}, 1)}
+	return &Engine{repo: repo, vault: vault, fetch: driver, formats: NewRegistry(), inspectors: NewInspectionRegistry(), active: map[string]context.CancelFunc{}, wake: make(chan struct{}, 1)}
 }
 func (e *Engine) RegisterFormat(driver FormatDriver) { e.formats.Register(driver) }
 func (e *Engine) Wake(id string, cancel bool) {
@@ -115,6 +117,7 @@ func (e *Engine) dispatch(ctx context.Context) {
 	if capacity > physical {
 		capacity = physical
 	}
+	e.capacity.Store(int64(capacity))
 	e.mu.Lock()
 	available := capacity - len(e.active)
 	e.mu.Unlock()
@@ -139,7 +142,11 @@ func (e *Engine) dispatch(ctx context.Context) {
 			e.mu.Unlock()
 			continue
 		}
-		jobctx, cancel := context.WithTimeout(ctx, time.Duration(settings.TimeoutSeconds)*time.Second)
+		timeout := settings.TimeoutSeconds
+		if job.TimeoutSeconds > 0 {
+			timeout = job.TimeoutSeconds
+		}
+		jobctx, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
 		e.active[job.ID] = cancel
 		e.mu.Unlock()
 		e.wg.Add(1)
@@ -182,10 +189,7 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 		result.State = "unchanged"
 		return
 	}
-	if response.Status < 200 || response.Status >= 300 {
-		result.ErrorCode = "http_error"
-		return
-	}
+
 	spool, err := os.CreateTemp("", "config-fetch-")
 	if err != nil {
 		result.ErrorCode = "storage_error"
@@ -200,6 +204,11 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 	}
 	pins = append(pins, raw.Hash)
 	result.Raw = raw
+	if response.Status < 200 || response.Status >= 300 {
+		result.ErrorCode = "http_error"
+		result.ContentState = "http_error"
+		return
+	}
 	if err = spool.Close(); err != nil {
 		result.ErrorCode = "storage_error"
 		return
@@ -214,22 +223,42 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 		}
 		defer e.vault.Release(ref.Hash)
 		identity := Fingerprint(sample.data, ref.Size <= int64(len(sample.data)), kind, ref.Hash)
+		quality := e.inspectors.Inspect(sample.data, ref.Size <= int64(len(sample.data)), kind)
+		switch quality {
+		case "valid":
+			result.ValidCount++
+		case "invalid":
+			result.InvalidCount++
+		default:
+			result.UnknownCount++
+		}
 		result.Extracted++
-		added, err := e.repo.Stage(ctx, job, Item{Ref: ref, Identity: identity, Kind: kind})
+		added, err := e.repo.Stage(ctx, job, Item{Ref: ref, Identity: identity, Kind: kind, Quality: quality})
 		if added {
 			unique++
 		}
 		return err
 	})
-	if err != nil {
-		result.Items = nil
+	if err != nil && !IsContentError(err) {
 		result.ErrorCode = errorCode(err)
 		return
 	}
+	if err != nil {
+		result.InvalidCount++
+		result.ErrorCode = "invalid_content"
+	}
+	result.ContentState = ContentState(spool.Name(), result.ValidCount, result.InvalidCount, result.UnknownCount)
 	result.State = "updated"
 	if unique == 0 {
 		result.State = "empty"
+		if result.ContentState != "empty" {
+			result.State = "invalid"
+		}
 	}
+	if result.ContentState == "partial" || result.ContentState == "invalid" {
+		result.ErrorCode = "invalid_content"
+	}
+
 }
 
 type sampleWriter struct{ data []byte }
@@ -272,3 +301,7 @@ func (e *Engine) BlockedReason() string {
 	}
 	return ""
 }
+
+func (e *Engine) Capacity() int { return int(e.capacity.Load()) }
+
+func (e *Engine) RegisterInspector(driver InspectionDriver) { e.inspectors.Register(driver) }

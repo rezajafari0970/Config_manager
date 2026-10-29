@@ -55,9 +55,9 @@ func (d HTTPDriver) Fetch(ctx context.Context, job Job) (Response, error) {
 	}
 	dial := d.Dial
 	if dial == nil {
-		dial = (&net.Dialer{Timeout: 10 * time.Second, KeepAlive: 30 * time.Second}).DialContext
+		dial = (&net.Dialer{KeepAlive: 30 * time.Second}).DialContext
 	}
-	transport := &http.Transport{Proxy: nil, ForceAttemptHTTP2: true, TLSHandshakeTimeout: 10 * time.Second, ResponseHeaderTimeout: 15 * time.Second, MaxIdleConns: 1, MaxIdleConnsPerHost: 1, MaxConnsPerHost: 1, IdleConnTimeout: time.Second, DialContext: func(ctx context.Context, network, address string) (net.Conn, error) {
+	transport := &http.Transport{Proxy: nil, ForceAttemptHTTP2: true, TLSHandshakeTimeout: 0, ResponseHeaderTimeout: 0, MaxIdleConns: 1, MaxIdleConnsPerHost: 1, MaxConnsPerHost: 1, IdleConnTimeout: time.Second, DialContext: func(ctx context.Context, network, address string) (net.Conn, error) {
 		host, port, err := net.SplitHostPort(address)
 		if err != nil {
 			return nil, err
