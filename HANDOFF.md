@@ -1,24 +1,24 @@
-# Handoff — P3b acquisition and bulk management
+# Handoff — P4a automatic structural candidates
 
-Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json and the current checkpoint first. Verify the actual git HEAD, working tree, runtime executable hash and publication receipt. The user explicitly restricts current work to collection/settings; immutable raw data and passwordless management remain required.
+Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json and docs/checkpoints/P4a-structural-repair-20261029.md. Verify actual HEAD/status/origin and `.local/p4-published-readback.json` before continuing. The user now authorizes automatic structural repair while original collected bytes remain immutable.
 
-## Current state
+## Current behavior
 
-Separate Input / Output / Setting route/frontend modules run on the existing independent Go service. Source and config checkboxes support bulk enable/disable/delete; explicit clear-all buttons are available, with confirmation. Source actions are revision-checked transactions and cancel only affected jobs. Config disable excludes ordinary downloads/ZIP but permits admin preview; expiry-bound tombstones prevent in-flight/repeated resurrection after deletion. Clear-all-configs revokes job leases/revisions, clears stage/response/artifact data and preserves URLs/settings. User production data was not cleared during acceptance.
+Independent Go collector retains raw responses and original config spans. A compiled offline CandidateDriver registry produces separate, encrypted structural candidates and reports. Version-pinned JSON rules repair empty object fields, trailing commas and absent empty Custom import containers. Ambiguous/nonempty structures, secrets, protocol identities and unsupported extensions are not guessed. Rules never execute input. Syntax/structural result, core testing, Android import and connection remain different evidence stages.
 
-Per-source integer timeout seconds override the shared Setting value; empty/zero inherits. Hidden 10/15-second HTTP transport cutoffs were removed. Android interval input now uses a text keyboard. A corrupt source record no longer blocks all due records. Partial malformed content no longer discards recognized siblings. InspectionDriver plugins label raw items and contain inspection panic; no repairs or arbitrary core execution occur. Enabled state, request outcome and content quality are distinct. Current effective parallel capacity is visible.
+Input shows repaired/unresolved counts beside original response quality. Output has all/repaired/blocked/unverified filters, per-config diagnostic details and separate repaired download. Raw download/ZIP remain exact. Derived files use exact-original SHA and original TTL/access eligibility; no additional artifact identities are created. Disable/delete/expiry remove repaired download availability. Schema 4 adds repairs and raw-hash lookup index, preserves source/settings/control records and clears conditional validators for fresh diagnosis.
 
-## Evidence
+Mixed subscriptions correctly extract contiguous WireGuard sections; distributed headers cannot be safely recombined. Extension fields such as Jc/Jmin/H1 remain original and explicitly unverified for the pinned target. An observed ss URI lacked valid Shadowsocks auth and looked like another protocol; no automatic scheme guessing occurred.
 
-Go module verification, format, vet, race tests and build pass. Tests cover source CAS and atomic rollback, stale completion, source timeout isolation, header waits exceeding the former 15-second cap, config disable/delete/clear under concurrent collection, fixed control TTL, malformed siblings, JSON string envelopes, byte preservation and inspection-plugin failure.
+## Verification
 
-Chrome 154 / Playwright core 1.56.1 passed 1440/390px layouts, drawer, bulk source/config actions, destructive confirmations, actual default/per-source timeout fields, expiry and full restart persistence including disabled configs. Current fixture receipt: `.local/p3-browser/6d3655bf94f0/receipt.json`. Screenshots inspected.
+Full gofmt/module/vet/race/build checks passed using the verified isolated toolchain. Tests cover surgical byte preservation, unknown fields, large numbers, duplicate keys, nonempty arrays, idempotence, driver panic, mixed extraction, actual automatic repair, report/filter/download access, fixed TTL and orphan collection. Structural fuzz executed 195,337 cases. 24 synthetic pinned-Xray core checks passed; no fetched config was run by Xray. Browser tests cover the mobile/desktop panel, repair filters/details/downloads, original hash/ZIP, restart persistence, source/config bulk controls and expiry. One nil-error dereference found by browser acceptance was fixed and regression-tested before the final deployment.
 
-An isolated copy of the actual 54 sources completed a fresh sweep in 12.91 seconds with 16 concurrent jobs: 44 readable, 1 structurally invalid, 6 empty, 3 unrecognized in that sample. All 950 original/config downloads matched their stored SHA256; zero identical raw payloads had multiple identities. Sampled Penguin JSON contained stats arrays and a freedom settings array; raw files were retained unchanged and only annotated. Outcomes vary per fetch and do not establish VPN connectivity. The final installed version has its separate production audit receipt.
+Isolated real-source audit covered 54 sources and 969 original/config downloads; six Penguin JSON candidates repaired stats, freedom settings and dns.hosts. Samples vary with source content. Production audit and exact installed binary are separate ignored receipts, not inferred from publication.
 
-## Environment / build
+## Environment
 
-Server `/root/projects/v2ray-config-repair`; GitHub `rezajafari0970/Config_manager`, branch `go/v2rayng-2.3.6`; legacy main is unchanged. GitHub connector publishes; HTTPS fetch verifies. Do not use unrelated project credentials. Shared Go race object and shared libc module cache previously failed integrity checks. Use isolated verified caches:
+Server `/root/projects/v2ray-config-repair`, GitHub `rezajafari0970/Config_manager`, development branch `go/v2rayng-2.3.6`; legacy main unchanged. Do not touch the unrelated DigitalOcean project, service, proxy or credentials. Publish via GitHub connector and verify via HTTPS git fetch, exact tree, clean worktree and actual executable hash. No force-push.
 
 ```sh
 export GOROOT="$PWD/.local/toolchain/go" PATH="$PWD/.local/toolchain/go/bin:$PATH"
@@ -26,16 +26,15 @@ export GOCACHE="$PWD/.local/go-clean-cache" GOMODCACHE="$PWD/.local/go-mod-verif
 export GOMAXPROCS=2 GOMEMLIMIT=768MiB GOFLAGS=-p=2
 bash scripts/check.sh
 PLAYWRIGHT_MODULE="$PWD/.local/browser/node_modules/playwright-core" CHROME_PATH=/opt/google/chrome/chrome python3 scripts/panel-browser-test.py
+python3 scripts/core-smoke.py --core .local/xray-26.7.28/xray
 ```
 
-## Runtime / operational receipts
+Shared Go/module caches previously failed integrity checks; do not alter them. Passwordless management is explicitly authorized; retain CSRF, Origin, encryption and HTTPS.
 
-`config-repair.service` is enabled at boot. Binary `/opt/config-repair/current/config-panel`, loopback 127.0.0.1:18191, TLS port 18443. Runtime `/etc/config-repair/panel.json`, schema-3 SQLite `/var/lib/config-repair/panel.db`, adjacent encrypted blob directory. Passwordless public administration is explicitly authorized; keep HTTPS/CSRF. Settings and all 54 sources were preserved at migration. No nginx site or unrelated DigitalOcean service changed.
+Runtime: `config-repair.service`, enabled at boot, restart/watchdog active; `/opt/config-repair/current/config-panel`; loopback18191/publicTLS18443. `/etc/config-repair/panel.json` contains a secret master key; never print it. DB `/var/lib/config-repair/panel.db` schema4, encrypted blobs adjacent. Take private stopped-service SQLite/blob/key backup before migration; restore correct matching schema/binary on rollback.
 
-Before upgrade, stop this service, snapshot via SQLite backup API and preserve the master key and blob files privately. Rollback from schema 3 requires the schema-2 backup plus old binary. Runtime candidate SHA256: `c295a35a3a01516257ab67e797b08e0a4cd7fae15028ec24cf6b01f9485395d6`. Do not infer deployment from Git publication.
+Ignored receipts: `.local/p4-deployed.json`, `.local/p4-production-audit.json`, `.local/p4-production-browser.json`, `.local/p4-core.json`, `.local/p4-check.log`, `.local/p4-browser.log`, `.local/p4-fuzz.log`, `.local/p4-ci.json`, `.local/p4-published-readback.json`. Temporary real-payload copies/backups are cleaned after acceptance; never assume their blobs still exist. Source settings and user data are preserved; destructive tests use synthetic fixtures.
 
-Ignored private receipts: `.local/p3b-deployed.json`, `.local/p3b-production-audit.json`, `.local/p3b-recovery.json`, `.local/p3b-published-readback.json`, `.local/p3b-ci.json`. Exact publication/CI receipts are written after the source commit. Temporary real-source blob/raw audit copies are removed after verification; keep only sanitized receipts. Rebooting the shared host was not part of acceptance. A separate SIGSTOP watchdog test checks recovery; physical power-off cannot sustain fetching, but boot enablement resumes the daemon.
+## Limits / next scope
 
-## Outstanding scope
-
-No real proxy connection or Android import/runtime acceptance. Existing CLI repair stays opt-in and separate. Dynamic uploaded plugins are not supported; extension interfaces are compiled. Known-format identities are conservative; no universal semantic-dedup proof or bug-free/absolute-uptime guarantee. Final installer remains P8.
+No Android APK/device acceptance or live VPN connection test. Candidate structure does not establish usable service. No arbitrary input core execution until isolation/egress controls are implemented. Unknown protocol/transport coverage remains open; dynamically uploaded plugins are not implemented. Final reproducible installer/update/rollback is P8. Continue adding evidence-backed repair rules only when actual symptoms justify them; retain original bytes and conservative rejection.

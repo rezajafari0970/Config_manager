@@ -362,6 +362,9 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 			return e
 		}
 		for _, item := range result.Items {
+			if e = saveRepair(ctx, tx, item); e != nil {
+				return e
+			}
 			res, err := tx.ExecContext(ctx, "INSERT INTO artifacts(id,hash,kind,size,created,expires,quality) SELECT ?,?,?,?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM config_controls WHERE id=? AND action='deleted' AND expires>?) ON CONFLICT(id) DO NOTHING", item.Identity, item.Hash, item.Kind, item.Size, stamp, expiry, item.Quality, item.Identity, stamp)
 			if err != nil {
 				return err
@@ -438,11 +441,14 @@ func (s *Store) Expire(ctx context.Context, now time.Time) error {
 	if _, e = tx.ExecContext(ctx, "DELETE FROM responses WHERE expires<=?", now.UnixMilli()); e != nil {
 		return e
 	}
+	if _, e = tx.ExecContext(ctx, "DELETE FROM repairs WHERE NOT ("+repairReferences+")"); e != nil {
+		return e
+	}
 	return tx.Commit()
 }
 func (s *Store) Referenced(ctx context.Context, hash string) (bool, error) {
 	var used bool
-	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=?)", hash, hash, hash).Scan(&used)
+	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+"))", hash, hash, hash, hash).Scan(&used)
 	return used, e
 }
 
@@ -461,11 +467,18 @@ type Artifact struct {
 const representativeJoin = " FROM artifacts a JOIN memberships m ON m.artifact_id=a.id AND m.source_id=(SELECT min(m2.source_id) FROM memberships m2 WHERE m2.artifact_id=a.id) "
 
 func (s *Store) Outputs(ctx context.Context, kind string, page int, all bool) ([]Artifact, error) {
+	return s.OutputsFiltered(ctx, kind, "", page, all)
+}
+func (s *Store) OutputsFiltered(ctx context.Context, kind, repairStatus string, page int, all bool) ([]Artifact, error) {
 	args := []any{time.Now().UnixMilli()}
 	query := "SELECT a.id,m.raw_hash,m.kind,m.size,a.created,a.expires,(SELECT count(*) FROM memberships m3 WHERE m3.artifact_id=a.id),EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='disabled' AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)),a.quality" + representativeJoin + "WHERE a.expires>?"
 	if kind != "" {
 		query += " AND m.kind=?"
 		args = append(args, kind)
+	}
+	if repairStatus != "" {
+		query += " AND EXISTS(SELECT 1 FROM repairs r WHERE r.raw_hash=m.raw_hash AND r.status=?)"
+		args = append(args, repairStatus)
 	}
 	query += " ORDER BY a.created DESC,a.id"
 	if !all {
@@ -556,6 +569,9 @@ func (s *Store) Stage(ctx context.Context, job collect.Job, item collect.Item) (
 		return false, e
 	}
 	n, _ := result.RowsAffected()
+	if e = saveRepair(ctx, tx, item); e != nil {
+		return false, e
+	}
 	return n == 1, tx.Commit()
 }
 

@@ -14,6 +14,8 @@ type outputModule struct{ s *Server }
 
 func (m outputModule) Register(mux *http.ServeMux) {
 	s := m.s
+	mux.HandleFunc("GET /api/repairs/{id}", s.repairReport)
+	mux.HandleFunc("GET /output/repaired/{id}", s.repaired)
 	mux.HandleFunc("POST /api/configs/batch", s.configBatch)
 	mux.HandleFunc("GET /output/raw/{id}", s.raw)
 	mux.HandleFunc("GET /output/archive.zip", s.archive)

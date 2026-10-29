@@ -54,3 +54,10 @@ Checkboxes select the visible page and preserve selection while navigating pages
 Config disable preserves bytes and excludes the item from ZIP and ordinary download; the administrative raw preview remains available. Repeated collection and restart do not silently enable it. Enable reverses disable. Config delete leaves a metadata-only tombstone until that config's original expiry; in-flight or repeated content cannot immediately resurrect it. Controls expire and retention changes apply to their original creation time. This is not a permanent blacklist. Source-response archives may still contain a selectively deleted config; clear-all-configs removes those archives too. Clear-all invalidates active source revisions and leases, clears staging/responses/artifacts, and keeps URLs/settings. Future new configurations can still arrive. Clear-all-sources cancels/removes sources and their memberships. The UI requests explicit confirmation for destructive actions; cross-origin POST is rejected.
 
 Schema 3 migrates source diagnostics/timeout fields, artifact quality and expiring config controls without rewriting source URLs, source settings, config bytes or retention settings. The service remains enabled at boot; watchdog recovery is tested on a separate transient service, not by rebooting the shared host. During physical power-off no fetch can run; the collector resumes after the host starts.
+
+
+## تعمیر ساختاری جداگانه
+
+در هر دریافت، قواعد نسخهٔ هدف روی نمونهٔ قابل بررسی اجرا می‌شوند. در Input تعداد اصلاح‌شده و نیازمند بررسی نمایش داده می‌شود. در Output دکمهٔ «جزئیات بررسی» و برای موارد ترمیم‌شده «دانلود نسخهٔ اصلاح‌شده» موجود است. «دانلود» و «دانلود همه» همچنان اصل دریافتی را می‌دهند. نامعتبر بودن اصل با موفقیت اصلاح یک نسخهٔ جداگانه تناقض ندارد. هیچ وضعیت تعمیر به معنی اتصال موفق نیست. نسخهٔ اصلاح‌شده با غیرفعال‌سازی/حذف/انقضای اصل از خروجی خارج می‌شود.
+
+API: `GET /api/repairs/{id}` گزارش بدون رمزها، `GET /output/repaired/{id}` فایل جداگانه با هدر `X-Original-SHA256` و `X-Validation-Stage: structural-only`. مهاجرت به schema 4، دریافت بعدی را بدون ETag درخواست می‌کند؛ منابع و تنظیمات حفظ می‌شوند.

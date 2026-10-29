@@ -139,6 +139,15 @@ func Analyze(b []byte) Report {
 			r.add("expected_object", "/dns/hosts")
 		}
 	}
+	if object(root["policy"]) {
+		var policy map[string]json.RawMessage
+		_ = json.Unmarshal(root["policy"], &policy)
+		for _, k := range []string{"levels", "system"} {
+			if v, ok := policy[k]; ok && !object(v) {
+				r.add("expected_object", "/policy/"+k)
+			}
+		}
+	}
 	if object(root["routing"]) {
 		var routing map[string]json.RawMessage
 		_ = json.Unmarshal(root["routing"], &routing)

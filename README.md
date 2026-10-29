@@ -31,3 +31,6 @@ PLAYWRIGHT_MODULE=/path/to/playwright-core CHROME_PATH=/path/to/chrome python3 s
 [راهنمای پنل](docs/PANEL.md)، [معماری](docs/ARCHITECTURE.md)، [وضعیت](PROJECT_STATE.json)، [تحویل](HANDOFF.md) و [نقشهٔ راه](docs/ROADMAP.md) را ببینید.
 نمونهٔ systemd و nginx در `deploy/` است. نصب‌کنندهٔ نهایی خودکار هنوز منتشر نشده است.
 هیچ URL محرمانه، خروجی خام، کلید یا دیتابیس عملیاتی نباید وارد Git شود.
+
+
+P4a adds automatic separate structural repair candidates, diagnostic reports and repaired downloads while preserving every original byte. See `docs/checkpoints/P4a-structural-repair-20261029.md`. Fetched candidates have not undergone Android or live connection validation.

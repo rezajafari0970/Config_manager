@@ -20,11 +20,11 @@ func run(args []string) int {
 		fmt.Fprintln(os.Stderr, "usage: config-repair target | inspect FILE | repair-stats INPUT NEW_OUTPUT")
 		return 2
 	}
-	if args[0] != "inspect" && args[0] != "repair-stats" {
+	if args[0] != "inspect" && args[0] != "repair-stats" && args[0] != "repair-json" {
 		fmt.Fprintln(os.Stderr, "unknown command")
 		return 2
 	}
-	if args[0] == "inspect" && len(args) != 2 || args[0] == "repair-stats" && len(args) != 3 {
+	if args[0] == "inspect" && len(args) != 2 || (args[0] == "repair-stats" || args[0] == "repair-json") && len(args) != 3 {
 		return 2
 	}
 	f, err := os.Open(args[1])
@@ -47,6 +47,19 @@ func run(args []string) int {
 		return 0
 	}
 	out, patch, err := repair.RepairStats(b)
+	if args[0] == "repair-json" {
+		d := (repair.JSONDriver{}).Propose(b)
+		if d.Status == "blocked" || d.Status == "unverified" {
+			_ = json.NewEncoder(os.Stdout).Encode(d)
+			return 1
+		}
+		out = b
+		if d.Status == "repaired" {
+			out = d.Candidate
+		}
+		patch = d.Patches
+		err = nil
+	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "repair_rejected")
 		return 1

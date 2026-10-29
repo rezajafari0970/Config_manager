@@ -28,3 +28,7 @@ Evidence: compatibility/target.lock.json, docs/compatibility/, docs/checkpoints/
 - Inspection plugins produce metadata only. Empty, malformed, unrecognized and transport failure are distinct.
 - Per-source timeout overrides default in seconds, including actual headers/body wait. Expose effective parallel capacity.
 - Live acceptance must preserve current source URLs/settings; destructive scenarios run against synthetic/isolated databases.
+
+## P4a active authorization
+
+The user now requests structural repairs. Collection retains immutable originals and automatically produces separate CandidateDriver results; candidates never replace raw identities or become healthy exports. Schema 4 keys repair metadata/ciphertext by exact raw SHA and links lifetime/access to the original. Strict ambiguity rejection, version-pinned schema rules, unchanged-byte/idempotence regression tests, and separate structural/core/Android/network evidence are mandatory. Input and Output display repair counts and reasons; raw source quality remains visible even when a candidate fixes it.

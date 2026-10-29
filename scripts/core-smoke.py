@@ -59,6 +59,32 @@ with tempfile.TemporaryDirectory(prefix="config-repair-core-") as temp:
         path.write_text(json.dumps(document))
         p = subprocess.run([str(core), "run", "-test", "-c", str(path)], capture_output=True, text=True, timeout=15)
         results.append({"name": name, "expected_core_acceptance": expected, "exit_code": p.returncode, "passed": (p.returncode == 0) == expected})
+    # Each repair rule is exercised against the checksum-pinned core using only
+    # synthetic, non-secret configs. Live fetched configs are never executed.
+    repair_cases = []
+    for field in ('stats','log','dns','policy','routing'):
+        document = copy.deepcopy(valid); document[field] = []
+        repair_cases.append(('empty_'+field, document))
+    for field in ('levels','system'):
+        document = copy.deepcopy(valid); document['policy'] = {field: []}
+        repair_cases.append(('empty_policy_'+field, document))
+    document = copy.deepcopy(valid); document['dns'] = {'hosts': []}
+    repair_cases.append(('empty_dns_hosts', document))
+    document = copy.deepcopy(valid); document['outbounds'].append({'protocol':'freedom','settings':[]})
+    repair_cases.append(('empty_freedom_settings', document))
+    document = copy.deepcopy(valid); del document['routing']; del document['inbounds']
+    repair_cases.append(('custom_envelope', document))
+    for name, document in repair_cases:
+        original_case=temp/(name+'-original.json'); repaired_case=temp/(name+'-repaired.json')
+        original_case.write_text(json.dumps(document))
+        cli=subprocess.run([str(ROOT/'bin/config-repair'),'repair-json',str(original_case),str(repaired_case)],capture_output=True,text=True,timeout=10)
+        check=subprocess.run([str(core),'run','-test','-c',str(repaired_case)],capture_output=True,text=True,timeout=15) if cli.returncode==0 else None
+        results.append({'name':'structural_repair_'+name,'passed':bool(check and check.returncode==0),'cli_exit_code':cli.returncode})
+    original_case=temp/'comma-original.json'; repaired_case=temp/'comma-repaired.json'
+    original_case.write_text(json.dumps(valid)[:-1]+',}')
+    cli=subprocess.run([str(ROOT/'bin/config-repair'),'repair-json',str(original_case),str(repaired_case)],capture_output=True,text=True,timeout=10)
+    check=subprocess.run([str(core),'run','-test','-c',str(repaired_case)],capture_output=True,text=True,timeout=15) if cli.returncode==0 else None
+    results.append({'name':'structural_repair_trailing_comma','passed':bool(check and check.returncode==0),'cli_exit_code':cli.returncode})
     original = temp / "stats_array.json"
     repaired = temp / "stats_object.json"
     original.write_text(json.dumps(bad))

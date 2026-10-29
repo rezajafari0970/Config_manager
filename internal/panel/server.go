@@ -96,7 +96,7 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	static, _ := fs.Sub(assets, "web")
 	files := http.StripPrefix("/assets/", http.FileServer(http.FS(static)))
-	for _, asset := range []string{"style.css", "app.js", "core.js", "input.js", "output.js", "setting.js", "actions.js", "Vazirmatn.woff2"} {
+	for _, asset := range []string{"style.css", "app.js", "core.js", "input.js", "output.js", "setting.js", "actions.js", "repairs.js", "Vazirmatn.woff2"} {
 		mux.Handle("GET /assets/"+asset, files)
 	}
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -168,7 +168,7 @@ func (s *Server) state(w http.ResponseWriter, r *http.Request) {
 		failure(w, e)
 		return
 	}
-	outputs, e := s.store.Outputs(ctx, r.URL.Query().Get("kind"), page, false)
+	outputs, e := s.store.OutputsFiltered(ctx, r.URL.Query().Get("kind"), r.URL.Query().Get("repair"), page, false)
 	if e != nil {
 		failure(w, e)
 		return
@@ -191,7 +191,12 @@ func (s *Server) state(w http.ResponseWriter, r *http.Request) {
 		blocked = s.engine.BlockedReason()
 		capacity = s.engine.Capacity()
 	}
-	respond(w, 200, map[string]any{"sources": sources, "outputs": outputs, "settings": settings, "stats": stats, "worker": map[string]any{"running": running, "active": active, "tick": tick, "blocked": blocked, "capacity": capacity}, "now": time.Now().UnixMilli()})
+	repairs, e := s.store.RepairSummary(ctx, outputs)
+	if e != nil {
+		failure(w, e)
+		return
+	}
+	respond(w, 200, map[string]any{"repairs": repairs, "sources": sources, "outputs": outputs, "settings": settings, "stats": stats, "worker": map[string]any{"running": running, "active": active, "tick": tick, "blocked": blocked, "capacity": capacity}, "now": time.Now().UnixMilli()})
 }
 
 // PanelModule is the compiled extension boundary for independent feature routes.

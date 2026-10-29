@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/rezajafari0970/Config_manager/internal/blob"
+	"github.com/rezajafari0970/Config_manager/internal/repair"
 )
 
 type Settings struct {
@@ -21,9 +22,11 @@ type Job struct {
 }
 type Item struct {
 	blob.Ref
-	Identity string `json:"identity"`
-	Kind     string `json:"kind"`
-	Quality  string `json:"quality"`
+	Identity  string            `json:"identity"`
+	Kind      string            `json:"kind"`
+	Quality   string            `json:"quality"`
+	Repair    repair.Diagnostic `json:"repair"`
+	Candidate blob.Ref          `json:"candidate"`
 }
 type Result struct {
 	State, ErrorCode, ETag, Modified       string

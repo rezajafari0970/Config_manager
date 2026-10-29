@@ -23,7 +23,7 @@ import (
 type Registry struct{ drivers []FormatDriver }
 
 func NewRegistry() *Registry {
-	return &Registry{drivers: []FormatDriver{wireGuardFormat{}, textFormat{}}}
+	return &Registry{drivers: []FormatDriver{textFormat{}}}
 }
 func (r *Registry) Register(driver FormatDriver) {
 	r.drivers = append([]FormatDriver{driver}, r.drivers...)
@@ -217,7 +217,35 @@ func (textFormat) Extract(ctx context.Context, path string, emit Emitter) error 
 		}
 		line := data[pos:end]
 		trim = bytes.TrimSpace(bytes.TrimPrefix(line, []byte{0xef, 0xbb, 0xbf}))
-		if kind := kindOf(trim); kind != "" {
+		if bytes.EqualFold(trim, []byte("[Interface]")) {
+			// A mixed subscription can contain a contiguous INI document. Stop
+			// at the next config/header, preserving the exact original span.
+			stop := end
+			for stop < len(data) {
+				n := bytes.IndexByte(data[stop:], '\n')
+				if n < 0 {
+					n = len(data)
+				} else {
+					n += stop + 1
+				}
+				t := bytes.TrimSpace(data[stop:n])
+				if bytes.EqualFold(t, []byte("[Interface]")) || kindOf(t) != "" || (len(t) > 0 && t[0] == '{') {
+					break
+				}
+				if len(t) > 0 && !bytes.EqualFold(t, []byte("[Peer]")) && t[0] != '#' && t[0] != ';' && !bytes.ContainsRune(t, '=') {
+					break
+				}
+				stop = n
+			}
+			if e = emit(ctx, &contextReader{ctx, bytes.NewReader(data[pos:stop])}, "wireguard"); e != nil {
+				return e
+			}
+			pos = stop
+			continue
+		} else if bytes.EqualFold(trim, []byte("[Peer]")) {
+			// Orphan/distributed INI fields have no trustworthy key association.
+			contentErr = errors.New("orphan_wireguard_section")
+		} else if kind := kindOf(trim); kind != "" {
 			if e = emit(ctx, &contextReader{ctx, bytes.NewReader(line)}, kind); e != nil {
 				return e
 			}
@@ -229,6 +257,11 @@ func (textFormat) Extract(ctx context.Context, path string, emit Emitter) error 
 					return e
 				}
 				contentErr = e
+				if looksLikeJSONConfig(trim) {
+					if x := emit(ctx, &contextReader{ctx, bytes.NewReader(line)}, "json"); x != nil {
+						return x
+					}
+				}
 				pos = end
 				continue
 			}
@@ -286,6 +319,9 @@ func valueEnd(ctx context.Context, b []byte, start int) (int, error) {
 func emitJSON(ctx context.Context, raw []byte, emit Emitter) error {
 	b := bytes.TrimSpace(raw)
 	if !json.Valid(b) {
+		if looksLikeJSONConfig(b) {
+			return emit(ctx, &contextReader{ctx, bytes.NewReader(raw)}, "json")
+		}
 		return errors.New("invalid_json")
 	}
 	if ctx.Err() != nil {
@@ -668,4 +704,13 @@ func canonicalJSON(b []byte, label string) ([]byte, error) {
 		delete(object, label)
 	}
 	return json.Marshal(value)
+}
+
+func looksLikeJSONConfig(b []byte) bool {
+	for _, k := range []string{`"outbounds"`, `"outbound"`, `"proxies"`, `"protocol"`} {
+		if bytes.Contains(b, []byte(k)) {
+			return true
+		}
+	}
+	return false
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint": "P3b-acquisition-controls-20261029",
+  "checkpoint": "P4a-structural-repair-20261029",
   "deployment_target": "server_only",
   "repository": "rezajafari0970/Config_manager",
   "development_branch": "go/v2rayng-2.3.6",
@@ -10,8 +10,8 @@
     "P1": "initial_source_audit_complete_full_matrix_in_progress",
     "P2": "passwordless_modular_panel_verified",
     "P3": "live_acquisition_bulk_controls_and_diagnostics_verified",
-    "P4": "one_stats_rule_only",
-    "P5": "core_fixture_validation_only",
+    "P4": "automatic_separate_structural_candidates_verified",
+    "P5": "24_pinned_core_synthetic_cases_verified",
     "P6": "blocked_no_android_test_device",
     "P7": "raw_download_and_zip_only_health_export_pending",
     "P8": "pending"
@@ -21,12 +21,12 @@
     "go_vet": "passed",
     "go_test_race": "passed_verified_isolated_Go1.27.1",
     "go_build": "passed",
-    "pinned_core_cases_passed": 13,
+    "pinned_core_cases_passed": 24,
     "android_import": "not_run",
     "real_proxy_connection": "not_run",
     "public_panel_deployed": true,
     "production_installer_released": false,
-    "panel_browser_crud": "passed_bulk_actions_settings_mobile_text_keyboard_and_restart",
+    "panel_browser_crud": "passed_repair_filters_details_downloads_and_existing_management",
     "panel_restart_persistence": "passed_sources_settings_and_raw_outputs",
     "panel_tls_login": "removed_by_explicit_user_request",
     "go_mod_verify": "passed_isolated_verified_module_cache",
@@ -40,11 +40,15 @@
     "configured_timeout": "passed_source_override_and_15_second_hidden_timeout_regression",
     "content_diagnostics": "passed_partial_siblings_unknown_empty_malformed_and_inspector_panic",
     "live_source_audit": "54_sources_16_parallel_12.91_seconds_950_exact_downloads_zero_raw_duplicate_identities",
-    "live_production_audit": "passed_all_54_sources_exact_response_hashes_zero_raw_duplicate_identities"
+    "live_production_audit": "passed_all_54_sources_exact_response_hashes_zero_raw_duplicate_identities",
+    "structural_repair": "passed_surgical_ambiguity_idempotence_unknown_fields_and_plugin_isolation",
+    "structural_fuzz": "passed_195337_executions",
+    "repair_lifecycle": "passed_original_hash_candidate_download_disable_delete_expiry_and_restart",
+    "live_repair_audit": "54_sources_969_exact_downloads_6_repaired_JSONs_zero_raw_duplicate_identities"
   },
   "next": [
-    "Keep acquisition and settings stable; extend raw-format diagnostics and load fixtures without rewriting content",
-    "Separate future core/Android/network acceptance from raw acquisition",
+    "Expand repair rules from observed inputs and pinned upstream evidence; do not infer credentials/protocols",
+    "Implement isolated per-candidate core validation then actual Android/network acceptance",
     "Implement final reproducible installer and update/rollback tests in P8"
   ],
   "known_environment_issue": "Global Go race object differs from official archive; shared modernc.org/libc module directory also failed go mod verify. Project uses checksum-verified isolated Go 1.27.1, module cache and build cache. Shared installations were not modified.",
@@ -52,9 +56,9 @@
     "service": "config-repair.service",
     "source_management": "passwordless_active",
     "fetch_worker": "active",
-    "config_collection": "raw_immutable",
-    "binary_sha256": "c295a35a3a01516257ab67e797b08e0a4cd7fae15028ec24cf6b01f9485395d6",
-    "database_schema": 3,
+    "config_collection": "raw_immutable_with_separate_structural_candidates",
+    "binary_sha256": "8c7552d14b190e2c5eacac8f74c959b7a888d482f2dea7ecb1613c16e8ccfb93",
+    "database_schema": 4,
     "retention_default_seconds": 7200,
     "enabled_at_boot": true
   }

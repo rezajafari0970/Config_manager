@@ -41,7 +41,7 @@ func TestMalformedSiblingDoesNotDiscardGoodExactSpans(t *testing.T) {
 		got = append(got, string(b))
 		return e
 	})
-	if !IsContentError(e) || len(got) != 2 || got[0] != first || got[1] != last {
+	if e != nil || len(got) != 3 || got[0] != first || got[1] != "{\"outbounds\": broken}\r\n" || got[2] != last {
 		t.Fatal("sibling isolation or raw bytes", e, got)
 	}
 }
@@ -119,5 +119,34 @@ func TestInspectorFailureIsLocal(t *testing.T) {
 	}
 	if r.Inspect([]byte("vless://user@vpn.example:443"), true, "vless") != "valid" {
 		t.Fatal("one inspector broke another")
+	}
+}
+
+func TestMixedWireguardExactExtractionAndMalformedJSONRepairInput(t *testing.T) {
+	uri := "trojan://secret@vpn.example:443#exact\r\n"
+	wg := "[Interface]\r\nPrivateKey = synthetic\r\nAddress = 10.0.0.2/32\r\n[Peer]\r\nPublicKey = synthetic\r\nEndpoint = 192.0.2.1:443\r\nAllowedIPs = 0.0.0.0/0\r\n"
+	broken := "{\"outbounds\":[{\"protocol\":\"vless\"}],}\r\n"
+	for _, raw := range []string{wg, uri + wg + broken + uri} {
+		path := filepath.Join(t.TempDir(), "raw")
+		os.WriteFile(path, []byte(raw), 0600)
+		var values, kinds []string
+		e := NewRegistry().Extract(context.Background(), path, func(ctx context.Context, r io.Reader, kind string) error {
+			b, e := io.ReadAll(r)
+			values = append(values, string(b))
+			kinds = append(kinds, kind)
+			return e
+		})
+		if e != nil {
+			t.Fatal(e)
+		}
+		if raw == wg {
+			if len(values) != 1 || values[0] != wg {
+				t.Fatal("standalone changed")
+			}
+		} else {
+			if len(values) != 4 || values[0] != uri || values[1] != wg || values[2] != broken || values[3] != uri || kinds[1] != "wireguard" {
+				t.Fatal("mixed lost bytes", values, kinds)
+			}
+		}
 	}
 }

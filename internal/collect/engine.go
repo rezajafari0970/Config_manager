@@ -1,8 +1,10 @@
 package collect
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"github.com/rezajafari0970/Config_manager/internal/repair"
 	"io"
 	"log"
 	"net"
@@ -22,6 +24,7 @@ type Engine struct {
 	fetch       FetchDriver
 	formats     *Registry
 	inspectors  *InspectionRegistry
+	repairs     *repair.Registry
 	mu          sync.Mutex
 	active      map[string]context.CancelFunc
 	wake        chan struct{}
@@ -34,7 +37,7 @@ type Engine struct {
 }
 
 func NewEngine(repo Repository, vault *blob.Vault, driver FetchDriver) *Engine {
-	return &Engine{repo: repo, vault: vault, fetch: driver, formats: NewRegistry(), inspectors: NewInspectionRegistry(), active: map[string]context.CancelFunc{}, wake: make(chan struct{}, 1)}
+	return &Engine{repo: repo, vault: vault, fetch: driver, formats: NewRegistry(), inspectors: NewInspectionRegistry(), repairs: repair.NewRegistry(), active: map[string]context.CancelFunc{}, wake: make(chan struct{}, 1)}
 }
 func (e *Engine) RegisterFormat(driver FormatDriver) { e.formats.Register(driver) }
 func (e *Engine) Wake(id string, cancel bool) {
@@ -233,7 +236,26 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 			result.UnknownCount++
 		}
 		result.Extracted++
-		added, err := e.repo.Stage(ctx, job, Item{Ref: ref, Identity: identity, Kind: kind, Quality: quality})
+		diagnostic := e.repairs.Propose(sample.data, ref.Size <= int64(len(sample.data)), kind, quality)
+		var candidate blob.Ref
+		if len(diagnostic.Candidate) > 0 {
+			if e.inspectors.Inspect(diagnostic.Candidate, true, kind) != "valid" {
+				diagnostic.Status = "blocked"
+				diagnostic.Candidate = nil
+				diagnostic.CandidateSHA256 = ""
+			} else {
+				candidate, err = e.vault.Put(ctx, bytes.NewReader(diagnostic.Candidate))
+				if err != nil {
+					diagnostic.Status = "blocked"
+					diagnostic.Candidate = nil
+					diagnostic.CandidateSHA256 = ""
+				} else {
+					defer e.vault.Release(candidate.Hash)
+				}
+			}
+		}
+		diagnostic.OriginalSHA256 = ref.Hash
+		added, err := e.repo.Stage(ctx, job, Item{Ref: ref, Identity: identity, Kind: kind, Quality: quality, Repair: diagnostic, Candidate: candidate})
 		if added {
 			unique++
 		}
@@ -246,6 +268,9 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 	if err != nil {
 		result.InvalidCount++
 		result.ErrorCode = "invalid_content"
+		if err != nil && err.Error() == "orphan_wireguard_section" {
+			result.ErrorCode = "orphan_wireguard_section"
+		}
 	}
 	result.ContentState = ContentState(spool.Name(), result.ValidCount, result.InvalidCount, result.UnknownCount)
 	result.State = "updated"
@@ -257,6 +282,9 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 	}
 	if result.ContentState == "partial" || result.ContentState == "invalid" {
 		result.ErrorCode = "invalid_content"
+		if err != nil && err.Error() == "orphan_wireguard_section" {
+			result.ErrorCode = "orphan_wireguard_section"
+		}
 	}
 
 }
@@ -305,3 +333,5 @@ func (e *Engine) BlockedReason() string {
 func (e *Engine) Capacity() int { return int(e.capacity.Load()) }
 
 func (e *Engine) RegisterInspector(driver InspectionDriver) { e.inspectors.Register(driver) }
+
+func (e *Engine) RegisterRepair(d repair.CandidateDriver) { e.repairs.Register(d) }
