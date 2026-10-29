@@ -3,7 +3,11 @@ package panel
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/rezajafari0970/Config_manager/internal/collect"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -18,169 +22,285 @@ import (
 
 func testStore(t *testing.T) *Store {
 	t.Helper()
-	dir := filepath.Join(t.TempDir(), "data")
-	s, err := Open(filepath.Join(dir, "panel.db"), bytes.Repeat([]byte{7}, 32))
-	if err != nil {
-		t.Fatal(err)
+	s, e := Open(filepath.Join(t.TempDir(), "data", "panel.db"), bytes.Repeat([]byte{7}, 32))
+	if e != nil {
+		t.Fatal(e)
 	}
 	t.Cleanup(func() { s.Close() })
 	return s
 }
 func testSource() SourceInput {
-	return SourceInput{Name: "منبع آزمایشی", URL: "https://example.com/private/test-token?key=fixture-secret", Min: 15, Max: 20, Unit: "minutes", Enabled: true}
+	return SourceInput{Name: "", URL: "https://example.com/Api/Verde/trun.php?secret=fixture", Min: 2, Max: 3, Unit: "minutes", Enabled: true}
 }
-func TestSourceValidation(t *testing.T) {
-	for _, raw := range []string{"file:///etc/passwd", "https://localhost/a", "http://127.0.0.1/x", "https://[::1]/x", "https://[::ffff:127.0.0.1]/", "http://169.254.169.254/", "http://10.1.2.3/", "http://100.64.0.1/", "https://example.com:99999/", "https://example.com/#private", "https://example.com/\nsecret"} {
-		in := testSource()
+func TestIntervalNamingAndNoBusinessCaps(t *testing.T) {
+	for raw, want := range map[string]string{"https://iran.fitn1.ir/Api/Verde/trun.php": "Verde", "https://example.com/Api/Alan/main.php?url=https://other.example/a": "Alan", "https://example.com/": "example.com", "https://example.com/Api/Rosa/": "Rosa"} {
+		if got := AutoName(raw); got != want {
+			t.Errorf("%s: %s", raw, got)
+		}
+	}
+	for _, text := range []string{"۲ تا ۳", "٢ - ٣", "2–3", "2—3"} {
+		a, b, e := parseInterval(text)
+		if e != nil || a != 2 || b != 3 {
+			t.Fatal(text, a, b, e)
+		}
+	}
+	in := testSource()
+	in.Name = strings.Repeat("n", 2000)
+	in.URL = "https://example.com/" + strings.Repeat("x", 10000)
+	in.Min = 50000
+	in.Max = 100000
+	if _, e := validateSource(in); e != nil {
+		t.Fatal("legacy business cap remains", e)
+	}
+	for _, raw := range []string{"file:///etc/passwd", "https://", "https://example.com/\nhttps://example.net/"} {
+		in = testSource()
 		in.URL = raw
-		if _, err := validateSource(in); err == nil {
-			t.Errorf("accepted %q", raw)
+		if _, e := validateSource(in); e == nil {
+			t.Fatal("invalid source accepted")
 		}
-	}
-	for _, in := range []SourceInput{{Name: "n", URL: "https://example.com", Min: 20, Max: 15, Unit: "minutes"}, {Name: "n", URL: "https://example.com", Min: 1, Max: 9223372036854775807, Unit: "hours"}} {
-		if _, err := validateSource(in); err == nil {
-			t.Fatal("invalid interval accepted")
-		}
-	}
-	in := testSource()
-	in.URL = "https://user:secret@example.com/private?token=hidden"
-	display, err := validateSource(in)
-	if err != nil || display != "https://example.com/…" {
-		t.Fatal(display, err)
 	}
 }
-func TestEncryptedPersistenceAndRevisions(t *testing.T) {
+func TestEncryptedSourceAndRevisionIsolation(t *testing.T) {
+	s := testStore(t)
 	ctx := context.Background()
-	dir := filepath.Join(t.TempDir(), "data")
-	path := filepath.Join(dir, "panel.db")
-	key := bytes.Repeat([]byte{3}, 32)
-	s, err := Open(path, key)
-	if err != nil {
-		t.Fatal(err)
-	}
 	in := testSource()
-	id, err := s.Save(ctx, "", 0, in)
-	if err != nil {
-		t.Fatal(err)
+	id, e := s.Save(ctx, "", 0, in)
+	if e != nil {
+		t.Fatal(e)
 	}
-	original, err := s.Get(ctx, id)
-	if err != nil {
-		t.Fatal(err)
+	got, e := s.Get(ctx, id)
+	if e != nil || got.URL != in.URL || got.Name != "Verde" {
+		t.Fatal("save mismatch", e)
 	}
-	if original.NextRunAt.Before(time.Now().Add(14*time.Minute)) || original.NextRunAt.After(time.Now().Add(21*time.Minute)) {
-		t.Fatal("deadline outside interval")
+	if _, e = s.Save(ctx, "", 0, in); !errors.Is(e, ErrConflict) {
+		t.Fatal("duplicate accepted")
 	}
-	if _, err = s.Save(ctx, "", 0, in); !errors.Is(err, ErrConflict) {
-		t.Fatal("duplicate accepted", err)
+	results := make(chan error, 2)
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	for i := 0; i < 2; i++ {
+		wg.Add(1)
+		go func() { defer wg.Done(); <-start; _, e := s.Save(ctx, id, 1, in); results <- e }()
 	}
-	s.Close()
-	for _, p := range []string{path, path + "-wal"} {
-		data, _ := os.ReadFile(p)
-		if bytes.Contains(data, []byte("fixture-secret")) || bytes.Contains(data, []byte("test-token")) {
-			t.Fatal("source secret in plaintext database")
+	close(start)
+	wg.Wait()
+	close(results)
+	success, conflict := 0, 0
+	for e := range results {
+		if e == nil {
+			success++
+		} else if errors.Is(e, ErrConflict) {
+			conflict++
+		} else {
+			t.Fatal(e)
 		}
 	}
-	s, err = Open(path, key)
-	if err != nil {
-		t.Fatal(err)
+	if success != 1 || conflict != 1 {
+		t.Fatal("concurrent revision escaped")
 	}
-	defer s.Close()
-	restored, err := s.Get(ctx, id)
-	if err != nil || restored.URL != in.URL || !restored.NextRunAt.Equal(original.NextRunAt) {
-		t.Fatal("restart changed data", err)
+	if e = s.Delete(ctx, id, 1); !errors.Is(e, ErrConflict) {
+		t.Fatal("stale deletion")
 	}
-	list, err := s.List(ctx)
-	if err != nil || len(list) != 1 || list[0].URL != "" {
-		t.Fatal("list exposed URL")
+	if e = s.Delete(ctx, id, 2); e != nil {
+		t.Fatal(e)
 	}
-	in.Name = "updated"
-	if _, err = s.Save(ctx, id, 1, in); err != nil {
-		t.Fatal(err)
-	}
-	if _, err = s.Save(ctx, id, 1, in); !errors.Is(err, ErrConflict) {
-		t.Fatal("stale edit accepted")
-	}
-	if err = s.Delete(ctx, id, 1); !errors.Is(err, ErrConflict) {
-		t.Fatal("stale delete accepted")
-	}
-	if err = s.Delete(ctx, id, 2); err != nil {
-		t.Fatal(err)
-	}
-	if _, err = s.Save(ctx, id, 2, in); !errors.Is(err, ErrConflict) {
+	if _, e = s.Save(ctx, id, 2, in); !errors.Is(e, ErrConflict) {
 		t.Fatal("deleted source resurrected")
 	}
+}
+func TestMigrationAndReopen(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "data", "panel.db")
+	key := bytes.Repeat([]byte{9}, 32)
+	s, e := Open(path, key)
+	if e != nil {
+		t.Fatal(e)
+	}
+	_, e = s.db.Exec(`DROP TABLE staged;DROP TABLE memberships;DROP TABLE artifacts;DROP TABLE responses;DROP TABLE settings;DROP TABLE sources;CREATE TABLE sources(id TEXT PRIMARY KEY,name TEXT NOT NULL,url BLOB NOT NULL,url_hash TEXT NOT NULL UNIQUE,display_url TEXT NOT NULL,min INTEGER NOT NULL,max INTEGER NOT NULL,unit TEXT NOT NULL,enabled INTEGER NOT NULL,revision INTEGER NOT NULL,created INTEGER NOT NULL,updated INTEGER NOT NULL,next_run INTEGER NOT NULL);CREATE TABLE admin(id INTEGER PRIMARY KEY,password_hash TEXT);CREATE TABLE sessions(hash TEXT PRIMARY KEY,expires INTEGER);CREATE TABLE attempts(key TEXT PRIMARY KEY,count INTEGER,window INTEGER);PRAGMA user_version=1;`)
+	if e != nil {
+		t.Fatal(e)
+	}
+	raw := "https://example.com/private-token?key=fixture-secret"
+	_, e = s.db.Exec("INSERT INTO sources VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", "legacy", "legacy", s.seal("legacy", []byte(raw)), s.digest("source-url", raw), "https://example.com/…", 15, 20, "minutes", 1, 3, 1, 1, 1)
+	if e != nil {
+		t.Fatal(e)
+	}
 	s.Close()
-	if other, err := Open(path, bytes.Repeat([]byte{9}, 32)); err == nil {
+	s, e = Open(path, key)
+	if e != nil {
+		t.Fatal(e)
+	}
+	got, e := s.Get(ctx, "legacy")
+	if e != nil || got.URL != raw || got.Revision != 3 {
+		t.Fatal("migration lost source", e)
+	}
+	var n int
+	s.db.QueryRow("SELECT count(*) FROM sqlite_master WHERE name IN ('admin','sessions','attempts')").Scan(&n)
+	if n != 0 {
+		t.Fatal("password tables retained")
+	}
+	s.Close()
+	for _, file := range []string{path, path + "-wal"} {
+		data, _ := os.ReadFile(file)
+		if bytes.Contains(data, []byte("fixture-secret")) || bytes.Contains(data, []byte("private-token")) {
+			t.Fatal("source secret stored plaintext")
+		}
+	}
+	if other, e := Open(path, bytes.Repeat([]byte{8}, 32)); e == nil {
 		other.Close()
 		t.Fatal("wrong master key accepted")
 	}
 }
-func TestAuthPersistenceAndRevocation(t *testing.T) {
-	s := testStore(t)
+func claimOne(t *testing.T, s *Store, id string) collect.Job {
+	t.Helper()
+	if e := s.RunNow(context.Background(), id); e != nil {
+		t.Fatal(e)
+	}
+	jobs, e := s.Claim(context.Background(), time.Now().Add(time.Second), 1, time.Minute)
+	if e != nil || len(jobs) != 1 || jobs[0].ID != id {
+		t.Fatal("claim mismatch", jobs, e)
+	}
+	return jobs[0]
+}
+func fixtureResult(t *testing.T, s *Store, raw string) collect.Result {
+	t.Helper()
+	ref, e := s.vault.Put(context.Background(), strings.NewReader(raw))
+	if e != nil {
+		t.Fatal(e)
+	}
+	t.Cleanup(func() { s.vault.Release(ref.Hash) })
+	identity := collect.Fingerprint([]byte(raw), true, "vless", ref.Hash)
+	return collect.Result{State: "updated", HTTPStatus: 200, Raw: ref, ETag: `"fixture"`, Extracted: 1, Items: []collect.Item{{Ref: ref, Identity: identity, Kind: "vless"}}}
+}
+func TestAtomicGenerationGlobalDedupAndSourceIndependence(t *testing.T) {
 	ctx := context.Background()
-	password := "synthetic-password-12345"
-	if err := s.InitAdmin(ctx, password); err != nil {
-		t.Fatal(err)
+	s := testStore(t)
+	a, _ := s.Save(ctx, "", 0, testSource())
+	j := claimOne(t, s, a)
+	result := fixtureResult(t, s, "vless://synthetic@vpn.example:443#original\r\n")
+	if e := s.Complete(ctx, j, result, time.Now()); e != nil {
+		t.Fatal(e)
 	}
-	if err := s.InitAdmin(ctx, password); err == nil {
-		t.Fatal("admin overwritten")
+	in := testSource()
+	in.URL = "https://example.net/Api/Rosa/trun.php"
+	b, _ := s.Save(ctx, "", 0, in)
+	j = claimOne(t, s, b)
+	if e := s.Complete(ctx, j, result, time.Now()); e != nil {
+		t.Fatal(e)
 	}
-	if _, _, err := s.Authenticate(ctx, "wrong", false); !errors.Is(err, ErrAuth) {
-		t.Fatal(err)
+	items, e := s.Outputs(ctx, "", 0, true)
+	if e != nil || len(items) != 1 || items[0].Sources != 2 {
+		t.Fatal("global dedup failed", items, e)
 	}
-	token, expiry, err := s.Authenticate(ctx, password, true)
-	if err != nil || !s.Session(ctx, token) || time.Until(expiry) < 29*24*time.Hour {
-		t.Fatal("session failed", err)
+	if e = s.Delete(ctx, a, 1); e != nil {
+		t.Fatal(e)
 	}
-	var stored string
-	s.db.QueryRow("SELECT hash FROM sessions LIMIT 1").Scan(&stored)
-	if stored == token {
-		t.Fatal("plaintext session token")
+	items, _ = s.Outputs(ctx, "", 0, true)
+	if len(items) != 1 || items[0].Sources != 1 {
+		t.Fatal("one deletion removed another source config")
 	}
-	if err = s.ChangePassword(ctx, "wrong", "another-test-password"); !errors.Is(err, ErrAuth) {
-		t.Fatal(err)
+	j = claimOne(t, s, b)
+	in.URL = "https://example.net/Api/Changed/trun.php"
+	if _, e = s.Save(ctx, b, 1, in); e != nil {
+		t.Fatal(e)
 	}
-	if err = s.ChangePassword(ctx, password, "another-test-password"); err != nil {
-		t.Fatal(err)
+	if e = s.Complete(ctx, j, result, time.Now()); !errors.Is(e, ErrConflict) {
+		t.Fatal("stale job committed")
 	}
-	if s.Session(ctx, token) {
-		t.Fatal("session survived password change")
-	}
-	token, _, err = s.Authenticate(ctx, "another-test-password", false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err = s.db.Exec("UPDATE sessions SET expires=?", time.Now().Add(-time.Second).Unix()); err != nil {
-		t.Fatal(err)
-	}
-	if s.Session(ctx, token) {
-		t.Fatal("expired session accepted")
-	}
-	token, _, _ = s.Authenticate(ctx, "another-test-password", false)
-	if err = s.Logout(ctx, token); err != nil || s.Session(ctx, token) {
-		t.Fatal("logout did not revoke")
-	}
-	for i := 0; i < 10; i++ {
-		ok, err := s.AllowAuth(ctx, "192.0.2.1")
-		if !ok || err != nil {
-			t.Fatal(i, err)
-		}
-	}
-	if ok, _ := s.AllowAuth(ctx, "192.0.2.1"); ok {
-		t.Fatal("rate limit absent")
-	}
-	if ok, _ := s.AllowAuth(ctx, "192.0.2.2"); !ok {
-		t.Fatal("client limits incorrectly shared")
+	items, _ = s.Outputs(ctx, "", 0, true)
+	if len(items) != 0 {
+		t.Fatal("changed URL kept old membership")
 	}
 }
-
-func request(app http.Handler, method, path string, form url.Values, cookies []*http.Cookie, origin string) *httptest.ResponseRecorder {
-	r := httptest.NewRequest(method, "https://panel.example"+path, strings.NewReader(form.Encode()))
-	r.RemoteAddr = "192.0.2.2:1234"
-	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+func TestFixedTTLReplacementEmptyAnd304(t *testing.T) {
+	ctx := context.Background()
+	s := testStore(t)
+	id, _ := s.Save(ctx, "", 0, testSource())
+	first := time.Now()
+	j := claimOne(t, s, id)
+	result := fixtureResult(t, s, "vless://synthetic@vpn.example:443#original\r\n")
+	if e := s.Complete(ctx, j, result, first); e != nil {
+		t.Fatal(e)
+	}
+	items, _ := s.Outputs(ctx, "", 0, true)
+	expiry := items[0].Expires
+	j = claimOne(t, s, id)
+	if j.ETag == "" {
+		t.Fatal("HTTP validator absent")
+	}
+	if e := s.Complete(ctx, j, result, first.Add(time.Hour)); e != nil {
+		t.Fatal(e)
+	}
+	items, _ = s.Outputs(ctx, "", 0, true)
+	if items[0].Expires != expiry {
+		t.Fatal("repeat extended TTL")
+	}
+	j = claimOne(t, s, id)
+	if e := s.Complete(ctx, j, collect.Result{State: "empty", HTTPStatus: 200}, first.Add(90*time.Minute)); e != nil {
+		t.Fatal(e)
+	}
+	items, _ = s.Outputs(ctx, "", 0, true)
+	if len(items) != 1 {
+		t.Fatal("empty erased retained raw config")
+	}
+	j = claimOne(t, s, id)
+	if e := s.Complete(ctx, j, collect.Result{State: "unchanged", HTTPStatus: 304}, first.Add(100*time.Minute)); e != nil {
+		t.Fatal(e)
+	}
+	items, _ = s.Outputs(ctx, "", 0, true)
+	if items[0].Expires != expiry {
+		t.Fatal("304 extended TTL")
+	}
+	if e := s.Expire(ctx, first.Add(2*time.Hour)); e != nil {
+		t.Fatal(e)
+	}
+	items, _ = s.Outputs(ctx, "", 0, true)
+	if len(items) != 0 {
+		t.Fatal("expired output remains")
+	}
+	j = claimOne(t, s, id)
+	if j.ETag != "" {
+		t.Fatal("expired cache requested 304")
+	}
+}
+func TestSuccessfulGenerationReplacesOldAndRecovery(t *testing.T) {
+	ctx := context.Background()
+	s := testStore(t)
+	id, _ := s.Save(ctx, "", 0, testSource())
+	j := claimOne(t, s, id)
+	if e := s.Complete(ctx, j, fixtureResult(t, s, "vless://one@vpn.example:443#one"), time.Now()); e != nil {
+		t.Fatal(e)
+	}
+	j = claimOne(t, s, id)
+	if e := s.Complete(ctx, j, fixtureResult(t, s, "vless://two@vpn.example:443#two"), time.Now()); e != nil {
+		t.Fatal(e)
+	}
+	items, _ := s.Outputs(ctx, "", 0, true)
+	if len(items) != 1 {
+		t.Fatal("generation appended rather than replaced")
+	}
+	if _, e := s.Claim(ctx, time.Now(), 1, time.Minute); e != nil {
+		t.Fatal(e)
+	}
+	j = claimOne(t, s, id)
+	if e := s.Recover(ctx); e != nil {
+		t.Fatal(e)
+	}
+	jobs, e := s.Claim(ctx, time.Now().Add(time.Second), 1, time.Minute)
+	if e != nil || len(jobs) != 1 || jobs[0].Token == j.Token {
+		t.Fatal("interrupted lease not recovered")
+	}
+	if e = s.Complete(ctx, j, collect.Result{State: "empty"}, time.Now()); !errors.Is(e, ErrConflict) {
+		t.Fatal("pre-restart completion accepted")
+	}
+}
+func request(app http.Handler, method, path, body, csrf string, cookies []*http.Cookie, origin string) *httptest.ResponseRecorder {
+	r := httptest.NewRequest(method, "https://panel.example"+path, strings.NewReader(body))
 	if origin != "" {
 		r.Header.Set("Origin", origin)
 	}
+	r.Header.Set("X-CSRF-Token", csrf)
+	r.Header.Set("Content-Type", "application/json")
 	for _, c := range cookies {
 		r.AddCookie(c)
 	}
@@ -188,158 +308,194 @@ func request(app http.Handler, method, path string, form url.Values, cookies []*
 	app.ServeHTTP(w, r)
 	return w
 }
-func csrfFrom(t *testing.T, body string) string {
-	t.Helper()
-	m := regexp.MustCompile(`name="csrf" value="([^"]+)"`).FindStringSubmatch(body)
-	if len(m) != 2 {
-		t.Fatal("csrf missing")
-	}
-	return m[1]
-}
-func TestHTTPFullCRUDAndSecurity(t *testing.T) {
+func TestPasswordlessBulkAPIAndCSRF(t *testing.T) {
 	s := testStore(t)
-	ctx := context.Background()
-	if err := s.InitAdmin(ctx, "synthetic-password-12345"); err != nil {
-		t.Fatal(err)
+	app, e := NewServer(s, "https://panel.example")
+	if e != nil {
+		t.Fatal(e)
 	}
-	server, err := NewServer(s, "https://panel.example")
-	if err != nil {
-		t.Fatal(err)
+	handler := app.Handler()
+	w := request(handler, "GET", "/input", "", "", nil, "")
+	if w.Code != 200 || strings.Contains(w.Body.String(), "type=\"password\"") {
+		t.Fatal("login still required")
 	}
-	app := server.Handler()
-	w := request(app, "GET", "/", nil, nil, "")
-	if w.Code != 303 {
-		t.Fatal("unauthenticated access", w.Code)
+	match := regexp.MustCompile(`name="csrf-token" content="([^"]+)"`).FindStringSubmatch(w.Body.String())
+	if len(match) != 2 {
+		t.Fatal("CSRF token missing")
 	}
-	w = request(app, "GET", "/login", nil, nil, "")
-	loginCookies := w.Result().Cookies()
-	nonce := csrfFrom(t, w.Body.String())
-	form := url.Values{"csrf": {nonce}, "password": {"synthetic-password-12345"}}
-	w = request(app, "POST", "/login", form, loginCookies, "https://evil.example")
+	csrf := match[1]
+	cookies := w.Result().Cookies()
+	if !cookies[0].Secure || !cookies[0].HttpOnly {
+		t.Fatal("weak workspace cookie")
+	}
+	w = request(handler, "GET", "/api/state", "", "", nil, "")
+	if w.Code != 200 {
+		t.Fatal("state unexpectedly authenticated")
+	}
+	path := "/api/sources/import?" + url.Values{"interval": {"۲ تا ۳"}, "unit": {"minutes"}}.Encode()
+	links := "https://example.com/Api/Verde/trun.php\nhttps://example.com/Api/Rosa/trun.php\nhttps://example.com/Api/Verde/trun.php\ninvalid"
+	w = request(handler, "POST", path, links, csrf, cookies, "https://evil.example")
 	if w.Code != 403 {
-		t.Fatal("foreign origin accepted")
+		t.Fatal("cross-site write allowed")
 	}
-	w = request(app, "POST", "/login", form, loginCookies, "")
-	if w.Code != 403 {
-		t.Fatal("missing origin accepted")
+	w = request(handler, "POST", path, links, csrf, cookies, "https://panel.example")
+	if w.Code != 200 {
+		t.Fatal(w.Code, w.Body.String())
 	}
-	w = request(app, "POST", "/login", form, loginCookies, "https://panel.example")
-	if w.Code != 303 {
-		t.Fatal("login", w.Code, w.Body.String())
+	var result struct {
+		Added      int   `json:"added"`
+		Duplicates int   `json:"duplicates"`
+		Invalid    []int `json:"invalid_lines"`
 	}
-	var cookies []*http.Cookie
-	for _, c := range w.Result().Cookies() {
-		if strings.HasSuffix(c.Name, "session") {
-			if !c.Secure || !c.HttpOnly || c.SameSite != http.SameSiteStrictMode {
-				t.Fatal("weak cookie")
-			}
-			cookies = append(cookies, c)
+	json.Unmarshal(w.Body.Bytes(), &result)
+	if result.Added != 2 || result.Duplicates != 1 || len(result.Invalid) != 1 || result.Invalid[0] != 4 {
+		t.Fatal(result)
+	}
+	items, _ := s.List(context.Background())
+	if len(items) != 2 {
+		t.Fatal("bulk failed")
+	}
+	for _, item := range items {
+		if item.Min != 2 || item.Max != 3 || (item.Name != "Verde" && item.Name != "Rosa") {
+			t.Fatal(item)
 		}
 	}
-	w = request(app, "GET", "/", nil, cookies, "")
-	if w.Code != 200 || w.Header().Get("Cache-Control") != "no-store" || w.Header().Get("Content-Security-Policy") == "" {
-		t.Fatal("dashboard headers")
+	var bulk strings.Builder
+	for i := 0; i < 1003; i++ {
+		fmt.Fprintf(&bulk, "https://example.net/Api/Source%d/trun.php\n", i)
 	}
-	csrf := csrfFrom(t, w.Body.String())
-	form = url.Values{"csrf": {csrf}, "name": {"<script>alert('x')</script>"}, "url": {"https://example.com/private-token?secret=yes"}, "min": {"15"}, "max": {"20"}, "unit": {"minutes"}, "enabled": {"on"}}
-	w = request(app, "POST", "/sources", form, cookies, "https://panel.example")
-	if w.Code != 303 {
-		t.Fatal("create", w.Code, w.Body.String())
-	}
-	items, _ := s.List(ctx)
-	if len(items) != 1 {
-		t.Fatal("not saved")
-	}
-	id := items[0].ID
-	w = request(app, "GET", "/", nil, cookies, "")
-	if strings.Contains(w.Body.String(), "private-token") || strings.Contains(w.Body.String(), "<script>") {
-		t.Fatal("secret or HTML injection")
-	}
-	form.Set("revision", "1")
-	form.Set("name", "edited")
-	form.Set("csrf", "bad")
-	w = request(app, "POST", "/sources/"+id+"/edit", form, cookies, "https://panel.example")
-	if w.Code != 403 {
-		t.Fatal("bad csrf accepted")
-	}
-	form.Set("csrf", csrf)
-	w = request(app, "POST", "/sources/"+id+"/edit", form, cookies, "https://panel.example")
-	if w.Code != 303 {
-		t.Fatal("edit", w.Code)
-	}
-	w = request(app, "POST", "/sources/"+id+"/edit", form, cookies, "https://panel.example")
-	if w.Code != 409 {
-		t.Fatal("stale form accepted", w.Code)
-	}
-	form.Set("revision", "2")
-	w = request(app, "POST", "/sources/"+id+"/toggle", form, cookies, "https://panel.example")
-	if w.Code != 303 {
-		t.Fatal("toggle", w.Code)
-	}
-	item, _ := s.Get(ctx, id)
-	if item.Enabled || item.Revision != 3 {
-		t.Fatal("toggle persistence")
-	}
-	w = request(app, "GET", "/sources/"+id+"/delete", nil, cookies, "")
+	w = request(handler, "POST", path, bulk.String(), csrf, cookies, "https://panel.example")
 	if w.Code != 200 {
-		t.Fatal("confirmation")
+		t.Fatal("legacy count/body cap", w.Code)
 	}
-	form.Set("revision", "3")
-	w = request(app, "POST", "/sources/"+id+"/delete", form, cookies, "https://panel.example")
-	if w.Code != 303 {
-		t.Fatal("delete")
-	}
-	w = request(app, "POST", "/logout", url.Values{"csrf": {csrf}}, cookies, "https://panel.example")
-	if w.Code != 303 {
-		t.Fatal("logout")
-	}
-	w = request(app, "GET", "/", nil, cookies, "")
-	if w.Code != 303 {
-		t.Fatal("revoked session accepted")
-	}
-}
-func TestBoundedBodiesAndHealth(t *testing.T) {
-	s := testStore(t)
-	app, _ := NewServer(s, "https://panel.example")
-	w := request(app.Handler(), "POST", "/login", url.Values{"password": {strings.Repeat("x", 17000)}}, nil, "https://panel.example")
-	if w.Code != 400 {
-		t.Fatal(w.Code)
-	}
-	w = request(app.Handler(), "GET", "/healthz", nil, nil, "")
-	if w.Code != 200 || w.Body.String() != "ok\n" {
-		t.Fatal("health")
+	stats, _ := s.Stats(context.Background())
+	if stats.Sources != 1005 {
+		t.Fatal("source count limited", stats.Sources)
 	}
 }
 
-func TestConcurrentRevisionWrites(t *testing.T) {
-	s := testStore(t)
-	ctx := context.Background()
-	input := testSource()
-	id, err := s.Save(ctx, "", 0, input)
-	if err != nil {
-		t.Fatal(err)
+type controlledDriver struct {
+	mu          sync.Mutex
+	active, max int
+	slow        chan struct{}
+	started     chan struct{}
+	once        sync.Once
+}
+
+func (*controlledDriver) Name() string { return "test.v1" }
+func (d *controlledDriver) Fetch(ctx context.Context, j collect.Job) (collect.Response, error) {
+	d.mu.Lock()
+	d.active++
+	if d.active > d.max {
+		d.max = d.active
 	}
-	results := make(chan error, 2)
-	start := make(chan struct{})
-	var wg sync.WaitGroup
-	for i := 0; i < 2; i++ {
-		wg.Add(1)
-		go func() { defer wg.Done(); <-start; _, err := s.Save(ctx, id, 1, input); results <- err }()
-	}
-	close(start)
-	wg.Wait()
-	close(results)
-	success, conflict := 0, 0
-	for err := range results {
-		if err == nil {
-			success++
-		} else if errors.Is(err, ErrConflict) {
-			conflict++
-		} else {
-			t.Fatal(err)
+	d.mu.Unlock()
+	defer func() { d.mu.Lock(); d.active--; d.mu.Unlock() }()
+	if strings.Contains(j.URL, "Slow") {
+		d.once.Do(func() { close(d.started) })
+		select {
+		case <-ctx.Done():
+			return collect.Response{}, ctx.Err()
+		case <-d.slow:
 		}
 	}
-	if success != 1 || conflict != 1 {
-		t.Fatalf("success=%d conflict=%d", success, conflict)
+	select {
+	case <-d.started:
+	case <-ctx.Done():
+		return collect.Response{}, ctx.Err()
+	}
+	if strings.Contains(j.URL, "Panic") {
+		panic("synthetic plugin panic")
+	}
+	return collect.Response{Status: 200, Body: io.NopCloser(strings.NewReader("vless://synthetic@vpn.example:443#exact\r\n"))}, nil
+}
+func TestEngineParallelSlowSourceCancellationAndPanicRecovery(t *testing.T) {
+	s := testStore(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	driver := &controlledDriver{slow: make(chan struct{}), started: make(chan struct{})}
+	engine := collect.NewEngine(s, s.vault, driver)
+	in := testSource()
+	in.URL = "https://example.com/Api/Slow/trun.php"
+	slow, _ := s.Save(ctx, "", 0, in)
+	in.URL = "https://example.com/Api/Fast/trun.php"
+	fast, _ := s.Save(ctx, "", 0, in)
+	in.URL = "https://example.com/Api/Panic/trun.php"
+	panicID, _ := s.Save(ctx, "", 0, in)
+	done := make(chan error, 1)
+	go func() { done <- engine.Run(ctx) }()
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		v, _ := s.Get(ctx, fast)
+		p, _ := s.Get(ctx, panicID)
+		if v.State == "updated" && p.ErrorCode == "worker_recovered" {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	v, _ := s.Get(ctx, fast)
+	p, _ := s.Get(ctx, panicID)
+	if v.State != "updated" || p.ErrorCode != "worker_recovered" {
+		t.Fatal("slow/panicking source blocked independent work", v.State, p.ErrorCode)
+	}
+	if e := s.Delete(ctx, slow, 1); e != nil {
+		t.Fatal(e)
+	}
+	engine.Wake(slow, true)
+	cancel()
+	select {
+	case e := <-done:
+		if e != nil {
+			t.Fatal(e)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("engine did not stop cleanly")
+	}
+	driver.mu.Lock()
+	max := driver.max
+	driver.mu.Unlock()
+	if max < 2 {
+		t.Fatal("fetches did not overlap")
+	}
+	if _, e := s.Get(context.Background(), slow); !errors.Is(e, ErrNotFound) {
+		t.Fatal("deleted source returned")
+	}
+}
+
+func TestSharedIdentityPreservesEachSourcesOriginalRepresentation(t *testing.T) {
+	ctx := context.Background()
+	s := testStore(t)
+	a, _ := s.Save(ctx, "", 0, testSource())
+	j := claimOne(t, s, a)
+	first := fixtureResult(t, s, "vless://synthetic@vpn.example:443#Label-A\r\n")
+	if e := s.Complete(ctx, j, first, time.Now()); e != nil {
+		t.Fatal(e)
+	}
+	in := testSource()
+	in.URL = "https://example.net/Api/B/trun.php"
+	b, _ := s.Save(ctx, "", 0, in)
+	j = claimOne(t, s, b)
+	second := fixtureResult(t, s, "vless://synthetic@vpn.example:443#Label-B\r\n")
+	if first.Items[0].Identity != second.Items[0].Identity {
+		t.Fatal("fixture identity mismatch")
+	}
+	if e := s.Complete(ctx, j, second, time.Now()); e != nil {
+		t.Fatal(e)
+	}
+	if e := s.Delete(ctx, a, 1); e != nil {
+		t.Fatal(e)
+	}
+	items, e := s.Outputs(ctx, "", 0, true)
+	if e != nil || len(items) != 1 || items[0].Hash != second.Raw.Hash {
+		t.Fatal("deleting one source changed the other's raw bytes", e)
+	}
+	reader, e := s.vault.Open(items[0].Hash)
+	if e != nil {
+		t.Fatal(e)
+	}
+	raw, e := io.ReadAll(reader)
+	reader.Close()
+	if e != nil || string(raw) != "vless://synthetic@vpn.example:443#Label-B\r\n" {
+		t.Fatal("remaining source bytes changed", e)
 	}
 }

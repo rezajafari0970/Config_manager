@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint": "P2-panel-20261029",
+  "checkpoint": "P3-raw-collector-20261029",
   "deployment_target": "server_only",
   "repository": "rezajafari0970/Config_manager",
   "development_branch": "go/v2rayng-2.3.6",
@@ -8,12 +8,12 @@
   "phase_status": {
     "P0": "foundation_verified",
     "P1": "initial_source_audit_complete_full_matrix_in_progress",
-    "P2": "persistent_authenticated_source_management_verified",
-    "P3": "pending",
+    "P2": "passwordless_modular_panel_verified",
+    "P3": "independent_raw_collection_verified",
     "P4": "one_stats_rule_only",
     "P5": "core_fixture_validation_only",
     "P6": "blocked_no_android_test_device",
-    "P7": "pending",
+    "P7": "raw_download_and_zip_only_health_export_pending",
     "P8": "pending"
   },
   "verification": {
@@ -26,22 +26,30 @@
     "real_proxy_connection": "not_run",
     "public_panel_deployed": true,
     "production_installer_released": false,
-    "panel_browser_crud": "passed_chrome_154_desktop_and_mobile",
-    "panel_restart_persistence": "passed_sources_and_sessions",
-    "panel_tls_login": "passed_TLS_1.3",
-    "go_mod_verify": "passed"
+    "panel_browser_crud": "passed_passwordless_Chrome154_desktop_mobile",
+    "panel_restart_persistence": "passed_sources_settings_and_raw_outputs",
+    "panel_tls_login": "removed_by_explicit_user_request",
+    "go_mod_verify": "passed_isolated_verified_module_cache",
+    "panel_tls_passwordless": "passed_three_pages",
+    "collector_parallelism": "passed_slow_failure_panic_cancellation_and_10_race_repeats",
+    "raw_preservation": "passed_URI_JSON_INI_Base64_original_response_and_ZIP",
+    "global_deduplication": "passed_source_provenance_and_original_variants",
+    "retention": "passed_fixed_TTL_repeat_304_empty_settings_and_restart",
+    "supervisor_recovery": "passed_watchdog_restarted_SIGSTOP_stalled_isolated_service"
   },
   "next": [
-    "Implement P3 bounded fetch worker with durable jobs, SSRF-safe dialing/redirects, HTTP validators and atomic source generations",
-    "Complete target protocol/transport/client-import matrix and fixture corpus before broad repair activation",
-    "Provision isolated Android acceptance and pin APK/native hashes"
+    "Complete pinned compatibility matrix and Android acceptance infrastructure for separate future validated outputs",
+    "Benchmark large-scale source/config workloads and extend corpus without modifying raw artifacts",
+    "Implement and test final idempotent installer/update/rollback in P8"
   ],
-  "known_environment_issue": "Existing host Go race object differs from official archive; project checks pass using isolated checksum-verified toolchain. Global installation was not changed.",
+  "known_environment_issue": "Global Go race object differs from official archive; shared modernc.org/libc module directory also failed go mod verify. Project uses checksum-verified isolated Go 1.27.1, module cache and build cache. Shared installations were not modified.",
   "runtime": {
     "service": "config-repair.service",
-    "source_management": "active",
-    "fetch_worker": "not_implemented",
-    "config_collection": "not_started",
-    "binary_sha256": "139b56d2a8199a989a017f48cd5c415dc25f7a25186bdc5b6dcc6e3e39792429"
+    "source_management": "passwordless_active",
+    "fetch_worker": "active",
+    "config_collection": "raw_immutable",
+    "binary_sha256": "470372c33160cc8fed056b654ecd5c7f5f84e46ea6381aca259716be50676dad",
+    "database_schema": 2,
+    "retention_default_seconds": 7200
   }
 }

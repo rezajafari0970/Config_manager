@@ -6,18 +6,16 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
-	"fmt"
+	"github.com/rezajafari0970/Config_manager/internal/panel"
 	"io"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
+	"path/filepath"
 	"syscall"
 	"time"
-
-	"github.com/rezajafari0970/Config_manager/internal/panel"
 )
 
 type config struct {
@@ -29,102 +27,99 @@ type config struct {
 
 func run() error {
 	file := flag.String("config", "/etc/config-repair/panel.json", "protected runtime configuration")
-	init := flag.Bool("init-admin", false, "initialize the only administrator, once")
-	passwordFile := flag.String("password-file", "", "0600 file containing initial password")
 	flag.Parse()
-	f, err := os.Open(*file)
-	if err != nil {
-		return err
+	f, e := os.Open(*file)
+	if e != nil {
+		return e
 	}
 	defer f.Close()
-	info, err := f.Stat()
-	if err != nil {
-		return err
+	info, e := f.Stat()
+	if e != nil {
+		return e
 	}
 	if info.Mode().Perm()&0007 != 0 {
-		return errors.New("config must not be accessible to other users")
+		return errors.New("runtime config must be private")
 	}
 	var c config
 	d := json.NewDecoder(io.LimitReader(f, 16384))
 	d.DisallowUnknownFields()
-	if err = d.Decode(&c); err != nil {
+	if e = d.Decode(&c); e != nil {
 		return errors.New("invalid runtime configuration")
 	}
-	if err = d.Decode(new(any)); err != io.EOF {
+	if e = d.Decode(new(any)); e != io.EOF {
 		return errors.New("extra runtime configuration data")
 	}
-	host, _, err := net.SplitHostPort(c.Listen)
-	if err != nil {
-		return errors.New("listen must be a loopback IP:port")
+	host, _, e := net.SplitHostPort(c.Listen)
+	if e != nil {
+		return errors.New("loopback listener required")
 	}
 	ip := net.ParseIP(host)
 	if ip == nil || !ip.IsLoopback() {
-		return errors.New("only loopback listener supported; use TLS reverse proxy")
+		return errors.New("loopback listener required")
 	}
-	key, err := base64.StdEncoding.DecodeString(c.MasterKey)
-	if err != nil {
+	key, e := base64.StdEncoding.DecodeString(c.MasterKey)
+	if e != nil {
 		return errors.New("invalid master key")
 	}
-	s, err := panel.Open(c.Database, key)
-	if err != nil {
-		return err
+	if e = os.MkdirAll(filepath.Dir(c.Database), 0700); e != nil {
+		return e
 	}
-	defer s.Close()
-	if *init {
-		if *passwordFile == "" {
-			return errors.New("password-file required")
-		}
-		info, err := os.Stat(*passwordFile)
-		if err != nil {
-			return err
-		}
-		if info.Mode().Perm()&0077 != 0 {
-			return errors.New("password file must be 0600")
-		}
-		p, err := os.ReadFile(*passwordFile)
-		if err != nil {
-			return err
-		}
-		if err = s.InitAdmin(context.Background(), strings.TrimSuffix(string(p), "\n")); err != nil {
-			return errors.New("admin initialization failed (already initialized or invalid password)")
-		}
-		fmt.Println("Administrator initialized")
-		return nil
+	lock, e := os.OpenFile(filepath.Join(filepath.Dir(c.Database), "worker.lock"), os.O_CREATE|os.O_RDWR, 0600)
+	if e != nil {
+		return e
 	}
-	if !s.HasAdmin(context.Background()) {
-		return errors.New("initialize administrator before starting server")
+	defer lock.Close()
+	if e = syscall.Flock(int(lock.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); e != nil {
+		return errors.New("another collector owns this database")
 	}
-	app, err := panel.NewServer(s, c.PublicOrigin)
-	if err != nil {
-		return err
+	store, e := panel.Open(c.Database, key)
+	if e != nil {
+		return e
 	}
-	server := &http.Server{Addr: c.Listen, Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 20 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 * 1024}
+	defer store.Close()
+	app, e := panel.NewServer(store, c.PublicOrigin)
+	if e != nil {
+		return e
+	}
+	engine := store.NewEngine()
+	app.SetEngine(engine)
+	server := &http.Server{Addr: c.Listen, Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 2 * time.Minute, WriteTimeout: 2 * time.Minute, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32 * 1024}
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
-	done := make(chan struct{})
-	shutdownDone := make(chan struct{})
-	go func() {
-		defer close(shutdownDone)
-		select {
-		case <-ctx.Done():
-			shutdown, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-			defer cancel()
-			_ = server.Shutdown(shutdown)
-		case <-done:
+	engineResult := make(chan error, 1)
+	go func() { engineResult <- engine.Run(ctx) }()
+	go watchdog(ctx, engine, store)
+	httpResult := make(chan error, 1)
+	go func() { httpResult <- server.ListenAndServe() }()
+	log.Print("config manager running; passwordless management and raw collector enabled")
+	select {
+	case <-ctx.Done():
+	case e = <-engineResult:
+		if e == nil {
+			e = errors.New("collector stopped unexpectedly")
 		}
-	}()
-	log.Print("config panel listening on loopback; fetch worker disabled")
-	err = server.ListenAndServe()
-	close(done)
-	<-shutdownDone
-	if errors.Is(err, http.ErrServerClosed) {
-		return nil
+		stop()
+		engineResult = nil
+	case e = <-httpResult:
+		if errors.Is(e, http.ErrServerClosed) {
+			e = nil
+		}
+		stop()
+		httpResult = nil
 	}
-	return err
+	shutdown, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	_ = server.Shutdown(shutdown)
+	if engineResult != nil {
+		if workerErr := <-engineResult; e == nil {
+			e = workerErr
+		}
+	}
+	return e
 }
 func main() {
-	if err := run(); err != nil {
-		log.Print(err)
+	if e := run(); e != nil {
+		log.Print(e)
 		os.Exit(1)
 	}
 }

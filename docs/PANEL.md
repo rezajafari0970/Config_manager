@@ -1,52 +1,43 @@
-# پنل مدیریت منابع — P2
+# Panel — P3
 
-پنل فارسی و راست‌به‌چپ، ورود یک مدیر، تغییر رمز، خروج، افزودن/ویرایش/حذف، فعال/متوقف‌کردن و بازهٔ مستقل ثانیه/دقیقه/ساعت دارد. پیش‌فرض هر منبع ۱۵ تا ۲۰ دقیقه است. زمان انتخاب‌شده در SQLite ذخیره می‌شود و Restart آن را تغییر نمی‌دهد. دریافت خودکار هنوز اجرا نمی‌شود؛ اولین تصمیم Worker دربارهٔ موعدهای گذشته باید در P3 صریح باشد.
+The UI has exactly three feature modules: Input, Output, Setting. Desktop sidebar and mobile drawer share navigation; source rows and bulk import expand in place. Persian digits are accepted. Each page has independent HTML/JS and backend route modules.
 
-## اجرا
+## Input
 
-`scripts/check.sh` هر دو برنامهٔ `bin/config-repair` و `bin/config-panel` را می‌سازد. پنل فقط به IP loopback گوش می‌دهد. برای دسترسی عمومی، HTTPS reverse proxy لازم است. فایل نمونهٔ nginx و واحد systemd در `deploy/` هستند؛ این فایل‌ها نصب‌کنندهٔ نهایی محصول نیستند.
+One URL per line in bulk import, with one shared interval expression (`2 to 3`, `۲ تا ۳`, `2-3`, or a fixed positive value), in seconds or minutes. Each accepted row is scheduled independently. Names use the parent directory (`/Api/Verde/trun.php` → `Verde`), falling back to hostname. Exact duplicate source URLs are rejected. Errors report line numbers; valid siblings are still inserted. Search/page size 100 affects display only.
 
-تنظیمات runtime بیرون از Git در `/etc/config-repair/panel.json` قرار می‌گیرد:
+Individual actions: edit URL/name/interval, run now, pause/resume, delete. Optimistic revisions reject stale edits. Editing a URL invalidates its old membership/validators. Deleting or pausing cancels that source's running job. Status reports request outcome, HTTP code, duration, counts, last success and next request; it never reports proxy connectivity.
+
+## Output and retention
+
+Original HTTP entity body (after standard HTTP content decoding) and each extracted config are encrypted at rest and returned byte-for-byte. URI whitespace/CRLF, JSON formatting/unknown fields/numeric literals and INI content are preserved. Base64/JSON string envelopes are decoded for extraction; the entire original response remains separately downloadable. ZIP stores each config as its own file, so mixed JSON and URI output is not misrepresented as a universally importable subscription.
+
+Identity is separate from raw content. Known equivalent URI encodings, display fragments, VMess remarks and canonical JSON are used only for deduplication. Credentials and transport values remain identity-bearing. Membership preserves each source's own raw representation; output chooses one current source deterministically. Deleting one source cannot rewrite another's original. Unknown formats and configs larger than 1 MiB use conservative exact-content identity; arbitrary semantic equivalence is not claimed.
+
+Retention defaults to 7200 seconds, configured as hours. The clock starts at first insertion; repeated content or HTTP 304 never slides expiry. Reads exclude expired items immediately; background cleanup removes rows/files every 5 seconds. Empty/error responses retain the previous generation only until this deadline. A later fresh 200 response can collect a deleted config again. Changing retention recalculates existing unexpired deadlines; extending does not resurrect already expired data. Deleting sources or a nonempty replacement can remove membership earlier.
+
+No artificial source/config count, URL/name length, response-byte or 30-day interval quota remains. Positive representable intervals, valid HTTP(S), finite timeouts, bounded parallelism, private-network egress protection and physical disk/RAM capacity still apply. A 256 MiB free-disk guard pauses admission and resumes automatically. Completely unlimited resources or uninterrupted operation under every host failure cannot be guaranteed.
+
+## Deployment
+
+Runtime config, outside Git:
 
 ```json
-{
-  "listen": "127.0.0.1:18191",
-  "public_origin": "https://YOUR_PUBLIC_HOST:18443",
-  "database": "/var/lib/config-repair/panel.db",
-  "master_key": "BASE64_ENCODED_RANDOM_32_BYTES"
-}
+{"listen":"127.0.0.1:18191","public_origin":"https://YOUR_HOST:18443","database":"/var/lib/config-repair/panel.db","master_key":"BASE64_RANDOM_32_BYTES"}
 ```
 
-`public_origin` باید دقیقاً با آدرس مرورگر یکسان باشد و `/` انتهایی نداشته باشد. کلید را یک بار تولید و محافظت کنید؛ تغییر یا گم‌شدن آن، لینک‌های ذخیره‌شده را غیرقابل بازیابی می‌کند. مسیر دیتابیس مطلق و پوشهٔ آن با دسترسی `0700` باشد. تنظیمات با `0640 root:config-repair`، پوشهٔ تنظیمات `0750` و دیتابیس‌ها با `0600 config-repair:config-repair` نگهداری می‌شوند.
+Keep the original 32-byte master key across upgrades. Config mode 0640 root:config-repair, database directory 0700, database/blobs 0600. Start `config-panel -config /etc/config-repair/panel.json`. There is no admin initialization or password flag. Schema 1 upgrades transactionally to schema 2 and removes old auth/session tables while preserving source URLs and schedules. Back up with SQLite's backup API plus protected runtime config before migration; rollback to P2 requires the old database backup as well as old binary.
 
-رمز اولیهٔ تصادفی حداقل ۱۴ نویسه در یک فایل `0600` قرار گیرد. مدیر فقط یک بار ایجاد می‌شود:
+Public management is deliberately passwordless at the user's request. HTTPS, same-origin CSRF token, strict cookie, restrictive CSP and safe DOM rendering remain. URLs/blobs are AES-GCM encrypted at rest; ordinary lists show only hostname. Full URL is available to anyone using edit, consistent with passwordless administration.
+
+`deploy/` supplies the separate systemd unit and nginx example. systemd restarts after exits, receives watchdog heartbeats only while DB/scheduler are healthy, and kills/restarts a stalled process. SQLite leases recover after restart; a file lock prevents two owners of the same DB. Request clients, DNS-checked dial destinations, redirects, timeouts and cancellations are per job. Go plugins are compiled interfaces, not dynamically uploaded executable code. Run nginx validation before reloading. No unrelated service or credentials may be modified.
+
+## Verification
+
+`bash scripts/check.sh`: module verification, formatting, vet, race tests and binaries.
 
 ```sh
-./bin/config-panel -config /etc/config-repair/panel.json -init-admin -password-file /etc/config-repair/initial-admin-password
-./bin/config-panel -config /etc/config-repair/panel.json
+PLAYWRIGHT_MODULE=/path/to/playwright-core CHROME_PATH=/path/to/chrome python3 scripts/panel-browser-test.py
 ```
 
-واحد systemd با کاربر محدود `config-repair` اجرا می‌شود و مسیر `/opt/config-repair/current/config-panel` را انتظار دارد. تنظیمات سرویس دیگر را تغییر ندهید. ابتدا `nginx -t`، سپس reload انجام شود. TLS و تمدید گواهی بر عهدهٔ استقرار میزبان است. دسترسی عمومی به `/healthz` در نمونهٔ nginx بسته است؛ آزمون داخلی از loopback انجام می‌شود.
-
-## داده و امنیت
-
-- URL کامل با AES-256-GCM، nonce تصادفی و شناسهٔ منبع به‌عنوان AAD ذخیره می‌شود. HMAC برای تشخیص URL دقیقاً تکراری به کار می‌رود. نام منبع و میزبان برای نمایش رمزگذاری نشده‌اند؛ اطلاعات محرمانه را در نام وارد نکنید.
-- رمز با Argon2id، حافظهٔ ۱۹ MiB، دو گذر و یک lane هش می‌شود. هر نمونه حداکثر دو محاسبهٔ رمز موازی دارد. محدودیت ۱۰ تلاش برای هر IP و ۱۰۰ تلاش کلی در ۱۵ دقیقه در دیتابیس می‌ماند.
-- نشست تصادفی با هش ذخیره می‌شود؛ زمان اعتبار معمولی دو ساعت یا با انتخاب کاربر ۳۰ روز است. تغییر رمز همهٔ نشست‌ها را باطل می‌کند. Cookie در HTTPS با `__Host-`، `Secure`، `HttpOnly` و `SameSite=Strict` صادر می‌شود.
-- فرم‌ها به CSRF token و Origin دقیق نیاز دارند. Referrer-Policy برابر `same-origin` است؛ `no-referrer` در مرورگر آزمایش‌شده Origin فرم را null می‌کرد و فرم معتبر را می‌بست.
-- هر ویرایش/توقف revision را افزایش می‌دهد. ویرایش و حذف با revision قدیمی رد می‌شوند. تغییر منبع موعد جدیدی انتخاب می‌کند؛ این revision در P3 باید بخشی از هویت Job باشد.
-- SQLite با WAL و synchronous FULL اجرا می‌شود؛ حداکثر ۱۰۰۰ منبع و یک اتصال نویسندهٔ دیتابیس داریم. یک سرویس مالک دیتابیس باشد.
-- URLهای غیر HTTP(S)، IP خصوصی/loopback/link-local و localhost رد می‌شوند. این اعتبارسنجی فرم، دفاع کامل SSRF نیست: P3 باید DNS، تمام redirectها، IP واقعی اتصال و egress تست هسته را مستقل محدود کند.
-- این سرویس در P2 هیچ URL منبعی را fetch نمی‌کند و کانفیگی را سالم اعلام نمی‌کند.
-
-بکاپ سازگار باید با SQLite backup API یا توقف سرویس انجام شود؛ کپی فایل DB به‌تنهایی هنگام فعال بودن WAL کافی نیست. کلید runtime را جداگانه و محافظت‌شده نگه دارید. اتوماسیون بکاپ/بازیابی و نصب/ارتقا/rollback هنوز مرحلهٔ P8 است.
-
-## آزمون مرورگر
-
-تست‌ها فقط یک دیتابیس موقت، رمز مصنوعی و لینک example.com می‌سازند. نیازمندی توسعهٔ آزموده‌شده: `playwright-core@1.56.1` و Chrome `154.0.8037.57`.
-
-```sh
-PLAYWRIGHT_MODULE=/absolute/path/to/playwright-core CHROME_PATH=/absolute/path/to/chrome python3 scripts/panel-browser-test.py
-```
-
-پورت `18192` باید آزاد باشد. نتیجه، تصویرهای ۱۴۴۰ و ۳۹۰ پیکسل و runtime موقت در `.local/panel-browser/` هستند. تست، فرایند را کاملاً خاموش/روشن می‌کند و ماندگاری منبع و نشست را می‌سنجد؛ تست UI هیچ منبعی در دیتابیس عملیاتی نمی‌سازد.
+The browser test serves only synthetic fixtures on 127.0.0.1:18192. It tests bulk/CRUD/status, independent failures, exact bytes/SHA/ZIP, deduplication, expiry, persistence after full process restart, and mobile drawer/layout. Artifacts remain in ignored `.local/p3-browser/`. It does not access real subscriptions, execute untrusted configs, test Android or establish a VPN tunnel.

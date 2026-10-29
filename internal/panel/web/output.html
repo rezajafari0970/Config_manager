@@ -1,0 +1,5 @@
+{{define "output"}}
+
+<section class="panel output-panel"><div class="section-title"><div><h2>کانفیگ‌های دریافت‌شده</h2><p>نسخهٔ خام و بدون تغییر؛ اتصال VPN هنوز بررسی نشده است.</p></div><a class="primary button" href="/output/archive.zip"><svg><use href="#i-output"/></svg>دانلود همه</a></div><div class="output-toolbar"><label for="kind-filter">نوع کانفیگ</label><select id="kind-filter"><option value="">همهٔ پروتکل‌ها</option value="vless">VLESS</option><option value="vmess">VMess</option><option value="trojan">Trojan</option><option value="ss">Shadowsocks</option><option value="wireguard">WireGuard</option><option value="hysteria">Hysteria</option><option value="hy2">Hy2</option><option value="hysteria2">Hysteria 2</option><option value="json">JSON</option><option value="custom">Custom</option></select><span class="hint">فایل ZIP با محتوای اصلی هر کانفیگ</span></div><div id="output-list"><div class="loading">در حال خواندن خروجی‌ها…</div></div><div class="pagination"><button class="secondary" id="previous-page" disabled>قبلی</button><span id="page-number">۱</span><button class="secondary" id="next-page" disabled>بعدی</button></div></section>
+
+{{end}}

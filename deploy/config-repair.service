@@ -1,14 +1,19 @@
 [Unit]
 Description=Config Repair administration panel
 After=network.target
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
 User=config-repair
 Group=config-repair
 ExecStart=/opt/config-repair/current/config-panel -config /etc/config-repair/panel.json
-Restart=on-failure
-RestartSec=5
+Restart=always
+RestartSec=2
+WatchdogSec=45
+WatchdogSignal=SIGKILL
+NotifyAccess=main
+Environment=GOMEMLIMIT=256MiB
 TimeoutStopSec=20
 UMask=0077
 NoNewPrivileges=true

@@ -12,19 +12,18 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/rezajafari0970/Config_manager/internal/blob"
 	"os"
 	"path/filepath"
-	"strings"
-	"time"
 
-	"github.com/rezajafari0970/Config_manager/internal/schedule"
 	_ "modernc.org/sqlite"
 )
 
 type Store struct {
-	db   *sql.DB
-	aead cipher.AEAD
-	key  []byte
+	db    *sql.DB
+	aead  cipher.AEAD
+	key   []byte
+	vault *blob.Vault
 }
 
 func Open(path string, key []byte) (*Store, error) {
@@ -68,7 +67,7 @@ func Open(path string, key []byte) (*Store, error) {
 	if err = db.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
 		return nil, err
 	}
-	if version > 1 {
+	if version > 2 {
 		return nil, errors.New("database schema newer than application")
 	}
 	if version == 0 {
@@ -107,6 +106,13 @@ PRAGMA user_version=1;`)
 	if err != nil {
 		return nil, fmt.Errorf("database key verification failed: %w", err)
 	}
+	if err = s.migrateV2(); err != nil {
+		return nil, err
+	}
+	s.vault, err = blob.New(filepath.Join(filepath.Dir(path), "blobs"), key)
+	if err != nil {
+		return nil, err
+	}
 	success = true
 	return s, nil
 }
@@ -137,103 +143,4 @@ func (s *Store) open(id string, data []byte) ([]byte, error) {
 		return nil, errors.New("invalid ciphertext")
 	}
 	return s.aead.Open(nil, data[:n], data[n:], []byte(id))
-}
-
-type scanner interface{ Scan(...any) error }
-
-func scanSource(row scanner) (Source, []byte, error) {
-	var s Source
-	var sealed []byte
-	var created, updated, next int64
-	err := row.Scan(&s.ID, &s.Name, &sealed, &s.DisplayURL, &s.Min, &s.Max, &s.Unit, &s.Enabled, &s.Revision, &created, &updated, &next)
-	s.CreatedAt = time.Unix(created, 0)
-	s.UpdatedAt = time.Unix(updated, 0)
-	s.NextRunAt = time.Unix(0, next)
-	return s, sealed, err
-}
-
-const sourceColumns = "id,name,url,display_url,min,max,unit,enabled,revision,created,updated,next_run"
-
-func (s *Store) List(ctx context.Context) ([]Source, error) {
-	rows, err := s.db.QueryContext(ctx, "SELECT "+sourceColumns+" FROM sources ORDER BY created DESC,id")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	out := []Source{}
-	for rows.Next() {
-		v, _, err := scanSource(rows)
-		if err != nil {
-			return nil, err
-		}
-		out = append(out, v)
-	}
-	return out, rows.Err()
-}
-func (s *Store) Get(ctx context.Context, id string) (Source, error) {
-	v, sealed, err := scanSource(s.db.QueryRowContext(ctx, "SELECT "+sourceColumns+" FROM sources WHERE id=?", id))
-	if errors.Is(err, sql.ErrNoRows) {
-		return v, ErrNotFound
-	}
-	if err != nil {
-		return v, err
-	}
-	plain, err := s.open(id, sealed)
-	v.URL = string(plain)
-	return v, err
-}
-func (s *Store) Save(ctx context.Context, id string, revision int64, input SourceInput) (string, error) {
-	display, err := validateSource(input)
-	if err != nil {
-		return "", err
-	}
-	min, max, _ := input.durations()
-	now := time.Now()
-	next, err := schedule.Next(now, min, max)
-	if err != nil {
-		return "", err
-	}
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return "", err
-	}
-	defer tx.Rollback()
-	if id == "" {
-		var count int
-		if err = tx.QueryRowContext(ctx, "SELECT count(*) FROM sources").Scan(&count); err != nil {
-			return "", err
-		}
-		if count >= 1000 {
-			return "", ErrInvalid
-		}
-		id = randomToken()
-		_, err = tx.ExecContext(ctx, "INSERT INTO sources ("+sourceColumns+",url_hash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", id, input.Name, s.seal(id, []byte(input.URL)), display, input.Min, input.Max, input.Unit, input.Enabled, 1, now.Unix(), now.Unix(), next.UnixNano(), s.digest("source-url", input.URL))
-	} else {
-		var result sql.Result
-		result, err = tx.ExecContext(ctx, "UPDATE sources SET name=?,url=?,url_hash=?,display_url=?,min=?,max=?,unit=?,enabled=?,revision=revision+1,updated=?,next_run=? WHERE id=? AND revision=?", input.Name, s.seal(id, []byte(input.URL)), s.digest("source-url", input.URL), display, input.Min, input.Max, input.Unit, input.Enabled, now.Unix(), next.UnixNano(), id, revision)
-		if err == nil {
-			n, _ := result.RowsAffected()
-			if n != 1 {
-				return "", ErrConflict
-			}
-		}
-	}
-	if err != nil {
-		if strings.Contains(err.Error(), "UNIQUE constraint") {
-			return "", ErrConflict
-		}
-		return "", err
-	}
-	return id, tx.Commit()
-}
-func (s *Store) Delete(ctx context.Context, id string, revision int64) error {
-	result, err := s.db.ExecContext(ctx, "DELETE FROM sources WHERE id=? AND revision=?", id, revision)
-	if err != nil {
-		return err
-	}
-	n, _ := result.RowsAffected()
-	if n != 1 {
-		return ErrConflict
-	}
-	return nil
 }

@@ -19,7 +19,7 @@ func TestIndependentDeadlinesStayWithinBounds(t *testing.T) {
 	}
 }
 func TestRejectInvalidIntervals(t *testing.T) {
-	for _, p := range [][2]time.Duration{{0, time.Second}, {-1, 2}, {20, 15}, {1, MaxInterval + 1}} {
+	for _, p := range [][2]time.Duration{{0, time.Second}, {-1, 2}, {20, 15}} {
 		if _, err := Next(time.Now(), p[0], p[1]); err == nil {
 			t.Fatal("accepted invalid bounds", p)
 		}

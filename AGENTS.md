@@ -7,13 +7,16 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json and HANDOFF.md first. Verify actu
 - Deployment target is the server; shared-hosting portability was explicitly removed from scope.
 - Compatibility is pinned to V2RayNG 2.3.6 / Lib v40 / Xray 26.7.28, not latest/master.
 - Read pinned upstream source before adding a version-sensitive rule. Preserve reference commits in evidence.
-- Raw healthy artifacts remain byte-identical. Repairs are versioned, minimal, auditable and reversible. Never guess credentials, keys, SNI or other connection semantics, or downgrade TLS to make a test pass.
+- Current user contract (P3) is immutable raw collection: no byte of collected artifacts may be repaired, rewritten or renamed. Existing CLI repair stays separate and opt-in. Never guess credentials or weaken TLS.
 - A JSON conversion can only preserve recoverable information and supported protocol semantics.
 - Syntax, Android import, core validation and actual connection are separate statuses. Never claim a later stage passed because an earlier one passed.
 - An unverified or unsupported candidate cannot enter a healthy output.
-- Keep previous source generation on empty/failed/unusable fetch only while health evidence remains fresh. A usable new generation replaces previous source membership atomically.
+- Raw Output is explicitly unverified. Keep prior membership on empty/error only until fixed retention expiry (default 2 hours from first insertion; repeated fetch/304 does not renew). Nonempty generation replaces membership atomically. Future healthy export requires separate evidence.
 - Jobs carry source generation/revision; stale completion cannot reactivate deleted/edited source data.
 - Store secrets only in protected runtime storage, never Git, diagnostics or fixtures. Fixtures use synthetic credentials and documentation addresses.
+
+- Passwordless public management is explicitly requested. Retain CSRF/Origin protection and encrypted storage; do not reintroduce accounts without a new request.
+- Input / Output / Setting are independent compiled panel modules. Bulk URLs, seconds/minutes intervals, and configurable fixed retention are product requirements.
 
 ## Workflow
 - Work in this project only; keep the legacy main branch intact during Go development.

@@ -29,3 +29,12 @@ Persian RTL, mobile layout, login-first, secure sessions, CSRF defense and rate 
 
 ## ADR-008: release discipline
 Independent server directory and service names. GitHub code only, no private snapshots. Test clean candidate; publish immutable version/checksums; install atomically; health check; restore prior version if startup fails. Preserve user source data and credentials across upgrades. Source, deployed binary and database migration receipts must be separately verified.
+
+
+## ADR-009: P3 user amendment (supersedes conflicting ADR-002/005/007)
+
+Collection is immutable raw acquisition, without auto-repair or claims of health. Fixed two-hour configurable retention replaces health-based fallback for this raw pool. Byte hashes address encrypted blobs; conservative protocol identity deduplicates outputs while each membership stores its own original hash. Large/unknown configurations fall back to exact byte identity. Memberships are swapped in short transactions after staged extraction; stale revisions/leases are rejected. Cleanup and publication share reference/pin protection.
+
+Passwordless Input / Output / Setting replaces login-first UI. The user explicitly authorized public management. CSRF, HTTPS, encrypted secrets and public-IP-only dialing remain. Artificial byte/count quotas are removed; streaming/file-backed parsing, bounded work, deadlines, disk admission guard and OS resource budgets keep resource use controlled. Every source gets a separate transport, context and state; SQLite/scheduler/disk remain shared infrastructure, so physical isolation of all possible failures is not claimed.
+
+Driver boundaries: collect.FetchDriver, collect.FormatDriver/Registry, collect.Repository, and panel.PanelModule.Register. Built-in modules and extensions are compiled and tested together. This is not a runtime marketplace or an unsandboxed dynamic code-upload mechanism. Core execution remains outside this raw pipeline.

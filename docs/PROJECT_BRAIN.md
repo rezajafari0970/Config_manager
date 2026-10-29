@@ -1,36 +1,21 @@
 # Project Brain
 
-Read order: this file → `PROJECT_STATE.json` → `HANDOFF.md` → current checkpoint → exact source/tests.
+Read this file → PROJECT_STATE.json → HANDOFF.md → current checkpoint → relevant source/tests. Current user instruction supersedes P2 authentication and repair-in-collection plans.
 
-## Product contract
+## Active contract
 
-An independent Go daemon repairs configuration representations for V2RayNG 2.3.6 / Lib v40 / Xray 26.7.28. The user manages source URLs through a Persian mobile-friendly panel: add, edit, delete, enable/disable, run now, per-source random intervals and status.
+An independent Go daemon collects source URLs continuously, without changing config bytes. Passwordless Persian Input / Output / Setting manages bulk URLs, independent randomized seconds/minutes requests, source state, raw downloads and fixed retention (default 2h). A nonempty accepted generation atomically replaces one source's membership; empty/error retains it only until fixed expiry. Repeated fetch/304 cannot renew expiry. Global identity dedup and per-source original representations are separate. Stale jobs cannot revive deleted/edited sources.
 
-Every source has independently scheduled fetches, immutable generations and membership. A usable new generation replaces that source's previous active membership in one transaction. Empty, failed or wholly unusable fetches preserve the last generation conditionally on renewed health. Health expiry is independent of HTTP 304/last fetch time. Shared artifacts retain independent source membership. Editing/deleting a source invalidates its outstanding jobs.
+Raw Output is not a healthy output. Existing repair CLI and pinned V2RayNG 2.3.6 / Lib40 / Xray26.7.28 compatibility work remain separate. Any future repair creates a distinct auditable candidate, and any healthy export requires core/import/network evidence. No arbitrary raw JSON is executed by the collector.
 
-Preserve raw healthy configuration. Try minimal URI repair before an equivalent full Custom JSON when enough information exists. Never fabricate missing connection data or translate a wire protocol merely by changing format. Hysteria v1 is not supported by the selected Xray Hysteria implementation.
-
-## Modules and ownership
-
-| Module | Location | Current state |
+| Module | Location | State |
 |---|---|---|
-| Version identity | internal/target | implemented |
-| Driver boundaries | internal/driver | contracts only |
-| Interval sampling | internal/schedule | implemented; next deadline persisted in sources |
-| Source generation decisions | internal/lifecycle | pure policy implemented; database integration pending |
-| Conservative JSON diagnosis/repair | internal/repair | initial rule only |
-| Developer CLI | cmd/config-repair | implemented |
-| Core fixture verification | scripts/core-smoke.py | controlled fixtures, no live proxy test |
-| Android readiness | scripts/android-preflight.py | preflight only; Android acceptance pending |
-| Persian panel and encrypted source store | internal/panel, cmd/config-panel | implemented, restart and browser verified |
-| Fetch/probe/exporter | future phases | not implemented |
+| Independent collector and format drivers | internal/collect | active; bounded jobs, leases, retries, safe HTTP egress |
+| Encrypted immutable blobs | internal/blob | streaming encryption, SHA identity, pins, GC |
+| Source/settings/output repository | internal/panel/repository.go | SQLite transactions, revisions, fixed TTL, memberships |
+| Input / Output / Setting | internal/panel/*_http.go, web/* | separate route and frontend modules |
+| Daemon and supervisor | cmd/config-panel, deploy | shutdown, single DB owner, watchdog/restart |
+| Target and initial CLI repair | internal/target, internal/repair | earlier controlled rule, separate from collection |
+| Core / Android acceptance | scripts/core-smoke.py, android-preflight.py | controlled core fixtures; Android not_run |
 
-## Durable evidence
-
-- `compatibility/target.lock.json`: pinned upstream identities and Linux core asset integrity.
-- `docs/compatibility/v2rayng-2.3.6.md`: findings from exact source with line references.
-- `docs/ROADMAP.md`: ordered parts and acceptance conditions.
-- `docs/checkpoints/`: sanitized test receipts and development deltas.
-- `.local/`: ignored source clones, binaries, temporary tests and operational receipts.
-
-Production pipeline, sandbox, arbitrary input core execution and Android test acceptance are deliberately not claimed by the initial command-line foundation.
+Evidence: compatibility/target.lock.json, docs/compatibility/, docs/checkpoints/. Private operational receipts/toolchains/fixtures are ignored under .local/. Deployment and source publication require independent readback.
