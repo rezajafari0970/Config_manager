@@ -81,6 +81,23 @@ func run() error {
 	if e != nil {
 		return e
 	}
+	socketPath := filepath.Join(filepath.Dir(c.Database), "probe.sock")
+	if e = os.Remove(socketPath); e != nil && !os.IsNotExist(e) {
+		return e
+	}
+	listener, e := net.Listen("unix", socketPath)
+	if e != nil {
+		return e
+	}
+	defer listener.Close()
+	defer os.Remove(socketPath)
+	if e = os.Chmod(socketPath, 0600); e != nil {
+		return e
+	}
+	privateServer := &http.Server{Handler: store.PrivateProbeHandler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second}
+	privateResult := make(chan error, 1)
+	go func() { privateResult <- privateServer.Serve(listener) }()
+	defer privateServer.Close()
 	engine := store.NewEngine()
 	app.SetEngine(engine)
 	server := &http.Server{Addr: c.Listen, Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 2 * time.Minute, WriteTimeout: 2 * time.Minute, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32 * 1024}
@@ -94,6 +111,8 @@ func run() error {
 	log.Print("config manager running; passwordless management and raw collector enabled")
 	select {
 	case <-ctx.Done():
+	case e = <-privateResult:
+		stop()
 	case e = <-engineResult:
 		if e == nil {
 			e = errors.New("collector stopped unexpectedly")

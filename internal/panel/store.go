@@ -15,15 +15,17 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/blob"
 	"os"
 	"path/filepath"
+	"sync/atomic"
 
 	_ "modernc.org/sqlite"
 )
 
 type Store struct {
-	db    *sql.DB
-	aead  cipher.AEAD
-	key   []byte
-	vault *blob.Vault
+	db        *sql.DB
+	aead      cipher.AEAD
+	key       []byte
+	vault     *blob.Vault
+	probeTurn atomic.Uint64
 }
 
 func Open(path string, key []byte) (*Store, error) {
@@ -67,7 +69,7 @@ func Open(path string, key []byte) (*Store, error) {
 	if err = db.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
 		return nil, err
 	}
-	if version > 4 {
+	if version > 5 {
 		return nil, errors.New("database schema newer than application")
 	}
 	if version == 0 {
@@ -113,6 +115,9 @@ PRAGMA user_version=1;`)
 		return nil, err
 	}
 	if err = s.migrateV4(); err != nil {
+		return nil, err
+	}
+	if err = s.migrateV5(); err != nil {
 		return nil, err
 	}
 	s.vault, err = blob.New(filepath.Join(filepath.Dir(path), "blobs"), key)

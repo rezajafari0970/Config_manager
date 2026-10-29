@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "target": "v2rayng-2.3.6-lib40-xray-26.7.28",
-  "rules_version": "xray-26.7.28.probe-plan.v1",
+  "rules_version": "xray-26.7.28.probe-plan.v2",
   "rules": [
     {
       "code": "public_endpoint_requires_tls",
@@ -66,6 +66,20 @@
       "cause": "Two HTTPS destinations passed through isolated proxy runtime.",
       "strategy": "Record original/candidate/runtime hashes, target, environment and expiry; Android remains not_run.",
       "automatic": false
+    },
+    {
+      "code": "hysteria1_unsupported_by_target_core",
+      "cause": "Pinned Hysteria outbound accepts version 2 only; the pinned Android URI registry has no Hysteria 1 parser.",
+      "strategy": "Retain original and report target incompatibility; do not relabel Hysteria 1 as Hy2.",
+      "automatic": false,
+      "source": "https://github.com/XTLS/Xray-core/blob/5ca6f4b7d4dc20a881d4330e498892697627ec0c/infra/conf/hysteria.go"
+    },
+    {
+      "code": "wireguard_extension_unsupported",
+      "cause": "Unknown Amnezia/noise or other settings do not have a verified mapping.",
+      "strategy": "Retain the original. Standard WireGuard URI/INI maps keys, multiple peers, IPv6 endpoints, keepalive, reserved, addresses and DNS separately into custom JSON.",
+      "automatic": false,
+      "source": "https://github.com/XTLS/Xray-core/blob/5ca6f4b7d4dc20a881d4330e498892697627ec0c/infra/conf/wireguard.go"
     }
   ]
 }

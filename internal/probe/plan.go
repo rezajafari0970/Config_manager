@@ -18,7 +18,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/target"
 )
 
-const Version = "xray-26.7.28.probe-plan.v1"
+const Version = "xray-26.7.28.probe-plan.v2"
 
 type M = map[string]any
 type Candidate struct {
@@ -79,12 +79,12 @@ func Prepare(raw []byte) (p Plan) {
 	var ob M
 	var err error
 	switch {
-	case strings.HasPrefix(s, "vmess://"):
+	case strings.HasPrefix(strings.ToLower(s), "vmess://"):
 		p.Kind = "vmess"
-		ob, err = vmess(strings.TrimPrefix(s, "vmess://"))
-	case strings.HasPrefix(s, "[Interface]"):
+		ob, err = vmess(s[len("vmess://"):])
+	case strings.HasPrefix(strings.ToLower(s), "[interface]"):
 		p.Kind = "wireguard"
-		err = errors.New("wireguard_ini_driver_pending")
+		ob, err = wireguardINI(s)
 	default:
 		u, e := url.Parse(s)
 		if e != nil {
@@ -92,13 +92,42 @@ func Prepare(raw []byte) (p Plan) {
 			return
 		}
 		p.Kind = strings.ToLower(u.Scheme)
-		ob, err = uri(u)
+		switch p.Kind {
+		case "socks", "socks5":
+			ob, err = socksURI(u)
+		case "wireguard", "wg":
+			ob, err = wireguardURI(u)
+		case "hysteria", "hy":
+			err = errors.New("hysteria1_unsupported_by_target_core")
+		case "json", "custom":
+			payload := strings.SplitN(strings.TrimPrefix(s, u.Scheme+"://"), "#", 2)[0]
+			b, e := url.PathUnescape(payload)
+			if e == nil && !strings.HasPrefix(strings.TrimSpace(b), "{") {
+				var decoded []byte
+				decoded, e = decode(b)
+				b = string(decoded)
+			}
+			if e != nil || !strings.HasPrefix(strings.TrimSpace(b), "{") {
+				p.Code = "custom_json_envelope_invalid"
+				return
+			}
+			nested := Prepare([]byte(b))
+			p.Candidates = nested.Candidates
+			p.Code = nested.Code
+			return
+		default:
+			ob, err = uri(u)
+		}
 	}
 	if err != nil {
 		p.Code = err.Error()
 		return
 	}
-	root := M{"remarks": "Config probe candidate", "log": M{"loglevel": "warning"}, "inbounds": []any{M{"tag": "socks", "listen": "127.0.0.1", "port": 10808, "protocol": "socks", "settings": M{"auth": "noauth", "udp": true}}}, "outbounds": []any{ob}, "routing": M{}}
+	root := M{"remarks": label(raw, p.Kind), "log": M{"loglevel": "warning"}, "inbounds": []any{M{"tag": "socks", "listen": "127.0.0.1", "port": 10808, "protocol": "socks", "settings": M{"auth": "noauth", "udp": true}}}, "outbounds": []any{ob}, "routing": M{}}
+	if dns, ok := ob["__dns"]; ok {
+		root["dns"] = dns
+		delete(ob, "__dns")
+	}
 	p.Candidates = append(p.Candidates, candidate(root, Version+".uri-json", false))
 	// This is only a hypothesis, never a repair approval. A verified end-to-end
 	// connection with certificate verification must gate its recommendation.
@@ -246,7 +275,7 @@ func uri(u *url.URL) (M, error) {
 			}
 		}
 	}
-	allowed := strings.Fields("type security encryption flow headerType host path sni fp alpn allowInsecure insecure allowinsecure pbk sid spx pqv ech vcn pcs serviceName authority mode extra xhttpMode xhttpExtra fm obfs obfs-password pinSHA256")
+	allowed := strings.Fields("type security encryption flow headerType host path sni fp alpn allowInsecure insecure allowinsecure pbk sid spx pqv ech vcn pcs serviceName authority mode extra xhttpMode xhttpExtra fm obfs obfs-password pinSHA256 mport")
 	for k, values := range q {
 		known := false
 		for _, a := range allowed {
@@ -321,6 +350,17 @@ func uri(u *url.URL) (M, error) {
 		}
 		if q.Get("obfs-password") != "" {
 			stream["finalmask"] = M{"udp": []any{M{"type": "salamander", "settings": M{"password": q.Get("obfs-password")}}}}
+		}
+		if q.Get("mport") != "" {
+			if _, err := portRanges(q.Get("mport")); err != nil {
+				return nil, err
+			}
+			fm, ok := stream["finalmask"].(M)
+			if !ok {
+				fm = M{}
+				stream["finalmask"] = fm
+			}
+			fm["quicParams"] = M{"udpHop": M{"ports": q.Get("mport"), "interval": "30"}}
 		}
 		if q.Get("pinSHA256") != "" {
 			stream["tlsSettings"].(M)["pinnedPeerCertSha256"] = q.Get("pinSHA256")

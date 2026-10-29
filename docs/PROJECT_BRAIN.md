@@ -36,3 +36,9 @@ The user now requests structural repairs. Collection retains immutable originals
 ## P5a temporary test laboratory
 
 The user accepts any network vantage. `internal/probe` / `cmd/config-probe-plan` prepare separate pinned-target candidates. `scripts/live-probe.py` provides a temporary privileged, namespace/cgroup/egress-isolated Linux validation and HTTPS test driver. `.local/probe-bank/evidence.db` persists hashes, diagnosis, expiry and separate stage evidence; no raw secrets. `compatibility/probe-knowledge.json` records evidence-backed repair strategies. Actual Android acceptance remains not_run. This is not the permanent collector probe worker, and the panel daemon/schema remain at P4a. Read docs/probe-lab.md and the P5a checkpoint before promoting or extending it.
+
+## P6a current authorization and runtime
+
+The user now explicitly preserves samples for ongoing testing across source updates, removals and TTL expiry. The encrypted schema5 bank is independent of transient raw source memberships. Manual import and every accepted collector generation queue new exact samples. Persistent bank controls, tombstones, historical candidates, model/rule evidence, fair leased scheduling and a separate privileged sandbox supervisor are implemented. Model success only prioritizes rules; every sample still needs fresh independent validation.
+
+Server-verified subscriptions are authorized: both exact-core acceptance and two HTTPS destinations, current rule version and nonexpired evidence are required. Partial/failed/disabled/deleted results are excluded; identities and candidate hashes deduplicate export. Android import remains not_run and is stated in UI/headers. This supersedes earlier statements that all export must wait for Android infrastructure; it does not certify Android. Read docs/PROBE_BANK.md and the P6a checkpoint.

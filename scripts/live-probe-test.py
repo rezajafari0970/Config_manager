@@ -30,6 +30,14 @@ class ProbeTests(unittest.TestCase):
  def test_unsupported_does_not_guess(self):
   with self.assertRaisesRegex(ValueError,'outbound_driver_pending'):
    p.endpoints({'outbounds':[{'protocol':'future-protocol','settings':{'address':'example.com','port':443}}]})
+ def test_same_host_multiple_ports_and_hopping_preserved(self):
+  class R:stdout=b'["1.1.1.1"]'
+  with patch.object(p,'cmd',return_value=R()):
+   r=p.endpoints({'outbounds':[{'protocol':'hysteria','settings':{'address':'example.com','port':443},'streamSettings':{'finalmask':{'quicParams':{'udpHop':{'ports':'8443,9000-9010'}}}}},{'protocol':'trojan','settings':{'address':'example.com','port':444}}]})
+   self.assertEqual(set(r['example.com']['ports']),{'443','444','8443','9000-9010'})
+ def test_hopping_cannot_inject_firewall_syntax(self):
+  with self.assertRaisesRegex(ValueError,'port_hopping_invalid'):
+   p.endpoints({'outbounds':[{'protocol':'hysteria','settings':{'address':'example.com','port':443},'streamSettings':{'finalmask':{'quicParams':{'udpHop':{'ports':'443;accept'}}}}}]})
  def test_bank_has_no_raw_configuration(self):
   with tempfile.TemporaryDirectory() as t:
    db=p.database(pathlib.Path(t)/'bank'/'evidence.db');cols={r[1] for r in db.execute('pragma table_info(attempts)')};db.close()

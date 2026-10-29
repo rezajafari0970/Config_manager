@@ -1,0 +1,23 @@
+[Unit]
+Description=Config Repair isolated connection test supervisor
+After=network-online.target config-repair.service
+Wants=network-online.target config-repair.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/config-repair/current
+ExecStart=/opt/config-repair/current/config-probe-worker
+Restart=always
+RestartSec=30
+TimeoutStopSec=40
+KillMode=control-group
+UMask=0077
+Environment=GOMEMLIMIT=256MiB
+MemoryMax=2G
+TasksMax=2048
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target

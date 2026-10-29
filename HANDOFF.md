@@ -1,3 +1,19 @@
+# Handoff — P6a persistent probe bank
+
+Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/PROBE_BANK.md and docs/checkpoints/P6a-permanent-probe-bank-20261029.md. Verify actual HEAD/origin/status and private p6 deployment/publication receipts. Older handoff below is historical; current user authorization supersedes transient sample lifetime and permits explicitly labelled server-verified subscriptions before Android testing.
+
+Production panel now uses schema5. Original samples and derived trial history survive source replacement/expiry/deletion; explicit bank delete leaves a tombstone. Every accepted collector generation/manual import queues new samples. A protected Unix socket connects the unprivileged panel to a separate root supervisor; only the isolated core executes untrusted configurations. Both systemd units are enabled. Public panel has Input / Output / Setting with bank management, reports, manual import, probe settings and two tokenized Custom JSON subscriptions. All 54 source URLs/revisions and original fetch settings were preserved.
+
+Core/connection evidence is versioned and time-limited. Android remains not_run. Full success requires two HTTPS destinations. Retest failure, explicit disable/delete/retest and evidence expiry exclude entries from the subscription. Historical candidates remain encrypted. Learned outcomes prioritize rules but never approve another sample. Hysteria1 is explicitly unsupported by pinned core; unknown extensions remain retained/diagnosed.
+
+Full Go/module/vet/race/build and 11 Python regressions passed. Browser acceptance covers desktop/mobile, old raw management and new bank actions/import/settings/reports/subscription gates. Isolated worker test completed 17 samples including 12 real: 3 full passes, 7 partial, with SIGKILL and lease recovery. Production continuously processes a larger evolving bank; consult current API rather than treating checkpoint counts as current health.
+
+Private receipts: .local/p6-check.log, p6-browser.log, p6-worker-test.json, p6-worker-diagnostic.log, p6-deployed.json, p6-live.json, p6-production-browser.json, p6-published-readback.json, p6-ci.json. Pre-migration stopped-service data/blob/key/binary backup is under /var/backups/config-repair; exact path is in the deployment receipt. A P4 binary cannot open schema5: rollback needs its matching backup. Later schema5 binary updates do not roll back data.
+
+Do NOT run scripts/probe-worker-test.py while production prober is running: its cleanup owns all crw resources. To repeat isolation tests, stop only config-repair-prober.service, run the isolated test, then restore the service. Do not stop the collector or touch unrelated DigitalOcean infrastructure. Use verified isolated Go toolchain/cache from the prior handoff below.
+
+---
+
 # Handoff — P5a temporary probe laboratory
 
 Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/probe-lab.md and docs/checkpoints/P5a-temporary-probe-lab-20261029.md. Verify HEAD/origin/status and .local/p5-published-readback.json before continuing. The user accepts server-side tests from any network; actual Android acceptance remains pending.

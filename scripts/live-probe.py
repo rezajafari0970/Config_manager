@@ -40,7 +40,7 @@ def classify(log, fallback):
 
 def endpoints(config):
     """Never infer dial targets by recursively trusting arbitrary address keys."""
-    result=[]
+    result=[];hopping={}
     for ob in config.get('outbounds',[]):
         protocol=ob.get('protocol');s=ob.get('settings',{})
         if protocol in {'freedom','blackhole','dns','loopback'}: continue
@@ -52,6 +52,12 @@ def endpoints(config):
                 result.append((host.strip('[]'),int(p)))
         elif s.get('address'):
             result.append((s['address'],int(s.get('port',0))))
+            hop=ob.get('streamSettings',{}).get('finalmask',{}).get('quicParams',{}).get('udpHop',{}).get('ports','')
+            if hop:
+                for entry in hop.split(','):
+                    bounds=entry.strip().split('-')
+                    if len(bounds)>2 or any(not x.strip().isdigit() or not 1<=int(x)<=65535 for x in bounds) or len(bounds)==2 and int(bounds[0])>int(bounds[1]):raise ValueError('port_hopping_invalid')
+                    hopping.setdefault(s['address'],set()).add('-'.join(str(int(x)) for x in bounds))
         else:
             servers=s.get('vnext',s.get('servers',[]))
             for server in servers: result.append((server['address'],int(server['port'])))
@@ -66,7 +72,9 @@ def endpoints(config):
         if not ips or any(not ipaddress.ip_address(ip).is_global or ipaddress.ip_address(ip).is_multicast or ipaddress.ip_address(ip).is_reserved for ip in ips): raise ValueError('nonpublic_endpoint_blocked')
         ipv4=[ip for ip in ips if ipaddress.ip_address(ip).version==4]
         if not ipv4: raise ValueError('ipv6_only_probe_pending')
-        resolved[host]={'ips':ipv4,'port':port}
+        previous=resolved.get(host,{})
+        ports=set(previous.get('ports',[]))|{str(port)}|hopping.get(host,set())
+        resolved[host]={'ips':ipv4,'port':port,'ports':sorted(ports)}
     return resolved
 
 def runtime_config(config, resolved):
@@ -90,8 +98,8 @@ def runtime_config(config, resolved):
     return c
 
 class Sandbox:
-    def __init__(self, core, runid, index):
-        self.core=pathlib.Path(core).resolve();self.name='crp'+runid[:6]+format(index,'x')
+    def __init__(self, core, runid, index, prefix="crp"):
+        self.core=pathlib.Path(core).resolve();self.name=prefix+runid[:6]+format(index,'x')
         self.table=self.name;self.hostif=self.name+'h';self.peer=self.name+'p'
         # /30 from the dedicated benchmark range; none of it is allowed as egress.
         base=int(ipaddress.IPv4Address('198.18.0.0'))+4*(index+1)
@@ -115,7 +123,7 @@ class Sandbox:
             self.__exit__(None,None,None);raise
     def net(self,args,**kw): return cmd([IP,'netns','exec',self.name]+args,**kw)
     def policy(self,resolved):
-        pairs=sorted({(ip,v['port']) for v in resolved.values() for ip in v['ips']})
+        pairs=sorted({(ip,str(p)) for v in resolved.values() for ip in v['ips'] for p in v.get('ports',[v['port']])})
         # Namespace-local rules apply equally to all transports and all DNS rebinds.
         allow='\n'.join(f'ip daddr {ip} tcp dport {p} accept\nip daddr {ip} udp dport {p} accept' for ip,p in pairs)
         rules='flush ruleset\ntable inet guard { chain out { type filter hook output priority 0; policy drop; oifname "lo" accept; ip daddr 1.1.1.1 udp dport 53 accept; ip daddr 1.1.1.1 tcp dport 53 accept; '+allow+'\n}; chain in { type filter hook input priority 0; policy drop; iifname "lo" accept; ct state established,related accept; }; }\n'

@@ -96,7 +96,7 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	static, _ := fs.Sub(assets, "web")
 	files := http.StripPrefix("/assets/", http.FileServer(http.FS(static)))
-	for _, asset := range []string{"style.css", "app.js", "core.js", "input.js", "output.js", "setting.js", "actions.js", "repairs.js", "Vazirmatn.woff2"} {
+	for _, asset := range []string{"style.css", "app.js", "core.js", "input.js", "output.js", "setting.js", "actions.js", "repairs.js", "bank.js", "Vazirmatn.woff2"} {
 		mux.Handle("GET /assets/"+asset, files)
 	}
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -133,7 +133,7 @@ func (s *Server) Handler() http.Handler {
 		})
 	}
 	mux.HandleFunc("GET /api/state", s.state)
-	modules := []PanelModule{inputModule{s}, outputModule{s}, settingModule{s}}
+	modules := []PanelModule{inputModule{s}, outputModule{s}, settingModule{s}, bankModule{s}}
 	modules = append(modules, s.modules...)
 	for _, module := range modules {
 		module.Register(mux)

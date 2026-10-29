@@ -362,6 +362,9 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 			return e
 		}
 		for _, item := range result.Items {
+			if e = saveSample(ctx, tx, item.Hash, item.Identity, item.Kind, item.Size, stamp, ""); e != nil {
+				return e
+			}
 			if e = saveRepair(ctx, tx, item); e != nil {
 				return e
 			}
@@ -407,6 +410,16 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 			return e
 		}
 	}
+	if result.State == "updated" && result.Staged && stagedCount > 0 {
+		if _, e = tx.ExecContext(ctx, `INSERT INTO bank_samples(hash,identity,kind,size,created,last_seen,name)
+        SELECT st.hash,st.identity,st.kind,st.size,?,?,s.name FROM staged st JOIN sources s ON s.id=st.source_id WHERE st.token=?
+        ON CONFLICT(hash) DO UPDATE SET last_seen=excluded.last_seen WHERE bank_samples.deleted=0`, stamp, stamp, job.Token); e != nil {
+			return e
+		}
+		if _, e = tx.ExecContext(ctx, `INSERT INTO probe_jobs(hash,revision) SELECT b.hash,b.revision FROM bank_samples b JOIN staged st ON st.hash=b.hash WHERE st.token=? AND b.enabled=1 AND b.deleted=0 ON CONFLICT(hash) DO NOTHING`, job.Token); e != nil {
+			return e
+		}
+	}
 	if _, e = tx.ExecContext(ctx, "DELETE FROM staged WHERE token=?", job.Token); e != nil {
 		return e
 	}
@@ -448,7 +461,7 @@ func (s *Store) Expire(ctx context.Context, now time.Time) error {
 }
 func (s *Store) Referenced(ctx context.Context, hash string) (bool, error) {
 	var used bool
-	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+"))", hash, hash, hash, hash).Scan(&used)
+	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+") UNION ALL SELECT 1 FROM bank_samples WHERE hash=? AND deleted=0 UNION ALL SELECT 1 FROM probe_results r JOIN bank_samples b ON b.hash=r.hash WHERE r.candidate_hash=? AND b.deleted=0 UNION ALL SELECT 1 FROM bank_variants v JOIN bank_samples b ON b.hash=v.hash WHERE v.candidate_hash=? AND b.deleted=0)", hash, hash, hash, hash, hash, hash, hash).Scan(&used)
 	return used, e
 }
 
