@@ -1,3 +1,17 @@
+# Handoff — P5a temporary probe laboratory
+
+Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/probe-lab.md and docs/checkpoints/P5a-temporary-probe-lab-20261029.md. Verify HEAD/origin/status and .local/p5-published-readback.json before continuing. The user accepts server-side tests from any network; actual Android acceptance remains pending.
+
+Go preparation CLI and temporary Linux sandbox driver are implemented. The complete snapshot run considered 868 configs: 93 reached both HTTPS destinations, 196 reached one; 192 expired/disappeared and 10 changed before testing. 870 attempts include alternatives. No TLS hypothesis passed the two-destination approval gate. A final-code canary considered 18 originals: one two-destination pass and two partial passes. These are timestamped Linux results, not healthy export approvals.
+
+The evidence bank is .local/probe-bank/evidence.db and stores no raw configs/logs/passwords. Driver/CA/core/planner hashes are recorded per run. Initial CA-less calibration runs were invalidated and excluded from aggregation. Source originals, production sources/settings, collector and panel binary were not replaced. Panel DB stays schema4; installed production release remains the P4a release.
+
+Use the verified isolated Go toolchain below. `scripts/check.sh` now also builds config-probe-plan and runs unprivileged Python regressions. Run `python3 scripts/live-probe.py --self-test` before any live batch; a failed positive egress control is an infrastructure blocker, not a config failure. Never expose the privileged CLI through the passwordless panel. Temporary resources clean up on ordinary completion/SIGINT/SIGTERM; crash/SIGKILL cleanup and durable job leases are required before always-on integration.
+
+Private receipts: .local/p5-check.log, p5-python-tests.log, p5-fuzz.log, p5-final-sandbox.log, p5-live-full-ca.log, p5-final-canary.log, p5-published-readback.json, p5-ci.json. See checkpoint for scope and limitations. No plaintext real-config copies were retained.
+
+## Prior production handoff (still applicable)
+
 # Handoff — P4a automatic structural candidates
 
 Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json and docs/checkpoints/P4a-structural-repair-20261029.md. Verify actual HEAD/status/origin and `.local/p4-published-readback.json` before continuing. The user now authorizes automatic structural repair while original collected bytes remain immutable.

@@ -32,3 +32,7 @@ Evidence: compatibility/target.lock.json, docs/compatibility/, docs/checkpoints/
 ## P4a active authorization
 
 The user now requests structural repairs. Collection retains immutable originals and automatically produces separate CandidateDriver results; candidates never replace raw identities or become healthy exports. Schema 4 keys repair metadata/ciphertext by exact raw SHA and links lifetime/access to the original. Strict ambiguity rejection, version-pinned schema rules, unchanged-byte/idempotence regression tests, and separate structural/core/Android/network evidence are mandatory. Input and Output display repair counts and reasons; raw source quality remains visible even when a candidate fixes it.
+
+## P5a temporary test laboratory
+
+The user accepts any network vantage. `internal/probe` / `cmd/config-probe-plan` prepare separate pinned-target candidates. `scripts/live-probe.py` provides a temporary privileged, namespace/cgroup/egress-isolated Linux validation and HTTPS test driver. `.local/probe-bank/evidence.db` persists hashes, diagnosis, expiry and separate stage evidence; no raw secrets. `compatibility/probe-knowledge.json` records evidence-backed repair strategies. Actual Android acceptance remains not_run. This is not the permanent collector probe worker, and the panel daemon/schema remain at P4a. Read docs/probe-lab.md and the P5a checkpoint before promoting or extending it.

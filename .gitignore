@@ -6,3 +6,5 @@ data/
 *.env
 *.log
 coverage.out
+__pycache__/
+*.pyc
