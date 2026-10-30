@@ -6,7 +6,6 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 	"net"
 	"net/url"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -190,44 +189,6 @@ func wireguard(iface map[string]string, peers []map[string]string) (M, error) {
 		out["__dns"] = M{"servers": dns}
 	}
 	return out, nil
-}
-
-// Model is a structural fingerprint, not a credential fingerprint. Values are
-// excluded except a small protocol/transport/security enumeration.
-func Model(p Plan) string {
-	parts := []string{p.Kind, p.Code}
-	var walk func(any, string)
-	walk = func(v any, path string) {
-		switch x := v.(type) {
-		case map[string]any:
-			keys := make([]string, 0, len(x))
-			for k := range x {
-				keys = append(keys, k)
-			}
-			sort.Strings(keys)
-			for _, k := range keys {
-				parts = append(parts, path+"."+k)
-				if k == "protocol" || k == "network" || k == "security" {
-					s, _ := x[k].(string)
-					if strings.Contains(" vless vmess trojan shadowsocks wireguard socks hysteria tcp raw ws grpc xhttp h2 tls reality none ", " "+s+" ") {
-						parts = append(parts, s)
-					}
-				}
-				walk(x[k], path+"."+k)
-			}
-		case []any:
-			for _, v := range x {
-				walk(v, path+"[]")
-			}
-		}
-	}
-	if len(p.Candidates) > 0 {
-		var v any
-		if json.Unmarshal(p.Candidates[0].Config, &v) == nil {
-			walk(v, "")
-		}
-	}
-	return repair.Digest([]byte(strings.Join(parts, "\n")))
 }
 
 func label(raw []byte, kind string) string {

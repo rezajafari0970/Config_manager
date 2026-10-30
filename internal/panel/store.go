@@ -69,7 +69,7 @@ func Open(path string, key []byte) (*Store, error) {
 	if err = db.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
 		return nil, err
 	}
-	if version > 5 {
+	if version > 6 {
 		return nil, errors.New("database schema newer than application")
 	}
 	if version == 0 {
@@ -117,7 +117,7 @@ PRAGMA user_version=1;`)
 	if err = s.migrateV4(); err != nil {
 		return nil, err
 	}
-	if err = s.migrateV5(); err != nil {
+	if err = s.migrateV6(); err != nil {
 		return nil, err
 	}
 	s.vault, err = blob.New(filepath.Join(filepath.Dir(path), "blobs"), key)

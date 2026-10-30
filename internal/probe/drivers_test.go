@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"strings"
 	"testing"
 )
 
@@ -31,16 +30,6 @@ func TestUnsupportedAndAmbiguousVariantsStayExplicit(t *testing.T) {
 		if p.Code != code || len(p.Candidates) > 0 {
 			t.Fatal(raw, p.Code)
 		}
-	}
-}
-func TestModelsExcludeCredentialsAndEndpointValues(t *testing.T) {
-	a := Prepare([]byte("socks5://alice:secret@192.0.2.1:1080"))
-	b := Prepare([]byte("socks5://bob:other@192.0.2.2:1081"))
-	if Model(a) != Model(b) {
-		t.Fatal("credential variations split model")
-	}
-	if strings.Contains(Model(a), "secret") {
-		t.Fatal("secret leaked")
 	}
 }
 func TestCustomEnvelope(t *testing.T) {

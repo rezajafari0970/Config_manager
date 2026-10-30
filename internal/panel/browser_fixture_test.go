@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"github.com/rezajafari0970/Config_manager/internal/collect"
+	"github.com/rezajafari0970/Config_manager/internal/convert"
 	"io"
 	"net/http"
 	"os"
@@ -61,6 +62,32 @@ func TestBrowserFixtureServer(t *testing.T) {
 	defer stop()
 	done := make(chan error, 1)
 	go func() { done <- engine.Run(ctx) }()
+	// Synthetic UI evidence only; this harness is never part of a shipped binary.
+	converted := make(chan struct{})
+	go func() {
+		defer close(converted)
+		tick := time.NewTicker(100 * time.Millisecond)
+		defer tick.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-tick.C:
+				j, e := store.ClaimProbe(ctx)
+				if e != nil || j == nil {
+					continue
+				}
+				if len(convert.Prepare(j.Raw).Candidates) == 0 {
+					continue
+				}
+				r := conversionResult(*j, 0, false)
+				r.Connection = "not_run"
+				r.Code = "synthetic_ui_fixture"
+				_ = store.CompleteProbe(ctx, r)
+			}
+		}
+	}()
+
 	server := &http.Server{Addr: "127.0.0.1:18192", Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second}
 	httpDone := make(chan error, 1)
 	go func() { httpDone <- server.ListenAndServe() }()
@@ -72,6 +99,7 @@ func TestBrowserFixtureServer(t *testing.T) {
 	shutdown, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	server.Shutdown(shutdown)
+	<-converted
 	if e := <-done; e != nil {
 		t.Fatal(e)
 	}

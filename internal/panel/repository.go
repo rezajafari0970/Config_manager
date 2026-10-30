@@ -181,18 +181,14 @@ func (s *Store) Save(ctx context.Context, id string, revision int64, input Sourc
 		}
 		return "", e
 	}
+	if e = syncConversions(ctx, tx); e != nil {
+		return "", e
+	}
 	return id, tx.Commit()
 }
 func (s *Store) Delete(ctx context.Context, id string, revision int64) error {
-	result, e := s.db.ExecContext(ctx, "DELETE FROM sources WHERE id=? AND revision=?", id, revision)
-	if e != nil {
-		return e
-	}
-	n, _ := result.RowsAffected()
-	if n != 1 {
-		return ErrConflict
-	}
-	return nil
+	_, e := s.ManageSources(ctx, SourceBatch{Action: "delete", Items: []SourceSelection{{ID: id, Revision: revision}}})
+	return e
 }
 func (s *Store) RunNow(ctx context.Context, id string) error {
 	result, e := s.db.ExecContext(ctx, "UPDATE sources SET next_run=?,state=CASE WHEN lease_token='' THEN 'queued' ELSE state END WHERE id=? AND enabled=1", time.Now().UnixNano(), id)
@@ -362,9 +358,6 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 			return e
 		}
 		for _, item := range result.Items {
-			if e = saveSample(ctx, tx, item.Hash, item.Identity, item.Kind, item.Size, stamp, ""); e != nil {
-				return e
-			}
 			if e = saveRepair(ctx, tx, item); e != nil {
 				return e
 			}
@@ -410,16 +403,6 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 			return e
 		}
 	}
-	if result.State == "updated" && result.Staged && stagedCount > 0 {
-		if _, e = tx.ExecContext(ctx, `INSERT INTO bank_samples(hash,identity,kind,size,created,last_seen,name)
-        SELECT st.hash,st.identity,st.kind,st.size,?,?,s.name FROM staged st JOIN sources s ON s.id=st.source_id WHERE st.token=?
-        ON CONFLICT(hash) DO UPDATE SET last_seen=excluded.last_seen WHERE bank_samples.deleted=0`, stamp, stamp, job.Token); e != nil {
-			return e
-		}
-		if _, e = tx.ExecContext(ctx, `INSERT INTO probe_jobs(hash,revision) SELECT b.hash,b.revision FROM bank_samples b JOIN staged st ON st.hash=b.hash WHERE st.token=? AND b.enabled=1 AND b.deleted=0 ON CONFLICT(hash) DO NOTHING`, job.Token); e != nil {
-			return e
-		}
-	}
 	if _, e = tx.ExecContext(ctx, "DELETE FROM staged WHERE token=?", job.Token); e != nil {
 		return e
 	}
@@ -432,6 +415,9 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 	}
 	_, e = tx.ExecContext(ctx, "UPDATE sources SET state=?,error_code=?,last_fetch=?,last_success=CASE WHEN ? THEN ? ELSE last_success END,http_status=?,duration_ms=?,fetch_count=fetch_count+1,duplicates=?,generation=?,error_streak=CASE WHEN ? THEN 0 ELSE error_streak+1 END,lease_token='',lease_until=0,next_run=?,etag=CASE WHEN ? THEN ? ELSE etag END,modified=CASE WHEN ? THEN ? ELSE modified END WHERE id=? AND revision=? AND lease_token=?", result.State, result.ErrorCode, stamp, success, stamp, result.HTTPStatus, result.DurationMS, duplicates, generation, success, next.UnixNano(), result.HTTPStatus == 200 || result.ErrorCode == "cache_missing", result.ETag, result.HTTPStatus == 200 || result.ErrorCode == "cache_missing", result.Modified, job.ID, job.Revision, job.Token)
 	if e != nil {
+		return e
+	}
+	if e = syncConversions(ctx, tx); e != nil {
 		return e
 	}
 	return tx.Commit()
@@ -457,11 +443,14 @@ func (s *Store) Expire(ctx context.Context, now time.Time) error {
 	if _, e = tx.ExecContext(ctx, "DELETE FROM repairs WHERE NOT ("+repairReferences+")"); e != nil {
 		return e
 	}
+	if e = syncConversions(ctx, tx); e != nil {
+		return e
+	}
 	return tx.Commit()
 }
 func (s *Store) Referenced(ctx context.Context, hash string) (bool, error) {
 	var used bool
-	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+") UNION ALL SELECT 1 FROM bank_samples WHERE hash=? AND deleted=0 UNION ALL SELECT 1 FROM probe_results r JOIN bank_samples b ON b.hash=r.hash WHERE r.candidate_hash=? AND b.deleted=0 UNION ALL SELECT 1 FROM bank_variants v JOIN bank_samples b ON b.hash=v.hash WHERE v.candidate_hash=? AND b.deleted=0)", hash, hash, hash, hash, hash, hash, hash).Scan(&used)
+	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+") UNION ALL SELECT 1 FROM conversion_results r JOIN conversion_inputs i ON i.hash=r.hash WHERE r.candidate_hash=?)", hash, hash, hash, hash, hash).Scan(&used)
 	return used, e
 }
 

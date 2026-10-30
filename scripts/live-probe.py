@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Temporary, isolated Linux test driver. No production DB writes or healthy export.
+"""Isolated Linux validation driver for the transient JSON conversion pipeline.
 
 Root is needed only by the trusted supervisor for netns/nft/cgroups. Untrusted
 configs execute as nobody in a read-only, capability-free mount/PID namespace.
@@ -7,7 +7,7 @@ Only pre-resolved public proxy endpoint IP:port pairs and DNS:53 can leave it.
 Receipts contain hashes and bounded diagnosis codes, never credentials/logs.
 """
 import argparse, base64, concurrent.futures, contextlib, copy, fcntl, hashlib, ipaddress
-import json, os, pathlib, resource, signal, sqlite3, subprocess
+import json, os, pathlib, resource, signal, subprocess
 import tempfile, threading, time, urllib.request, uuid
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -21,9 +21,6 @@ STOP = threading.Event()
 
 def digest(b): return hashlib.sha256(b).hexdigest()
 def cmd(args, **kw): return subprocess.run(args, check=True, capture_output=True, **kw)
-def api(path):
-    return urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:18191'+path,
-        headers={'Host':'85.192.63.181:18443'}), timeout=30)
 def classify(log, fallback):
     text = log.decode(errors='replace').lower() if isinstance(log, bytes) else log.lower()
     rules = [('feature "allowinsecure" has been removed','removed_allow_insecure'), ('without tls is prohibited','public_endpoint_requires_tls'), ('without tls or other encryption is prohibited','public_endpoint_requires_tls'), ('invalid uuid','invalid_uuid'),
@@ -201,111 +198,10 @@ def test_candidate(box,candidate,timeout):
     else:result.update(connection='failed',code=classify(log,'proxy_request_failed' if ready else 'runtime_start_failed'))
     return result
 
-def database(path):
-    path=pathlib.Path(path);path.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
-    if path.parent.stat().st_mode & 0o077:raise ValueError('bank_directory_must_be_private')
-    db=sqlite3.connect(path);os.chmod(path,0o600);db.execute('PRAGMA journal_mode=WAL')
-    db.executescript('''CREATE TABLE IF NOT EXISTS runs(id TEXT PRIMARY KEY,target TEXT,core_sha256 TEXT,planner_sha256 TEXT,started INTEGER,finished INTEGER,summary TEXT);
-    CREATE TABLE IF NOT EXISTS attempts(run_id TEXT,artifact_id TEXT,original_sha256 TEXT,candidate_sha256 TEXT,rule TEXT,kind TEXT,core TEXT,connection TEXT,code TEXT,runtime_sha256 TEXT,android_import TEXT,tested_at INTEGER,expires_at INTEGER,duration_ms INTEGER,endpoints_passed INTEGER,recommended INTEGER,PRIMARY KEY(run_id,original_sha256,candidate_sha256));
-    CREATE TABLE IF NOT EXISTS knowledge(code TEXT PRIMARY KEY,occurrences INTEGER,first_seen INTEGER,last_seen INTEGER,verified_successes INTEGER);''');db.execute('UPDATE attempts SET expires_at=expires_at/1000 WHERE expires_at>1000000000000');db.commit();return db
-
-def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--core',default=str(ROOT/'.local/xray-26.7.28/xray'));parser.add_argument('--planner',default=str(ROOT/'bin/config-probe-plan'));parser.add_argument('--bank',default=str(ROOT/'.local/probe-bank/evidence.db'));parser.add_argument('--workers',type=int,default=4);parser.add_argument('--timeout',type=int,default=8);parser.add_argument('--limit',type=int,default=0);parser.add_argument('--self-test',action='store_true');a=parser.parse_args()
-    if os.geteuid()!=0:raise SystemExit('root supervisor required')
-    signal.signal(signal.SIGTERM,lambda *_:STOP.set());signal.signal(signal.SIGINT,lambda *_:STOP.set())
-    if not 1<=a.workers<=8 or not 1<=a.timeout<=60:raise SystemExit('invalid worker/deadline settings')
-    corehash=digest(pathlib.Path(a.core).read_bytes());expected=json.loads((ROOT/'compatibility/target.lock.json').read_text())['core']['linux_amd64_binary_sha256']
-    if corehash!=expected:raise SystemExit('pinned core hash mismatch')
-    runid=uuid.uuid4().hex
-    global_lock=open('/run/config-repair-probe.lock','w');fcntl.flock(global_lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-    if a.self_test:
-        with Sandbox(a.core,runid,0) as box:
-            # Fail closed if the kernel cannot enforce namespace-local egress.
-            for host in ['127.0.0.1','169.254.169.254',box.gateway,'1.1.1.1']:
-                r=box.net(['/usr/bin/python3','-c','import socket,sys; s=socket.socket();s.settimeout(.3);print(s.connect_ex((sys.argv[1],443)))',host])
-                if r.stdout.strip()==b'0':raise SystemExit('egress isolation failed')
-            box.policy({'cloudflare':{'ips':['1.1.1.1','1.0.0.1'],'port':443}})
-            positive_ok=False
-            for address in ['1.1.1.1','1.0.0.1']:
-                try:
-                    positive=box.net(['/usr/bin/curl','--noproxy','*','--max-time','10','--silent','--output','/dev/null','--write-out','%{http_code}','https://'+address+'/cdn-cgi/trace'],timeout=12)
-                    if positive.stdout.strip()==b'200':positive_ok=True;break
-                except subprocess.SubprocessError:pass
-            if not positive_ok:raise SystemExit('allowed egress positive control failed')
-            box.policy({})
-            conf={'inbounds':[],'outbounds':[{'protocol':'blackhole','settings':{}}],'routing':{}}
-            p=box.launch(json.dumps(conf).encode(),True);p.wait(timeout=10);ok=p.returncode==0;log=box.logs();box.stop()
-            if not ok:raise SystemExit('sandbox core launch failed: '+classify(log,'sandbox_error'))
-            marker=box.work/'host-only.pem';marker.write_text('synthetic host filesystem canary')
-            denied={'inbounds':[],'outbounds':[{'protocol':'trojan','settings':{'address':'1.1.1.1','port':443,'password':'synthetic'},'streamSettings':{'security':'tls','tlsSettings':{'certificates':[{'certificateFile':str(marker),'usage':'verify'}]}}}],'routing':{}}
-            p=box.launch(json.dumps(denied).encode(),True);p.wait(timeout=10);isolated=p.returncode!=0 and b'no such file' in box.logs();box.stop()
-            if not isolated:raise SystemExit('host filesystem isolation control failed')
-        print(json.dumps({'sandbox':'passed','public_private_metadata_host_egress':'blocked','host_filesystem':'unavailable_to_core','core_hash':corehash}));return
-    # Snapshot metadata; originals are read through the panel's existing access gates.
-    records=[];seen=set();page=0
-    while True:
-        with api('/api/state?page='+str(page)) as f:state=json.load(f)
-        if not state['outputs']:break
-        for item in state['outputs']:
-            if item['disabled'] or item['hash'] in seen:continue
-            seen.add(item['hash']);records.append(item)
-        page+=1
-    # Interleave kinds, so an optional canary is representative.
-    groups={}
-    for item in records:groups.setdefault(item['kind'],[]).append(item)
-    records=[]
-    while any(groups.values()):
-        for values in groups.values():
-            if values:records.append(values.pop())
-    if a.limit:records=records[:a.limit]
-    metadata={'driver_sha256':digest(pathlib.Path(__file__).read_bytes()),'ca_sha256':digest(pathlib.Path('/etc/ssl/certs/ca-certificates.crt').read_bytes()),'timeout_seconds':a.timeout,'workers':a.workers}
-    db=database(a.bank);db.execute('INSERT INTO runs VALUES(?,?,?,?,?,?,?)',(runid,TARGET,corehash,digest(pathlib.Path(a.planner).read_bytes()),int(time.time()),None,json.dumps(metadata)));db.commit()
-    counts={};completed=0
-    def process(index,item):
-        start=time.monotonic();base={'artifact_id':item['id'],'original_sha256':item['hash'],'kind':item['kind'],'expires_at':item['expires']//1000,'android_import':'not_run'}
-        def failure(code):return [base|{'candidate_sha256':'','rule':'','core':'not_run','connection':'not_run','code':code,'runtime_sha256':'','endpoints_passed':0,'recommended':False,'duration_ms':int((time.monotonic()-start)*1000)}]
-        try:
-            if STOP.is_set():return failure('cancelled')
-            if int(time.time())>=base['expires_at']:return failure('source_expired_or_unavailable')
-            with api('/output/raw/'+item['id']) as f:raw=f.read(2*1024*1024+1)
-            if digest(raw)!=item['hash']:return failure('source_changed_before_test')
-            p=cmd([a.planner],input=raw,timeout=10);plan=json.loads(p.stdout)
-            if not plan['candidates']:return failure(plan['code'])
-            rows=[]
-            with Sandbox(a.core,runid,index) as box:
-                for candidate in plan['candidates']:
-                    if STOP.is_set():break
-                    result=test_candidate(box,candidate,a.timeout)
-                    rows.append(base|result|{'candidate_sha256':candidate['sha256'],'rule':candidate['rule'],'duration_ms':int((time.monotonic()-start)*1000),'recommended':result['connection']=='passed' and candidate['requires_connection'] and int(time.time())<base['expires_at']})
-                    if result['connection']=='passed':break
-            return rows
-        except urllib.error.HTTPError:return failure('source_expired_or_unavailable')
-        except Exception as e:return failure('probe_infrastructure_'+type(e).__name__)
-    def record(rows):
-        nonlocal completed
-        now=int(time.time())
-        for r in rows:
-            db.execute('INSERT OR REPLACE INTO attempts VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',(runid,r['artifact_id'],r['original_sha256'],r['candidate_sha256'],r['rule'],r['kind'],r['core'],r['connection'],r['code'],r['runtime_sha256'],r['android_import'],now,r['expires_at'],r['duration_ms'],r['endpoints_passed'],int(r['recommended'])))
-            db.execute('INSERT INTO knowledge VALUES(?,1,?,?,?) ON CONFLICT(code) DO UPDATE SET occurrences=occurrences+1,last_seen=excluded.last_seen,verified_successes=verified_successes+excluded.verified_successes',(r['code'],now,now,int(r['connection']=='passed')))
-            counts[r['code']]=counts.get(r['code'],0)+1
-        db.commit();completed+=1
-        if completed%20==0:print(json.dumps({'completed':completed,'total':len(records),'counts':counts}),flush=True)
-    # Allocate a unique /30 per concurrent worker; indexes are monotonically unique
-    # and never share a namespace. Use at most 60 in-flight slots.
-    with concurrent.futures.ThreadPoolExecutor(max_workers=a.workers) as pool:
-        futures=[pool.submit(process,i,item) for i,item in enumerate(records)]
-        for future in concurrent.futures.as_completed(futures):record(future.result())
-    summary=metadata|{'run_id':runid,'configs':len(records),'completed':completed,'counts':counts,'android_import':'not_run','cancelled':STOP.is_set(),'scope':'temporary_socks_inbound_direct_blocked_https_probe'}
-    db.execute('UPDATE runs SET finished=?,summary=? WHERE id=?',(int(time.time()),json.dumps(summary),runid));db.commit()
-    # Invalidated calibration runs never contribute learned outcomes.
-    db.execute('DELETE FROM knowledge')
-    db.execute("INSERT INTO knowledge SELECT a.code,count(*),min(a.tested_at),max(a.tested_at),sum(a.connection='passed') FROM attempts a JOIN runs r ON r.id=a.run_id WHERE r.finished IS NOT NULL AND json_extract(r.summary,'$.invalidated') IS NULL GROUP BY a.code")
-    db.commit();db.close();print(json.dumps(summary),flush=True)
-
 if __name__=='__main__':
     import sys
     if len(sys.argv)>2 and sys.argv[1]=='--sandbox-launch':
         cg=pathlib.Path(sys.argv[2]);(cg/'cgroup.procs').write_text(str(os.getpid()))
         resource.setrlimit(resource.RLIMIT_NOFILE,(256,256));resource.setrlimit(resource.RLIMIT_FSIZE,(1024*1024,1024*1024));resource.setrlimit(resource.RLIMIT_CORE,(0,0))
         os.execv(sys.argv[3],sys.argv[3:])
-    main()
+    raise SystemExit("use probe-one.py")

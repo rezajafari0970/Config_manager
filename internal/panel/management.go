@@ -130,6 +130,9 @@ func (s *Store) ManageSources(ctx context.Context, b SourceBatch) (BatchResult, 
 	if _, e = tx.ExecContext(ctx, "DELETE FROM artifacts WHERE NOT EXISTS(SELECT 1 FROM memberships m WHERE m.artifact_id=artifacts.id)"); e != nil {
 		return result, e
 	}
+	if e = syncConversions(ctx, tx); e != nil {
+		return result, e
+	}
 	return result, tx.Commit()
 }
 
@@ -206,6 +209,9 @@ func (s *Store) ManageConfigs(ctx context.Context, b ConfigBatch) (BatchResult, 
 		}
 	}
 	if _, e = tx.ExecContext(ctx, "DELETE FROM selected_configs"); e != nil {
+		return result, e
+	}
+	if e = syncConversions(ctx, tx); e != nil {
 		return result, e
 	}
 	return result, tx.Commit()

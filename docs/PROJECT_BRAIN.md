@@ -1,44 +1,11 @@
-# Project Brain
+# Project Brain — P7
 
-Read this file → PROJECT_STATE.json → HANDOFF.md → current checkpoint → relevant source/tests. Current user instruction supersedes P2 authentication and repair-in-collection plans. P3b focuses on acquisition/settings, batch management and honest diagnostics.
+Current user instruction (2026-10-30) replaces the persistent repair laboratory with a shared JSON conversion flow. Read PROJECT_STATE.json, HANDOFF.md, docs/CONVERSION.md and the P7 checkpoint. Earlier checkpoints describe history only.
 
-## Active contract
+Go fetches source links independently, extracts exact encrypted originals, maps supported protocols to the user's @shenvpn full JSON envelope, validates using pinned Xray26.7.28 and tracks connection separately. Output is a clean list plus one JSONL link. The bank, manual import, historical variants, learned model/rule data and old subscriptions are removed by schema6.
 
-An independent Go daemon collects source URLs continuously, without changing config bytes. Passwordless Persian Input / Output / Setting manages bulk URLs, independent randomized seconds/minutes requests, source state, raw downloads and fixed retention (default 2h). A nonempty accepted generation atomically replaces one source's membership; empty/error retains it only until fixed expiry. Repeated fetch/304 cannot renew expiry. Global identity dedup and per-source original representations are separate. Stale jobs cannot revive deleted/edited sources.
+The actual endpoint/auth/transport must be retained, with explicit errors for unrecoverable/unsupported mappings. Common DNS/inbounds/routing/log/policy intentionally replace source globals per the new user instruction. Domain endpoints receive scoped local DoH bootstrap to avoid DNS recursion. TLS hypotheses require fresh connection proof. Core-valid ordinary mappings may be exported with unsuccessful/unknown connection shown accurately. Never claim Android validation; JSONL is not the pinned app's native JSON-array subscription format.
 
-Raw Output is not a healthy output. Existing repair CLI and pinned V2RayNG 2.3.6 / Lib40 / Xray26.7.28 compatibility work remain separate. Any future repair creates a distinct auditable candidate, and any healthy export requires core/import/network evidence. No arbitrary raw JSON is executed by the collector.
+Source ownership, fixed default2h retention, global identity dedup, exact raw bytes, independent revisions/leases/deadlines, encrypted storage, passwordless HTTPS/CSRF, bounded parallel work and systemd recovery remain. Conversion data cannot outlive active memberships. Untrusted execution stays in the proven sandbox; private worker API is Unix-only.
 
-| Module | Location | State |
-|---|---|---|
-| Independent collector and format drivers | internal/collect | active; bounded jobs, leases, retries, safe HTTP egress |
-| Encrypted immutable blobs | internal/blob | streaming encryption, SHA identity, pins, GC |
-| Source/settings/output repository | internal/panel/repository.go | SQLite transactions, revisions, fixed TTL, memberships |
-| Input / Output / Setting | internal/panel/*_http.go, web/* | separate route and frontend modules |
-| Daemon and supervisor | cmd/config-panel, deploy | shutdown, single DB owner, watchdog/restart |
-| Target and initial CLI repair | internal/target, internal/repair | earlier controlled rule, separate from collection |
-| Core / Android acceptance | scripts/core-smoke.py, android-preflight.py | controlled core fixtures; Android not_run |
-
-Evidence: compatibility/target.lock.json, docs/compatibility/, docs/checkpoints/. Private operational receipts/toolchains/fixtures are ignored under .local/. Deployment and source publication require independent readback.
-
-
-## P3b invariants
-
-- Source revisions/cancellations isolate bulk management; no old completion can revive deleted sources.
-- Expiring config controls isolate disabled/deleted identities from concurrent fetch. Raw bytes are immutable.
-- Inspection plugins produce metadata only. Empty, malformed, unrecognized and transport failure are distinct.
-- Per-source timeout overrides default in seconds, including actual headers/body wait. Expose effective parallel capacity.
-- Live acceptance must preserve current source URLs/settings; destructive scenarios run against synthetic/isolated databases.
-
-## P4a active authorization
-
-The user now requests structural repairs. Collection retains immutable originals and automatically produces separate CandidateDriver results; candidates never replace raw identities or become healthy exports. Schema 4 keys repair metadata/ciphertext by exact raw SHA and links lifetime/access to the original. Strict ambiguity rejection, version-pinned schema rules, unchanged-byte/idempotence regression tests, and separate structural/core/Android/network evidence are mandatory. Input and Output display repair counts and reasons; raw source quality remains visible even when a candidate fixes it.
-
-## P5a temporary test laboratory
-
-The user accepts any network vantage. `internal/probe` / `cmd/config-probe-plan` prepare separate pinned-target candidates. `scripts/live-probe.py` provides a temporary privileged, namespace/cgroup/egress-isolated Linux validation and HTTPS test driver. `.local/probe-bank/evidence.db` persists hashes, diagnosis, expiry and separate stage evidence; no raw secrets. `compatibility/probe-knowledge.json` records evidence-backed repair strategies. Actual Android acceptance remains not_run. This is not the permanent collector probe worker, and the panel daemon/schema remain at P4a. Read docs/probe-lab.md and the P5a checkpoint before promoting or extending it.
-
-## P6a current authorization and runtime
-
-The user now explicitly preserves samples for ongoing testing across source updates, removals and TTL expiry. The encrypted schema5 bank is independent of transient raw source memberships. Manual import and every accepted collector generation queue new exact samples. Persistent bank controls, tombstones, historical candidates, model/rule evidence, fair leased scheduling and a separate privileged sandbox supervisor are implemented. Model success only prioritizes rules; every sample still needs fresh independent validation.
-
-Server-verified subscriptions are authorized: both exact-core acceptance and two HTTPS destinations, current rule version and nonexpired evidence are required. Partial/failed/disabled/deleted results are excluded; identities and candidate hashes deduplicate export. Android import remains not_run and is stated in UI/headers. This supersedes earlier statements that all export must wait for Android infrastructure; it does not certify Android. Read docs/PROBE_BANK.md and the P6a checkpoint.
+Main boundaries: internal/collect drivers; internal/repair deterministic structural candidates; internal/probe protocol preparation; internal/convert common envelope; internal/panel/conversion*.go transient queue/outputs; cmd/config-probe-worker + scripts/probe-one.py/live-probe.py sandbox validator. No dynamic upload/execution of arbitrary plugins.

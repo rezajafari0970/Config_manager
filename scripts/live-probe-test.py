@@ -38,15 +38,6 @@ class ProbeTests(unittest.TestCase):
  def test_hopping_cannot_inject_firewall_syntax(self):
   with self.assertRaisesRegex(ValueError,'port_hopping_invalid'):
    p.endpoints({'outbounds':[{'protocol':'hysteria','settings':{'address':'example.com','port':443},'streamSettings':{'finalmask':{'quicParams':{'udpHop':{'ports':'443;accept'}}}}}]})
- def test_bank_has_no_raw_configuration(self):
-  with tempfile.TemporaryDirectory() as t:
-   db=p.database(pathlib.Path(t)/'bank'/'evidence.db');cols={r[1] for r in db.execute('pragma table_info(attempts)')};db.close()
-   self.assertFalse(cols & {'raw','config','password','url','log'})
- def test_expiry_migration_uses_seconds(self):
-  with tempfile.TemporaryDirectory() as t:
-   path=pathlib.Path(t)/'bank'/'evidence.db';db=p.database(path)
-   db.execute("INSERT INTO attempts(run_id,original_sha256,candidate_sha256,expires_at) VALUES('r','o','c',1793274704000)");db.commit();db.close()
-   db=p.database(path);self.assertEqual(db.execute('SELECT expires_at FROM attempts').fetchone()[0],1793274704);db.close()
  def test_exact_candidate_hash_before_execution(self):
   with self.assertRaisesRegex(ValueError,'candidate_hash_mismatch'):
    p.test_candidate(None,{'sha256':'wrong','config':base64.b64encode(b'{}').decode()},1)

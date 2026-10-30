@@ -1,5 +1,5 @@
 [Unit]
-Description=Config Repair isolated connection test supervisor
+Description=Config JSON conversion sandbox supervisor
 After=network-online.target config-repair.service
 Wants=network-online.target config-repair.service
 StartLimitIntervalSec=0

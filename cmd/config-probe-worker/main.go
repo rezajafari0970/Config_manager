@@ -9,6 +9,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/rezajafari0970/Config_manager/internal/convert"
 	"github.com/rezajafari0970/Config_manager/internal/probe"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 	"io"
@@ -56,7 +57,7 @@ type helperResult struct {
 }
 
 func execute(ctx context.Context, c client, helper, core string, slot int, j probe.Job) {
-	p := probe.Prepare(j.Raw)
+	p := convert.Prepare(j.Raw)
 	code := p.Code
 	if repair.Digest(j.Raw) != j.Hash {
 		code = "original_blob_unavailable"
@@ -70,17 +71,8 @@ func execute(ctx context.Context, c client, helper, core string, slot int, j pro
 		p.Kind = j.Kind
 	}
 	p.Code = code
-	r := probe.Result{Hash: j.Hash, Token: j.Token, Revision: j.Revision, Version: probe.Version, CoreSHA256: probe.CoreSHA256, Model: probe.Model(p), Attempt: probe.Attempt{SHA256: j.Hash, Rule: "preparation", Core: "not_run", Connection: "not_run", Code: code}}
+	r := probe.Result{Hash: j.Hash, Token: j.Token, Revision: j.Revision, Version: convert.Version, CoreSHA256: probe.CoreSHA256, Attempt: probe.Attempt{SHA256: j.Hash, Rule: "preparation", Core: "not_run", Connection: "not_run", Code: code}}
 	if len(p.Candidates) > 0 {
-		var preferred string
-		if c.call(ctx, "/strategy", map[string]string{"model": r.Model}, &preferred) == nil && preferred != "" {
-			for i, v := range p.Candidates {
-				if v.Rule == preferred {
-					p.Candidates[0], p.Candidates[i] = p.Candidates[i], p.Candidates[0]
-					break
-				}
-			}
-		}
 		deadline := time.Duration(len(p.Candidates)*(50+2*j.Settings.TimeoutSeconds)) * time.Second
 		jobCtx, cancel := context.WithTimeout(ctx, deadline)
 		defer cancel()
@@ -149,11 +141,12 @@ func run() error {
 	socket := flag.String("socket", "/var/lib/config-repair/probe.sock", "protected Unix queue socket")
 	helper := flag.String("helper", "/opt/config-repair/current/scripts/probe-one.py", "trusted sandbox driver")
 	core := flag.String("core", "/opt/config-repair/core-26.7.28/xray", "pinned core")
+	lockPath := flag.String("lock-file", "/run/config-repair-prober.lock", "supervisor instance lock")
 	flag.Parse()
 	if os.Geteuid() != 0 {
 		return errors.New("privileged sandbox supervisor required")
 	}
-	lock, e := os.OpenFile("/run/config-repair-prober.lock", os.O_CREATE|os.O_RDWR, 0600)
+	lock, e := os.OpenFile(*lockPath, os.O_CREATE|os.O_RDWR, 0600)
 	if e != nil {
 		return e
 	}
@@ -169,7 +162,7 @@ func run() error {
 	status := func(state, code string, active int) {
 		sc, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
-		_ = c.call(sc, "/status", probe.WorkerStatus{Status: state, Code: code, Version: probe.Version, Active: active}, nil)
+		_ = c.call(sc, "/status", probe.WorkerStatus{Status: state, Code: code, Version: convert.Version, Active: active}, nil)
 	}
 	clean := exec.CommandContext(ctx, "/usr/bin/python3", *helper, "--cleanup")
 	if e = clean.Run(); e != nil {

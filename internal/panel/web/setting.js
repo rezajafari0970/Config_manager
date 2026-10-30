@@ -1,11 +1,12 @@
-import Bank from './bank.js';
 import {clearAll} from './actions.js';
 import {$,fa,clock,esc,icon,digit,interval,dateTime,countdown,toast,api,showResult,empty} from './core.js';
 export default function Setting(ctx){
-const bank=Bank(ctx);
+let converterLoaded=false,converterBusy=false;
+async function converter(){if(converterBusy)return;converterBusy=true;try{const s=await api('/api/conversions');$('#probe-status').textContent=s.worker.status==='running'?'تبدیل خودکار فعال است':'در انتظار آماده‌شدن سرویس تبدیل';if(!converterLoaded){$('#probe-enabled').checked=s.settings.enabled;for(const k of ['concurrency','timeout_seconds','retest_seconds','health_ttl_seconds'])$('#probe-'+k).value=s.settings[k];converterLoaded=true}}catch(e){toast(e.message)}finally{converterBusy=false}}
+$('#probe-settings').addEventListener('submit',async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;try{const body={enabled:$('#probe-enabled').checked};for(const k of ['concurrency','timeout_seconds','retest_seconds','health_ttl_seconds'])body[k]=Number(digit($('#probe-'+k).value));await api('/api/conversion/settings',{method:'POST',body});toast('تنظیمات تبدیل ذخیره شد.');converterLoaded=false;await converter()}catch(e){toast(e.message)}finally{button.disabled=false}});
 let loaded=false;
 $('#settings-clear-configs').addEventListener('click',()=>clearAll('configs',ctx));
 $('#settings-clear-sources').addEventListener('click',()=>clearAll('sources',ctx));
 $('#settings-form')?.addEventListener('submit',async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;try{const retention=Number(digit($('#retention-hours').value))*3600;const concurrency=Number(digit($('#concurrency').value));const timeout=Number(digit($('#request-timeout').value));if(!Number.isSafeInteger(retention)||retention<=0||!Number.isSafeInteger(concurrency)||concurrency<=0||!Number.isSafeInteger(timeout)||timeout<=0)throw new Error('مقادیر مثبت و معتبر وارد کنید.');await api('/api/settings',{method:'POST',body:{retention_seconds:retention,concurrency,timeout_seconds:timeout}});$('#settings-result').textContent='تنظیمات ذخیره شد.';await ctx.refresh();toast('تنظیمات اعمال شد.')}catch(error){toast(error.message)}finally{button.disabled=false}});
-return {render(state){bank.refresh();$('#effective-concurrency').textContent='ظرفیت فعلی: '+fa.format(state.worker.capacity||0);if(loaded)return;$('#retention-hours').value=state.settings.retention_seconds/3600;$('#concurrency').value=state.settings.concurrency;$('#request-timeout').value=state.settings.timeout_seconds;loaded=true},filters(){return {}}};
+return {render(state){converter();$('#effective-concurrency').textContent='ظرفیت فعلی: '+fa.format(state.worker.capacity||0);if(loaded)return;$('#retention-hours').value=state.settings.retention_seconds/3600;$('#concurrency').value=state.settings.concurrency;$('#request-timeout').value=state.settings.timeout_seconds;loaded=true},filters(){return {}}};
 }

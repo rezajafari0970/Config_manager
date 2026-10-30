@@ -1,6 +1,6 @@
 import {$,fa,clock,esc,icon,digit,interval,dateTime,countdown,toast,api,showResult,empty} from './core.js';
 const page=document.body.dataset.page;
-const words={input:['Input','لینک‌ها را یک‌جا اضافه و مستقل مدیریت کنید.'],output:['Output','کانفیگ‌های یکتا، با محتوای اصلی و زمان نگهداری مشخص.'],setting:['Setting','تنظیمات مشترک، برای مدیریت ساده‌تر منابع.']};
+const words={input:['Input','لینک‌ها را یک‌جا اضافه و مستقل مدیریت کنید.'],output:['Output','کانفیگ‌های تبدیل‌شده به قالب مشترک JSON.'],setting:['Setting','تنظیمات مشترک، برای مدیریت ساده‌تر منابع.']};
 $('#page-title').textContent=words[page][0];$('#breadcrumb-page').textContent=words[page][0];$('#page-description').textContent=words[page][1];$('#page-icon').setAttribute('href','#i-'+page);document.title=words[page][0]+' · Config Manager';
 let state=null,currentPage=0,busy=false;
 const registry={input:()=>import("./input.js"),output:()=>import("./output.js"),setting:()=>import("./setting.js")};

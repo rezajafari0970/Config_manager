@@ -10,7 +10,7 @@ import urllib.request
 import zipfile
 
 ROOT = Path(__file__).resolve().parent.parent
-WORK = ROOT / '.local' / 'p3-browser' / secrets.token_hex(6)
+WORK = ROOT / '.local' / 'p7-browser' / secrets.token_hex(6)
 WORK.mkdir(parents=True, mode=0o700)
 subprocess.run(['go', 'test', '-c', '-o', str(WORK / 'fixture-server'), './internal/panel'], cwd=ROOT, check=True)
 ENV = dict(os.environ, PANEL_TEST_DIR=str(WORK), CONFIG_PANEL_BROWSER_FIXTURE_DIR=str(WORK))
@@ -44,13 +44,6 @@ for phase in ('1', '2'):
                 raise RuntimeError('fixture shutdown failed')
         if process.returncode != 0:
             raise RuntimeError('fixture stopped with nonzero status')
-with zipfile.ZipFile(WORK / 'configs-raw.zip') as archive:
-    assert len(archive.namelist()) == 2
-    for name in archive.namelist():
-        raw = archive.read(name)
-        assert raw.endswith(b'\r\n')
-        if name.endswith('.json'):
-            assert b'"stats" : []' in raw and b'9007199254740993' in raw
-receipt = {'phases': RECEIPTS, 'passed': True, 'tests': ['no_login', 'bulk_import', 'automatic_names', 'Persian_intervals', 'independent_source_status', 'raw_SHA256', 'original_response_bytes', 'global_deduplication', 'edit', 'pause', 'delete', 'restart_persistence', 'fixed_TTL', 'ZIP_exact_bytes', 'mobile_drawer', '1440_and_390_no_overflow', 'bulk_source_enable_disable_delete', 'bulk_config_enable_disable_delete', 'clear_all_sources', 'clear_all_configs', 'source_timeout_seconds', 'global_timeout_seconds', 'content_quality_status', 'disabled_restart_persistence', 'mobile_interval_text_keyboard']}
+receipt = {'phases': RECEIPTS, 'passed': True, 'tests':['input_bulk_dedup_status','jsonl_one_object_per_line','common_template','bank_routes_removed','mobile_and_desktop_no_overflow','restart_persistence','TTL_removes_conversions','conversion_settings','source_timeout']}
 (WORK / 'receipt.json').write_text(json.dumps(receipt, indent=2))
 print(json.dumps({'receipt': str(WORK / 'receipt.json'), 'passed': True}))

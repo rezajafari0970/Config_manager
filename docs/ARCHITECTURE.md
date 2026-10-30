@@ -1,47 +1,21 @@
-# Architecture decisions
+# Architecture — P7
 
-## ADR-001: one Go control plane, bounded independent workers
-Start with a modular server process and explicit driver interfaces. Use worker pools for independent source and candidate work. Native cores and optional external plugins run out of process; no Go .so ABI dependency. No unbounded goroutine/process creation. A process supervisor provides restart; durable job leases and revisions provide recovery correctness.
+The Go panel and collector own source scheduling, immutable encrypted input, SQLite migrations and public management. A separate systemd supervisor owns only isolated Xray execution. Compiled format/protocol/template/feature drivers provide modular boundaries; sources never execute arbitrary plugin code.
 
-## ADR-002: source truth versus health
-A source row owns URL (secret), schedule bounds/unit, revision, next deadline and lifecycle status. An immutable fetch generation owns received records and their provenance. Shared artifact identity is byte-based; do not collapse different credential/transport/remark variants by guessed semantic identity. Membership is many-to-many.
+## Source and conversion lifecycle
 
-Database transaction: verify source still enabled and revision/generation still current, record candidates/evidence, swap active membership, invalidate output cache. A stale job must fail its compare-and-swap. A single source empty response does not delete good artifacts belonging to another source.
+Source revision/token checks guard generation replacement. Memberships associate canonical identity with each source's original hash. Exact encrypted originals are never rewritten. Nonempty fetches replace one source; empty/error retains membership until its original fixed TTL. Identical repeated fetches/304 do not extend TTL. Controls, deletion and expiry invalidate publication atomically.
 
-Health evidence binds artifact hash, target, rule/core version, location, checked_at and expires_at. Fetch freshness cannot renew health. Temporary fallback uses prior membership only while health is fresh. Unknown tester/network failure suspends approval rather than deleting all history. Removed private payloads and quarantine have bounded retention.
+Schema6 conversion jobs/results reference current eligible membership. They are a transient cache and durable work queue, not a sample bank. Completed results must match the active lease, exact original, deterministic template candidate, pinned rule/core version and stage evidence. There is no history/model/learned-priority store. One source disappearing cannot delete another source's ownership.
 
-## ADR-003: storage
-SQLite on local persistent disk, WAL, short serialized writes and explicit migrations is the initial single-node choice. Benchmark actual source count and probe volume before finalizing throughput limits. Storage driver can later use PostgreSQL. Do not share a SQLite WAL file across hosts. No operational database is created in phase P0.
+## Template and export
 
-## ADR-004: repair contract
-raw -> diagnosis -> minimal representation repair -> candidate -> structural check -> matching core -> matching Android import/runtime -> network evidence -> publication eligibility. Exact eligibility policy is explicit per stage; no implicit pass on unknown.
+The common @shenvpn envelope owns log/DNS/SOCKS/routing/stats/policy. A protocol driver retains real endpoint/auth/security/transport; chain dependencies are renamed consistently. Invalid or ambiguous mapping is diagnosed. Missing VLESS encryption and scoped endpoint DNS bootstrap are deterministic template repairs. Semantic TLS alternatives stay connection-gated.
 
-Custom JSON conversion is an equivalent representation, not a new server or wire protocol. Preserve routing, DNS, chains, credentials, TLS guarantees and unknown fields. No broad reserialization of healthy data. Ambiguous/duplicate-key/truncated input is not guessed into correctness. Rules carry versions, input/output hashes, evidence and rollback scope. Learning data contains error categories and rule statistics, not reusable secrets.
+Export is JSONL: one compact exact core-tested object per line. Core-valid ordinary configs are eligible while their source remains eligible. Connectivity is a separate, time-limited status. Semantic hypotheses additionally require fresh two-destination HTTPS success. Duplicate identities and JSON hashes are excluded. JSONL is intentionally not represented as the pinned Android app's native JSON-array subscription format.
 
-## ADR-005: execution boundary
-Fetcher enforces HTTP(S), DNS/IP checks on every redirect/connect, bounded decode depth/bytes/time, no localhost/private/metadata egress by default and per-origin limits. Core sandbox blocks filesystem escape, unwanted inbounds/APIs and unrelated network egress. Do not execute untrusted JSON as root. Controlled core smoke fixtures are the only core execution implemented initially.
+## Execution and failure isolation
 
-## ADR-006: Android is a separate oracle
-Capture APK hash/package/version, native library identity, Android version/ABI and V2RayNG settings. Test actual clipboard/subscription/file paths, counts, preserved endpoint metadata, start/stop, full tunnel traffic and Custom behavior with statistics and TUN choices. Hosted emulator or attached test device is required; parser emulation alone cannot satisfy P6.
+Private Unix worker API is protected by directory/socket permissions. Eight maximum sandbox slots enforce configured concurrency. Leases renew during bounded attempts; death/restart recovers uncompleted jobs. The helper runs only checksum-pinned Xray in netns/cgroup/bwrap with no host secrets, non-root UID, read-only filesystem and approved public endpoint egress. Raw errors are reduced to bounded codes. Exact core validation and modified isolated-runtime network testing have separate hashes. Android remains not_run.
 
-## ADR-007: management UI
-Persian RTL, mobile layout, login-first, secure sessions, CSRF defense and rate limits. Add/edit/delete/enable/disable sources, random scheduling bounds, run-now, last/next fetch, empty-source fallback state, counts, repair diffs and independent core/Android/network results. A URL's credentials must be redacted in logs and ordinary list views. Worker work continues after the browser closes.
-
-## ADR-008: release discipline
-Independent server directory and service names. GitHub code only, no private snapshots. Test clean candidate; publish immutable version/checksums; install atomically; health check; restore prior version if startup fails. Preserve user source data and credentials across upgrades. Source, deployed binary and database migration receipts must be separately verified.
-
-
-## ADR-009: P3 user amendment (supersedes conflicting ADR-002/005/007)
-
-Collection is immutable raw acquisition, without auto-repair or claims of health. Fixed two-hour configurable retention replaces health-based fallback for this raw pool. Byte hashes address encrypted blobs; conservative protocol identity deduplicates outputs while each membership stores its own original hash. Large/unknown configurations fall back to exact byte identity. Memberships are swapped in short transactions after staged extraction; stale revisions/leases are rejected. Cleanup and publication share reference/pin protection.
-
-Passwordless Input / Output / Setting replaces login-first UI. The user explicitly authorized public management. CSRF, HTTPS, encrypted secrets and public-IP-only dialing remain. Artificial byte/count quotas are removed; streaming/file-backed parsing, bounded work, deadlines, disk admission guard and OS resource budgets keep resource use controlled. Every source gets a separate transport, context and state; SQLite/scheduler/disk remain shared infrastructure, so physical isolation of all possible failures is not claimed.
-
-Driver boundaries: collect.FetchDriver, collect.FormatDriver/Registry, collect.Repository, and panel.PanelModule.Register. Built-in modules and extensions are compiled and tested together. This is not a runtime marketplace or an unsandboxed dynamic code-upload mechanism. Core execution remains outside this raw pipeline.
-
-
-## ADR-010: acquisition diagnostics and bulk controls
-
-Schema 3 adds independent timeout override, content state/counts and expiring config controls. Global config identity remains independent of raw bytes. Config tombstones are checked during generation publication, so a concurrent fetch cannot resurrect a selected deletion. Clear-all also revokes job revisions and leases. Disable excludes ordinary exports while retaining administrative raw preview; flags do not mutate blobs and cannot slide TTL. Source batches compare revisions atomically.
-
-InspectionDriver annotates one item, recovers plugin panic locally and makes no core/network claim. Partial content errors preserve successfully extracted siblings and the original full response. Per-row source decoding/interval failure no longer aborts all due jobs. HTTP transport waits are bounded by the actual configured request context, not shorter hidden constants. Bounded scheduling, fairness, background cleanup and supervisor remain shared infrastructure; absolute host-failure independence is not claimed.
+SQLite, disk, host and network are shared physical infrastructure; source independence does not imply immunity to host failure. systemd handles reboot/restart, but a powered-off server cannot process work. Upgrade requires a stopped-service matching data/key/blob/binary backup, atomic release symlink, health checks and separate source/deployment receipts.

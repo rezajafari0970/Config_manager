@@ -33,7 +33,6 @@ type Result struct {
 	Revision   int64  `json:"revision"`
 	Version    string `json:"version"`
 	CoreSHA256 string `json:"core_sha256"`
-	Model      string `json:"model"`
 	Attempt
 	Candidate []byte    `json:"candidate"`
 	Attempts  []Attempt `json:"attempts"`

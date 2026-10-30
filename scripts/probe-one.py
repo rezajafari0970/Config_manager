@@ -80,7 +80,9 @@ def main():
                 try:r=lab.test_candidate(box,candidate,timeout)
                 except Exception:r={'core':'blocked','connection':'not_run','code':'probe_infrastructure_error','runtime_sha256':'','endpoints_passed':0}
                 r.update(sha256=candidate['sha256'],rule=candidate['rule']);rows.append(r)
-                if best is None or rank[r['connection']]>rank[best['connection']]:best=r
+                eligible=r['core']=='passed' and (not candidate.get('requires_connection') or r['connection']=='passed')
+                score=(eligible,rank[r['connection']],r['core']=='passed')
+                if best is None or score>best_score:best=r;best_score=score
                 if r['connection']=='passed':break
         print(json.dumps(best|{'attempts':rows}))
     finally:cleanup(args.slot,runid)
