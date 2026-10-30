@@ -133,7 +133,7 @@ func IsContentError(err error) bool {
 		return true
 	}
 	switch err.Error() {
-	case "invalid_json", "ambiguous_json", "invalid_json_string", "orphan_wireguard_section":
+	case "invalid_json", "ambiguous_json", "invalid_json_string", "orphan_wireguard_section", "invalid_base64_envelope", "envelope_nesting_limit":
 		return true
 	}
 	return false

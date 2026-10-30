@@ -1,7 +1,6 @@
 package collect
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"crypto/sha256"
@@ -29,9 +28,12 @@ func (r *Registry) Register(driver FormatDriver) {
 	r.drivers = append([]FormatDriver{driver}, r.drivers...)
 }
 func (r *Registry) Extract(ctx context.Context, path string, emit Emitter) error {
-	return r.extract(ctx, path, emit, true)
+	return r.extract(ctx, path, emit, 0)
 }
-func (r *Registry) extract(ctx context.Context, path string, emit Emitter, allowEnvelope bool) error {
+func (r *Registry) extract(ctx context.Context, path string, emit Emitter, depth int) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	f, e := os.Open(path)
 	if e != nil {
 		return e
@@ -43,43 +45,16 @@ func (r *Registry) extract(ctx context.Context, path string, emit Emitter, allow
 	if len(prefix) == 0 {
 		return nil
 	}
-	count := 0
-	wrapped := func(ctx context.Context, r io.Reader, kind string) error { count++; return emit(ctx, r, kind) }
 	for _, driver := range r.drivers {
 		if driver.Match(prefix) {
-			e = driver.Extract(ctx, path, wrapped)
-			break
+			if d, ok := driver.(textFormat); ok {
+				d.registry, d.depth = r, depth
+				driver = d
+			}
+			return driver.Extract(ctx, path, emit)
 		}
 	}
-	if e != nil || count > 0 || !allowEnvelope {
-		return e
-	}
-	if !base64Prefix(prefix) {
-		return nil
-	}
-	source, e := os.Open(path)
-	if e != nil {
-		return e
-	}
-	defer source.Close()
-	out, e := os.CreateTemp("", "config-envelope-")
-	if e != nil {
-		return e
-	}
-	defer os.Remove(out.Name())
-	defer out.Close()
-	encoding := base64.RawStdEncoding
-	if bytes.ContainsAny(prefix, "-_") {
-		encoding = base64.RawURLEncoding
-	}
-	_, e = io.Copy(out, base64.NewDecoder(encoding, &base64Filter{r: bufio.NewReader(&contextReader{ctx, source})}))
-	if e != nil {
-		return nil
-	}
-	if e = out.Close(); e != nil {
-		return e
-	}
-	return r.extract(ctx, out.Name(), emit, false)
+	return nil
 }
 
 type contextReader struct {
@@ -94,37 +69,17 @@ func (r *contextReader) Read(p []byte) (int, error) {
 	return r.r.Read(p)
 }
 
-type base64Filter struct{ r *bufio.Reader }
-
-func (r *base64Filter) Read(p []byte) (int, error) {
-	n := 0
-	for n < len(p) {
-		b, e := r.r.ReadByte()
-		if e != nil {
-			if n > 0 {
-				return n, nil
-			}
-			return 0, e
-		}
-		if b == ' ' || b == '\r' || b == '\n' || b == '\t' || b == '=' {
-			continue
-		}
-		p[n] = b
-		n++
-		if r.r.Buffered() == 0 {
-			break
-		}
-	}
-	return n, nil
-}
 func base64Prefix(b []byte) bool {
+	return len(b) > 8 && base64Alphabet(b)
+}
+func base64Alphabet(b []byte) bool {
 	for _, c := range b {
 		if c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || strings.ContainsRune("+/=_-\r\n\t ", rune(c)) {
 			continue
 		}
 		return false
 	}
-	return len(b) > 8
+	return len(b) > 0
 }
 func kindOf(raw []byte) string {
 	if len(raw) > 4096 {
@@ -158,14 +113,17 @@ func (wireGuardFormat) Extract(ctx context.Context, path string, emit Emitter) e
 	return emit(ctx, &contextReader{ctx, f}, "wireguard")
 }
 
-type textFormat struct{}
+type textFormat struct {
+	registry *Registry
+	depth    int
+}
 
-func (textFormat) Name() string      { return "mixed-uri-json.v1" }
+func (textFormat) Name() string      { return "mixed-uri-json-base64.v2" }
 func (textFormat) Match([]byte) bool { return true }
 
 // mmap keeps large responses/file spans outside the Go heap. Readers stream exact
 // spans into the encrypted vault; no response-size or per-source item quota exists.
-func (textFormat) Extract(ctx context.Context, path string, emit Emitter) error {
+func (d textFormat) Extract(ctx context.Context, path string, emit Emitter) error {
 	f, e := os.Open(path)
 	if e != nil {
 		return e
@@ -278,6 +236,18 @@ func (textFormat) Extract(ctx context.Context, path string, emit Emitter) error 
 					return e
 				}
 				contentErr = e
+			}
+		} else if base64Alphabet(trim) {
+			end = envelopeEnd(ctx, data, pos, end)
+			if e = d.emitBase64(ctx, data[pos:end], emit); e != nil {
+				if !IsContentError(e) {
+					return e
+				}
+				contentErr = e
+			}
+		} else if len(trim) > 1 && trim[0] == '"' && json.Valid(trim) {
+			if e = emitJSONString(ctx, trim, emit); e != nil {
+				return e
 			}
 		}
 		pos = end

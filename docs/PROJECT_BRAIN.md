@@ -1,6 +1,6 @@
-# Project Brain — P9
+# Project Brain — P10
 
-Current user instruction (2026-10-30) replaces the persistent repair laboratory with a shared JSON conversion flow. Read PROJECT_STATE.json, HANDOFF.md, docs/CONVERSION.md and the P9 checkpoint. Earlier checkpoints describe history only.
+Current user instruction (2026-10-30) replaces the persistent repair laboratory with a shared JSON conversion flow. Read PROJECT_STATE.json, HANDOFF.md, docs/CONVERSION.md and the P10 checkpoint. Earlier checkpoints describe history only.
 
 Go fetches source links independently, extracts exact encrypted originals, maps supported protocols to the user's @shenvpn full JSON envelope, validates using pinned Xray26.7.28 and tracks connection separately. Output is a clean list plus the all-config JSONL and single-config rotation links. The bank, manual import, historical variants, learned model/rule data and old subscriptions are removed by schema6.
 
@@ -13,3 +13,5 @@ Main boundaries: internal/collect drivers; internal/repair deterministic structu
 P8 adds a separate single-config rotation link. Schema7 stores only the current cycle and pending candidate hashes, with atomic SQLite claims and blob validation outside transactions. The global round is persistent across restart; new configs wait for the next snapshot, unavailable ones are skipped. See docs/CONVERSION.md and docs/checkpoints/P8-single-output-20261030.md. All-config export remains unchanged.
 
 P9 exposes full/single exports per source and source-filtered Output views. Membership is filtered before identity ranking. Schema8 preserves the global rotation while adding independent source scopes with deletion cascades and cancellable per-scope locks. New receipts are source-export-*. Earlier source counts are historical; preserve the actual live source set.
+
+P10 fixes mixed-response extraction: Base64 is recognized alongside JSON/URI siblings rather than only as a whole-body fallback. Padded/unpadded standard/URL-safe wrapped blocks use strict streaming decoding, nested envelopes are bounded, and the original response plus exact decoded payloads stay separate. Full custom JSON stays whole; no child outbound is promoted to an independent config. A TXT source's case-sensitive path was corrected through the revision-checked API to the exact user-provided spelling; never lowercase arbitrary URL paths. Schema8, source/global exports, conversion gates and source settings are unchanged. Read docs/checkpoints/P10-mixed-input-20261030.md and private txt-mixed receipts. Extraction does not imply core/connection acceptance; some mixed-source custom configs remain explicitly blocked.

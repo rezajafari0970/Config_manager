@@ -1,5 +1,5 @@
 {
-  "phase": "P9 independent per-source full and single-config outputs",
+  "phase": "P10 TXT source correction and mixed base64/JSON extraction",
   "date": "2026-10-30",
   "status": "implemented_and_deployed",
   "repository": "rezajafari0970/Config_manager",
@@ -25,7 +25,8 @@
     "android_subscription_caveat": "Pinned Custom parser expects JSON array/single object; JSONL is not native batch subscription format",
     "http_display": "Both export links use text/plain; charset=utf-8 and Content-Disposition: inline; all-config JSONL URL remains unchanged",
     "single_output": "Each scope has its own persistent round shared by clients of that scope; new arrivals join next round; global URLs and existing position preserved",
-    "source_output": "Source membership is filtered before identity ranking; each source has scoped full JSONL and single-config rotation, independent of every other source and global rotation"
+    "source_output": "Source membership is filtered before identity ranking; each source has scoped full JSONL and single-config rotation, independent of every other source and global rotation",
+    "mixed_input": "Extract plain URIs, full JSON/JSONL, standalone and embedded Base64 blocks, wrapped standard/URL-safe encodings; exact original response and decoded payload bytes remain immutable. URL path case is preserved."
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -68,7 +69,38 @@
     },
     "migration_latest": "schema7 to8; 7 source definitions/revisions and all settings preserved by fingerprint; existing global cycle/queue unchanged",
     "source_output": "passed shared-membership isolation, source-before-identity ranking, token source/mode binding, scoped copy, replacement/disable/delete/cascade, cancelable independent locks, 22 parallel allocations across two Store instances and three scopes, schema7 migration preserving global queue",
-    "source_output_browser": "passed synthetic source search/list, scoped full/single/view, independent resets across restart, source inline navigation; production three sources and12parallel single requests, zero duplicates/downloads, desktop/emulated Android no overflow"
+    "source_output_browser": "passed synthetic source search/list, scoped full/single/view, independent resets across restart, source inline navigation; production three sources and12parallel single requests, zero duplicates/downloads, desktop/emulated Android no overflow",
+    "mixed_input": "Passed padded/unpadded standard/URL-safe, independent and wrapped mixed blocks, short lines/whitespace/BOM, nested envelope guard, malformed sibling isolation, cancellation/emitter failures, exact bytes/dedup, TXT MIME/attachment and case-sensitive paths; regression reproduces wrapped JSON child-object misidentification before fix and passes afterward using buffered parent-boundary checks",
+    "mixed_input_live": {
+      "first_txt": {
+        "received": 101,
+        "unique": 95
+      },
+      "latest_txt": {
+        "received": 101,
+        "unique": 94,
+        "exported": 94,
+        "two_https_passed": 94
+      },
+      "first_mixed": {
+        "received": 7,
+        "json": 4,
+        "base64": 3
+      },
+      "latest_mixed": {
+        "received": 7,
+        "json": 6,
+        "base64": 1,
+        "exported": 0,
+        "blocked_codes": {
+          "ambiguous_proxy_selection": 5,
+          "structural_unresolved": 1,
+          "unknown_query_parameter": 1
+        }
+      },
+      "exact_source_and_stored_bytes": "passed independent SHA256 comparison; changing upstream snapshots explain changing counts"
+    },
+    "worker_retry_note": "Initial isolated attempt exited probe_cleanup_failed before processing; retained failure receipt. Rerun with helper stderr capture passed SIGKILL/lease recovery. No production sandbox boundary or worker binary change."
   },
   "runtime": {
     "database_schema": 8,
@@ -77,8 +109,8 @@
       "config-repair-prober.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p9-cf488e252ef57e4d49e9",
-    "panel_sha256": "cf488e252ef57e4d49e973a0179e46908706cde30abee7d7c40929050757e80e",
+    "release": "/opt/config-repair/releases/p10-023265dc881f0651e0b7",
+    "panel_sha256": "023265dc881f0651e0b713532378a35cbd2fe3562ffdbcd40b12e1d4ebc248ba",
     "worker_sha256": "4dd17163b3607c372990df88701e0b660fc16cbfb151a433045999db445e8acb",
     "template_version": "xray-26.7.28.template.v1",
     "retention_seconds": 7200,
@@ -88,8 +120,8 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/source-export-deployed.json",
-    "publication_receipt": ".local/source-export-published.json"
+    "deployment_receipt": ".local/txt-mixed-deployed.json",
+    "publication_receipt": ".local/txt-mixed-published.json"
   },
   "next": [
     "Continue evidence-backed protocol/template coverage without reviving a sample bank",

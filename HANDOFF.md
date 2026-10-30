@@ -1,6 +1,6 @@
-# Handoff — P9 independent source exports
+# Handoff — P10 mixed input extraction
 
-Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and the P9 checkpoint (P7/P8 are historical context). Verify actual HEAD/origin/status and private p7 receipts. The user's latest instruction explicitly removes the P6 persistent bank; do not resurrect it based on older checkpoints.
+Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and the P10 checkpoint (P7/P8/P9 are historical context). Verify actual HEAD/origin/status and private p7 receipts. The user's latest instruction explicitly removes the P6 persistent bank; do not resurrect it based on older checkpoints.
 
 Authoritative server tree: /root/projects/v2ray-config-repair. GitHub: rezajafari0970/Config_manager, branch go/v2rayng-2.3.6. Legacy main and unrelated DigitalOcean infrastructure are outside scope.
 
@@ -42,3 +42,15 @@ Every source has independent full JSONL and single-config links, shown under its
 Schema8 migrates the existing global queue/cycle unchanged and adds source-bound rotation scopes. The source foreign key cascades its queue on deletion. Per-scope cancellable locks isolate blob waits; SQLite guards remain authoritative across processes. Mode/source-bound tokens prevent scope substitution. Retention, generation replacement, disable/delete, validation gates and raw bytes are unchanged. Read docs/CONVERSION.md and docs/checkpoints/P9-source-exports-20261030.md.
 
 Latest receipts: `.local/source-export-deployed.json`, `.local/source-export-live.json`, `.local/source-export-published.json`. Current release/hashes are in PROJECT_STATE.json. There were 7 source definitions at deployment; all were preserved, along with settings and global cycle 78. Earlier54-source counts describe older snapshots and must not be restored. The matching stopped-service DB/blob/key/release backup is /var/backups/config-repair/pre-source-export-20261030-125245. Old schema7 binaries reject schema8; rollback requires the matching backup while both services are stopped. Full checks, browser/source isolation/restart, isolated sandbox worker recovery and live scoped exports passed. Android app/VPN remains not_run.
+
+## Current P10 TXT/mixed extraction — 2026-10-30
+
+The TXT failure was a case-sensitive path mismatch (capitalized filename versus the user's lowercase filename), not a TXT/MIME restriction. The existing source was edited via the CSRF/revision-checked API with all timing/settings retained. Do not auto-normalize path case or restore the wrong URL.
+
+`internal/collect/envelopes.go` now extracts embedded Base64 blocks within JSON/URI text, including independent encoded lines and wrapped streams. Strict decoding retains padding checks; malformed envelopes cannot silently corrupt payloads or discard good siblings. Eight encoding layers bound recursion, not item count/size. The registry is reused after decoding. Original full JSON dependencies remain intact; no child-outbound splitting.
+
+Full checks/core matrix, synthetic browser/restart and an isolated worker rerun passed. The first worker test failed startup cleanup; `.local/txt-mixed-worker.log` records it, while `.local/txt-mixed-worker-retry.log` records the successful diagnostic rerun. No worker/sandbox production code changed. Initial TXT snapshot had95unique items; a newer response had94unique from101received, all94passed core/twoHTTPS and exported. Live mixed response had7items (6JSON,1Base64); all7originals matched response/decoded hashes. Their conversion remains blocked (5ambiguous selection,1structural unresolved,1unknown query parameter). Do not describe extraction as repaired connectivity.
+
+Binary-only schema8 deployment: `.local/txt-mixed-deployed.json`, release/hashes in PROJECT_STATE.json. All7source definitions/revisions and settings matched before/after deployment. Backup: /var/backups/config-repair/pre-txt-mixed-20261030-132831. Rollback can switch to the previous schema8 binary while services are stopped; do not replace current data/user edits for this same-schema change. Other receipts: `.local/txt-mixed-check.log`, `.local/txt-mixed-browser.log`, `.local/txt-mixed-live.json`, `.local/txt-mixed-final-output.json`, `.local/txt-mixed-byte-check.json`, `.local/txt-mixed-published.json`. Current source counts/proofs can change on each upstream refresh. No raw captures or source URLs belong in Git.
+
+Final boundary regression also proves a wrapped JSON child object is never promoted to an independent config while its parent is incomplete. Targeted before/after receipts are .local/txt-mixed-boundary-before.log and .local/txt-mixed-boundary-after.log. The final full checks/browser run passed again; worker binary remains unchanged.

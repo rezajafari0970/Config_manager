@@ -41,3 +41,8 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - Read docs/checkpoints/P9-source-exports-20261030.md. Schema8 preserves the global queue and adds independent source scopes; never reset existing global turns during migration.
 - Filter source membership before window ranking/deduplication. Never substitute another source's raw representation or proof for a scoped result.
 - Source deletion cascades only its scope. Locks are per scope, cancellable and reclaimed; vault I/O remains outside transactions. Preserve both global URLs.
+
+## P10 mixed input
+- Read docs/checkpoints/P10-mixed-input-20261030.md. Preserve URL path case and distinguish upstream HTTP errors from parsing failures.
+- Mixed Base64/JSON/URI extraction must preserve exact decoded payloads and whole custom JSON documents. Never split child outbounds or invent delimiters/credentials. Keep strict padding checks, bounded envelope nesting, cancellation, malformed-sibling isolation and source ownership/dedup regressions.
+- Collection success is separate from conversion/core/connectivity. Mixed source originals may remain blocked by the existing explicit conversion gates.
