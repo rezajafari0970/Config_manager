@@ -22,7 +22,8 @@
     "export_gate": "exact pinned-core pass; semantic hypotheses additionally require fresh two-destination HTTPS",
     "connectivity": "separate from ordinary JSON export eligibility",
     "android": "not_run",
-    "android_subscription_caveat": "Pinned Custom parser expects JSON array/single object; JSONL is not native batch subscription format"
+    "android_subscription_caveat": "Pinned Custom parser expects JSON array/single object; JSONL is not native batch subscription format",
+    "http_display": "text/plain; charset=utf-8 and Content-Disposition: inline; unchanged JSONL body and URL"
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -42,7 +43,8 @@
     "migration": "schema5 bank removed; 54 source definitions/revisions and source/conversion settings preserved",
     "android": "not_run",
     "sqlite_reconnect": "passed DSN pragmas, recycled-connection cascades, startup orphan reconciliation; production foreign_key_check empty",
-    "export_isolation": "passed missing blob isolation/requeue and stale snapshot protection"
+    "export_isolation": "passed missing blob isolation/requeue and stale snapshot protection",
+    "inline_export": "passed complete checks, synthetic browser navigation, public HTTPS desktop and emulated Android navigation: exact response text, zero download events"
   },
   "runtime": {
     "database_schema": 6,
@@ -51,8 +53,8 @@
       "config-repair-prober.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p7-31975c1a7562b175b53d",
-    "panel_sha256": "31975c1a7562b175b53dd15a8b475280accfd7321bf5bb3834e053054279ff82",
+    "release": "/opt/config-repair/releases/p7-inline-d5c22a1edbca89f2b361",
+    "panel_sha256": "d5c22a1edbca89f2b3610dfa28975a403b100167d10bdc1ca36b5d132dcaac8e",
     "worker_sha256": "4dd17163b3607c372990df88701e0b660fc16cbfb151a433045999db445e8acb",
     "template_version": "xray-26.7.28.template.v1",
     "retention_seconds": 7200,
@@ -62,8 +64,8 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/p7-deployed.json",
-    "publication_receipt": ".local/p7-published-readback.json"
+    "deployment_receipt": ".local/inline-export-deployed.json",
+    "publication_receipt": ".local/inline-export-published.json"
   },
   "next": [
     "Continue evidence-backed protocol/template coverage without reviving a sample bank",

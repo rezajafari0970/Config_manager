@@ -70,7 +70,7 @@ func TestConversionExportJSONLinesAndRemovedBank(t *testing.T) {
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "http://127.0.0.1:18191"+path, nil)
 	h.ServeHTTP(rr, req)
-	if rr.Code != 200 || rr.Header().Get("Content-Type") != "application/x-ndjson; charset=utf-8" {
+	if rr.Code != 200 || rr.Header().Get("Content-Type") != "text/plain; charset=utf-8" || rr.Header().Get("Content-Disposition") != "inline" {
 		t.Fatal(rr.Code, rr.Body.String())
 	}
 	lines := strings.Split(strings.TrimSuffix(rr.Body.String(), "\n"), "\n")

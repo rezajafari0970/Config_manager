@@ -173,7 +173,9 @@ func (s *Server) jsonLines(w http.ResponseWriter, r *http.Request) {
 		out.WriteByte('\n')
 		count++
 	}
-	w.Header().Set("Content-Type", "application/x-ndjson; charset=utf-8")
+	// Keep JSONL bytes intact while letting browsers render the export as text.
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Disposition", "inline")
 	w.Header().Set("X-Config-Count", strconv.Itoa(count))
 	w.Header().Set("X-Android-Import", "not-run")
 	w.Header().Set("X-Verification-Scope", "pinned-core-template; connection-is-separate")
