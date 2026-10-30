@@ -10,6 +10,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/probe"
 	"io"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -297,5 +298,53 @@ func TestStartupCleansLegacyOrphanConversionResults(t *testing.T) {
 	defer check.Close()
 	if check.Next() {
 		t.Fatal("legacy foreign key violation remains")
+	}
+}
+
+func TestUnavailableConversionDoesNotBreakJSONLinesAndRequeues(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	_, a := addConversion(t, s, conversionSample)
+	if e := s.CompleteProbe(ctx, conversionResult(a, 0, true)); e != nil {
+		t.Fatal(e)
+	}
+	_, b := addConversion(t, s, strings.Replace(conversionSample, "192.0.2.10", "192.0.2.11", 1))
+	if e := s.CompleteProbe(ctx, conversionResult(b, 0, true)); e != nil {
+		t.Fatal(e)
+	}
+	bad := conversionResult(a, 0, true)
+	if e := os.Remove(filepath.Join(s.vault.Directory(), bad.SHA256+".blob")); e != nil {
+		t.Fatal(e)
+	}
+	server, _ := NewServer(s, "http://127.0.0.1:18191")
+	rr := httptest.NewRecorder()
+	path := "http://127.0.0.1:18191/subscription/" + s.digest("subscription", "template-jsonl-v1") + "/configs.jsonl"
+	server.Handler().ServeHTTP(rr, httptest.NewRequest("GET", path, nil))
+	if rr.Code != 200 || rr.Header().Get("X-Config-Count") != "1" || !json.Valid(bytes.TrimSpace(rr.Body.Bytes())) {
+		t.Fatal("one missing blob broke unrelated output", rr.Code)
+	}
+	j, e := s.ClaimProbe(ctx)
+	if e != nil || j == nil || j.Hash != a.Hash {
+		t.Fatal("missing blob was not requeued", e)
+	}
+	if e = s.CompleteProbe(ctx, conversionResult(*j, 0, true)); e != nil {
+		t.Fatal(e)
+	}
+	rows, _ := s.Conversions(ctx, 0, true)
+	if len(rows) != 2 || !rows[0].Available || !rows[1].Available {
+		t.Fatal("conversion did not recover")
+	}
+	// A stale list snapshot must not revoke a newer different candidate.
+	for _, c := range rows {
+		if c.Hash == a.Hash {
+			c.CandidateHash = strings.Repeat("0", 64)
+			if e = s.retryConversionBlob(ctx, c); e != nil {
+				t.Fatal(e)
+			}
+		}
+	}
+	rows, _ = s.Conversions(ctx, 0, true)
+	if !rows[0].Available || !rows[1].Available {
+		t.Fatal("stale snapshot revoked fresh result")
 	}
 }

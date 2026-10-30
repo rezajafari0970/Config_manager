@@ -26,8 +26,8 @@ The Android batch parser handles URI lines, then a JSON array or single object. 
 
 ## Deployment and recovery
 
-Release: /opt/config-repair/releases/p7-51ff9bcd2e256c6a7b77.
-Panel SHA256:51ff9bcd2e256c6a7b776f8239d01808627db233a273ce70430d6d1bacd413b1.
+Release: /opt/config-repair/releases/p7-31975c1a7562b175b53d.
+Panel SHA256:31975c1a7562b175b53dd15a8b475280accfd7321bf5bb3834e053054279ff82.
 Worker SHA256:4dd17163b3607c372990df88701e0b660fc16cbfb151a433045999db445e8acb.
 
 Stopped-service matching schema5 DB/blob/key/release backup: /var/backups/config-repair/pre-p7-20261030-105800. Old private legacy lab files were archived there and removed from active project storage. Restore matching old data and binary together for rollback; never start a schema5 binary on schema6 data. Normal unreferenced-blob GC reclaims former bank payloads.
@@ -39,3 +39,7 @@ Private receipts: .local/p7-check.log, p7-matrix-test.log, p7-fuzz.log, p7-brows
 Read-only integrity audit found orphaned conversion results and memberships after database/sql replaced a physical SQLite connection. The previous one-time PRAGMA setup did not cover replacement connections. Foreign keys, busy timeout and FULL synchronous mode now live in the escaped file DSN and apply on every connection. Startup reconciles only transient rows whose parent has already gone, then synchronizes current conversion jobs.
 
 Regression tests force connection recycling and inject legacy orphan rows; cascading deletion, durability settings, source/raw preservation and startup reconciliation pass. Full checks passed again. The first guarded rollout correctly rolled back when remaining legacy membership orphans failed its integrity gate; the complete reconciliation then deployed successfully with zero foreign-key violations. Sources/settings stayed unchanged throughout. The final storage-fix backup is /var/backups/config-repair/pre-p7-db-fix-20261030-111226. Original schema5 migration receipt is .local/p7-schema6-migration.json; .local/p7-deployed.json now describes the final schema6 binary update. Template/worker algorithms are unchanged by this fix.
+
+## Export isolation under concurrent cleanup
+
+An aggregate export can outlive a source/expiry snapshot. A missing/corrupt candidate must not fail unrelated configurations. JSONL now skips unavailable candidate bytes and requeues only the exact still-current result for regeneration; a stale snapshot cannot revoke a newer candidate. Individual downloads report unavailability and trigger the same recovery. Regression deletes one synthetic candidate blob, verifies the other JSON line is exported, then verifies automatic regeneration and stale-result protection. Full checks passed again. Final deployment backup: /var/backups/config-repair/pre-p7-export-fix-20261030-112116. Latest deployment is .local/p7-deployed.json; the storage-fix receipt is preserved in .local/p7-db-reconcile-deployed.json.

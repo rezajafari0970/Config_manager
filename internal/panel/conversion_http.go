@@ -132,7 +132,8 @@ func (m conversionModule) Register(mux *http.ServeMux) {
 			}
 			b, e := s.store.conversionBytes(c)
 			if e != nil {
-				failure(w, e)
+				_ = s.store.retryConversionBlob(r.Context(), c)
+				failure(w, ErrNotFound)
 				return
 			}
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -164,8 +165,8 @@ func (s *Server) jsonLines(w http.ResponseWriter, r *http.Request) {
 		}
 		b, e := s.store.conversionBytes(c)
 		if e != nil {
-			failure(w, e)
-			return
+			_ = s.store.retryConversionBlob(r.Context(), c)
+			continue
 		}
 		seen[c.CandidateHash] = true
 		out.Write(b)
@@ -227,4 +228,29 @@ func (s *Store) PrivateProbeHandler() http.Handler {
 		respond(w, 200, true)
 	})
 	return mux
+}
+
+// A source/expiry/GC change between list and blob open must not break every
+// other exported config. Requeue only the exact still-current broken result;
+// a newer worker result must not be invalidated by this stale snapshot.
+func (s *Store) retryConversionBlob(ctx context.Context, c Conversion) error {
+	tx, e := s.db.BeginTx(ctx, nil)
+	if e != nil {
+		return e
+	}
+	defer tx.Rollback()
+	res, e := tx.ExecContext(ctx, `UPDATE conversion_results SET candidate_hash='',candidate_size=0,core='blocked',connection='not_run',valid_until=0,code='candidate_blob_unavailable' WHERE hash=? AND candidate_hash=? AND EXISTS(SELECT 1 FROM conversion_inputs i WHERE i.hash=conversion_results.hash)`, c.Hash, c.CandidateHash)
+	if e != nil {
+		return e
+	}
+	n, e := res.RowsAffected()
+	if e != nil {
+		return e
+	}
+	if n > 0 {
+		if _, e = tx.ExecContext(ctx, "UPDATE conversion_jobs SET state='queued',next_run=0,token='',lease_until=0 WHERE hash=?", c.Hash); e != nil {
+			return e
+		}
+	}
+	return tx.Commit()
 }
