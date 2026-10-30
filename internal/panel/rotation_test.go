@@ -56,8 +56,8 @@ func TestRotationCyclesRestartAndSchema6Upgrade(t *testing.T) {
 		t.Fatal(e)
 	}
 	var version int
-	if e = s.db.QueryRow("PRAGMA user_version").Scan(&version); e != nil || version != 7 {
-		t.Fatal("schema7", version, e)
+	if e = s.db.QueryRow("PRAGMA user_version").Scan(&version); e != nil || version != 8 {
+		t.Fatal("schema8", version, e)
 	}
 	first := nextRotation(t, s)
 	if first.Cycle != 1 {

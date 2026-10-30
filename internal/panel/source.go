@@ -25,6 +25,8 @@ type SourceInput struct {
 	TimeoutSeconds int64   `json:"timeout_seconds"`
 }
 type Source struct {
+	ExportURL       string `json:"export_url"`
+	SingleExportURL string `json:"single_export_url"`
 	SourceInput
 	ID             string    `json:"id"`
 	DisplayURL     string    `json:"display_url"`

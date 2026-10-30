@@ -3,6 +3,7 @@ package panel
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -37,31 +38,52 @@ func (s *Store) migrateV7() error {
 
 type rotatingConfig struct {
 	Conversion Conversion
+	Scope      string
 	Cycle      int64
 	Bytes      []byte
 }
 
 // Acquire the SQLite write lock before reading state. This also serializes
 // claims made through different Store instances/processes, not just goroutines.
-func (s *Store) rotationTransaction(ctx context.Context) (*sql.Tx, error) {
+func (s *Store) rotationTransaction(ctx context.Context, scope string) (*sql.Tx, error) {
 	tx, e := s.db.BeginTx(ctx, nil)
 	if e != nil {
 		return nil, e
 	}
-	if _, e = tx.ExecContext(ctx, "UPDATE export_rotation_state SET cycle=cycle WHERE id=1"); e != nil {
+	if scope != "" {
+		if _, e = tx.ExecContext(ctx, "INSERT INTO export_rotation_state(scope,source_id,cycle) SELECT id,id,0 FROM sources WHERE id=? ON CONFLICT(scope) DO NOTHING", scope); e != nil {
+			tx.Rollback()
+			return nil, e
+		}
+	}
+	res, e := tx.ExecContext(ctx, "UPDATE export_rotation_state SET cycle=cycle WHERE scope=?", scope)
+	if e != nil {
 		tx.Rollback()
 		return nil, e
+	}
+	n, e := res.RowsAffected()
+	if e != nil {
+		tx.Rollback()
+		return nil, e
+	}
+	if n != 1 {
+		tx.Rollback()
+		return nil, ErrNotFound
 	}
 	return tx, nil
 }
 
 func (s *Store) prepareRotation(ctx context.Context) (*rotatingConfig, error) {
-	tx, e := s.rotationTransaction(ctx)
+	return s.prepareScopedRotation(ctx, "")
+}
+
+func (s *Store) prepareScopedRotation(ctx context.Context, scope string) (*rotatingConfig, error) {
+	tx, e := s.rotationTransaction(ctx, scope)
 	if e != nil {
 		return nil, e
 	}
 	defer tx.Rollback()
-	entries, e := queryConversions(ctx, tx, 0, true)
+	entries, e := querySourceConversions(ctx, tx, scope, 0, true)
 	if e != nil {
 		return nil, e
 	}
@@ -78,10 +100,10 @@ func (s *Store) prepareRotation(ctx context.Context) (*rotatingConfig, error) {
 		ordered = append(ordered, c)
 	}
 	var cycle int64
-	if e = tx.QueryRowContext(ctx, "SELECT cycle FROM export_rotation_state WHERE id=1").Scan(&cycle); e != nil {
+	if e = tx.QueryRowContext(ctx, "SELECT cycle FROM export_rotation_state WHERE scope=?", scope).Scan(&cycle); e != nil {
 		return nil, e
 	}
-	rows, e := tx.QueryContext(ctx, "SELECT candidate_hash FROM export_rotation_queue ORDER BY position")
+	rows, e := tx.QueryContext(ctx, "SELECT candidate_hash FROM export_rotation_queue WHERE scope=? ORDER BY position", scope)
 	if e != nil {
 		return nil, e
 	}
@@ -101,41 +123,41 @@ func (s *Store) prepareRotation(ctx context.Context) (*rotatingConfig, error) {
 	}
 	for _, hash := range queue {
 		if c, exists := available[hash]; exists {
-			return &rotatingConfig{Conversion: c, Cycle: cycle}, tx.Commit()
+			return &rotatingConfig{Conversion: c, Cycle: cycle, Scope: scope}, tx.Commit()
 		}
 		// Removed, disabled, expired and no-longer-accepted entries cannot block a round.
-		if _, e = tx.ExecContext(ctx, "DELETE FROM export_rotation_queue WHERE candidate_hash=?", hash); e != nil {
+		if _, e = tx.ExecContext(ctx, "DELETE FROM export_rotation_queue WHERE scope=? AND candidate_hash=?", scope, hash); e != nil {
 			return nil, e
 		}
 	}
 	if len(ordered) == 0 {
 		return nil, tx.Commit()
 	}
-	if _, e = tx.ExecContext(ctx, "UPDATE export_rotation_state SET cycle=cycle+1 WHERE id=1"); e != nil {
+	if _, e = tx.ExecContext(ctx, "UPDATE export_rotation_state SET cycle=cycle+1 WHERE scope=?", scope); e != nil {
 		return nil, e
 	}
-	insert, e := tx.PrepareContext(ctx, "INSERT INTO export_rotation_queue(position,candidate_hash) VALUES(?,?)")
+	insert, e := tx.PrepareContext(ctx, "INSERT INTO export_rotation_queue(scope,position,candidate_hash) VALUES(?,?,?)")
 	if e != nil {
 		return nil, e
 	}
 	defer insert.Close()
 	for i, c := range ordered {
-		if _, e = insert.ExecContext(ctx, i, c.CandidateHash); e != nil {
+		if _, e = insert.ExecContext(ctx, scope, i, c.CandidateHash); e != nil {
 			return nil, e
 		}
 	}
-	return &rotatingConfig{Conversion: ordered[0], Cycle: cycle + 1}, tx.Commit()
+	return &rotatingConfig{Conversion: ordered[0], Cycle: cycle + 1, Scope: scope}, tx.Commit()
 }
 
 func (s *Store) claimRotation(ctx context.Context, c *rotatingConfig) (bool, error) {
-	tx, e := s.rotationTransaction(ctx)
+	tx, e := s.rotationTransaction(ctx, c.Scope)
 	if e != nil {
 		return false, e
 	}
 	defer tx.Rollback()
 	var cycle int64
 	var next string
-	e = tx.QueryRowContext(ctx, `SELECT cycle,coalesce((SELECT candidate_hash FROM export_rotation_queue ORDER BY position LIMIT 1),'') FROM export_rotation_state WHERE id=1`).Scan(&cycle, &next)
+	e = tx.QueryRowContext(ctx, `SELECT cycle,coalesce((SELECT candidate_hash FROM export_rotation_queue WHERE scope=? ORDER BY position LIMIT 1),'') FROM export_rotation_state WHERE scope=?`, c.Scope, c.Scope).Scan(&cycle, &next)
 	if e != nil {
 		return false, e
 	}
@@ -144,7 +166,7 @@ func (s *Store) claimRotation(ctx context.Context, c *rotatingConfig) (bool, err
 	}
 	// Recheck current source ownership, TTL, controls, version and proof after
 	// reading the blob: a concurrent deletion or failed retest cannot be exported.
-	entries, e := queryConversions(ctx, tx, 0, true)
+	entries, e := querySourceConversions(ctx, tx, c.Scope, 0, true)
 	if e != nil {
 		return false, e
 	}
@@ -158,22 +180,27 @@ func (s *Store) claimRotation(ctx context.Context, c *rotatingConfig) (bool, err
 	if !eligible {
 		return false, nil
 	}
-	if _, e = tx.ExecContext(ctx, "DELETE FROM export_rotation_queue WHERE candidate_hash=?", next); e != nil {
+	if _, e = tx.ExecContext(ctx, "DELETE FROM export_rotation_queue WHERE scope=? AND candidate_hash=?", c.Scope, next); e != nil {
 		return false, e
 	}
 	return true, tx.Commit()
 }
 
 func (s *Store) NextConversion(ctx context.Context) (*rotatingConfig, error) {
-	// Limit optimistic retries within this process. SQLite provides the durable
-	// cross-process guard. No network write is performed while holding this lock.
-	s.rotationMu.Lock()
-	defer s.rotationMu.Unlock()
+	return s.nextSourceConversion(ctx, "")
+}
+
+func (s *Store) nextSourceConversion(ctx context.Context, source string) (*rotatingConfig, error) {
+	unlock, e := s.lockRotation(ctx, source)
+	if e != nil {
+		return nil, e
+	}
+	defer unlock()
 	for {
 		if e := ctx.Err(); e != nil {
 			return nil, e
 		}
-		item, e := s.prepareRotation(ctx)
+		item, e := s.prepareScopedRotation(ctx, source)
 		if e != nil || item == nil {
 			return nil, e
 		}
@@ -209,6 +236,10 @@ func (s *Server) nextJSON(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+	s.writeNextJSON(w, r, "")
+}
+
+func (s *Server) writeNextJSON(w http.ResponseWriter, r *http.Request, source string) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("Content-Disposition", "inline")
 	// Go's GET routes also match HEAD. Link checks and browser prefetches must
@@ -221,7 +252,11 @@ func (s *Server) nextJSON(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	item, e := s.store.NextConversion(r.Context())
+	item, e := s.store.nextSourceConversion(r.Context(), source)
+	if errors.Is(e, ErrNotFound) {
+		http.NotFound(w, r)
+		return
+	}
 	if e != nil {
 		http.Error(w, "output temporarily unavailable", http.StatusServiceUnavailable)
 		return

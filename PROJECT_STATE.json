@@ -1,5 +1,5 @@
 {
-  "phase": "P8 durable single-config rotation",
+  "phase": "P9 independent per-source full and single-config outputs",
   "date": "2026-10-30",
   "status": "implemented_and_deployed",
   "repository": "rezajafari0970/Config_manager",
@@ -24,7 +24,8 @@
     "android": "not_run",
     "android_subscription_caveat": "Pinned Custom parser expects JSON array/single object; JSONL is not native batch subscription format",
     "http_display": "Both export links use text/plain; charset=utf-8 and Content-Disposition: inline; all-config JSONL URL remains unchanged",
-    "single_output": "Separate inline link, one compact JSON per GET; shared persistent round, no duplicate allocation until snapshot exhausted; new arrivals join next round"
+    "single_output": "Each scope has its own persistent round shared by clients of that scope; new arrivals join next round; global URLs and existing position preserved",
+    "source_output": "Source membership is filtered before identity ranking; each source has scoped full JSONL and single-config rotation, independent of every other source and global rotation"
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -55,28 +56,29 @@
       "total": 9,
       "completed": 9,
       "core_passed": 8,
-      "connected": 2,
-      "jsonl_configs": 7,
+      "connected": 4,
+      "jsonl_configs": 8,
       "max_active": 3,
       "sigkill_recovered": true,
       "codes": {
-        "https_proxy_verified": 2,
+        "https_proxy_verified": 4,
         "hysteria1_unsupported_by_target_core": 1,
-        "nonpublic_endpoint_blocked": 4,
-        "proxy_request_failed": 2
+        "nonpublic_endpoint_blocked": 4
       }
     },
-    "migration_latest": "schema6 to7; 54 source definitions/revisions and settings preserved by fingerprint"
+    "migration_latest": "schema7 to8; 7 source definitions/revisions and all settings preserved by fingerprint; existing global cycle/queue unchanged",
+    "source_output": "passed shared-membership isolation, source-before-identity ranking, token source/mode binding, scoped copy, replacement/disable/delete/cascade, cancelable independent locks, 22 parallel allocations across two Store instances and three scopes, schema7 migration preserving global queue",
+    "source_output_browser": "passed synthetic source search/list, scoped full/single/view, independent resets across restart, source inline navigation; production three sources and12parallel single requests, zero duplicates/downloads, desktop/emulated Android no overflow"
   },
   "runtime": {
-    "database_schema": 7,
+    "database_schema": 8,
     "services": [
       "config-repair.service",
       "config-repair-prober.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p8-18dfef6d1458ebb97f3a",
-    "panel_sha256": "18dfef6d1458ebb97f3a24d8d3eb4b37126b6db8780c1ace779a016a52199796",
+    "release": "/opt/config-repair/releases/p9-cf488e252ef57e4d49e9",
+    "panel_sha256": "cf488e252ef57e4d49e973a0179e46908706cde30abee7d7c40929050757e80e",
     "worker_sha256": "4dd17163b3607c372990df88701e0b660fc16cbfb151a433045999db445e8acb",
     "template_version": "xray-26.7.28.template.v1",
     "retention_seconds": 7200,
@@ -86,8 +88,8 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/rotation-deployed.json",
-    "publication_receipt": ".local/rotation-published.json"
+    "deployment_receipt": ".local/source-export-deployed.json",
+    "publication_receipt": ".local/source-export-published.json"
   },
   "next": [
     "Continue evidence-backed protocol/template coverage without reviving a sample bank",

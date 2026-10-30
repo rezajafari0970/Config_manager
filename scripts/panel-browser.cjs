@@ -32,6 +32,23 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
  assert.notEqual(single[0].hash,single[1].hash);
  if(phase==='1'){assert.equal(single[0].cycle,1);assert.equal(single[1].cycle,1);assert.equal(single[2].cycle,2);assert.equal(single[2].hash,single[0].hash)}
  else{assert.equal(single[0].cycle,2);assert.equal(single[1].cycle,3);assert.equal(single[2].cycle,3);assert.notEqual(single[1].hash,single[2].hash)}
+ // Separate source exports: Verde owns two configs, Rosa one shared config.
+ const sourceList=await(await context.request.get(origin+'/api/export/sources')).json();
+ assert.equal(sourceList.sources.length,3);const verde=sourceList.sources.find(s=>s.name==='Verde'),rosa=sourceList.sources.find(s=>s.name==='Rosa'),broken=sourceList.sources.find(s=>s.name==='Broken');
+ const own=async source=>(await(await context.request.get(source.export_url)).text()).trim().split('\n').filter(Boolean);
+ const vl=await own(verde),rl=await own(rosa);assert.equal(vl.length,2);assert.equal(rl.length,1);assert.ok(vl.includes(rl[0]));assert.deepEqual(await own(broken),[]);
+ await page.locator('#export-sources summary').click();await page.waitForFunction(()=>document.querySelectorAll('[data-source-panel]').length===3);
+ await page.locator('#export-source-search').fill('Rosa');await page.waitForFunction(()=>document.querySelectorAll('#export-source-list article').length===1);
+ const scopedPage=await context.newPage();await scopedPage.goto(origin+rosa.panel_url);await scopedPage.waitForFunction(()=>document.querySelectorAll('#output-list [data-view]').length===1);
+ assert.equal(await scopedPage.locator('#jsonl-url').getAttribute('href'),rosa.export_url);assert.equal(await scopedPage.locator('#single-url').getAttribute('href'),rosa.single_export_url);
+ assert.ok((await scopedPage.locator('#output-scope-title').textContent()).includes('Rosa'));await scopedPage.locator('[data-view]').first().click();await scopedPage.waitForFunction(()=>[...document.querySelectorAll('#output-list pre')].some(p=>!p.hidden));assert.equal(await scopedPage.locator('#output-list pre').innerText(),rl[0]);
+ assert.ok(await scopedPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await scopedPage.close();
+ const turns=[];for(let i=0;i<3;i++){const r=await context.request.get(verde.single_export_url);const text=await r.text();assert.ok(vl.includes(text.trim()));turns.push({hash:r.headers()['x-content-sha256'],cycle:Number(r.headers()['x-export-cycle'])})}
+ if(phase==='1'){assert.equal(turns[0].cycle,1);assert.equal(turns[1].cycle,1);assert.equal(turns[2].cycle,2)}else{assert.equal(turns[0].cycle,2);assert.equal(turns[1].cycle,3);assert.equal(turns[2].cycle,3)}
+ for(let i=0;i<turns.length;i++)for(let j=i+1;j<turns.length;j++)if(turns[i].cycle===turns[j].cycle)assert.notEqual(turns[i].hash,turns[j].hash);
+ const rr=await context.request.get(rosa.single_export_url);assert.equal((await rr.text()).trim(),rl[0]);assert.equal(Number(rr.headers()['x-export-cycle']),Number(phase));
+ const sourceViewer=await context.newPage(),sourceDownloads=[];sourceViewer.on('download',d=>sourceDownloads.push(d));const sourceResponse=await sourceViewer.goto(verde.export_url,{waitUntil:'domcontentloaded'});assert.equal(await sourceViewer.locator('body').innerText(),await sourceResponse.text());assert.equal(sourceDownloads.length,0);await sourceViewer.close();
+ await page.locator('#export-source-search').fill('');await page.waitForFunction(()=>document.querySelectorAll('#export-source-list article').length===3);
  assert.equal((await context.request.get(origin+'/api/bank')).status(),404);assert.equal((await context.request.get(origin+'/assets/bank.js')).status(),404);
  await page.locator('[data-view]').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('pre')].some(p=>!p.hidden&&p.textContent.startsWith('{')));await noOverflow();await page.screenshot({path:dir+'/output-mobile.png',fullPage:true});
  await page.setViewportSize({width:1440,height:1000});await noOverflow();await page.screenshot({path:dir+'/output-desktop.png',fullPage:true});

@@ -36,3 +36,8 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - Read docs/checkpoints/P8-single-output-20261030.md for the current additive schema7 change. Preserve the all-config export and independent source lifecycle.
 - The single link uses one global durable round across clients; snapshot only unique eligible candidate hashes. New arrivals join the next round. HEAD/prefetch must not consume turns.
 - Validate blobs outside SQLite transactions to preserve the vault-to-DB garbage-collection lock order; recheck eligibility and queue head atomically before consuming. Do not claim exactly-once network delivery after an interrupted response.
+
+## P9 source-specific output
+- Read docs/checkpoints/P9-source-exports-20261030.md. Schema8 preserves the global queue and adds independent source scopes; never reset existing global turns during migration.
+- Filter source membership before window ranking/deduplication. Never substitute another source's raw representation or proof for a scoped result.
+- Source deletion cascades only its scope. Locks are per scope, cancellable and reclaimed; vault I/O remains outside transactions. Preserve both global URLs.

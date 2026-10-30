@@ -133,7 +133,7 @@ func (s *Server) Handler() http.Handler {
 		})
 	}
 	mux.HandleFunc("GET /api/state", s.state)
-	modules := []PanelModule{inputModule{s}, outputModule{s}, settingModule{s}, conversionModule{s}, rotationModule{s}}
+	modules := []PanelModule{inputModule{s}, outputModule{s}, settingModule{s}, conversionModule{s}, rotationModule{s}, sourceExportModule{s}}
 	modules = append(modules, s.modules...)
 	for _, module := range modules {
 		module.Register(mux)
@@ -167,6 +167,10 @@ func (s *Server) state(w http.ResponseWriter, r *http.Request) {
 	if e != nil {
 		failure(w, e)
 		return
+	}
+	for i := range sources {
+		sources[i].ExportURL = s.exportURL(sources[i].ID, false)
+		sources[i].SingleExportURL = s.exportURL(sources[i].ID, true)
 	}
 	outputs, e := s.store.OutputsFiltered(ctx, r.URL.Query().Get("kind"), r.URL.Query().Get("repair"), page, false)
 	if e != nil {

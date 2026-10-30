@@ -23,12 +23,13 @@ import (
 )
 
 type Store struct {
-	db         *sql.DB
-	aead       cipher.AEAD
-	key        []byte
-	vault      *blob.Vault
-	probeTurn  atomic.Uint64
-	rotationMu sync.Mutex
+	db            *sql.DB
+	aead          cipher.AEAD
+	key           []byte
+	vault         *blob.Vault
+	probeTurn     atomic.Uint64
+	rotationMu    sync.Mutex
+	rotationLocks map[string]*rotationLock
 }
 
 func Open(path string, key []byte) (*Store, error) {
@@ -80,7 +81,7 @@ func Open(path string, key []byte) (*Store, error) {
 	if err = db.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
 		return nil, err
 	}
-	if version > 7 {
+	if version > 8 {
 		return nil, errors.New("database schema newer than application")
 	}
 	if version == 0 {
@@ -132,6 +133,9 @@ PRAGMA user_version=1;`)
 		return nil, err
 	}
 	if err = s.migrateV7(); err != nil {
+		return nil, err
+	}
+	if err = s.migrateV8(); err != nil {
 		return nil, err
 	}
 	// Reconcile transient children left by older connections with foreign keys
