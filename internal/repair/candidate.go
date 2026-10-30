@@ -11,7 +11,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/target"
 )
 
-const RulesVersion = "xray-26.7.28.structural.v2"
+const RulesVersion = "xray-26.7.28.structural.v3"
 
 type Diagnostic struct {
 	Version         string           `json:"version"`
@@ -38,6 +38,9 @@ type Registry struct{ drivers map[string]CandidateDriver }
 func NewRegistry() *Registry {
 	r := &Registry{drivers: map[string]CandidateDriver{}}
 	r.Register(JSONDriver{})
+	for _, kind := range []string{"vless", "trojan", "ss", "hy2", "hysteria2", "socks", "socks5"} {
+		r.Register(URIUserinfoDriver{Protocol: kind})
+	}
 	return r
 }
 func (r *Registry) Register(d CandidateDriver) { r.drivers[d.Kind()] = d }
@@ -59,7 +62,10 @@ func (r *Registry) Propose(raw []byte, complete bool, kind, quality string) (d D
 		return
 	}
 	if impl := r.drivers[kind]; impl != nil {
-		return impl.Propose(raw)
+		result := impl.Propose(raw)
+		if result.Status != "unchanged" || quality != "invalid" {
+			return result
+		}
 	}
 	if quality == "invalid" {
 		d.Status = "blocked"

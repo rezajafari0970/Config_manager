@@ -6,7 +6,7 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
  const state=async()=>(await context.request.get(origin+'/api/state')).json();
  const wait=async fn=>{for(let n=0;n<150;n++){if(await fn())return;await new Promise(r=>setTimeout(r,100))}throw new Error('condition timed out')};
  const noOverflow=async()=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'horizontal overflow');
- await page.goto(origin+'/input');assert.equal(await page.locator('input[type=password]').count(),0);
+ await page.goto(origin+'/input');assert.equal(await page.locator('input[type=password]').count(),0);assert.equal((await context.request.get(origin+'/assets/diagnostics.js')).status(),200);
  if(phase==='1'){
   await page.locator('#bulk-links').fill('https://example.com/Api/Verde/trun.php\nhttps://example.com/Api/Rosa/trun.php\nhttps://example.com/Api/Broken/trun.php\nhttps://example.com/Api/Verde/trun.php');await page.locator('#bulk-interval').fill('۲ تا ۳');await page.getByRole('button',{name:'افزودن لینک‌ها',exact:true}).click();await wait(async()=>{const s=await state();return s.stats.sources===3&&s.stats.configs===2});
   const s=await state();assert.deepEqual(s.sources.map(x=>x.name).sort(),['Broken','Rosa','Verde']);assert.equal(s.sources.find(x=>x.name==='Verde').content_state,'partial');assert.equal(s.sources.find(x=>x.name==='Broken').state,'error');await noOverflow();await page.screenshot({path:dir+'/input-mobile.png',fullPage:true});

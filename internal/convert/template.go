@@ -13,7 +13,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 )
 
-const Version = "xray-26.7.28.template.v3"
+const Version = "xray-26.7.28.template.v4"
 
 type M = map[string]any
 
@@ -268,6 +268,9 @@ func rewriteReferences(ob M, tags map[string]string) {
 	}
 }
 func normalize(ob M) error {
+	if err := validateReality(ob); err != nil {
+		return err
+	}
 	protocol, _ := ob["protocol"].(string)
 	switch protocol {
 	case "vless", "vmess", "trojan", "shadowsocks", "socks", "hysteria", "wireguard", "http":

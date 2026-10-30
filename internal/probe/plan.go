@@ -18,7 +18,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/target"
 )
 
-const Version = "xray-26.7.28.probe-plan.v2"
+const Version = "xray-26.7.28.probe-plan.v3"
 
 type M = map[string]any
 type Candidate struct {
@@ -78,6 +78,7 @@ func Prepare(raw []byte) (p Plan) {
 	}
 	var ob M
 	var err error
+	uriRule := Version + ".uri-json"
 	switch {
 	case strings.HasPrefix(strings.ToLower(s), "vmess://"):
 		p.Kind = "vmess"
@@ -86,6 +87,15 @@ func Prepare(raw []byte) (p Plan) {
 		p.Kind = "wireguard"
 		ob, err = wireguardINI(s)
 	default:
+		kind, _, _ := strings.Cut(s, "://")
+		switch strings.ToLower(kind) {
+		case "vless", "trojan", "ss", "hy2", "hysteria2", "socks", "socks5":
+			d := (repair.URIUserinfoDriver{Protocol: strings.ToLower(kind)}).Propose(raw)
+			if len(d.Candidate) > 0 {
+				s = strings.TrimSpace(string(d.Candidate))
+				uriRule = repair.RulesVersion + ".uri-userinfo-space"
+			}
+		}
 		u, e := url.Parse(s)
 		if e != nil {
 			p.Code = "invalid_uri"
@@ -128,7 +138,7 @@ func Prepare(raw []byte) (p Plan) {
 		root["dns"] = dns
 		delete(ob, "__dns")
 	}
-	p.Candidates = append(p.Candidates, candidate(root, Version+".uri-json", false))
+	p.Candidates = append(p.Candidates, candidate(root, uriRule, false))
 	// This is only a hypothesis, never a repair approval. A verified end-to-end
 	// connection with certificate verification must gate its recommendation.
 	stream, _ := ob["streamSettings"].(M)
@@ -275,7 +285,7 @@ func uri(u *url.URL) (M, error) {
 			}
 		}
 	}
-	allowed := strings.Fields("type security encryption flow headerType host path sni fp alpn allowInsecure insecure allowinsecure pbk sid spx pqv ech vcn pcs serviceName authority mode extra xhttpMode xhttpExtra fm obfs obfs-password pinSHA256 mport x_padding_bytes")
+	allowed := strings.Fields("type security encryption flow headerType host path sni fp alpn allowInsecure insecure allowinsecure pbk sid spx pqv ech vcn pcs serviceName authority mode extra xhttpMode xhttpExtra fm obfs obfs-password pinSHA256 mport x_padding_bytes cs packetEncoding")
 	for k, values := range q {
 		known := false
 		for _, a := range allowed {
@@ -289,6 +299,12 @@ func uri(u *url.URL) (M, error) {
 		}
 		if len(values) != 1 {
 			return nil, errors.New("ambiguous_query_parameter")
+		}
+	}
+	// Explicit XUDP uses a single UDP stream; TCP multiplexing stays disabled.
+	if encoding, exists := q["packetEncoding"]; exists {
+		if kind != "vless" || encoding[0] != "xudp" {
+			return nil, errors.New("unsupported_packet_encoding")
 		}
 	}
 	credential := u.User.Username()
@@ -366,7 +382,11 @@ func uri(u *url.URL) (M, error) {
 			stream["tlsSettings"].(M)["pinnedPeerCertSha256"] = q.Get("pinSHA256")
 		}
 	}
-	return M{"tag": "proxy", "protocol": protocol, "settings": settings, "streamSettings": stream}, nil
+	outbound := M{"tag": "proxy", "protocol": protocol, "settings": settings, "streamSettings": stream}
+	if q.Get("packetEncoding") == "xudp" {
+		outbound["mux"] = M{"enabled": true, "concurrency": -1, "xudpConcurrency": 1, "xudpProxyUDP443": "allow"}
+	}
+	return outbound, nil
 }
 
 func transport(q url.Values, server string) (M, error) {
@@ -451,6 +471,9 @@ func transport(q url.Values, server string) (M, error) {
 	if sec != "none" && sec != "tls" && sec != "reality" {
 		return nil, errors.New("unsupported_security")
 	}
+	if q.Get("cs") != "" && sec != "tls" {
+		return nil, errors.New("cipher_suites_require_tls")
+	}
 	s["security"] = sec
 	name := q.Get("sni")
 	if name == "" {
@@ -471,7 +494,7 @@ func transport(q url.Values, server string) (M, error) {
 			tls["allowInsecure"] = true
 		}
 	}
-	for from, to := range map[string]string{"fp": "fingerprint", "ech": "echConfigList", "vcn": "verifyPeerCertByName", "pcs": "pinnedPeerCertSha256", "pbk": "publicKey", "sid": "shortId", "spx": "spiderX", "pqv": "mldsa65Verify"} {
+	for from, to := range map[string]string{"cs": "cipherSuites", "fp": "fingerprint", "ech": "echConfigList", "vcn": "verifyPeerCertByName", "pcs": "pinnedPeerCertSha256", "pbk": "publicKey", "sid": "shortId", "spx": "spiderX", "pqv": "mldsa65Verify"} {
 		if q.Get(from) != "" {
 			tls[to] = q.Get(from)
 		}

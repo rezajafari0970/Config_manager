@@ -1,4 +1,4 @@
-# Handoff — P12 open TCP/UDP/QUIC traffic
+# Handoff — P13 shared URI compatibility
 
 Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and the P12 checkpoint (P7/P8/P9/P10/P11 are historical context). Verify actual HEAD/origin/status and private p7 receipts. The user's latest instruction explicitly removes the P6 persistent bank; do not resurrect it based on older checkpoints.
 
@@ -74,3 +74,11 @@ User explicitly wants TCP, UDP and QUIC allowed in generated configs. Template v
 Read docs/checkpoints/P12-open-traffic-20261030.md and the P12 section of docs/CONVERSION.md. The optional root-only packet regression uses the existing sandbox with synthetic pinned-certificate VLESS peers and fresh SOCKS UDP associations: before gates, TCP/ordinary UDP pass and UDP443 fails; after policy all pass. It does not claim upstream QUIC/HTTP3 negotiation or Android app validation. The private localhost echo fixture uses an explicit narrow freedom finalRules allow for its loopback endpoints, because the pinned server core blocks private destinations by default. Production sandbox boundaries are unchanged.
 
 Full checks/pinned core, browser/restart and isolated worker recovery passed. Latest receipts are .local/traffic-deployed.json, traffic-live.json, traffic-published.json and traffic-{check,browser,worker,targeted}.log. Schema8 and actual live source definitions/revisions/settings were preserved. Runtime hashes/release are in PROJECT_STATE.json. Same-schema rollback switches to the prior release while retaining current user data; use the matching stopped-service backup recorded in the deployment receipt.
+
+## Current P13 shared URI compatibility — 2026-10-30
+
+Read docs/checkpoints/P13-shared-repair-20261030.md, PROJECT_STATE.json and docs/CONVERSION.md P13 before continuing. Template v4/structural v3/probe-plan v3 fix shared userinfo-space and TLS cipher/XUDP mapping. Explicit XUDP uses a single UDP stream with TCP mux disabled; no unsolicited Mux. REALITY missing keys remain actionable failures; no security downgrade or fabricated credentials. Source diagnostics use the same canonical ownership choice as Output.
+
+Full checks,22pinned protocol fixtures,4balancer fixtures,3real packet controls, browser and isolated SIGKILL recovery passed. Four previously blocked private samples became core-valid, but their fresh HTTPS probes did not connect.14Hot inputs lacked REALITY keys at inspection. Actual live counts can change; consult the current API rather than restoring historical sources/revisions. Android and QUIC handshake remain untested.
+
+Deployment preserved schema8 and all current definitions/settings, used a stopped-service matching backup, and verified both running binary hashes. Current receipts are .local/hot-deployed.json, hot-live.json, hot-public-browser.json and hot-published.json; runtime hashes are in PROJECT_STATE.json. Initial browser failure was a missing static-asset allowlist entry, now covered and fixed. No source sample bank was restored.

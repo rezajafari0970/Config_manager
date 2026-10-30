@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/rezajafari0970/Config_manager/internal/convert"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -28,7 +29,10 @@ func TestSourceConversionSummaryMatchesScopedCanonicalOutput(t *testing.T) {
 		if e != nil {
 			t.Fatal(e)
 		}
-		if got[a] != wantA || got[b] != wantB {
+		valueA, valueB := got[a], got[b]
+		valueA.Issues = nil
+		valueB.Issues = nil
+		if !reflect.DeepEqual(valueA, wantA) || !reflect.DeepEqual(valueB, wantB) {
 			t.Fatalf("summaries %+v %+v, want %+v %+v", got[a], got[b], wantA, wantB)
 		}
 	}
@@ -41,6 +45,11 @@ func TestSourceConversionSummaryMatchesScopedCanonicalOutput(t *testing.T) {
 	// Expired connection evidence is not a fresh pass, but structural output remains ready.
 	exec("UPDATE conversion_results SET valid_until=0 WHERE hash=?", repair.Digest([]byte(rawA)))
 	check(SourceConversionSummary{Total: 1, Ready: 1, Repaired: 1}, SourceConversionSummary{Total: 1, Blocked: 1})
+	exec("UPDATE conversion_results SET code='missing_reality_public_key' WHERE hash=?", repair.Digest([]byte(rawB)))
+	summary, err := s.SourceConversionSummaries(ctx, sources)
+	if err != nil || summary[b].Issues["missing_reality_public_key"] != 1 || len(summary[a].Issues) != 0 {
+		t.Fatal("source-scoped diagnostics", err)
+	}
 	// Old rules need a new result; no old proof is presented as ready.
 	exec("UPDATE conversion_results SET version='old'")
 	check(SourceConversionSummary{Total: 1, Pending: 1}, SourceConversionSummary{Total: 1, Pending: 1})

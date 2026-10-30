@@ -9,12 +9,13 @@ import (
 )
 
 type SourceConversionSummary struct {
-	Total     int `json:"total"`
-	Ready     int `json:"ready"`
-	Connected int `json:"connected"`
-	Repaired  int `json:"repaired"`
-	Pending   int `json:"pending"`
-	Blocked   int `json:"blocked"`
+	Total     int            `json:"total"`
+	Ready     int            `json:"ready"`
+	Connected int            `json:"connected"`
+	Repaired  int            `json:"repaired"`
+	Pending   int            `json:"pending"`
+	Blocked   int            `json:"blocked"`
+	Issues    map[string]int `json:"issues,omitempty"`
 }
 
 // Use the same representative ranking and source membership as Output, then
@@ -37,14 +38,7 @@ func (s *Store) SourceConversionSummaries(ctx context.Context, sources []Source)
 		out[source.ID] = SourceConversionSummary{}
 	}
 	q = strings.Replace(q, "/* source filter */", "AND m.source_id IN ("+strings.Join(marks, ",")+")", 1)
-	q += ` SELECT source_id,count(*),
- sum(CASE WHEN available THEN 1 ELSE 0 END),
- sum(CASE WHEN available AND connection='passed' AND valid_until>? THEN 1 ELSE 0 END),
- sum(CASE WHEN available AND result_rule LIKE ? THEN 1 ELSE 0 END),
- sum(CASE WHEN coalesce(result_version,'')!=? OR state IN ('queued','running') THEN 1 ELSE 0 END),
- sum(CASE WHEN coalesce(result_version,'')=? AND state NOT IN ('queued','running') AND NOT coalesce(available,0) THEN 1 ELSE 0 END)
- FROM choices WHERE choice=1 GROUP BY source_id`
-	args = append(args, now, convert.Version+"."+repair.RulesVersion+"%", convert.Version, convert.Version)
+	q += ` SELECT source_id,coalesce(result_version,''),coalesce(result_rule,''),coalesce(state,'queued'),coalesce(code,''),coalesce(available,0),coalesce(connection,''),coalesce(valid_until,0) FROM choices WHERE choice=1`
 	rows, err := s.db.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
@@ -52,9 +46,34 @@ func (s *Store) SourceConversionSummaries(ctx context.Context, sources []Source)
 	defer rows.Close()
 	for rows.Next() {
 		var id string
-		var v SourceConversionSummary
-		if err = rows.Scan(&id, &v.Total, &v.Ready, &v.Connected, &v.Repaired, &v.Pending, &v.Blocked); err != nil {
+		var version, rule, state, code, connection string
+		var available bool
+		var validUntil int64
+		if err = rows.Scan(&id, &version, &rule, &state, &code, &available, &connection, &validUntil); err != nil {
 			return nil, err
+		}
+		v := out[id]
+		v.Total++
+		if available {
+			v.Ready++
+			if connection == "passed" && validUntil > now {
+				v.Connected++
+			}
+			if strings.HasPrefix(rule, convert.Version+"."+repair.RulesVersion) {
+				v.Repaired++
+			}
+		}
+		if version != convert.Version || state == "queued" || state == "running" {
+			v.Pending++
+		} else if !available {
+			v.Blocked++
+			if code == "" {
+				code = "structural_unresolved"
+			}
+			if v.Issues == nil {
+				v.Issues = map[string]int{}
+			}
+			v.Issues[code]++
 		}
 		out[id] = v
 	}

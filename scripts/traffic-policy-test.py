@@ -84,7 +84,10 @@ def main():
             proxy['streamSettings']['tlsSettings']={'serverName':'localhost','pinnedPeerCertSha256':pin}
             # Controlled fixture additions only. The client's normal SOCKS
             # routing still goes through VLESS/TLS before the echo destination.
-            config['inbounds'].append(server)
+            fixture_server=copy.deepcopy(server)
+            user=settings if 'address' in settings else settings['vnext'][0]['users'][0]
+            fixture_server['settings']['clients'][0]['flow']='xtls-rprx-vision' if str(user.get('flow','')).startswith('xtls-rprx-vision') else ''
+            config['inbounds'].append(fixture_server)
             config['outbounds'].append({'tag':'fixture-direct','protocol':'freedom','settings':{'finalRules':[{'action':'allow','network':'tcp,udp','ip':['127.0.0.1/32'],'port':'443,24444,24445'}]}})
             config['routing']['rules'].insert(0,{'type':'field','inboundTag':['fixture-server'],'outboundTag':'fixture-direct'})
             config['log']={'loglevel':'warning'}

@@ -57,3 +57,10 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - Template v3 applies the user's explicit TCP/UDP/QUIC policy. Retain SOCKS UDP and tcp,udp routing; QUIC is carried over UDP, not a routing network enum.
 - Normalize only known VLESS Vision UDP443 and existing Mux rejection gates. Preserve null/absent mux, explicit native-UDP skip, concurrency, endpoints, credentials and TLS. Do not enable multiplexing or invent another wire protocol.
 - Real isolated TCP/UDP/UDP443 regression is available through XRAY_TRAFFIC_TEST=1; use fresh SOCKS UDP associations for negative controls. This synthetic echo evidence is not a live QUIC/HTTP3 handshake or a promise of every upstream server's UDP support.
+
+## P13 shared URI compatibility and source diagnostics
+- Read docs/checkpoints/P13-shared-repair-20261030.md. Current template v4, structural v3 and probe-plan v3 supersede earlier version notes.
+- Literal userinfo space repair must preserve decoded credential bytes, raw source bytes and all other URI bytes. Ambiguous delimiters/invalid escapes remain blocked.
+- TLS cs maps to cipherSuites without rewriting its order or fingerprint. Explicit VLESS packetEncoding=xudp maps to an XUDP manager with one UDP stream and TCP multiplexing disabled. This source-requested mapping is the narrow exception to P12's no-new-mux rule; never add it to inputs without that explicit option or silently discard unsupported encodings.
+- Missing/invalid REALITY key/shortId diagnostics apply to retained chains, pools and nested download streams. Never fabricate keys, borrow another config's proof, downgrade security, or label a failed HTTPS probe connected.
+- Canonical issue counts must use the same source-filtered representative as Output. Pending/stale results are not final failures; raw-response format status remains distinct.

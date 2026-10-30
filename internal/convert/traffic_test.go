@@ -44,7 +44,7 @@ func TestAllTemplatesPermitTCPUDPAndQUICRouting(t *testing.T) {
 			}
 			assertTrafficEnvelope(t, root)
 			ob := root["outbounds"].([]any)[0].(M)
-			if _, ok := ob["mux"]; ok {
+			if _, ok := ob["mux"]; ok && name != "vless-explicit-xudp" {
 				t.Fatal("unsolicited multiplexing")
 			}
 			if name == "vless-reality" && !bytes.Contains(p.Candidates[0].Config, []byte(`"flow":"xtls-rprx-vision-udp443"`)) {
@@ -129,7 +129,7 @@ func TestPinnedCoreTrafficForwarding(t *testing.T) {
 	if core == "" {
 		t.Fatal("pinned core required")
 	}
-	for _, mode := range []string{"vision", "mux"} {
+	for _, mode := range []string{"vision", "mux", "xudp"} {
 		t.Run(mode, func(t *testing.T) {
 			root, _ := object([]byte(envelope))
 			flow := "xtls-rprx-vision"
@@ -140,11 +140,22 @@ func TestPinnedCoreTrafficForwarding(t *testing.T) {
 			if mode == "mux" {
 				ob["mux"] = M{"enabled": true, "concurrency": -1, "xudpConcurrency": -1, "xudpProxyUDP443": "reject"}
 			}
+			if mode == "xudp" {
+				ob["settings"].(M)["flow"] = ""
+				ob["mux"] = M{"enabled": true, "concurrency": -1, "xudpConcurrency": 1, "xudpProxyUDP443": "reject"}
+			}
 			root["outbounds"] = []any{ob, M{"tag": "dns-out", "protocol": "dns"}, M{"tag": "direct", "protocol": "freedom"}, M{"tag": "block", "protocol": "blackhole"}}
 			before := encode(t, root)
 			after, e := Apply(before)
 			if e != nil {
 				t.Fatal(e)
+			}
+			if mode == "xudp" {
+				p := Prepare([]byte("vless://11111111-1111-4111-8111-111111111111@127.0.0.1:24443?security=tls&sni=localhost&packetEncoding=xudp"))
+				if len(p.Candidates) != 1 {
+					t.Fatal(p.Code)
+				}
+				after = p.Candidates[0].Config
 			}
 			payload := M{"core": core, "before": json.RawMessage(before), "after": json.RawMessage(after)}
 			command := exec.Command("python3", "../../scripts/traffic-policy-test.py")
