@@ -1,6 +1,6 @@
-# Handoff — P10 mixed input extraction
+# Handoff — P11 Exir conversion repairs
 
-Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and the P10 checkpoint (P7/P8/P9 are historical context). Verify actual HEAD/origin/status and private p7 receipts. The user's latest instruction explicitly removes the P6 persistent bank; do not resurrect it based on older checkpoints.
+Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and the P11 checkpoint (P7/P8/P9/P10 are historical context). Verify actual HEAD/origin/status and private p7 receipts. The user's latest instruction explicitly removes the P6 persistent bank; do not resurrect it based on older checkpoints.
 
 Authoritative server tree: /root/projects/v2ray-config-repair. GitHub: rezajafari0970/Config_manager, branch go/v2rayng-2.3.6. Legacy main and unrelated DigitalOcean infrastructure are outside scope.
 
@@ -54,3 +54,14 @@ Full checks/core matrix, synthetic browser/restart and an isolated worker rerun 
 Binary-only schema8 deployment: `.local/txt-mixed-deployed.json`, release/hashes in PROJECT_STATE.json. All7source definitions/revisions and settings matched before/after deployment. Backup: /var/backups/config-repair/pre-txt-mixed-20261030-132831. Rollback can switch to the previous schema8 binary while services are stopped; do not replace current data/user edits for this same-schema change. Other receipts: `.local/txt-mixed-check.log`, `.local/txt-mixed-browser.log`, `.local/txt-mixed-live.json`, `.local/txt-mixed-final-output.json`, `.local/txt-mixed-byte-check.json`, `.local/txt-mixed-published.json`. Current source counts/proofs can change on each upstream refresh. No raw captures or source URLs belong in Git.
 
 Final boundary regression also proves a wrapped JSON child object is never promoted to an independent config while its parent is incomplete. Targeted before/after receipts are .local/txt-mixed-boundary-before.log and .local/txt-mixed-boundary-after.log. The final full checks/browser run passed again; worker binary remains unchanged.
+
+
+## Current P11 Exir conversion repairs — 2026-10-30
+
+Template v2 and structural v2 are deployed. Read docs/checkpoints/P11-exir-repair-20261030.md and the P11 section of docs/CONVERSION.md. Empty DNS/blackhole settings arrays, explicit balanced multi-proxy routes and the conflict-checked XHTTP x_padding_bytes alias are now covered. Balancer selectors use prefix semantics; preserve original pool/chain/observer tags and first real default proxy. Do not collapse a pool into one arbitrary server or let helper tags enter it.
+
+Input now counts canonical source-owned conversion evidence, instead of summing historical raw repair records. Original response diagnostics remain separate. Template-version changes invalidate stale export proofs and requeue active originals. Mixed public IPv4/IPv6 pools can be tested through IPv4 while retaining all original members; the inet sandbox default-drop boundary is unchanged. IPv6-only network testing remains pending.
+
+Twenty current/historical private Exir representations passed core after conversion; network outcomes varied. Fresh production snapshot at18:52:27Z had7ready/7exported,6two-HTTPS passes,1IPv6-only pending and1structurally repaired original. All7original hashes matched. Full race/build/pinned-core tests,11Python tests, synthetic browser/restart, isolated worker SIGKILL recovery and public desktop/emulated Android inline checks passed. This is not an Android app/TUN receipt.
+
+Latest deployment/publication receipts: .local/exir-repair-deployed.json and .local/exir-repair-published.json. Release and three hashes are in PROJECT_STATE.json. The updated live-probe.py is part of the release alongside panel and worker; rollback all three together. Schema8 and all7source definitions/revisions/settings were preserved. Backup:/var/backups/config-repair/pre-exir-repair-20261030-185005. Same-schema rollback preserves current user data and changes. Do not restore old source counts or infer current outcomes from these snapshots. No raw fixtures or private captures belong in Git.

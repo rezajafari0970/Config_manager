@@ -42,4 +42,22 @@ class ProbeTests(unittest.TestCase):
   with self.assertRaisesRegex(ValueError,'candidate_hash_mismatch'):
    p.test_candidate(None,{'sha256':'wrong','config':base64.b64encode(b'{}').decode()},1)
 
+ def test_mixed_ipv4_ipv6_pool_keeps_all_original_outbounds(self):
+  class V4:stdout=b'["1.1.1.1"]'
+  class V6:stdout=b'["2606:4700:4700::1111"]'
+  c={'outbounds':[{'tag':'a','protocol':'trojan','settings':{'address':'a.example','port':443}}, {'tag':'b','protocol':'trojan','settings':{'address':'b.example','port':443}}]}
+  with patch.object(p,'cmd',side_effect=[V4(),V6()]):
+   resolved=p.endpoints(c)
+  self.assertEqual(set(resolved),{'a.example'})
+  runtime=p.runtime_config(c,resolved)
+  self.assertEqual(runtime['outbounds'],c['outbounds'])
+  with patch.object(p,'cmd',return_value=V6()):
+   with self.assertRaisesRegex(ValueError,'ipv6_only_probe_pending'):p.endpoints(c)
+ def test_mixed_pool_still_rejects_nonpublic_ipv6(self):
+  class V4:stdout=b'["1.1.1.1"]'
+  class V6:stdout=b'["fd00::1"]'
+  c={'outbounds':[{'protocol':'trojan','settings':{'address':'a.example','port':443}}, {'protocol':'trojan','settings':{'address':'b.example','port':443}}]}
+  with patch.object(p,'cmd',side_effect=[V4(),V6()]):
+   with self.assertRaisesRegex(ValueError,'nonpublic_endpoint_blocked'):p.endpoints(c)
+
 if __name__=='__main__':unittest.main()

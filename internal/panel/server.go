@@ -200,7 +200,12 @@ func (s *Server) state(w http.ResponseWriter, r *http.Request) {
 		failure(w, e)
 		return
 	}
-	respond(w, 200, map[string]any{"repairs": repairs, "sources": sources, "outputs": outputs, "settings": settings, "stats": stats, "worker": map[string]any{"running": running, "active": active, "tick": tick, "blocked": blocked, "capacity": capacity}, "now": time.Now().UnixMilli()})
+	conversions, e := s.store.SourceConversionSummaries(ctx, sources)
+	if e != nil {
+		failure(w, e)
+		return
+	}
+	respond(w, 200, map[string]any{"conversions": conversions, "repairs": repairs, "sources": sources, "outputs": outputs, "settings": settings, "stats": stats, "worker": map[string]any{"running": running, "active": active, "tick": tick, "blocked": blocked, "capacity": capacity}, "now": time.Now().UnixMilli()})
 }
 
 // PanelModule is the compiled extension boundary for independent feature routes.

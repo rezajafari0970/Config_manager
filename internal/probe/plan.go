@@ -275,7 +275,7 @@ func uri(u *url.URL) (M, error) {
 			}
 		}
 	}
-	allowed := strings.Fields("type security encryption flow headerType host path sni fp alpn allowInsecure insecure allowinsecure pbk sid spx pqv ech vcn pcs serviceName authority mode extra xhttpMode xhttpExtra fm obfs obfs-password pinSHA256 mport")
+	allowed := strings.Fields("type security encryption flow headerType host path sni fp alpn allowInsecure insecure allowinsecure pbk sid spx pqv ech vcn pcs serviceName authority mode extra xhttpMode xhttpExtra fm obfs obfs-password pinSHA256 mport x_padding_bytes")
 	for k, values := range q {
 		known := false
 		for _, a := range allowed {
@@ -371,6 +371,9 @@ func uri(u *url.URL) (M, error) {
 
 func transport(q url.Values, server string) (M, error) {
 	network := def(q.Get("type"), "tcp")
+	if _, exists := q["x_padding_bytes"]; exists && network != "xhttp" {
+		return nil, errors.New("xhttp_parameter_on_other_transport")
+	}
 	s := M{"network": network}
 	host, path := q.Get("host"), def(q.Get("path"), "/")
 	sniHost := host
@@ -404,6 +407,34 @@ func transport(q url.Values, server string) (M, error) {
 				return nil, errors.New("invalid_xhttp_extra")
 			}
 			x["extra"] = v
+		}
+		if value, exists := q["x_padding_bytes"]; exists {
+			padding, e := xhttpPaddingRange(value[0])
+			if e != nil {
+				return nil, e
+			}
+			v, _ := x["extra"].(M)
+			if v == nil {
+				v = M{}
+				x["extra"] = v
+			}
+			if old, exists := v["xPaddingBytes"]; exists {
+				var text string
+				switch old := old.(type) {
+				case string:
+					text = old
+				case json.Number:
+					text = string(old)
+				default:
+					return nil, errors.New("invalid_xhttp_padding")
+				}
+				other, e := xhttpPaddingRange(text)
+				if e != nil || padding != other {
+					return nil, errors.New("conflicting_xhttp_padding")
+				}
+			} else {
+				v["xPaddingBytes"] = value[0]
+			}
 		}
 		s["xhttpSettings"] = x
 	case "h2", "http":
@@ -504,4 +535,32 @@ func vmess(s string) (M, error) {
 		return nil, e
 	}
 	return M{"tag": "proxy", "protocol": "vmess", "settings": M{"address": str(m, "add"), "port": n, "id": str(m, "id"), "security": def(str(m, "scy"), "auto")}, "streamSettings": stream}, nil
+}
+
+// Explicit compatibility spelling seen in XHTTP subscription links. Map only
+// this known field and reject conflicting redundant values instead of dropping
+// unknown query parameters or overriding the supplied extra object.
+func xhttpPaddingRange(s string) ([2]int64, error) {
+	var out [2]int64
+	parts := strings.Split(s, "-")
+	if len(parts) < 1 || len(parts) > 2 {
+		return out, errors.New("invalid_xhttp_padding")
+	}
+	for i, part := range parts {
+		if part == "" || strings.Trim(part, "0123456789") != "" {
+			return out, errors.New("invalid_xhttp_padding")
+		}
+		n, e := strconv.ParseInt(part, 10, 32)
+		if e != nil || n <= 0 {
+			return out, errors.New("invalid_xhttp_padding")
+		}
+		out[i] = n
+	}
+	if len(parts) == 1 {
+		out[1] = out[0]
+	}
+	if out[1] < out[0] {
+		return out, errors.New("invalid_xhttp_padding")
+	}
+	return out, nil
 }

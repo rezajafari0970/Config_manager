@@ -13,7 +13,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 )
 
-const Version = "xray-26.7.28.template.v1"
+const Version = "xray-26.7.28.template.v2"
 
 type M = map[string]any
 
@@ -129,9 +129,25 @@ func Apply(b []byte) ([]byte, error) {
 	if len(proxies) == 0 {
 		return nil, errors.New("missing_proxy_outbound")
 	}
+	entry, balance, explicit, err := routedEntry(source)
+	if err != nil {
+		return nil, err
+	}
+	if balance != "" {
+		return applyBalanced(source, list, byTag, balance)
+	}
 	var primary M
+	if explicit {
+		primary = byTag[entry]
+		if primary == nil {
+			return nil, errors.New("missing_proxy_dependency")
+		}
+		if !isProxy(primary) {
+			return nil, errors.New("template_route_not_proxy")
+		}
+	}
 	for _, ob := range proxies {
-		if ob["tag"] == "proxy" {
+		if !explicit && ob["tag"] == "proxy" {
 			primary = ob
 		}
 	}
@@ -196,6 +212,11 @@ func Apply(b []byte) ([]byte, error) {
 	root, _ := object([]byte(envelope))
 	out = append(out, M{"tag": "dns-out", "protocol": "dns", "settings": M{}, "streamSettings": M{"sockopt": M{"dialerProxy": "proxy"}}}, M{"tag": "direct", "protocol": "freedom"}, M{"tag": "block", "protocol": "blackhole"})
 	root["outbounds"] = out
+	addBootstrap(root, chain)
+	return json.Marshal(root)
+}
+
+func addBootstrap(root M, chain []M) {
 	// Bootstrap only the proxy's own hostnames locally. Sending these queries
 	// through the not-yet-connected proxy creates a DNS recursion. All other
 	// queries retain the three proxied DoH resolvers in the user's template.
@@ -214,7 +235,6 @@ func Apply(b []byte) ([]byte, error) {
 		servers := dns["servers"].([]any)
 		dns["servers"] = append([]any{M{"address": "https+local://1.1.1.1/dns-query", "domains": domains, "skipFallback": true}}, servers...)
 	}
-	return json.Marshal(root)
 }
 
 func references(ob M) []string {

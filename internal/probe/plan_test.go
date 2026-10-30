@@ -129,3 +129,23 @@ func FuzzPrepare(f *testing.F) {
 		}
 	})
 }
+
+func TestXHTTPPaddingCompatibilityAlias(t *testing.T) {
+	base := "vless://11111111-1111-4111-8111-111111111111@192.0.2.1:443?type=xhttp&security=none"
+	for _, query := range []string{"&x_padding_bytes=100-1000", "&x_padding_bytes=100-1000&extra=%7B%22xPaddingBytes%22%3A%22100-1000%22%7D", "&x_padding_bytes=100&extra=%7B%22xPaddingBytes%22%3A100%7D"} {
+		p := Prepare([]byte(base + query))
+		if len(p.Candidates) != 1 || !bytes.Contains(p.Candidates[0].Config, []byte("xPaddingBytes")) {
+			t.Fatal("known alias lost", p.Code)
+		}
+	}
+	for _, query := range []string{"&x_padding_bytes=100-1000&extra=%7B%22xPaddingBytes%22%3A%22200-300%22%7D", "&x_padding_bytes=0", "&x_padding_bytes=1000-100", "&x_padding_bytes=2147483648", "&x_padding_bytes=", "&x_padding_bytes=100&x_padding_bytes=200", "&unknown_future_option=1"} {
+		p := Prepare([]byte(base + query))
+		if len(p.Candidates) > 0 {
+			t.Fatal("ambiguous alias accepted")
+		}
+	}
+	p := Prepare([]byte("vless://11111111-1111-4111-8111-111111111111@192.0.2.1:443?type=tcp&x_padding_bytes=100"))
+	if len(p.Candidates) > 0 {
+		t.Fatal("alias ignored on wrong transport")
+	}
+}

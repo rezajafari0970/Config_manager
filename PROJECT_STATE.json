@@ -1,5 +1,5 @@
 {
-  "phase": "P10 TXT source correction and mixed base64/JSON extraction",
+  "phase": "P11 Exir structural repairs, balanced templates and accurate source evidence",
   "date": "2026-10-30",
   "status": "implemented_and_deployed",
   "repository": "rezajafari0970/Config_manager",
@@ -26,11 +26,12 @@
     "http_display": "Both export links use text/plain; charset=utf-8 and Content-Disposition: inline; all-config JSONL URL remains unchanged",
     "single_output": "Each scope has its own persistent round shared by clients of that scope; new arrivals join next round; global URLs and existing position preserved",
     "source_output": "Source membership is filtered before identity ranking; each source has scoped full JSONL and single-config rotation, independent of every other source and global rotation",
-    "mixed_input": "Extract plain URIs, full JSON/JSONL, standalone and embedded Base64 blocks, wrapped standard/URL-safe encodings; exact original response and decoded payload bytes remain immutable. URL path case is preserved."
+    "mixed_input": "Extract plain URIs, full JSON/JSONL, standalone and embedded Base64 blocks, wrapped standard/URL-safe encodings; exact original response and decoded payload bytes remain immutable. URL path case is preserved.",
+    "balanced_template": "Explicit universal balancer route retains original pool, strategy, fallback, observer and necessary chain tags; collision-free common envelope helpers; no arbitrary server selection"
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
-    "python_regressions": 9,
+    "python_regressions": 11,
     "pinned_core_template_fixtures": 19,
     "template_fuzz_executions": 240370,
     "browser": "passed synthetic Input/Output/Setting, mobile/desktop, restart, expiry and JSONL",
@@ -57,14 +58,15 @@
       "total": 9,
       "completed": 9,
       "core_passed": 8,
-      "connected": 4,
+      "connected": 2,
       "jsonl_configs": 8,
       "max_active": 3,
       "sigkill_recovered": true,
       "codes": {
-        "https_proxy_verified": 4,
+        "https_proxy_verified": 2,
         "hysteria1_unsupported_by_target_core": 1,
-        "nonpublic_endpoint_blocked": 4
+        "nonpublic_endpoint_blocked": 4,
+        "test_destination_partial": 2
       }
     },
     "migration_latest": "schema7 to8; 7 source definitions/revisions and all settings preserved by fingerprint; existing global cycle/queue unchanged",
@@ -100,7 +102,37 @@
       },
       "exact_source_and_stored_bytes": "passed independent SHA256 comparison; changing upstream snapshots explain changing counts"
     },
-    "worker_retry_note": "Initial isolated attempt exited probe_cleanup_failed before processing; retained failure receipt. Rerun with helper stderr capture passed SIGKILL/lease recovery. No production sandbox boundary or worker binary change."
+    "worker_retry_note": "Initial isolated attempt exited probe_cleanup_failed before processing; retained failure receipt. Rerun with helper stderr capture passed SIGKILL/lease recovery. No production sandbox boundary or worker binary change.",
+    "pinned_core_balancer_fixtures": 4,
+    "exir_repair": {
+      "samples": 20,
+      "core": {
+        "passed": 20
+      },
+      "connection": {
+        "passed": 6,
+        "partial": 2,
+        "failed": 9,
+        "not_run": 3
+      },
+      "synthetic_regressions": "passed structural allowlist, XHTTP alias conflicts, balancer graph/tag/idempotence and source ownership/expiry summaries",
+      "production": {
+        "timestamp": "2026-10-30T18:52:27.298241+00:00",
+        "summary": {
+          "total": 7,
+          "ready": 7,
+          "connected": 6,
+          "repaired": 1,
+          "pending": 0,
+          "blocked": 0
+        },
+        "exported": 7,
+        "original_hashes_matched": 7,
+        "duplicates": 0,
+        "android": "not_run"
+      },
+      "browser": "passed public TLS desktop and emulated Android, inline navigation, zero downloads/JS errors/overflow"
+    }
   },
   "runtime": {
     "database_schema": 8,
@@ -109,10 +141,10 @@
       "config-repair-prober.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p10-023265dc881f0651e0b7",
-    "panel_sha256": "023265dc881f0651e0b713532378a35cbd2fe3562ffdbcd40b12e1d4ebc248ba",
-    "worker_sha256": "4dd17163b3607c372990df88701e0b660fc16cbfb151a433045999db445e8acb",
-    "template_version": "xray-26.7.28.template.v1",
+    "release": "/opt/config-repair/releases/p11-2578fa427fa20339a69f",
+    "panel_sha256": "2578fa427fa20339a69f4c735628239384bcd5ec302f3318b9fed3bc56f6888a",
+    "worker_sha256": "dde8331f49b28f8b884cbc79ab425c84af67b6162d55644ba12683cbf0f8ea52",
+    "template_version": "xray-26.7.28.template.v2",
     "retention_seconds": 7200,
     "fetch_concurrency": 16,
     "fetch_timeout_seconds": 30,
@@ -120,8 +152,10 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/txt-mixed-deployed.json",
-    "publication_receipt": ".local/txt-mixed-published.json"
+    "deployment_receipt": ".local/exir-repair-deployed.json",
+    "publication_receipt": ".local/exir-repair-published.json",
+    "sandbox_driver_sha256": "c979512fb5ecd21e2cf97b0d73169aa338684b1cbdd40ab36a325b7b149199de",
+    "structural_version": "xray-26.7.28.structural.v2"
   },
   "next": [
     "Continue evidence-backed protocol/template coverage without reviving a sample bank",

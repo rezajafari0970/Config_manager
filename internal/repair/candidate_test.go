@@ -72,3 +72,19 @@ func FuzzStructuralCandidate(f *testing.F) {
 		}
 	})
 }
+
+func TestEmptyBuiltinOutboundSettingsRepair(t *testing.T) {
+	raw := []byte(`{ "inbounds":[], "routing":{}, "stats":[], "outbounds":[{"protocol":"vless","settings":{"address":"192.0.2.1","port":443,"id":"synthetic"}},{"protocol":"dns","settings":[]},{"protocol":"blackhole","settings":[]}] }`)
+	d := (JSONDriver{}).Propose(raw)
+	if d.Status != "repaired" || len(d.Patches) != 3 || Analyze(d.Candidate).HasErrors() {
+		t.Fatal("empty builtins not repaired", d.Status, d.Findings)
+	}
+	if (JSONDriver{}).Propose(d.Candidate).Status != "unchanged" {
+		t.Fatal("not idempotent")
+	}
+	for _, bad := range []string{`{"outbounds":[{"protocol":"dns","settings":[1]}]}`, `{"outbounds":[{"protocol":"vless","settings":[]}]}`, `{"outbounds":[{"protocol":"blackhole","settings":[{"response":"http"}]}]}`} {
+		if (JSONDriver{}).Propose([]byte(bad)).Status != "blocked" {
+			t.Fatal("nonempty/proxy settings guessed")
+		}
+	}
+}

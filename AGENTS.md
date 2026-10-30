@@ -46,3 +46,9 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - Read docs/checkpoints/P10-mixed-input-20261030.md. Preserve URL path case and distinguish upstream HTTP errors from parsing failures.
 - Mixed Base64/JSON/URI extraction must preserve exact decoded payloads and whole custom JSON documents. Never split child outbounds or invent delimiters/credentials. Keep strict padding checks, bounded envelope nesting, cancellation, malformed-sibling isolation and source ownership/dedup regressions.
 - Collection success is separate from conversion/core/connectivity. Mixed source originals may remain blocked by the existing explicit conversion gates.
+
+## P11 balanced conversion and source evidence
+- Read docs/checkpoints/P11-exir-repair-20261030.md. Template v2 and structural v2 are current; source/TTL ownership and schema8 remain unchanged.
+- Explicit universal balancer routes preserve original pool tags, strategies, fallback, observers and chain dependencies. Never substitute one arbitrary member or make loopback the implicit default. Infrastructure tags must not match pool/observer prefixes.
+- Source summary counts use Output's canonical ranking after source filtering; original-response diagnostics are not connection evidence.
+- Mixed IPv4/IPv6 pools can be tested through IPv4 without changing IPv6 members. The existing inet default-drop sandbox remains mandatory; a pool pass is not a per-member health claim.

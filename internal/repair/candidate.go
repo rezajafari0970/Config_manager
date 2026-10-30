@@ -11,7 +11,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/target"
 )
 
-const RulesVersion = "xray-26.7.28.structural.v1"
+const RulesVersion = "xray-26.7.28.structural.v2"
 
 type Diagnostic struct {
 	Version         string           `json:"version"`
@@ -207,7 +207,7 @@ func (JSONDriver) Propose(raw []byte) Diagnostic {
 	for i, ob := range obs {
 		var p string
 		_ = json.Unmarshal(ob["protocol"], &p)
-		if p == "freedom" {
+		if p == "freedom" || p == "blackhole" || p == "dns" {
 			allowed["/outbounds/"+strconv.Itoa(i)+"/settings"] = true
 		}
 	}

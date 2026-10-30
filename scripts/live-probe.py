@@ -68,10 +68,15 @@ def endpoints(config):
         except (subprocess.SubprocessError,json.JSONDecodeError): raise ValueError('endpoint_dns_failed')
         if not ips or any(not ipaddress.ip_address(ip).is_global or ipaddress.ip_address(ip).is_multicast or ipaddress.ip_address(ip).is_reserved for ip in ips): raise ValueError('nonpublic_endpoint_blocked')
         ipv4=[ip for ip in ips if ipaddress.ip_address(ip).version==4]
-        if not ipv4: raise ValueError('ipv6_only_probe_pending')
+        # IPv6 remains blocked by the namespace inet policy. A mixed pool can
+        # still be tested through its actual IPv4 members without removing or
+        # rewriting IPv6 outbounds. This proves the config on this network,
+        # not connectivity of every individual pool member.
+        if not ipv4: continue
         previous=resolved.get(host,{})
         ports=set(previous.get('ports',[]))|{str(port)}|hopping.get(host,set())
         resolved[host]={'ips':ipv4,'port':port,'ports':sorted(ports)}
+    if not resolved: raise ValueError('ipv6_only_probe_pending')
     return resolved
 
 def runtime_config(config, resolved):
