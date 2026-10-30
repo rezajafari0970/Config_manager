@@ -26,10 +26,16 @@ The Android batch parser handles URI lines, then a JSON array or single object. 
 
 ## Deployment and recovery
 
-Release: /opt/config-repair/releases/p7-7404c27104f11aec383b.
-Panel SHA256:7404c27104f11aec383bdb8b106026dd40134ed9a7b053faac3e4a4286a36ba3.
+Release: /opt/config-repair/releases/p7-51ff9bcd2e256c6a7b77.
+Panel SHA256:51ff9bcd2e256c6a7b776f8239d01808627db233a273ce70430d6d1bacd413b1.
 Worker SHA256:4dd17163b3607c372990df88701e0b660fc16cbfb151a433045999db445e8acb.
 
 Stopped-service matching schema5 DB/blob/key/release backup: /var/backups/config-repair/pre-p7-20261030-105800. Old private legacy lab files were archived there and removed from active project storage. Restore matching old data and binary together for rollback; never start a schema5 binary on schema6 data. Normal unreferenced-blob GC reclaims former bank payloads.
 
 Private receipts: .local/p7-check.log, p7-matrix-test.log, p7-fuzz.log, p7-browser.log, p7-worker-test.json, p7-deployed.json, p7-production-browser.json, p7-published-readback.json and p7-ci.json. Historical counts are timestamped samples, not permanent health guarantees. Source publication/readback and CI are verified separately after the checkpoint is committed; a commit does not contain its own hash.
+
+## Post-deployment SQLite recovery fix
+
+Read-only integrity audit found orphaned conversion results and memberships after database/sql replaced a physical SQLite connection. The previous one-time PRAGMA setup did not cover replacement connections. Foreign keys, busy timeout and FULL synchronous mode now live in the escaped file DSN and apply on every connection. Startup reconciles only transient rows whose parent has already gone, then synchronizes current conversion jobs.
+
+Regression tests force connection recycling and inject legacy orphan rows; cascading deletion, durability settings, source/raw preservation and startup reconciliation pass. Full checks passed again. The first guarded rollout correctly rolled back when remaining legacy membership orphans failed its integrity gate; the complete reconciliation then deployed successfully with zero foreign-key violations. Sources/settings stayed unchanged throughout. The final storage-fix backup is /var/backups/config-repair/pre-p7-db-fix-20261030-111226. Original schema5 migration receipt is .local/p7-schema6-migration.json; .local/p7-deployed.json now describes the final schema6 binary update. Template/worker algorithms are unchanged by this fix.

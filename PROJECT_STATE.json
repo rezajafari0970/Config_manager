@@ -40,7 +40,8 @@
       "sigkill_lease_recovery": "passed"
     },
     "migration": "schema5 bank removed; 54 source definitions/revisions and source/conversion settings preserved",
-    "android": "not_run"
+    "android": "not_run",
+    "sqlite_reconnect": "passed DSN pragmas, recycled-connection cascades, startup orphan reconciliation; production foreign_key_check empty"
   },
   "runtime": {
     "database_schema": 6,
@@ -49,8 +50,8 @@
       "config-repair-prober.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p7-7404c27104f11aec383b",
-    "panel_sha256": "7404c27104f11aec383bdb8b106026dd40134ed9a7b053faac3e4a4286a36ba3",
+    "release": "/opt/config-repair/releases/p7-51ff9bcd2e256c6a7b77",
+    "panel_sha256": "51ff9bcd2e256c6a7b776f8239d01808627db233a273ce70430d6d1bacd413b1",
     "worker_sha256": "4dd17163b3607c372990df88701e0b660fc16cbfb151a433045999db445e8acb",
     "template_version": "xray-26.7.28.template.v1",
     "retention_seconds": 7200,

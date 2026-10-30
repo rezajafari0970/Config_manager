@@ -29,3 +29,5 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - scripts/conversion-worker-test.py uses distinct ctw resources and an isolated lock; production owns crw resources. Never use a test cleanup against production resources.
 - Update state, handoff and checkpoint together. Publish tested source; fetch/read back the exact revision and verify installed binary hashes separately.
 - Final automated installer is still a separate release task requiring reproducible checksum-pinned install/update/rollback tests.
+
+- SQLite foreign_keys, busy_timeout and synchronous pragmas must be applied to every physical connection via the DSN; one-time Open PRAGMAs do not survive connection replacement. Retain reconnect/cascade and startup reconciliation regressions.

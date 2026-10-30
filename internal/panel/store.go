@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/rezajafari0970/Config_manager/internal/blob"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sync/atomic"
@@ -46,7 +47,15 @@ func Open(path string, key []byte) (*Store, error) {
 	if err = os.Chmod(path, 0600); err != nil {
 		return nil, err
 	}
-	db, err := sql.Open("sqlite", path)
+	// database/sql may replace a connection after cancellation. Connection-local
+	// pragmas must therefore be part of the DSN, not only issued once at Open.
+	dsn := url.URL{Scheme: "file", Path: path}
+	params := url.Values{}
+	for _, pragma := range []string{"foreign_keys(1)", "busy_timeout(5000)", "synchronous(FULL)"} {
+		params.Add("_pragma", pragma)
+	}
+	dsn.RawQuery = params.Encode()
+	db, err := sql.Open("sqlite", dsn.String())
 	if err != nil {
 		return nil, err
 	}
@@ -120,6 +129,11 @@ PRAGMA user_version=1;`)
 	if err = s.migrateV6(); err != nil {
 		return nil, err
 	}
+	// Reconcile transient children left by older connections with foreign keys
+	// disabled. This never deletes source definitions or a still-owned artifact.
+	if err = s.reconcileTransient(); err != nil {
+		return nil, err
+	}
 	s.vault, err = blob.New(filepath.Join(filepath.Dir(path), "blobs"), key)
 	if err != nil {
 		return nil, err
@@ -154,4 +168,26 @@ func (s *Store) open(id string, data []byte) ([]byte, error) {
 		return nil, errors.New("invalid ciphertext")
 	}
 	return s.aead.Open(nil, data[:n], data[n:], []byte(id))
+}
+
+func (s *Store) reconcileTransient() error {
+	tx, e := s.db.Begin()
+	if e != nil {
+		return e
+	}
+	defer tx.Rollback()
+	for _, q := range []string{
+		"DELETE FROM memberships WHERE NOT EXISTS(SELECT 1 FROM sources s WHERE s.id=memberships.source_id) OR NOT EXISTS(SELECT 1 FROM artifacts a WHERE a.id=memberships.artifact_id)",
+		"DELETE FROM responses WHERE NOT EXISTS(SELECT 1 FROM sources s WHERE s.id=responses.source_id)",
+		"DELETE FROM staged WHERE NOT EXISTS(SELECT 1 FROM sources s WHERE s.id=staged.source_id)",
+		"DELETE FROM conversion_results WHERE NOT EXISTS(SELECT 1 FROM conversion_jobs j WHERE j.hash=conversion_results.hash)",
+	} {
+		if _, e = tx.Exec(q); e != nil {
+			return e
+		}
+	}
+	if e = syncConversions(context.Background(), tx); e != nil {
+		return e
+	}
+	return tx.Commit()
 }

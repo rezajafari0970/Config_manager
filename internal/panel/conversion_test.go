@@ -10,6 +10,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/probe"
 	"io"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -220,5 +221,81 @@ func TestV5BankRemovalPreservesSources(t *testing.T) {
 	settings, _ := s.ProbeSettings(ctx)
 	if settings.Concurrency != 3 || settings.TimeoutSeconds != 7 {
 		t.Fatal("lost worker settings")
+	}
+}
+
+func TestSQLiteRecycledConnectionsKeepCascadesAndDurability(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	id, j := addConversion(t, s, conversionSample)
+	if e := s.CompleteProbe(ctx, conversionResult(j, 0, true)); e != nil {
+		t.Fatal(e)
+	}
+	// Force a different physical SQLite connection for each subsequent operation.
+	s.db.SetMaxIdleConns(0)
+	for pragma, want := range map[string]int{"foreign_keys": 1, "busy_timeout": 5000, "synchronous": 2} {
+		var got int
+		if e := s.db.QueryRow("PRAGMA " + pragma).Scan(&got); e != nil || got != want {
+			t.Fatal("recycled connection", pragma, got, e)
+		}
+	}
+	if e := s.Delete(ctx, id, 1); e != nil {
+		t.Fatal(e)
+	}
+	var count int
+	s.db.QueryRow("SELECT count(*) FROM conversion_results").Scan(&count)
+	if count != 0 {
+		t.Fatal("orphaned conversion result", count)
+	}
+	rows, e := s.db.Query("PRAGMA foreign_key_check")
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer rows.Close()
+	if rows.Next() {
+		t.Fatal("foreign key violation")
+	}
+}
+func TestStartupCleansLegacyOrphanConversionResults(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "private", "panel.db")
+	key := bytes.Repeat([]byte{31}, 32)
+	s, e := Open(path, key)
+	if e != nil {
+		t.Fatal(e)
+	}
+	_, j := addConversion(t, s, conversionSample)
+	if e = s.CompleteProbe(context.Background(), conversionResult(j, 0, true)); e != nil {
+		t.Fatal(e)
+	}
+	if _, e = s.db.Exec("PRAGMA foreign_keys=OFF;DELETE FROM conversion_jobs;INSERT INTO memberships SELECT source_id,'missing-artifact',generation,raw_hash,kind,size FROM memberships LIMIT 1;"); e != nil {
+		t.Fatal(e)
+	}
+	s.Close()
+	s, e = Open(path, key)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.Close()
+	var count int
+	s.db.QueryRow("SELECT count(*) FROM conversion_results").Scan(&count)
+	if count != 0 {
+		t.Fatal("legacy orphan survived restart")
+	}
+	sources, e := s.ListPage(context.Background(), "", 0)
+	if e != nil || len(sources) != 1 {
+		t.Fatal("source damaged", e)
+	}
+	body, e := s.vault.Open(j.Hash)
+	if e != nil {
+		t.Fatal("raw input damaged", e)
+	}
+	body.Close()
+	check, e := s.db.Query("PRAGMA foreign_key_check")
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer check.Close()
+	if check.Next() {
+		t.Fatal("legacy foreign key violation remains")
 	}
 }
