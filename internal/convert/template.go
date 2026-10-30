@@ -13,7 +13,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 )
 
-const Version = "xray-26.7.28.template.v2"
+const Version = "xray-26.7.28.template.v3"
 
 type M = map[string]any
 
@@ -300,6 +300,9 @@ func normalize(ob M) error {
 				}
 			}
 		}
+	}
+	if err := allowProxyTraffic(ob, s); err != nil {
+		return err
 	}
 	// Pinned core supports both forms. Preserve advanced flat options; use the
 	// requested vnext shape when it can be represented without losing fields.

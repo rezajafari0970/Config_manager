@@ -1,6 +1,6 @@
-# Handoff — P11 Exir conversion repairs
+# Handoff — P12 open TCP/UDP/QUIC traffic
 
-Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and the P11 checkpoint (P7/P8/P9/P10 are historical context). Verify actual HEAD/origin/status and private p7 receipts. The user's latest instruction explicitly removes the P6 persistent bank; do not resurrect it based on older checkpoints.
+Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and the P12 checkpoint (P7/P8/P9/P10/P11 are historical context). Verify actual HEAD/origin/status and private p7 receipts. The user's latest instruction explicitly removes the P6 persistent bank; do not resurrect it based on older checkpoints.
 
 Authoritative server tree: /root/projects/v2ray-config-repair. GitHub: rezajafari0970/Config_manager, branch go/v2rayng-2.3.6. Legacy main and unrelated DigitalOcean infrastructure are outside scope.
 
@@ -65,3 +65,12 @@ Input now counts canonical source-owned conversion evidence, instead of summing 
 Twenty current/historical private Exir representations passed core after conversion; network outcomes varied. Fresh production snapshot at18:52:27Z had7ready/7exported,6two-HTTPS passes,1IPv6-only pending and1structurally repaired original. All7original hashes matched. Full race/build/pinned-core tests,11Python tests, synthetic browser/restart, isolated worker SIGKILL recovery and public desktop/emulated Android inline checks passed. This is not an Android app/TUN receipt.
 
 Latest deployment/publication receipts: .local/exir-repair-deployed.json and .local/exir-repair-published.json. Release and three hashes are in PROJECT_STATE.json. The updated live-probe.py is part of the release alongside panel and worker; rollback all three together. Schema8 and all7source definitions/revisions/settings were preserved. Backup:/var/backups/config-repair/pre-exir-repair-20261030-185005. Same-schema rollback preserves current user data and changes. Do not restore old source counts or infer current outcomes from these snapshots. No raw fixtures or private captures belong in Git.
+
+
+## Current P12 open TCP/UDP/QUIC traffic — 2026-10-30
+
+User explicitly wants TCP, UDP and QUIC allowed in generated configs. Template v3 preserves the existing SOCKS UDP/sniffing/tcp,udp routes and opens the pinned core's local Vision/Mux UDP443 gates. Vision receives its supported -udp443 suffix, stripped on wire by Xray. Existing Mux absent/empty/reject UDP443 policy becomes allow; explicit skip is retained. Null/absent mux stays null/absent; multiplexing and concurrency are not changed. Originals, secrets, TLS/Reality and endpoints remain unchanged.
+
+Read docs/checkpoints/P12-open-traffic-20261030.md and the P12 section of docs/CONVERSION.md. The optional root-only packet regression uses the existing sandbox with synthetic pinned-certificate VLESS peers and fresh SOCKS UDP associations: before gates, TCP/ordinary UDP pass and UDP443 fails; after policy all pass. It does not claim upstream QUIC/HTTP3 negotiation or Android app validation. The private localhost echo fixture uses an explicit narrow freedom finalRules allow for its loopback endpoints, because the pinned server core blocks private destinations by default. Production sandbox boundaries are unchanged.
+
+Full checks/pinned core, browser/restart and isolated worker recovery passed. Latest receipts are .local/traffic-deployed.json, traffic-live.json, traffic-published.json and traffic-{check,browser,worker,targeted}.log. Schema8 and actual live source definitions/revisions/settings were preserved. Runtime hashes/release are in PROJECT_STATE.json. Same-schema rollback switches to the prior release while retaining current user data; use the matching stopped-service backup recorded in the deployment receipt.

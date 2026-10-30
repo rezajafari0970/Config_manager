@@ -1,5 +1,5 @@
 {
-  "phase": "P11 Exir structural repairs, balanced templates and accurate source evidence",
+  "phase": "P12 open TCP/UDP/QUIC client traffic policy",
   "date": "2026-10-30",
   "status": "implemented_and_deployed",
   "repository": "rezajafari0970/Config_manager",
@@ -27,7 +27,8 @@
     "single_output": "Each scope has its own persistent round shared by clients of that scope; new arrivals join next round; global URLs and existing position preserved",
     "source_output": "Source membership is filtered before identity ranking; each source has scoped full JSONL and single-config rotation, independent of every other source and global rotation",
     "mixed_input": "Extract plain URIs, full JSON/JSONL, standalone and embedded Base64 blocks, wrapped standard/URL-safe encodings; exact original response and decoded payload bytes remain immutable. URL path case is preserved.",
-    "balanced_template": "Explicit universal balancer route retains original pool, strategy, fallback, observer and necessary chain tags; collision-free common envelope helpers; no arbitrary server selection"
+    "balanced_template": "Explicit universal balancer route retains original pool, strategy, fallback, observer and necessary chain tags; collision-free common envelope helpers; no arbitrary server selection",
+    "traffic": "SOCKS UDP and tcp,udp routing; known Vision/Mux UDP443 rejection gates opened without enabling multiplexing or changing credentials/TLS; upstream UDP/QUIC support remains separate"
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -66,7 +67,8 @@
         "https_proxy_verified": 2,
         "hysteria1_unsupported_by_target_core": 1,
         "nonpublic_endpoint_blocked": 4,
-        "test_destination_partial": 2
+        "proxy_request_failed": 1,
+        "test_destination_partial": 1
       }
     },
     "migration_latest": "schema7 to8; 7 source definitions/revisions and all settings preserved by fingerprint; existing global cycle/queue unchanged",
@@ -132,6 +134,29 @@
         "android": "not_run"
       },
       "browser": "passed public TLS desktop and emulated Android, inline navigation, zero downloads/JS errors/overflow"
+    },
+    "traffic_policy": {
+      "synthetic_tcp_udp_udp443": "passed two before/after Vision and Mux gates with fresh SOCKS associations",
+      "protocol_envelope_matrix": "passed",
+      "chains_pools_null_mux_idempotence_original_bytes": "passed",
+      "production": {
+        "passed": true,
+        "version": "xray-26.7.28.template.v3",
+        "timestamp": "2026-10-30T19:54:06.601528+00:00",
+        "counts": {
+          "configs": 312,
+          "mux_present": 1,
+          "vision_udp443_allowed": 22
+        },
+        "remaining_old_versions": 0,
+        "source_count": 8,
+        "inline": true,
+        "duplicates": 0,
+        "android": "not_run",
+        "live_quic_handshake": "not_run",
+        "synthetic_tcp_udp_udp443": "passed"
+      },
+      "upstream_quic_handshake": "not_run"
     }
   },
   "runtime": {
@@ -141,10 +166,10 @@
       "config-repair-prober.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p11-2578fa427fa20339a69f",
-    "panel_sha256": "2578fa427fa20339a69f4c735628239384bcd5ec302f3318b9fed3bc56f6888a",
-    "worker_sha256": "dde8331f49b28f8b884cbc79ab425c84af67b6162d55644ba12683cbf0f8ea52",
-    "template_version": "xray-26.7.28.template.v2",
+    "release": "/opt/config-repair/releases/p12-0df73ef54bd1e27ac219",
+    "panel_sha256": "0df73ef54bd1e27ac2196d19633ed607aa52d85733b00f95b3e85712ce6804c2",
+    "worker_sha256": "f697f1fafdd026687675b0f8302c35204dd01b4df8fb53830fdf689f12072b6a",
+    "template_version": "xray-26.7.28.template.v3",
     "retention_seconds": 7200,
     "fetch_concurrency": 16,
     "fetch_timeout_seconds": 30,
@@ -152,8 +177,8 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/exir-repair-deployed.json",
-    "publication_receipt": ".local/exir-repair-published.json",
+    "deployment_receipt": ".local/traffic-deployed.json",
+    "publication_receipt": ".local/traffic-published.json",
     "sandbox_driver_sha256": "c979512fb5ecd21e2cf97b0d73169aa338684b1cbdd40ab36a325b7b149199de",
     "structural_version": "xray-26.7.28.structural.v2"
   },

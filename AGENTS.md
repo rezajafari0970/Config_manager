@@ -52,3 +52,8 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - Explicit universal balancer routes preserve original pool tags, strategies, fallback, observers and chain dependencies. Never substitute one arbitrary member or make loopback the implicit default. Infrastructure tags must not match pool/observer prefixes.
 - Source summary counts use Output's canonical ranking after source filtering; original-response diagnostics are not connection evidence.
 - Mixed IPv4/IPv6 pools can be tested through IPv4 without changing IPv6 members. The existing inet default-drop sandbox remains mandatory; a pool pass is not a per-member health claim.
+
+## P12 open client traffic
+- Template v3 applies the user's explicit TCP/UDP/QUIC policy. Retain SOCKS UDP and tcp,udp routing; QUIC is carried over UDP, not a routing network enum.
+- Normalize only known VLESS Vision UDP443 and existing Mux rejection gates. Preserve null/absent mux, explicit native-UDP skip, concurrency, endpoints, credentials and TLS. Do not enable multiplexing or invent another wire protocol.
+- Real isolated TCP/UDP/UDP443 regression is available through XRAY_TRAFFIC_TEST=1; use fresh SOCKS UDP associations for negative controls. This synthetic echo evidence is not a live QUIC/HTTP3 handshake or a promise of every upstream server's UDP support.
