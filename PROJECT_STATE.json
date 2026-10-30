@@ -1,5 +1,5 @@
 {
-  "phase": "P7 shared JSON template conversion",
+  "phase": "P8 durable single-config rotation",
   "date": "2026-10-30",
   "status": "implemented_and_deployed",
   "repository": "rezajafari0970/Config_manager",
@@ -23,7 +23,8 @@
     "connectivity": "separate from ordinary JSON export eligibility",
     "android": "not_run",
     "android_subscription_caveat": "Pinned Custom parser expects JSON array/single object; JSONL is not native batch subscription format",
-    "http_display": "text/plain; charset=utf-8 and Content-Disposition: inline; unchanged JSONL body and URL"
+    "http_display": "Both export links use text/plain; charset=utf-8 and Content-Disposition: inline; all-config JSONL URL remains unchanged",
+    "single_output": "Separate inline link, one compact JSON per GET; shared persistent round, no duplicate allocation until snapshot exhausted; new arrivals join next round"
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -44,17 +45,38 @@
     "android": "not_run",
     "sqlite_reconnect": "passed DSN pragmas, recycled-connection cascades, startup orphan reconciliation; production foreign_key_check empty",
     "export_isolation": "passed missing blob isolation/requeue and stale snapshot protection",
-    "inline_export": "passed complete checks, synthetic browser navigation, public HTTPS desktop and emulated Android navigation: exact response text, zero download events"
+    "inline_export": "passed complete checks, synthetic browser navigation, public HTTPS desktop and emulated Android navigation: exact response text, zero download events",
+    "rotation": "passed schema6 upgrade/reopen, 25 parallel allocations across two Store instances and five complete rounds with concurrent GC, additions/disable/delete/expiry/missing blob/stale claims, HEAD/prefetch/cancellation, exact JSON",
+    "rotation_browser": "passed two synthetic browser phases with process restart, round reset, empty204; production desktop/emulated Android inline navigation and 12 concurrent GETs, zero duplicates/downloads",
+    "isolated_worker_latest": {
+      "android": "not_run",
+      "live_samples": 4,
+      "passed": true,
+      "total": 9,
+      "completed": 9,
+      "core_passed": 8,
+      "connected": 2,
+      "jsonl_configs": 7,
+      "max_active": 3,
+      "sigkill_recovered": true,
+      "codes": {
+        "https_proxy_verified": 2,
+        "hysteria1_unsupported_by_target_core": 1,
+        "nonpublic_endpoint_blocked": 4,
+        "proxy_request_failed": 2
+      }
+    },
+    "migration_latest": "schema6 to7; 54 source definitions/revisions and settings preserved by fingerprint"
   },
   "runtime": {
-    "database_schema": 6,
+    "database_schema": 7,
     "services": [
       "config-repair.service",
       "config-repair-prober.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p7-inline-d5c22a1edbca89f2b361",
-    "panel_sha256": "d5c22a1edbca89f2b3610dfa28975a403b100167d10bdc1ca36b5d132dcaac8e",
+    "release": "/opt/config-repair/releases/p8-18dfef6d1458ebb97f3a",
+    "panel_sha256": "18dfef6d1458ebb97f3a24d8d3eb4b37126b6db8780c1ace779a016a52199796",
     "worker_sha256": "4dd17163b3607c372990df88701e0b660fc16cbfb151a433045999db445e8acb",
     "template_version": "xray-26.7.28.template.v1",
     "retention_seconds": 7200,
@@ -64,8 +86,8 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/inline-export-deployed.json",
-    "publication_receipt": ".local/inline-export-published.json"
+    "deployment_receipt": ".local/rotation-deployed.json",
+    "publication_receipt": ".local/rotation-published.json"
   },
   "next": [
     "Continue evidence-backed protocol/template coverage without reviving a sample bank",

@@ -1,6 +1,6 @@
-# Handoff — P7 JSON template conversion
+# Handoff — P8 single-config rotation
 
-Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and the P7 checkpoint. Verify actual HEAD/origin/status and private p7 receipts. The user's latest instruction explicitly removes the P6 persistent bank; do not resurrect it based on older checkpoints.
+Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and the P7/P8 checkpoints. Verify actual HEAD/origin/status and private p7 receipts. The user's latest instruction explicitly removes the P6 persistent bank; do not resurrect it based on older checkpoints.
 
 Authoritative server tree: /root/projects/v2ray-config-repair. GitHub: rezajafari0970/Config_manager, branch go/v2rayng-2.3.6. Legacy main and unrelated DigitalOcean infrastructure are outside scope.
 
@@ -28,3 +28,9 @@ Post-deployment storage correction: SQLite connection pragmas are DSN-bound so r
 ## Inline export correction — 2026-10-30
 
 The existing JSONL URL now responds with `text/plain; charset=utf-8` and `Content-Disposition: inline`, so Chrome displays the exact line-delimited JSON instead of downloading an unrecognized NDJSON media type. URL, token and serialization are unchanged. Existing browser coverage now navigates to the export and checks visible response bytes and zero download events. Public HTTPS navigation passed on desktop and emulated Android. Latest binary-only deployment and publication receipts are `.local/inline-export-deployed.json` and `.local/inline-export-published.json`; schema6, all54sources and settings were preserved. Rollback for this header-only update is the previous schema6 release recorded in the deployment receipt; no database restoration is required.
+
+## Current P8 single-config rotation — 2026-10-30
+
+Schema7 adds export_rotation_state and export_rotation_queue. `internal/panel/rotation.go` is a separate PanelModule and stores only the current round number and pending candidate hashes. `/api/conversions` now returns `single_export_url`; Output displays both links. One GET consumes one exact compact JSON, inline text, with no cache. The global queue survives restart and wraps only after its current snapshot is exhausted. New configs join the next round. Deleted/disabled/expired/unaccepted entries are skipped; missing blobs are requeued for conversion. Empty output is204; HEAD/prefetch never consumes. Blob I/O remains outside DB transactions; a write-locked final claim checks current eligibility, cycle and queue head. Delivery after a client disconnect cannot be guaranteed without client acknowledgements.
+
+Current release and hashes are in PROJECT_STATE.json. Latest receipts: `.local/rotation-deployed.json`, `.local/rotation-live-browser.json`, `.local/rotation-published.json`. Full checks, synthetic browser/restart, two-Store parallel rounds with GC, isolated worker SIGKILL recovery and live public inline/parallel checks passed. All54sources/settings were preserved. The matching stopped-service backup is /var/backups/config-repair/pre-rotation-20261030-121235. Schema6 binaries reject schema7; rollback must restore matching DB/blobs/key/release while both services are stopped. Do not use the previous header-only rollback instructions for this migration.

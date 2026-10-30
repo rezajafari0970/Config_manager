@@ -133,7 +133,7 @@ func (s *Server) Handler() http.Handler {
 		})
 	}
 	mux.HandleFunc("GET /api/state", s.state)
-	modules := []PanelModule{inputModule{s}, outputModule{s}, settingModule{s}, conversionModule{s}}
+	modules := []PanelModule{inputModule{s}, outputModule{s}, settingModule{s}, conversionModule{s}, rotationModule{s}}
 	modules = append(modules, s.modules...)
 	for _, module := range modules {
 		module.Register(mux)

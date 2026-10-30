@@ -31,3 +31,8 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - Final automated installer is still a separate release task requiring reproducible checksum-pinned install/update/rollback tests.
 
 - SQLite foreign_keys, busy_timeout and synchronous pragmas must be applied to every physical connection via the DSN; one-time Open PRAGMAs do not survive connection replacement. Retain reconnect/cascade and startup reconciliation regressions.
+
+## P8 single-output rotation
+- Read docs/checkpoints/P8-single-output-20261030.md for the current additive schema7 change. Preserve the all-config export and independent source lifecycle.
+- The single link uses one global durable round across clients; snapshot only unique eligible candidate hashes. New arrivals join the next round. HEAD/prefetch must not consume turns.
+- Validate blobs outside SQLite transactions to preserve the vault-to-DB garbage-collection lock order; recheck eligibility and queue head atomically before consuming. Do not claim exactly-once network delivery after an interrupted response.

@@ -3,6 +3,7 @@ package panel
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"github.com/rezajafari0970/Config_manager/internal/convert"
 	"github.com/rezajafari0970/Config_manager/internal/probe"
@@ -39,7 +40,15 @@ const conversionQuery = `WITH choices AS (
  WHERE a.expires>? AND s.enabled=1 AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.expires>?))
  SELECT id,raw_hash,kind,expires,coalesce(state,'queued'),coalesce(candidate_hash,''),coalesce(code,''),coalesce(core,'not_run'),coalesce(connection,'not_run'),coalesce(tested,0),coalesce(valid_until,0),coalesce(available,0) FROM choices WHERE choice=1`
 
+type conversionQuerier interface {
+	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
+}
+
 func (s *Store) Conversions(ctx context.Context, page int, all bool) ([]Conversion, error) {
+	return queryConversions(ctx, s.db, page, all)
+}
+
+func queryConversions(ctx context.Context, db conversionQuerier, page int, all bool) ([]Conversion, error) {
 	now := time.Now().UnixMilli()
 	q := conversionQuery + " ORDER BY id"
 	args := []any{convert.Version, now, convert.Version, now, now, now}
@@ -47,7 +56,7 @@ func (s *Store) Conversions(ctx context.Context, page int, all bool) ([]Conversi
 		q += " LIMIT 100 OFFSET ?"
 		args = append(args, max(0, page)*100)
 	}
-	rows, e := s.db.QueryContext(ctx, q, args...)
+	rows, e := db.QueryContext(ctx, q, args...)
 	if e != nil {
 		return nil, e
 	}
@@ -106,7 +115,7 @@ func (m conversionModule) Register(mux *http.ServeMux) {
 		if time.Now().UnixMilli()-worker.Heartbeat > 30000 {
 			worker.Status = "offline"
 		}
-		respond(w, 200, map[string]any{"entries": entries, "settings": settings, "worker": worker, "export_url": s.origin + "/subscription/" + s.store.digest("subscription", "template-jsonl-v1") + "/configs.jsonl", "version": convert.Version, "android_import": "not_run"})
+		respond(w, 200, map[string]any{"entries": entries, "settings": settings, "worker": worker, "export_url": s.origin + "/subscription/" + s.store.digest("subscription", "template-jsonl-v1") + "/configs.jsonl", "single_export_url": s.singleExportURL(), "version": convert.Version, "android_import": "not_run"})
 	})
 	mux.HandleFunc("POST /api/conversion/settings", func(w http.ResponseWriter, r *http.Request) {
 		var v probe.Settings

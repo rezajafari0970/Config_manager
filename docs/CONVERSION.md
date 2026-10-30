@@ -31,3 +31,13 @@ The existing systemd prober is now a conversion validator, not a laboratory bank
 ## Checks
 
 `internal/convert/template_test.go`: matrix, pinned binary checksum/core acceptance, template idempotence, immutable input, credentials/transport/numbers, default repair, ambiguity, chain dependencies and hypothesis gate. `internal/panel/conversion_test.go`: schema5 removal, source retention, dedup/JSONL, private proof validation, stale leases, deletion/TTL and hypothesis freshness. Browser tests use explicitly synthetic UI evidence; the sandbox integration uses its own ctw prefix and can read a bounded sample of authorized live raw outputs without altering production data.
+
+## Single-config rotation
+
+Output also exposes `single_export_url` through `/api/conversions`: `/subscription/{token}/next.json`, with a separate derived token. Each ordinary GET allocates one exact eligible JSON plus a newline, served as inline UTF-8 plain text with no cache. The existing all-config link is unchanged and never advances the rotation. HEAD and explicit prefetch requests do not consume turns. If no eligible config exists, the single endpoint returns HTTP204 with an empty body.
+
+Schema7 adds only a singleton cycle number and a bounded queue of candidate hashes for the current round. A round snapshots unique currently eligible output; new arrivals join the next round. Missing, removed, disabled, expired or no-longer-accepted candidates are skipped; corrupt blobs trigger the existing regeneration path. After the remaining queue is exhausted, the next request starts a new snapshot. All clients of this link share one rotation, persisted across service/server restarts. No config body or historical repair data is stored in the rotation tables.
+
+Selection and claiming use SQLite write transactions, including guards across multiple Store instances. Blob reads occur outside transactions to avoid a vault/GC lock inversion; eligibility and queue position are checked again before the atomic claim. The allocation is committed before HTTP writing. Therefore concurrent successful allocations do not repeat within a round, but a broken client connection after commit can lose that allocated response; HTTP without a client acknowledgement cannot prove delivery. `X-Export-Cycle` and `X-Content-SHA256` identify the allocation without adding anything to the body.
+
+Regressions cover multiple complete rounds, restart/migration, concurrent independent Store instances with garbage collection, dynamic additions, disable/delete/expiry, stale claims, corrupt blobs, cancellation, token scope, HEAD/prefetch, exact single-line output and empty204. The browser fixture navigates both export links, checks no downloads, and verifies the persisted position after process restart.

@@ -18,11 +18,25 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
  // Navigate like a user: an API GET alone cannot detect forced downloads.
  const exportPage=await context.newPage(),downloads=[];exportPage.on('download',d=>downloads.push(d));
  const inlineResponse=await exportPage.goto(c.export_url,{waitUntil:'domcontentloaded'});assert.equal(inlineResponse.status(),200);assert.equal(await exportPage.evaluate(()=>document.contentType),'text/plain');assert.equal(await exportPage.locator('body').innerText(),await response.text());assert.equal(downloads.length,0);await exportPage.close();
+ // Verify the new link as a real navigation, including a full two-item round.
+ assert.equal(await page.locator('#single-url').getAttribute('href'),c.single_export_url);
+ const onePage=await context.newPage(),singleDownloads=[];onePage.on('download',d=>singleDownloads.push(d));
+ const single=[];
+ for(let i=0;i<3;i++){
+  const r=await onePage.goto(c.single_export_url,{waitUntil:'domcontentloaded'});assert.equal(r.status(),200);
+  assert.equal(r.headers()['content-type'],'text/plain; charset=utf-8');assert.equal(r.headers()['content-disposition'],'inline');
+  const text=await r.text();assert.equal(await onePage.locator('body').innerText(),text);assert.equal(text.trim().split('\n').length,1);assert.equal(JSON.parse(text).remarks,'@shenvpn');
+  single.push({hash:r.headers()['x-content-sha256'],cycle:Number(r.headers()['x-export-cycle'])});
+ }
+ assert.equal(singleDownloads.length,0);await onePage.close();
+ assert.notEqual(single[0].hash,single[1].hash);
+ if(phase==='1'){assert.equal(single[0].cycle,1);assert.equal(single[1].cycle,1);assert.equal(single[2].cycle,2);assert.equal(single[2].hash,single[0].hash)}
+ else{assert.equal(single[0].cycle,2);assert.equal(single[1].cycle,3);assert.equal(single[2].cycle,3);assert.notEqual(single[1].hash,single[2].hash)}
  assert.equal((await context.request.get(origin+'/api/bank')).status(),404);assert.equal((await context.request.get(origin+'/assets/bank.js')).status(),404);
  await page.locator('[data-view]').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('pre')].some(p=>!p.hidden&&p.textContent.startsWith('{')));await noOverflow();await page.screenshot({path:dir+'/output-mobile.png',fullPage:true});
  await page.setViewportSize({width:1440,height:1000});await noOverflow();await page.screenshot({path:dir+'/output-desktop.png',fullPage:true});
  await page.goto(origin+'/setting');await page.waitForFunction(()=>document.querySelector('#probe-concurrency').value!=='');await page.setViewportSize({width:390,height:844});await noOverflow();
  if(phase==='1'){await page.locator('#request-timeout').fill('۱۹');await page.getByRole('button',{name:'ذخیرهٔ تنظیمات',exact:true}).click();await wait(async()=>(await state()).settings.timeout_seconds===19);await page.locator('#probe-concurrency').fill('3');await page.locator('#probe-settings button').click();await wait(async()=>(await(await context.request.get(origin+'/api/conversions')).json()).settings.concurrency===3)}
- else{assert.equal(c.settings.concurrency,3);await page.locator('#retention-hours').fill('۰٫۰۰۲۵');await page.getByRole('button',{name:'ذخیرهٔ تنظیمات',exact:true}).click();await wait(async()=>(await state()).stats.configs===0);const converted=await(await context.request.get(origin+'/api/conversions')).json();assert.equal(converted.entries.length,0);assert.equal(await(await context.request.get(converted.export_url)).text(),'')}
+ else{assert.equal(c.settings.concurrency,3);await page.locator('#retention-hours').fill('۰٫۰۰۲۵');await page.getByRole('button',{name:'ذخیرهٔ تنظیمات',exact:true}).click();await wait(async()=>(await state()).stats.configs===0);const converted=await(await context.request.get(origin+'/api/conversions')).json();assert.equal(converted.entries.length,0);assert.equal(await(await context.request.get(converted.export_url)).text(),'');const emptySingle=await context.request.get(converted.single_export_url);assert.equal(emptySingle.status(),204);assert.equal(await emptySingle.text(),'')}
  await page.screenshot({path:dir+'/setting-mobile.png',fullPage:true});assert.deepEqual(errors,[]);console.log(JSON.stringify({phase,passed:true,browser:await browser.version(),scope:'synthetic UI only; core matrix is separate'}));
 }finally{await browser.close()}})().catch(e=>{console.error(e);process.exit(1)});
