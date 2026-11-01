@@ -106,3 +106,36 @@ func TestSmartConnectionDeadlineBoundsCacheAndCannotBorrowProof(t *testing.T) {
 		t.Fatal("unhealthy-only source selected", e)
 	}
 }
+
+func TestSmartApplicationProofExcludesGeneralOnlyAndStaleSiteResult(t *testing.T) {
+	s, _ := smartFixture(t)
+	ctx := context.Background()
+	finishSmart(t, s)
+	rows, _ := querySmart(ctx, s.db, true, 0)
+	hash := repair.Digest([]byte(sourceURI(5)))
+	for _, code := range []string{"https_proxy_verified", "https_proxy_verified_site_unavailable"} {
+		if _, e := s.db.Exec("UPDATE conversion_results SET code=? WHERE hash=?", code, hash); e != nil {
+			t.Fatal(e)
+		}
+		inventory, e := smartInventory(ctx, s.db)
+		if e != nil || len(inventory) != 6 {
+			t.Fatal("site-unverified input admitted", e)
+		}
+		for _, v := range rows {
+			if _, e := s.smartBytes(ctx, v); e == nil {
+				t.Fatal("cached profile bypassed application proof")
+			}
+		}
+		normal, e := s.Conversions(ctx, 0, true)
+		if e != nil || len(normal) != 7 {
+			t.Fatal("ordinary output removed", e)
+		}
+	}
+	if _, e := s.db.Exec("UPDATE conversion_results SET code='https_multi_site_verified' WHERE hash=?", hash); e != nil {
+		t.Fatal(e)
+	}
+	inventory, e := smartInventory(ctx, s.db)
+	if e != nil || len(inventory) != 7 {
+		t.Fatal("application revalidation did not restore member", e)
+	}
+}

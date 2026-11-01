@@ -9,8 +9,8 @@ import (
 	"testing"
 )
 
-// Independent contract fixture: this is the user envelope, not a marshal of base.
-const expectedEnvelope = `{"remarks":"@shenvpn-smart-parallel-v6b","log":{"loglevel":"none","access":"none","error":"none","dnsLog":false},"dns":{"tag":"dns-module","queryStrategy":"UseIPv4","servers":[{"address":"https://1.1.1.1/dns-query","skipFallback":false},{"address":"https://8.8.8.8/dns-query","skipFallback":false},{"address":"https://9.9.9.9/dns-query","skipFallback":false}]},"inbounds":[{"tag":"socks","listen":"127.0.0.1","port":10808,"protocol":"socks","settings":{"auth":"noauth","udp":true},"sniffing":{"enabled":true,"destOverride":["http","tls","quic"],"routeOnly":true}}],"outbounds":[],"routing":{"domainStrategy":"AsIs","balancers":[{"tag":"smart-parallel-balancer","selector":["proxy-"],"strategy":{"type":"leastLoad","settings":{"expected":3,"maxRTT":"2s","tolerance":0.15}}}],"rules":[{"type":"field","inboundTag":["dns-module"],"balancerTag":"smart-parallel-balancer"},{"type":"field","network":"tcp,udp","balancerTag":"smart-parallel-balancer"}]},"burstObservatory":{"subjectSelector":["proxy-"],"pingConfig":{"destination":"https://www.gstatic.com/generate_204","interval":"20s","sampling":3,"timeout":"4s","httpMethod":"GET"}},"policy":{"levels":{"0":{"handshake":15,"connIdle":600,"uplinkOnly":2,"downlinkOnly":5}}},"stats":{}}`
+// Independent contract fixture for the explicitly revised responsive envelope.
+const expectedEnvelope = `{"remarks":"@shenvpn-smart-parallel-v6b","log":{"loglevel":"none","access":"none","error":"none","dnsLog":false},"dns":{"tag":"dns-module","queryStrategy":"UseIPv4","servers":[{"address":"https://1.1.1.1/dns-query","skipFallback":false},{"address":"https://8.8.8.8/dns-query","skipFallback":false},{"address":"https://9.9.9.9/dns-query","skipFallback":false}],"disableFallbackIfMatch":true},"inbounds":[{"tag":"socks","listen":"127.0.0.1","port":10808,"protocol":"socks","settings":{"auth":"noauth","udp":true},"sniffing":{"enabled":true,"destOverride":["http","tls","quic"],"routeOnly":true}}],"outbounds":[],"routing":{"domainStrategy":"AsIs","balancers":[{"tag":"smart-parallel-balancer","selector":["proxy-"],"strategy":{"type":"leastPing"},"fallbackTag":"block"}],"rules":[{"type":"field","inboundTag":["socks","tun"],"port":"53","network":"tcp,udp","outboundTag":"smart-dns-out"},{"type":"field","inboundTag":["dns-module"],"balancerTag":"smart-parallel-balancer"},{"type":"field","network":"tcp,udp","balancerTag":"smart-parallel-balancer"}]},"burstObservatory":{"subjectSelector":["proxy-"],"pingConfig":{"destination":"https://www.gstatic.com/generate_204","interval":"10s","sampling":1,"timeout":"3s","httpMethod":"GET"}},"policy":{"levels":{"0":{"handshake":15,"connIdle":600,"uplinkOnly":2,"downlinkOnly":5}}},"stats":{}}`
 
 func TestExactOrderedEnvelopeAndAllOutboundValues(t *testing.T) {
 	members := []Member{}
@@ -45,7 +45,7 @@ func TestExactOrderedEnvelopeAndAllOutboundValues(t *testing.T) {
 	}
 	parsed, _ := object(got)
 	out := parsed["outbounds"].([]any)
-	if len(out) != total+2 {
+	if len(out) != total+4 {
 		t.Fatal("outbound omitted or invented", len(out), total)
 	}
 	byTag := map[string]M{}
@@ -130,7 +130,7 @@ func TestBalancedAllEntriesAndInactiveHelpersPreserved(t *testing.T) {
 	}
 	parsed, _ := object(b)
 	out := parsed["outbounds"].([]any)
-	if len(out) != 5 || out[0].(M)["tag"] != "proxy-01" || out[1].(M)["tag"] != "proxy-02" || out[2].(M)["protocol"] != "loopback" {
+	if len(out) != 7 || out[0].(M)["tag"] != "proxy-01" || out[1].(M)["tag"] != "proxy-02" || out[2].(M)["protocol"] != "loopback" {
 		t.Fatal("pool members or helper lost")
 	}
 	var raw map[string]json.RawMessage

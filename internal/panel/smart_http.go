@@ -141,7 +141,9 @@ func (m smartModule) Register(mux *http.ServeMux) {
 		}
 		if v == nil {
 			w.Header().Set("X-Config-Count", "0")
-			w.WriteHeader(204)
+			w.Header().Set("Retry-After", "3")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write([]byte("هنوز کانفیگ اسمارت آماده نیست؛ چند ثانیه دیگر دوباره تلاش کنید.\n"))
 			return
 		}
 		w.Header().Set("X-Config-Count", "1")

@@ -1,5 +1,5 @@
 {
-  "phase": "P16 Smart fresh-connection quality",
+  "phase": "P17 responsive Smart, application-site admission and ready-only single output",
   "date": "2026-11-01",
   "status": "implemented_and_deployed",
   "repository": "rezajafari0970/Config_manager",
@@ -31,12 +31,13 @@
     "traffic": "SOCKS UDP and tcp,udp routing; Vision/Mux UDP443 gates open. No unsolicited Mux: explicit VLESS xudp input maps to UDP-only manager; upstream UDP/QUIC support remains separate.",
     "uri_compatibility": "Narrow userinfo space escaping preserves decoded credentials; TLS cs maps exactly; explicit VLESS packetEncoding=xudp uses one UDP stream with TCP multiplexing disabled. Missing REALITY keys remain explicit failures.",
     "smart_output": "Additional cached smart-parallel-v6b profiles: configurable member count, source/member least-use counters, random followers, one unique canonical first position per durable round; ordinary/source exports unchanged.",
-    "smart_envelope": "Smart v3: exact fixed supplied envelope/order, loglevel/access/error none and dnsLog false; only complete copied outbounds vary with required tag/reference namespace changes. Single global leastLoad handles complete real pools; active loopback routing dependencies fail explicitly.",
-    "smart_admission": "Every Smart member requires fresh source-owned two-destination HTTPS success. Core-valid failed/partial/not_run/stale inputs are excluded; source quota applies only to eligible sources. Cache bounded by artifact/proof deadlines. Normal output unchanged."
+    "smart_envelope": "Smart v5: complete member outbounds preserved except namespace references; logs off; leastPing burst10s/1/3s, block fallback, SOCKS/TUN DNS, proxy-routed non-IP DNS, exact endpoint-only bootstrap. Explicitly supersedes P15 fixed globals under renewed performance request.",
+    "smart_admission": "Fresh source-owned https_multi_site_verified: two public HTTPS destinations plus TLS-valid Instagram homepage200/206. Ordinary core-valid output and base connection status unchanged. TTL-bounded; no persistent bank; not a claim about app media/carriers or every nested balanced outbound.",
+    "smart_single": "Durable finite round over ready eligible cache only; skip rebuilding/revoked entries, next round when drained, new ready heads join next round. HTTP200 one inline JSON; no ready503 message+Retry-After; HEAD/prefetch nonconsuming."
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
-    "python_regressions": 11,
+    "python_regressions": 12,
     "pinned_core_template_fixtures": 22,
     "template_fuzz_executions": 240370,
     "browser": "passed synthetic Input/Output/Setting, mobile/desktop, restart, expiry and JSONL",
@@ -63,15 +64,14 @@
       "total": 9,
       "completed": 9,
       "core_passed": 8,
-      "connected": 3,
+      "connected": 4,
       "jsonl_configs": 8,
-      "max_active": 2,
+      "max_active": 3,
       "sigkill_recovered": true,
       "codes": {
-        "https_proxy_verified": 3,
+        "https_multi_site_verified": 4,
         "hysteria1_unsupported_by_target_core": 1,
-        "nonpublic_endpoint_blocked": 4,
-        "proxy_request_failed": 1
+        "nonpublic_endpoint_blocked": 4
       }
     },
     "migration_latest": "schema7 to8; 7 source definitions/revisions and all settings preserved by fingerprint; existing global cycle/queue unchanged",
@@ -582,6 +582,227 @@
         "browser": "154.0.8037.57",
         "android": "not_run"
       }
+    },
+    "smart_responsive": {
+      "controlled_receipt": ".local/p17-responsive.log",
+      "requests_per_phase": 24,
+      "before_slow_requests": 11,
+      "after_slow_requests": 0,
+      "before_p95_ms": 243.63,
+      "after_p95_ms": 2.04,
+      "failover_seconds": 5.48,
+      "requests_failed_during_detection": 4,
+      "scope": "closed synthetic namespace; artificial120ms per direction on one peer; not carrier latency or throughput",
+      "dns_a_txt_endpoint_bootstrap": "passed",
+      "tcp_udp_udp443": "passed",
+      "android_carriers_quic_throughput": "not_run"
+    },
+    "smart_latest": {
+      "android": "not_run",
+      "whole_profile_connection": "not_run",
+      "live_samples": 4,
+      "passed": true,
+      "profiles": 59,
+      "members_per_profile": 50,
+      "sources": 4,
+      "max_active": 2,
+      "sigkill_recovered": true,
+      "unique_head_round": true,
+      "inline": true,
+      "core": "xray-26.7.28"
+    },
+    "smart_live_browser": {
+      "passed": true,
+      "results": [
+        {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "profiles": 53,
+          "outbound_counts": [
+            44
+          ],
+          "settings_count": 10,
+          "single_status": 200,
+          "exact_envelope": true,
+          "logs_off": true,
+          "inline": true,
+          "downloads": 0,
+          "overflow": false,
+          "errors": 0
+        },
+        {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "profiles": 54,
+          "outbound_counts": [
+            44
+          ],
+          "settings_count": 10,
+          "single_status": 200,
+          "exact_envelope": true,
+          "logs_off": true,
+          "inline": true,
+          "downloads": 0,
+          "overflow": false,
+          "errors": 0
+        }
+      ],
+      "browser": "154.0.8037.57",
+      "android": "not_run"
+    },
+    "smart_http_single": {
+      "normal": {
+        "status": 200,
+        "milliseconds": 70.16
+      },
+      "sources": [
+        {
+          "status": 200,
+          "milliseconds": 21.28
+        },
+        {
+          "status": 200,
+          "milliseconds": 18.61
+        },
+        {
+          "status": 200,
+          "milliseconds": 3.92
+        }
+      ],
+      "smart": {
+        "requests": 12,
+        "statuses": [
+          200
+        ],
+        "p50_ms": 119.79,
+        "p95_ms": 167.53,
+        "unique_within_round": true
+      },
+      "passed": true
+    },
+    "smart_quality_latest": {
+      "schema": 9,
+      "quick_check": "ok",
+      "foreign_keys": [],
+      "ready_profiles": 122,
+      "member_selections": 1220,
+      "missing_fresh_site_proof": 0,
+      "settings": {
+        "enabled": true,
+        "count": 10,
+        "revision": 7
+      },
+      "checked_at": "2026-11-01T07:42:35.393385+00:00"
+    },
+    "smart_outbound_copy_latest": {
+      "passed": true,
+      "version": "xray-26.7.28.smart.v5",
+      "profiles": 4,
+      "selected_inputs": 40,
+      "copied_outbounds": 160,
+      "cached_bytes_exact": true,
+      "logs_off": true
+    },
+    "smart_sites_latest": {
+      "scope": "server-network sandbox, DNS answers pinned to validated endpoint allowlist",
+      "android": "not_run",
+      "operators": "not_run",
+      "profiles": [
+        {
+          "index": 1,
+          "sites": [
+            {
+              "site": "www.instagram.com",
+              "curl_exit": 0,
+              "http_status": "200",
+              "timings_seconds": [
+                "0.000099",
+                "0.310404",
+                "0.509815"
+              ]
+            },
+            {
+              "site": "www.google.com",
+              "curl_exit": 0,
+              "http_status": "204",
+              "timings_seconds": [
+                "0.000097",
+                "0.083130",
+                "0.083181"
+              ]
+            },
+            {
+              "site": "www.cloudflare.com",
+              "curl_exit": 0,
+              "http_status": "200",
+              "timings_seconds": [
+                "0.000149",
+                "0.101118",
+                "0.101189"
+              ]
+            },
+            {
+              "site": "www.wikipedia.org",
+              "curl_exit": 0,
+              "http_status": "200",
+              "timings_seconds": [
+                "0.000090",
+                "0.119280",
+                "0.139771"
+              ]
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "sites": [
+            {
+              "site": "www.instagram.com",
+              "curl_exit": 0,
+              "http_status": "200",
+              "timings_seconds": [
+                "0.000125",
+                "0.855659",
+                "2.201573"
+              ]
+            },
+            {
+              "site": "www.google.com",
+              "curl_exit": 0,
+              "http_status": "204",
+              "timings_seconds": [
+                "0.000157",
+                "0.103321",
+                "0.103373"
+              ]
+            },
+            {
+              "site": "www.cloudflare.com",
+              "curl_exit": 0,
+              "http_status": "200",
+              "timings_seconds": [
+                "0.000111",
+                "0.077460",
+                "0.077555"
+              ]
+            },
+            {
+              "site": "www.wikipedia.org",
+              "curl_exit": 0,
+              "http_status": "200",
+              "timings_seconds": [
+                "0.000094",
+                "0.073266",
+                "0.094769"
+              ]
+            }
+          ]
+        }
+      ]
     }
   },
   "runtime": {
@@ -592,9 +813,9 @@
       "config-repair-smart.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p16-0da8ca3cf86edbb5ec23",
-    "panel_sha256": "0da8ca3cf86edbb5ec2374ff340dbb94230bd53a90bf2615a39854cbf1b83dcb",
-    "worker_sha256": "ee00499a1009142447a989e69393f9fb3f0509beb3f73b5f2d5df74d8c8d6839",
+    "release": "/opt/config-repair/releases/p17-6ace5eb1d551b0bc63f7",
+    "panel_sha256": "6ace5eb1d551b0bc63f78246c8d64c1a0049b4cccbee52faf3d5dd439bc89a24",
+    "worker_sha256": "274b5b5eb3b4a4edcd71aeb191b79ea4d6196568e08659aedf77487e91ed4b29",
     "template_version": "xray-26.7.28.template.v4",
     "retention_seconds": 7200,
     "fetch_concurrency": 16,
@@ -603,21 +824,21 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/p16-deployed.json",
-    "publication_receipt": ".local/p16-published.json",
-    "sandbox_driver_sha256": "c979512fb5ecd21e2cf97b0d73169aa338684b1cbdd40ab36a325b7b149199de",
+    "deployment_receipt": ".local/p17-deployed.json",
+    "publication_receipt": ".local/p17-published.json",
+    "sandbox_driver_sha256": "7c72e55456eb7bac75f1284560f61ef3d220ef16dc7c3fd17d678f547d73a136",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
-    "smart_version": "xray-26.7.28.smart.v3",
-    "smart_count": 50,
+    "smart_version": "xray-26.7.28.smart.v5",
+    "smart_count": 10,
     "smart_concurrency": 2,
     "adapter_sha256": "875088ecbd2f5f1c3b5b847b2d760014ef5e67ae0ec9d07d8677032298231c12",
     "smart_adapter_sha256": "315174552cdac75a509eb3fa45079dacda57e8e6d60eb966cb60f2ba5b3d0190"
   },
   "next": [
-    "Run staged client comparison from docs/SMART_PERFORMANCE.md before claiming optimal parameters or better Android speed",
-    "Add bounded per-current-member latency/jitter/throughput and real UDP measurements without reviving a permanent bank",
-    "Obtain actual target APK/device receipt for import/VPN and performance",
+    "Obtain actual target APK/device tests on MCI, Irancell, Rightel and Wi-Fi, including Instagram media/CDNs and network handover",
+    "Measure client throughput, p95/jitter and numbered UDP loss; do not label server homepage results as operator or no-loss proof",
+    "Consider individually verified nested balanced entries without pruning the required copied outbound definitions",
     "Complete separately verified reproducible install/update/rollback release"
   ],
   "environment": "Use verified project-local Go1.27.1 toolchain/module/build caches; shared caches previously failed integrity checks and were not modified."

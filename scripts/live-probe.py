@@ -160,6 +160,16 @@ class Sandbox:
             except OSError:time.sleep(.05)
         if self.temp:self.temp.cleanup()
 
+def smart_site_check(box, timeout):
+    # An HTTPing success elsewhere does not prove the application's TLS path.
+    # Bound response size/time and require HTTPS success without disabling TLS.
+    args=[IP,'netns','exec',box.name,'/usr/bin/curl','--noproxy','','--proxy','socks5h://127.0.0.1:10808','--max-time',str(timeout),'--connect-timeout',str(timeout),'--range','0-65535','--max-filesize','2097152','--silent','--output','/dev/null','--write-out','%{http_code}','https://www.instagram.com/']
+    try:
+        r=subprocess.run(args,capture_output=True,timeout=timeout+2,env={'PATH':'/usr/bin:/usr/sbin'})
+        return r.returncode==0 and r.stdout.strip() in (b'200',b'206')
+    except (OSError,subprocess.SubprocessError):
+        return False
+
 def test_candidate(box,candidate,timeout):
     b=base64.b64decode(candidate['config'],validate=True)
     if digest(b)!=candidate['sha256']: raise ValueError('candidate_hash_mismatch')
@@ -197,8 +207,9 @@ def test_candidate(box,candidate,timeout):
             if not passed and len(codes)==1:
                 # A second independent destination distinguishes endpoint-specific failures.
                 continue
+    site_ok=bool(codes and all(codes) and smart_site_check(box,timeout))
     log=box.logs();box.stop();result['endpoints_passed']=sum(codes)
-    if codes and all(codes):result.update(connection='passed',code='https_proxy_verified')
+    if codes and all(codes):result.update(connection='passed',code='https_multi_site_verified' if site_ok else 'https_proxy_verified_site_unavailable')
     elif any(codes):result.update(connection='partial',code='test_destination_partial')
     else:result.update(connection='failed',code=classify(log,'proxy_request_failed' if ready else 'runtime_start_failed'))
     return result

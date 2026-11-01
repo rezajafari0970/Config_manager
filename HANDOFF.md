@@ -1,4 +1,4 @@
-# Handoff — P13 shared URI compatibility
+# Handoff — current P17 responsive Smart
 
 Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and the P12 checkpoint (P7/P8/P9/P10/P11 are historical context). Verify actual HEAD/origin/status and private p7 receipts. The user's latest instruction explicitly removes the P6 persistent bank; do not resurrect it based on older checkpoints.
 
@@ -109,3 +109,14 @@ Smart v3 now requires fresh source-owned connection=passed for every input. Cach
 Full checks, explicit quality lifecycle/source-isolation tests, browser/restart and59profile/50member SIGKILL sandbox integration passed. Current production audit:8ready profiles,400selections,0without fresh proof. Cached-byte recomposition also passed. These are time-specific counts; client speed/p95/UDP loss remain unmeasured. See docs/SMART_PERFORMANCE.md for the staged comparison plan; do not market this gate as completed client optimization.
 
 Release:/opt/config-repair/releases/p16-0da8ca3cf86edbb5ec23; backup:/var/backups/config-repair/pre-smart-quality-20261101-065158. All10source definitions/settings and normal/Smart turns preserved during deployment. Both binaries verified on three enabled services. Receipts:.local/p16-deployed.json,p16-quality.json,p16-audit.json,p16-public.json,p16-published.json and p16-check/browser/worker logs. Same-schema rollback uses matching prior binaries and retains live user data; it reintroduces the old weaker admission, so only do so deliberately.
+
+## Current P17 — responsive Smart and single output
+Read docs/checkpoints/P17-smart-responsive-20261101.md first. Current Smart v5 deliberately supersedes the fixed P15 envelope under the user's latest performance request: leastPing, burst10/1/3, explicit block fallback, SOCKS/TUN DNS interception, proxy-routed non-IP DNS and exact endpoint bootstrap. Complete copied outbounds/credentials and logs-off remain. Current user count is10; preserve live settings rather than restoring older50-member notes.
+
+Single Smart rounds contain only eligible ready cache; pending rebuilds no longer force empty204. Unavailable entries are skipped, new ready heads join the next cycle; zero ready returns503 with a readable message. Ordinary/source single behavior and URLs remain unchanged.
+
+A live two-profile canary exposed Instagram TLS failure despite general HTTPS success. The normal sandbox driver now adds a bounded Instagram homepage check after both public checks. Only source-owned fresh https_multi_site_verified results enter Smart. Ordinary connection='passed' still means the two original destinations passed; code distinguishes site failure. Candidate timeout budget accounts for the third request. No schema change or normal-template version change; deployment requeues old passed results for site validation without deleting normal output.
+
+Final receipts: .local/p17-final-check.log, p17-final-browser.log, p17-final-worker.log, p17-conversion-worker.log, p17-responsive.log, p17-deployed.json, p17-public.json, p17-audit.json, p17-site-canary.json and p17-published.json. Earlier p17 preview used Smart v4 before site admission; do not confuse its receipt with final v5. Runtime checksums and actual release are in PROJECT_STATE.json after deployment. Same-schema rollback selects the matching prior binaries/driver; do not restore an old DB over newer user data.
+
+Controlled request latency/failover results are lab-only; real carrier/Android/QUIC/throughput remain not_run. Instagram homepage success on server does not prove media/app behavior or each nested member of a balanced source. Existing Custom JSON must be reimported to receive the new client envelope.

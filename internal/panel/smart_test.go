@@ -70,22 +70,22 @@ func TestSmartCacheCoverageWarmingAndIndependentRounds(t *testing.T) {
 		t.Fatal("first", e)
 	}
 	next, _, same, e := s.smartNext(ctx)
-	if e != nil || next != nil || same != 1 {
-		t.Fatal("warming round repeated head", e)
+	if e != nil || next == nil || next.ID != first.ID || same != 2 {
+		t.Fatal("ready profile blocked by warming heads", e)
 	}
 	if n := finishSmart(t, s); n != 6 {
 		t.Fatal("missing heads", n)
 	}
-	seen := map[string]bool{first.ID: true}
-	for i := 0; i < 6; i++ {
+	seen := map[string]bool{}
+	for i := 0; i < 7; i++ {
 		v, b, c, e := s.smartNext(ctx)
-		if e != nil || v == nil || c != 1 || seen[v.ID] || bytes.ContainsAny(b, "\r\n") {
+		if e != nil || v == nil || c != 3 || seen[v.ID] || bytes.ContainsAny(b, "\r\n") {
 			t.Fatal("round", e, c)
 		}
 		seen[v.ID] = true
 	}
 	v, _, c, e := s.smartNext(ctx)
-	if e != nil || v == nil || c != 2 {
+	if e != nil || v == nil || c != 4 {
 		t.Fatal("reset", e)
 	}
 	rows, e := querySmart(ctx, s.db, true, 0)

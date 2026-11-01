@@ -8,13 +8,14 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/probe"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 	"github.com/rezajafari0970/Config_manager/internal/target"
+	"net"
 	"sort"
 	"strings"
 )
 
 type M = map[string]any
 
-const base = `{"remarks":"@shenvpn-smart-parallel-v6b","log":{"loglevel":"none","access":"none","error":"none","dnsLog":false},"dns":{"tag":"dns-module","queryStrategy":"UseIPv4","servers":[{"address":"https://1.1.1.1/dns-query","skipFallback":false},{"address":"https://8.8.8.8/dns-query","skipFallback":false},{"address":"https://9.9.9.9/dns-query","skipFallback":false}]},"inbounds":[{"tag":"socks","listen":"127.0.0.1","port":10808,"protocol":"socks","settings":{"auth":"noauth","udp":true},"sniffing":{"enabled":true,"destOverride":["http","tls","quic"],"routeOnly":true}}],"outbounds":[],"routing":{"domainStrategy":"AsIs","balancers":[{"tag":"smart-parallel-balancer","selector":["proxy-"],"strategy":{"type":"leastLoad","settings":{"expected":3,"maxRTT":"2s","tolerance":0.15}}}],"rules":[{"type":"field","inboundTag":["dns-module"],"balancerTag":"smart-parallel-balancer"},{"type":"field","network":"tcp,udp","balancerTag":"smart-parallel-balancer"}]},"burstObservatory":{"subjectSelector":["proxy-"],"pingConfig":{"destination":"https://www.gstatic.com/generate_204","interval":"20s","sampling":3,"timeout":"4s","httpMethod":"GET"}},"policy":{"levels":{"0":{"handshake":15,"connIdle":600,"uplinkOnly":2,"downlinkOnly":5}}},"stats":{}}`
+const base = `{"remarks":"@shenvpn-smart-parallel-v6b","log":{"loglevel":"none","access":"none","error":"none","dnsLog":false},"dns":{"tag":"dns-module","queryStrategy":"UseIPv4","servers":[{"address":"https://1.1.1.1/dns-query","skipFallback":false},{"address":"https://8.8.8.8/dns-query","skipFallback":false},{"address":"https://9.9.9.9/dns-query","skipFallback":false}],"disableFallbackIfMatch":true},"inbounds":[{"tag":"socks","listen":"127.0.0.1","port":10808,"protocol":"socks","settings":{"auth":"noauth","udp":true},"sniffing":{"enabled":true,"destOverride":["http","tls","quic"],"routeOnly":true}}],"outbounds":[],"routing":{"domainStrategy":"AsIs","balancers":[{"tag":"smart-parallel-balancer","selector":["proxy-"],"strategy":{"type":"leastPing"},"fallbackTag":"block"}],"rules":[{"type":"field","inboundTag":["socks","tun"],"port":"53","network":"tcp,udp","outboundTag":"smart-dns-out"},{"type":"field","inboundTag":["dns-module"],"balancerTag":"smart-parallel-balancer"},{"type":"field","network":"tcp,udp","balancerTag":"smart-parallel-balancer"}]},"burstObservatory":{"subjectSelector":["proxy-"],"pingConfig":{"destination":"https://www.gstatic.com/generate_204","interval":"10s","sampling":1,"timeout":"3s","httpMethod":"GET"}},"policy":{"levels":{"0":{"handshake":15,"connIdle":600,"uplinkOnly":2,"downlinkOnly":5}}},"stats":{}}`
 
 func object(b []byte) (M, error) {
 	var m M
@@ -35,13 +36,14 @@ func Prepare(b []byte) probe.Plan {
 	return p
 }
 
-// Compose replaces only the outbounds placeholder in the fixed user envelope.
+// Compose retains complete member outbounds inside the responsive Smart envelope.
 // Accepted member JSON is decoded into new objects; raw stored bytes are never edited.
 func Compose(members []Member) ([]byte, error) {
 	if len(members) == 0 {
 		return nil, errors.New("smart_empty_profile")
 	}
 	entries, helpers := []any{}, []any{}
+	bootstrap := map[string]bool{}
 	for slot, member := range members {
 		source, e := object(member.Body)
 		if e != nil {
@@ -62,6 +64,7 @@ func Compose(members []Member) ([]byte, error) {
 			if tag == "" || byTag[tag] != nil {
 				return nil, errors.New("smart_duplicate_tag")
 			}
+			collectEndpointDomains(ob, bootstrap)
 			byTag[tag] = ob
 			tags[tag] = fmt.Sprintf("member-%04d-out-%04d_", slot+1, i)
 		}
@@ -82,7 +85,7 @@ func Compose(members []Member) ([]byte, error) {
 			tags[tag] = fmt.Sprintf("proxy-%02d", len(entries)+1)
 			entries = append(entries, byTag[tag])
 		}
-		// A copied entry must remain usable with the fixed two global routes.
+		// A copied entry must remain usable with the global proxy routes.
 		// Active loopback chains need source-specific routing and cannot be
 		// silently represented by this template. Inactive helpers are still copied.
 		visiting, visited := map[string]bool{}, map[string]bool{}
@@ -129,13 +132,27 @@ func Compose(members []Member) ([]byte, error) {
 		}
 	}
 	out := append(entries, helpers...)
-	out = append(out, M{"tag": "direct", "protocol": "freedom", "settings": M{}}, M{"tag": "block", "protocol": "blackhole", "settings": M{}})
+	out = append(out, M{"tag": "smart-dns-out", "protocol": "dns", "settings": M{"rewriteNetwork": "tcp", "rewriteAddress": "1.1.1.1", "rewritePort": 53, "rules": []any{M{"action": "hijack", "qType": "1,28"}, M{"action": "direct"}}}, "streamSettings": M{"sockopt": M{"dialerProxy": "smart-dns-relay"}}}, M{"tag": "smart-dns-relay", "protocol": "loopback", "settings": M{"inboundTag": "smart-dns-egress"}}, M{"tag": "direct", "protocol": "freedom", "settings": M{}}, M{"tag": "block", "protocol": "blackhole", "settings": M{}})
 	var body bytes.Buffer
 	if e := orderedJSON(&body, out); e != nil {
 		return nil, e
 	}
-	// Raw replacement preserves every fixed field, nested field order and value.
+	// Raw replacement preserves fixed field order; bootstrap is scoped to endpoint names.
 	result := bytes.Replace([]byte(base), []byte("\"outbounds\":[]"), append([]byte("\"outbounds\":"), body.Bytes()...), 1)
+	if len(bootstrap) > 0 {
+		domains := make([]string, 0, len(bootstrap))
+		for name := range bootstrap {
+			domains = append(domains, "full:"+name)
+		}
+		sort.Strings(domains)
+		servers, _ := json.Marshal([]M{
+			{"address": "https+local://1.1.1.1/dns-query", "domains": domains, "skipFallback": true},
+			{"address": "https+local://8.8.8.8/dns-query", "domains": domains, "skipFallback": true},
+		})
+		prefix := append([]byte("\"servers\":["), servers[1:len(servers)-1]...)
+		prefix = append(prefix, ',')
+		result = bytes.Replace(result, []byte("\"servers\":["), prefix, 1)
+	}
 	if len(result) > repair.MaxBytes {
 		return nil, errors.New("smart_profile_size_limit")
 	}
@@ -143,7 +160,7 @@ func Compose(members []Member) ([]byte, error) {
 }
 
 // entryTags flattens only the selected top-level pool into the single requested
-// leastLoad balancer. Other outbound definitions remain copied helpers.
+// latency balancer. Other outbound definitions remain copied helpers.
 func entryTags(source M, nodes []any) ([]string, error) {
 	routing, _ := source["routing"].(M)
 	rules, _ := routing["rules"].([]any)
@@ -345,4 +362,53 @@ func orderedJSON(out *bytes.Buffer, value any) error {
 		out.Write(b)
 	}
 	return nil
+}
+
+// collectEndpointDomains breaks endpoint DNS -> unconnected proxy recursion.
+// Source globals are deliberately ignored. It covers compact/legacy proxy settings,
+// WireGuard peers and XHTTP's separate download endpoint without rewriting them.
+func collectEndpointDomains(ob M, found map[string]bool) {
+	add := func(v any) {
+		h, ok := v.(string)
+		h = strings.TrimSuffix(strings.ToLower(h), ".")
+		if ok && h != "" && net.ParseIP(strings.Trim(h, "[]")) == nil {
+			found[h] = true
+		}
+	}
+	settings, _ := ob["settings"].(M)
+	add(settings["address"])
+	for _, key := range []string{"vnext", "servers"} {
+		list, _ := settings[key].([]any)
+		for _, value := range list {
+			item, _ := value.(M)
+			add(item["address"])
+		}
+	}
+	peers, _ := settings["peers"].([]any)
+	for _, value := range peers {
+		item, _ := value.(M)
+		if endpoint, ok := item["endpoint"].(string); ok {
+			if host, _, err := net.SplitHostPort(endpoint); err == nil {
+				add(host)
+			}
+		}
+	}
+	var downloads func(any)
+	downloads = func(value any) {
+		switch v := value.(type) {
+		case M:
+			for key, child := range v {
+				if key == "downloadSettings" {
+					item, _ := child.(M)
+					add(item["address"])
+				}
+				downloads(child)
+			}
+		case []any:
+			for _, child := range v {
+				downloads(child)
+			}
+		}
+	}
+	downloads(ob["streamSettings"])
 }

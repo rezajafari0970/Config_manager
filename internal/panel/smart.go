@@ -61,7 +61,7 @@ func (s *Store) migrateV9() error {
  WHERE s.enabled=1 AND a.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)
  AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER))
  AND r.core='passed' AND r.candidate_hash!='' AND r.version='` + convert.Version + `'
- AND r.connection='passed' AND r.valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER);
+ AND r.connection='passed' AND r.code='https_multi_site_verified' AND r.valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER);
  CREATE VIEW smart_offers AS SELECT source,id,raw_hash,hash,expires FROM (
  SELECT i.*,row_number() OVER(PARTITION BY i.source,i.id ORDER BY (r.connection='passed') DESC,r.tested DESC,i.raw_hash) AS choice FROM smart_inputs i JOIN conversion_results r ON r.hash=i.raw_hash) WHERE choice=1;
  CREATE VIEW smart_owned_members AS SELECT m.head,m.position,min(i.expires) AS expires FROM smart_members m JOIN smart_inputs i ON i.source=m.source AND i.id=m.id AND i.raw_hash=m.raw_hash AND i.hash=m.hash GROUP BY m.head,m.position;
@@ -454,6 +454,12 @@ func (s *Store) smartNext(ctx context.Context) (*SmartEntry, []byte, int64, erro
 			tx.Rollback()
 			return nil, nil, 0, e
 		}
+		// A round contains only currently exportable cached profiles. Rebuilding,
+		// expired or revoked heads must not hold ready output behind an empty turn.
+		if _, e = tx.ExecContext(ctx, "DELETE FROM smart_rotation_queue WHERE head NOT IN (SELECT id FROM smart_ready)"); e != nil {
+			tx.Rollback()
+			return nil, nil, 0, e
+		}
 		var cycle int64
 		var queued int
 		if e = tx.QueryRowContext(ctx, "SELECT cycle,(SELECT count(*) FROM smart_rotation_queue) FROM smart_rotation_state WHERE id=1").Scan(&cycle, &queued); e != nil {
@@ -461,22 +467,23 @@ func (s *Store) smartNext(ctx context.Context) (*SmartEntry, []byte, int64, erro
 			return nil, nil, 0, e
 		}
 		if queued == 0 {
-			// Snapshot all current heads, including warming jobs: early-ready profiles
-			// must not repeat while other first positions are still being built.
-			if _, e = tx.ExecContext(ctx, "INSERT INTO smart_rotation_queue(position,head) SELECT row_number() OVER(ORDER BY sequence,id),id FROM smart_heads"); e != nil {
+			res, err := tx.ExecContext(ctx, "INSERT INTO smart_rotation_queue(position,head) SELECT row_number() OVER(ORDER BY sequence,id),id FROM smart_ready")
+			if err != nil {
 				tx.Rollback()
-				return nil, nil, 0, e
+				return nil, nil, 0, err
 			}
-			if _, e = tx.ExecContext(ctx, "UPDATE smart_rotation_state SET cycle=cycle+1 WHERE id=1"); e != nil {
+			n, err := res.RowsAffected()
+			if err != nil {
 				tx.Rollback()
-				return nil, nil, 0, e
+				return nil, nil, 0, err
 			}
-			cycle++
-		}
-		// Permanently failed entries do not prevent the finite round from completing.
-		if _, e = tx.ExecContext(ctx, "DELETE FROM smart_rotation_queue WHERE head IN(SELECT id FROM smart_heads WHERE state='blocked')"); e != nil {
-			tx.Rollback()
-			return nil, nil, 0, e
+			if n > 0 {
+				if _, e = tx.ExecContext(ctx, "UPDATE smart_rotation_state SET cycle=cycle+1 WHERE id=1"); e != nil {
+					tx.Rollback()
+					return nil, nil, 0, e
+				}
+				cycle++
+			}
 		}
 		var v SmartEntry
 		e = tx.QueryRowContext(ctx, `SELECT h.id,h.hash,h.member_count,h.created,h.expires FROM smart_rotation_queue q JOIN smart_ready h ON h.id=q.head ORDER BY q.position LIMIT 1`).Scan(&v.ID, &v.Hash, &v.Count, &v.Created, &v.Expires)

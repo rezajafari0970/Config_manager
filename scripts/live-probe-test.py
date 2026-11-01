@@ -1,11 +1,25 @@
 #!/usr/bin/env python3
 """Unprivileged regression tests. Kernel sandbox acceptance is --self-test."""
-import base64, copy, importlib.util, json, pathlib, tempfile, unittest
+import base64, copy, importlib.util, json, pathlib, tempfile, unittest, subprocess
+from types import SimpleNamespace
 from unittest.mock import patch
 spec=importlib.util.spec_from_file_location('probe',pathlib.Path(__file__).with_name('live-probe.py'))
 p=importlib.util.module_from_spec(spec);spec.loader.exec_module(p)
 
 class ProbeTests(unittest.TestCase):
+ def test_site_health_requires_successful_tls_and_expected_http(self):
+  box=SimpleNamespace(name='synthetic')
+  for rc,status,expected in [(0,b'200',True),(0,b'206',True),(35,b'200',False),(0,b'403',False),(0,b'302',False),(63,b'200',False),(0,b'000',False)]:
+   with patch.object(p.subprocess,'run',return_value=SimpleNamespace(returncode=rc,stdout=status)) as run:
+    self.assertEqual(p.smart_site_check(box,7),expected)
+    args=run.call_args.args[0]
+    self.assertIn('socks5h://127.0.0.1:10808',args)
+    self.assertNotIn('--insecure',args)
+    self.assertEqual(args[-1],'https://www.instagram.com/')
+    self.assertEqual(run.call_args.kwargs['timeout'],9)
+  with patch.object(p.subprocess,'run',side_effect=subprocess.TimeoutExpired('curl',7)):
+   self.assertFalse(p.smart_site_check(box,7))
+
  def test_classification_removed_tls(self):
   self.assertEqual(p.classify('The feature "allowInsecure" has been removed','unknown'),'removed_allow_insecure')
   self.assertEqual(p.classify('trojan without TLS is prohibited','unknown'),'public_endpoint_requires_tls')

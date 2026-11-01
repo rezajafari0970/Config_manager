@@ -44,7 +44,7 @@ func conversionResult(j probe.Job, idx int, connected bool) probe.Result {
 	a := probe.Attempt{SHA256: c.SHA256, Rule: c.Rule, Core: "passed", Connection: "failed", Code: "proxy_request_failed", RuntimeSHA256: c.SHA256}
 	if connected {
 		a.Connection = "passed"
-		a.Code = "https_proxy_verified"
+		a.Code = "https_multi_site_verified" // synthetic application-site receipt, never network evidence
 		a.EndpointsPassed = 2
 	}
 	return probe.Result{Hash: j.Hash, Token: j.Token, Revision: j.Revision, Version: convert.Version, CoreSHA256: probe.CoreSHA256, Attempt: a, Candidate: c.Config}
