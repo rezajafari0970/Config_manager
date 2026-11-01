@@ -1,5 +1,5 @@
 {
-  "phase": "P15 exact ordered Smart envelope",
+  "phase": "P16 Smart fresh-connection quality",
   "date": "2026-11-01",
   "status": "implemented_and_deployed",
   "repository": "rezajafari0970/Config_manager",
@@ -31,7 +31,8 @@
     "traffic": "SOCKS UDP and tcp,udp routing; Vision/Mux UDP443 gates open. No unsolicited Mux: explicit VLESS xudp input maps to UDP-only manager; upstream UDP/QUIC support remains separate.",
     "uri_compatibility": "Narrow userinfo space escaping preserves decoded credentials; TLS cs maps exactly; explicit VLESS packetEncoding=xudp uses one UDP stream with TCP multiplexing disabled. Missing REALITY keys remain explicit failures.",
     "smart_output": "Additional cached smart-parallel-v6b profiles: configurable member count, source/member least-use counters, random followers, one unique canonical first position per durable round; ordinary/source exports unchanged.",
-    "smart_envelope": "Smart v2: exact fixed supplied envelope/order, loglevel/access/error none and dnsLog false; only complete copied outbounds vary with required tag/reference namespace changes. Single global leastLoad handles complete real pools; active loopback routing dependencies fail explicitly."
+    "smart_envelope": "Smart v3: exact fixed supplied envelope/order, loglevel/access/error none and dnsLog false; only complete copied outbounds vary with required tag/reference namespace changes. Single global leastLoad handles complete real pools; active loopback routing dependencies fail explicitly.",
+    "smart_admission": "Every Smart member requires fresh source-owned two-destination HTTPS success. Core-valid failed/partial/not_run/stale inputs are excluded; source quota applies only to eligible sources. Cache bounded by artifact/proof deadlines. Normal output unchanged."
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -493,6 +494,94 @@
         "browser": "154.0.8037.57",
         "android": "not_run"
       }
+    },
+    "smart_quality": {
+      "full_checks": "passed",
+      "quality_regressions": "passed: all proof outcomes, expiry, recovery, ownership, stale completion, normal output preservation",
+      "worker": {
+        "android": "not_run",
+        "whole_profile_connection": "not_run",
+        "live_samples": 4,
+        "passed": true,
+        "profiles": 59,
+        "members_per_profile": 50,
+        "sources": 4,
+        "max_active": 2,
+        "sigkill_recovered": true,
+        "unique_head_round": true,
+        "inline": true,
+        "core": "xray-26.7.28"
+      },
+      "production": {
+        "passed": true,
+        "timestamp": "2026-11-01T06:53:09.590383+00:00",
+        "ready_profiles": 8,
+        "member_selections": 400,
+        "without_fresh_connection": 0,
+        "settings": [
+          1,
+          50,
+          4
+        ],
+        "schema": 9,
+        "p95_latency": "not_measured",
+        "UDP_packet_loss": "not_measured",
+        "Android_performance": "not_measured"
+      },
+      "copy_audit": {
+        "passed": true,
+        "version": "xray-26.7.28.smart.v3",
+        "profiles": 2,
+        "selected_inputs": 100,
+        "copied_outbounds": 400,
+        "cached_bytes_exact": true,
+        "logs_off": true
+      },
+      "client_speed": "not_measured",
+      "UDP_packet_loss": "not_measured",
+      "public_browser": {
+        "passed": true,
+        "results": [
+          {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "profiles": 14,
+            "outbound_counts": [
+              202
+            ],
+            "settings_count": 50,
+            "single_status": 204,
+            "exact_envelope": true,
+            "logs_off": true,
+            "inline": true,
+            "downloads": 0,
+            "overflow": false,
+            "errors": 0
+          },
+          {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "profiles": 6,
+            "outbound_counts": [
+              202
+            ],
+            "settings_count": 50,
+            "single_status": 200,
+            "exact_envelope": true,
+            "logs_off": true,
+            "inline": true,
+            "downloads": 0,
+            "overflow": false,
+            "errors": 0
+          }
+        ],
+        "browser": "154.0.8037.57",
+        "android": "not_run"
+      }
     }
   },
   "runtime": {
@@ -503,9 +592,9 @@
       "config-repair-smart.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p15-b003f05d4d978a956f0e",
-    "panel_sha256": "b003f05d4d978a956f0e4506277efa4992cebea32c88c42bfb3d1bf84afbf884",
-    "worker_sha256": "977d48d2ad57d55caea16683f0e90dbe0bdd0dad4c367c506b5ce135604d5d0b",
+    "release": "/opt/config-repair/releases/p16-0da8ca3cf86edbb5ec23",
+    "panel_sha256": "0da8ca3cf86edbb5ec2374ff340dbb94230bd53a90bf2615a39854cbf1b83dcb",
+    "worker_sha256": "ee00499a1009142447a989e69393f9fb3f0509beb3f73b5f2d5df74d8c8d6839",
     "template_version": "xray-26.7.28.template.v4",
     "retention_seconds": 7200,
     "fetch_concurrency": 16,
@@ -514,21 +603,22 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/p15-deployed.json",
-    "publication_receipt": ".local/p15-published.json",
+    "deployment_receipt": ".local/p16-deployed.json",
+    "publication_receipt": ".local/p16-published.json",
     "sandbox_driver_sha256": "c979512fb5ecd21e2cf97b0d73169aa338684b1cbdd40ab36a325b7b149199de",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
-    "smart_version": "xray-26.7.28.smart.v2",
-    "smart_count": 10,
+    "smart_version": "xray-26.7.28.smart.v3",
+    "smart_count": 50,
     "smart_concurrency": 2,
     "adapter_sha256": "875088ecbd2f5f1c3b5b847b2d760014ef5e67ae0ec9d07d8677032298231c12",
     "smart_adapter_sha256": "315174552cdac75a509eb3fa45079dacda57e8e6d60eb966cb60f2ba5b3d0190"
   },
   "next": [
-    "Continue evidence-backed protocol/template coverage without reviving a sample bank",
-    "Obtain actual APK/device receipt before claiming Android import/VPN acceptance",
-    "Complete separately verified reproducible install/update/rollback script release"
+    "Run staged client comparison from docs/SMART_PERFORMANCE.md before claiming optimal parameters or better Android speed",
+    "Add bounded per-current-member latency/jitter/throughput and real UDP measurements without reviving a permanent bank",
+    "Obtain actual target APK/device receipt for import/VPN and performance",
+    "Complete separately verified reproducible install/update/rollback release"
   ],
   "environment": "Use verified project-local Go1.27.1 toolchain/module/build caches; shared caches previously failed integrity checks and were not modified."
 }

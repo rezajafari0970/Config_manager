@@ -56,12 +56,12 @@ func (s *Store) migrateV9() error {
  DROP VIEW IF EXISTS smart_owned_members;
  DROP VIEW IF EXISTS smart_offers;
  DROP VIEW IF EXISTS smart_inputs;
- CREATE VIEW smart_inputs AS SELECT m.source_id AS source,m.artifact_id AS id,m.raw_hash,r.candidate_hash AS hash,a.expires
+ CREATE VIEW smart_inputs AS SELECT m.source_id AS source,m.artifact_id AS id,m.raw_hash,r.candidate_hash AS hash,min(a.expires,r.valid_until) AS expires
  FROM memberships m JOIN artifacts a ON a.id=m.artifact_id JOIN sources s ON s.id=m.source_id JOIN conversion_results r ON r.hash=m.raw_hash
  WHERE s.enabled=1 AND a.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)
  AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER))
  AND r.core='passed' AND r.candidate_hash!='' AND r.version='` + convert.Version + `'
- AND (r.requires_connection=0 OR (r.connection='passed' AND r.valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER)));
+ AND r.connection='passed' AND r.valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER);
  CREATE VIEW smart_offers AS SELECT source,id,raw_hash,hash,expires FROM (
  SELECT i.*,row_number() OVER(PARTITION BY i.source,i.id ORDER BY (r.connection='passed') DESC,r.tested DESC,i.raw_hash) AS choice FROM smart_inputs i JOIN conversion_results r ON r.hash=i.raw_hash) WHERE choice=1;
  CREATE VIEW smart_owned_members AS SELECT m.head,m.position,min(i.expires) AS expires FROM smart_members m JOIN smart_inputs i ON i.source=m.source AND i.id=m.id AND i.raw_hash=m.raw_hash AND i.hash=m.hash GROUP BY m.head,m.position;

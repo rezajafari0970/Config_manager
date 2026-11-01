@@ -80,3 +80,10 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - A selected source balancer contributes its entire selected real proxy pool to the single fixed global leastLoad; do not import inner strategies/costs/rules/observers. An active loopback-dependent chain cannot be represented by the fixed routes and must fail explicitly. Inactive helpers are still copied.
 - Fixed expected3/maxRTT2s/tolerance0.15, the exact three DoH servers/two rules/burst settings and ordered root keys are contract-tested. Never call pinned-core acceptance proof of exact template equality.
 - Version changes revoke old leases/cache without resetting settings or either rotation. Run independent envelope/all-outbound-value tests, pinned-core1/2/10/50, logs-off packet test, worker SIGKILL and browser/restart.
+
+## P16 Smart connection quality
+- Read docs/checkpoints/P16-smart-quality-20261101.md and docs/SMART_PERFORMANCE.md. Smart v3 keeps P15 JSON unchanged; admission now requires fresh source-owned two-destination HTTPS success for every selected input, including requires_connection=0 conversions.
+- Failed, partial, not_run and expired proofs are ineligible. Use min(artifact expiry, proof deadline); stale completions/old cache cannot bypass current ownership/proof checks. Source quotas apply only to eligible sources; never fill requested capacity with unverified members.
+- Normal output remains separately core-gated. Preserve user count/settings, all selected outbounds and immutable originals. A balanced input's route pass does not prove every inner outbound.
+- Do not equate HTTP probe failure with UDP packet loss or core acceptance with speed. The video shows startup/stalling, not a measured cause. Android throughput/p95/UDP loss remain unmeasured.
+- Any future speed profile changing expected/burst/DNS must be separately compared; no undocumented JSON hysteresis/adaptive capability. Do not claim native TCP session migration or zero loss.

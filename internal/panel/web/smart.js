@@ -6,7 +6,7 @@ export default function Smart(){
  const s=await api('/api/smart?page='+page);
  $('#smart-all-url').href=s.export_url;$('#smart-all-url').textContent=s.export_url;$('#smart-single-url').href=s.single_export_url;$('#smart-single-url').textContent=s.single_export_url;
  $('#smart-worker').textContent=!s.settings.enabled?'غیرفعال':s.worker.status==='running'?'ساخت خودکار فعال':'در انتظار سرویس اسمارت';
- $('#smart-counts').textContent='اعضای درخواستی: '+fa.format(s.settings.count)+' · منابع قابل‌استفاده: '+fa.format(s.stats.sources)+' · آماده: '+fa.format(s.stats.ready)+' · در حال آماده‌سازی: '+fa.format(s.stats.warming)+' · نیازمند بررسی: '+fa.format(s.stats.blocked);
+ $('#smart-counts').textContent='اعضای درخواستی: '+fa.format(s.settings.count)+' · منابع با اتصال تأییدشده: '+fa.format(s.stats.sources)+' · آماده: '+fa.format(s.stats.ready)+' · در حال آماده‌سازی: '+fa.format(s.stats.warming)+' · نیازمند بررسی: '+fa.format(s.stats.blocked);
  $('#smart-page').textContent=fa.format(page+1);$('#smart-prev').disabled=page===0;$('#smart-next').disabled=s.entries.length<100;
  const sig=JSON.stringify(s.entries);if(sig===signature)return;signature=sig;
  const host=$('#smart-list'),cached=new Map([...host.querySelectorAll('pre')].map(p=>[p.dataset.hash,{text:p.textContent,hidden:p.hidden}]));

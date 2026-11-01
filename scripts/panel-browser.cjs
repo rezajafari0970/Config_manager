@@ -13,7 +13,7 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
   await page.getByRole('button',{name:'باز کردن منو',exact:true}).click();await page.locator('#nav-drawer').getByRole('link',{name:/Output/}).click();
  }else{const s=await state();assert.equal(s.stats.sources,3);assert.equal(s.settings.timeout_seconds,19);await page.goto(origin+'/output')}
  await page.waitForFunction(()=>document.querySelectorAll('#output-list [data-view]').length===2);assert.equal(await page.locator('#bank-list').count(),0);await noOverflow();
- const c=await(await context.request.get(origin+'/api/conversions')).json();assert.equal(c.entries.length,2);assert.ok(c.entries.every(x=>x.core==='passed'&&x.connection==='not_run'));
+ const c=await(await context.request.get(origin+'/api/conversions')).json();assert.equal(c.entries.length,2);assert.ok(c.entries.every(x=>x.core==='passed'&&x.connection==='passed'));
  const response=await context.request.get(c.export_url);assert.equal(response.status(),200);assert.equal(response.headers()['content-type'],'text/plain; charset=utf-8');assert.equal(response.headers()['content-disposition'],'inline');const lines=(await response.text()).trim().split('\n');assert.equal(lines.length,2);for(const line of lines){const j=JSON.parse(line);assert.equal(j.remarks,'@shenvpn');assert.equal(j.inbounds[0].tag,'socks');assert.equal(j.outbounds.length,4)}
  // Navigate like a user: an API GET alone cannot detect forced downloads.
  const exportPage=await context.newPage(),downloads=[];exportPage.on('download',d=>downloads.push(d));

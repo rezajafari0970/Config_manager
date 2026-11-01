@@ -80,8 +80,8 @@ func TestBrowserFixtureServer(t *testing.T) {
 				if len(convert.Prepare(j.Raw).Candidates) == 0 {
 					continue
 				}
-				r := conversionResult(*j, 0, false)
-				r.Connection = "not_run"
+				r := conversionResult(*j, 0, true)
+				// Synthetic connection evidence for the UI harness only.
 				r.Code = "synthetic_ui_fixture"
 				_ = store.CompleteProbe(ctx, r)
 			}
