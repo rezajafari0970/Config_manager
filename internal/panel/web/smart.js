@@ -1,7 +1,7 @@
 import {$,fa,esc,countdown,toast,api,empty} from './core.js';
 export default function Smart(){
  let busy=false,page=0,signature='';
- const codes={smart_core_validated:'هسته: پذیرفته شد',smart_core_rejected:'JSON ترکیبی توسط هسته رد شد؛ بررسی مجدد خودکار',smart_member_blob_unavailable:'دادهٔ یک عضو در حال بازیابی است',smart_profile_size_limit:'حجم این ترکیب از ظرفیت بررسی هسته بیشتر است',smart_missing_dependency:'وابستگی یکی از اعضا ناقص است'};
+ const codes={smart_requires_source_routing:'این عضو به مسیریابی اختصاصی نیاز دارد و با قالب ثابت اسمارت قابل ترکیب نیست',smart_dependency_cycle:'وابستگی چرخشی میان خروجی‌های یک عضو وجود دارد',smart_core_validated:'هسته: پذیرفته شد',smart_core_rejected:'JSON ترکیبی توسط هسته رد شد؛ بررسی مجدد خودکار',smart_member_blob_unavailable:'دادهٔ یک عضو در حال بازیابی است',smart_profile_size_limit:'حجم این ترکیب از ظرفیت بررسی هسته بیشتر است',smart_missing_dependency:'وابستگی یکی از اعضا ناقص است'};
  async function refresh(){if(busy)return;busy=true;try{
  const s=await api('/api/smart?page='+page);
  $('#smart-all-url').href=s.export_url;$('#smart-all-url').textContent=s.export_url;$('#smart-single-url').href=s.single_export_url;$('#smart-single-url').textContent=s.single_export_url;

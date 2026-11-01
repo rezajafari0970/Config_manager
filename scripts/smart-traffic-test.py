@@ -22,7 +22,7 @@ def main():
   config['routing']['rules'].insert(0,{'type':'field','inboundTag':['fixture-server'],'outboundTag':'fixture-direct'})
   # Only controlled probe destination/timing differ from the shipped envelope.
   config['burstObservatory']['pingConfig'].update(destination='http://127.0.0.1:24447/generate_204',interval='1s',sampling=1,timeout='500ms')
-  config['log']={'loglevel':'warning'}
+  assert config['log']=={'loglevel':'none','access':'none','error':'none','dnsLog':False}
   with lab.Sandbox(str(core),secrets.token_hex(3),8199,prefix='cstf') as box:
    box.policy({});children=[]
    try:

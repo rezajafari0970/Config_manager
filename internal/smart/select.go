@@ -7,7 +7,7 @@ import (
 	"sort"
 )
 
-const Version = "xray-26.7.28.smart.v1"
+const Version = "xray-26.7.28.smart.v2"
 
 type Member struct {
 	ID      string

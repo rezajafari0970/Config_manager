@@ -8,15 +8,13 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/probe"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 	"github.com/rezajafari0970/Config_manager/internal/target"
-	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 )
 
 type M = map[string]any
 
-const base = `{"remarks":"@shenvpn-smart-parallel-v6b","log":{"loglevel":"debug","dnsLog":true},"dns":{"tag":"dns-module","queryStrategy":"UseIPv4","servers":[{"address":"https://1.1.1.1/dns-query","skipFallback":false},{"address":"https://8.8.8.8/dns-query","skipFallback":false},{"address":"https://9.9.9.9/dns-query","skipFallback":false}]},"inbounds":[{"tag":"socks","listen":"127.0.0.1","port":10808,"protocol":"socks","settings":{"auth":"noauth","udp":true},"sniffing":{"enabled":true,"destOverride":["http","tls","quic"],"routeOnly":true}}],"outbounds":[],"routing":{"domainStrategy":"AsIs","balancers":[],"rules":[]},"burstObservatory":{"subjectSelector":["proxy-"],"pingConfig":{"destination":"https://www.gstatic.com/generate_204","interval":"20s","sampling":3,"timeout":"4s","httpMethod":"GET"}},"policy":{"levels":{"0":{"handshake":15,"connIdle":600,"uplinkOnly":2,"downlinkOnly":5}}},"stats":{}}`
+const base = `{"remarks":"@shenvpn-smart-parallel-v6b","log":{"loglevel":"none","access":"none","error":"none","dnsLog":false},"dns":{"tag":"dns-module","queryStrategy":"UseIPv4","servers":[{"address":"https://1.1.1.1/dns-query","skipFallback":false},{"address":"https://8.8.8.8/dns-query","skipFallback":false},{"address":"https://9.9.9.9/dns-query","skipFallback":false}]},"inbounds":[{"tag":"socks","listen":"127.0.0.1","port":10808,"protocol":"socks","settings":{"auth":"noauth","udp":true},"sniffing":{"enabled":true,"destOverride":["http","tls","quic"],"routeOnly":true}}],"outbounds":[],"routing":{"domainStrategy":"AsIs","balancers":[{"tag":"smart-parallel-balancer","selector":["proxy-"],"strategy":{"type":"leastLoad","settings":{"expected":3,"maxRTT":"2s","tolerance":0.15}}}],"rules":[{"type":"field","inboundTag":["dns-module"],"balancerTag":"smart-parallel-balancer"},{"type":"field","network":"tcp,udp","balancerTag":"smart-parallel-balancer"}]},"burstObservatory":{"subjectSelector":["proxy-"],"pingConfig":{"destination":"https://www.gstatic.com/generate_204","interval":"20s","sampling":3,"timeout":"4s","httpMethod":"GET"}},"policy":{"levels":{"0":{"handshake":15,"connIdle":600,"uplinkOnly":2,"downlinkOnly":5}}},"stats":{}}`
 
 func object(b []byte) (M, error) {
 	var m M
@@ -36,17 +34,14 @@ func Prepare(b []byte) probe.Plan {
 	p.Candidates = []probe.Candidate{{Rule: Version, SHA256: repair.Digest(b), Config: bytes.Clone(b)}}
 	return p
 }
+
+// Compose replaces only the outbounds placeholder in the fixed user envelope.
+// Accepted member JSON is decoded into new objects; raw stored bytes are never edited.
 func Compose(members []Member) ([]byte, error) {
 	if len(members) == 0 {
 		return nil, errors.New("smart_empty_profile")
 	}
-	root, _ := object([]byte(base))
-	out := []any{}
-	entries := []any{}
-	rules := []any{}
-	balancers := []any{}
-	subjects := []string{"proxy-"}
-	bootstrap := map[string]bool{}
+	entries, helpers := []any{}, []any{}
 	for slot, member := range members {
 		source, e := object(member.Body)
 		if e != nil {
@@ -56,313 +51,298 @@ func Compose(members []Member) ([]byte, error) {
 		if !ok || len(nodes) == 0 {
 			return nil, errors.New("smart_missing_outbounds")
 		}
-		routing, _ := source["routing"].(M)
-		originalRules, _ := routing["rules"].([]any)
-		originalBalancers, _ := routing["balancers"].([]any)
-		primary, balanced := "", ""
-		for _, v := range originalRules {
-			r, _ := v.(M)
-			if r["network"] == "tcp,udp" && r["inboundTag"] == nil && r["port"] == nil {
-				primary, _ = r["outboundTag"].(string)
-				balanced, _ = r["balancerTag"].(string)
-			}
-		}
-		if (primary == "") == (balanced == "") {
-			return nil, errors.New("smart_ambiguous_entry")
-		}
-		prefix := fmt.Sprintf("member-%04d-", slot+1)
-		entry := fmt.Sprintf("proxy-%04d", slot+1)
+		byTag := map[string]M{}
 		tags := map[string]string{}
-		bTags := map[string]string{}
-		inTags := map[string]string{}
-		oldOrder := []string{}
-		for i, v := range nodes {
-			ob, ok := v.(M)
+		for i, value := range nodes {
+			ob, ok := value.(M)
 			if !ok {
 				return nil, errors.New("smart_invalid_outbound")
 			}
 			tag, _ := ob["tag"].(string)
-			if tag == "" || tags[tag] != "" {
+			if tag == "" || byTag[tag] != nil {
 				return nil, errors.New("smart_duplicate_tag")
 			}
-			tags[tag] = fmt.Sprintf("%sout-%04d_", prefix, i)
-			oldOrder = append(oldOrder, tag)
+			byTag[tag] = ob
+			tags[tag] = fmt.Sprintf("member-%04d-out-%04d_", slot+1, i)
 		}
-		if primary != "" {
-			if tags[primary] == "" {
+		selected, e := entryTags(source, nodes)
+		if e != nil {
+			return nil, e
+		}
+		selectedSet := map[string]bool{}
+		for _, tag := range selected {
+			if byTag[tag] == nil {
 				return nil, errors.New("smart_missing_dependency")
 			}
-			tags[primary] = entry
-		}
-		for i, v := range originalBalancers {
-			b, ok := v.(M)
-			if !ok {
-				return nil, errors.New("smart_invalid_balancer")
+			switch byTag[tag]["protocol"] {
+			case "freedom", "blackhole", "dns", "loopback":
+				return nil, errors.New("smart_requires_source_routing")
 			}
-			tag, _ := b["tag"].(string)
-			if tag == "" || bTags[tag] != "" {
-				return nil, errors.New("smart_duplicate_balancer")
+			selectedSet[tag] = true
+			tags[tag] = fmt.Sprintf("proxy-%02d", len(entries)+1)
+			entries = append(entries, byTag[tag])
+		}
+		// A copied entry must remain usable with the fixed two global routes.
+		// Active loopback chains need source-specific routing and cannot be
+		// silently represented by this template. Inactive helpers are still copied.
+		visiting, visited := map[string]bool{}, map[string]bool{}
+		var check func(string) error
+		check = func(tag string) error {
+			if visited[tag] {
+				return nil
 			}
-			bTags[tag] = fmt.Sprintf("%sbal-%04d_", prefix, i)
-		}
-		if balanced != "" && bTags[balanced] == "" {
-			return nil, errors.New("smart_missing_balancer")
-		}
-		inName := func(old string) string {
-			if inTags[old] == "" {
-				inTags[old] = fmt.Sprintf("%sin-%04d_", prefix, len(inTags))
+			if visiting[tag] {
+				return errors.New("smart_dependency_cycle")
 			}
-			return inTags[old]
-		}
-		var rewrite func(any) error
-		rewrite = func(value any) error {
-			switch v := value.(type) {
-			case M:
-				for k, child := range v {
-					switch k {
-					case "outboundTag", "dialerProxy":
-						if old, ok := child.(string); ok && old != "" {
-							if tags[old] == "" {
-								return errors.New("smart_missing_dependency")
-							}
-							v[k] = tags[old]
-							continue
-						}
-					case "balancerTag":
-						if old, ok := child.(string); ok && old != "" {
-							if bTags[old] == "" {
-								return errors.New("smart_missing_balancer")
-							}
-							v[k] = bTags[old]
-							continue
-						}
-					case "inboundTag":
-						switch old := child.(type) {
-						case string:
-							v[k] = inName(old)
-						case []any:
-							values := []string{}
-							for _, x := range old {
-								s, ok := x.(string)
-								if !ok {
-									return errors.New("smart_invalid_route")
-								}
-								values = append(values, inName(s))
-							}
-							v[k] = values
-						}
-						continue
-					case "proxySettings":
-						if p, ok := child.(M); ok {
-							if old, ok := p["tag"].(string); ok && old != "" {
-								if tags[old] == "" {
-									return errors.New("smart_missing_dependency")
-								}
-								p["tag"] = tags[old]
-							}
-						}
-					}
-					if e := rewrite(child); e != nil {
-						return e
-					}
-				}
-			case []any:
-				for _, x := range v {
-					if e := rewrite(x); e != nil {
-						return e
-					}
+			ob := byTag[tag]
+			if ob == nil {
+				return errors.New("smart_missing_dependency")
+			}
+			if ob["protocol"] == "loopback" {
+				return errors.New("smart_requires_source_routing")
+			}
+			visiting[tag] = true
+			for _, ref := range outboundReferences(ob) {
+				if e := check(ref); e != nil {
+					return e
 				}
 			}
+			delete(visiting, tag)
+			visited[tag] = true
 			return nil
 		}
-		expand := func(value any) ([]string, error) {
-			raw, ok := value.([]any)
-			if !ok {
-				return nil, errors.New("smart_invalid_selector")
-			}
-			chosen := []string{}
-			for _, tag := range oldOrder {
-				for _, p := range raw {
-					s, ok := p.(string)
-					if !ok || s == "" {
-						return nil, errors.New("smart_invalid_selector")
-					}
-					if strings.HasPrefix(tag, s) {
-						chosen = append(chosen, tags[tag])
-						break
-					}
-				}
-			}
-			return chosen, nil
-		}
-		for _, v := range originalBalancers {
-			b := v.(M)
-			selector, e := expand(b["selector"])
-			if e != nil || len(selector) == 0 {
-				return nil, errors.New("smart_empty_balancer")
-			}
-			b["selector"] = selector
-			b["tag"] = bTags[b["tag"].(string)]
-			if fallback, ok := b["fallbackTag"].(string); ok && fallback != "" {
-				if tags[fallback] == "" {
-					return nil, errors.New("smart_missing_dependency")
-				}
-				b["fallbackTag"] = tags[fallback]
-			} else {
-				b["fallbackTag"] = tags[oldOrder[0]]
-			}
-			strategy, _ := b["strategy"].(M)
-			settings, _ := strategy["settings"].(M)
-			if costs, ok := settings["costs"].([]any); ok {
-				mapped := []any{}
-				for _, item := range costs {
-					cost, ok := item.(M)
-					if !ok {
-						return nil, errors.New("smart_invalid_cost")
-					}
-					match, _ := cost["match"].(string)
-					isRegex, _ := cost["regexp"].(bool)
-					var re *regexp.Regexp
-					if isRegex {
-						re, e = regexp.Compile(match)
-						if e != nil {
-							return nil, errors.New("smart_invalid_cost")
-						}
-					}
-					for _, tag := range oldOrder {
-						matched := ""
-						if strings.Contains(tag, match) {
-							matched = match
-						}
-						if isRegex {
-							matched = re.FindString(tag)
-						}
-						if matched != "" {
-							copy := M{}
-							for k, x := range cost {
-								copy[k] = x
-							}
-							// Freeze the old core's substring/regexp auto cost before renaming.
-							value, _ := strconv.ParseFloat(fmt.Sprint(cost["value"]), 64)
-							if value <= 0 {
-								value = 1
-								number := regexp.MustCompile(`\d+(\.\d+)?`).FindString(matched)
-								if number != "" {
-									value, _ = strconv.ParseFloat(number, 64)
-								}
-							}
-							copy["value"] = value
-							copy["match"] = tags[tag]
-							copy["regexp"] = false
-							mapped = append(mapped, copy)
-						}
-					}
-				}
-				settings["costs"] = mapped
-			}
-			balancers = append(balancers, b)
-			subjects = append(subjects, selector...)
-		}
-		// Retain internal loopback dispatch rules, but replace source-global SOCKS/DNS
-		// routing with the requested smart envelope.
-		for _, v := range originalRules {
-			r, _ := v.(M)
-			ins, ok := r["inboundTag"].([]any)
-			if !ok {
-				continue
-			}
-			internal := false
-			for _, x := range ins {
-				if x != "socks" && x != "dns-module" {
-					internal = true
-				}
-			}
-			if !internal {
-				continue
-			}
-			if e := rewrite(r); e != nil {
+		for _, tag := range selected {
+			if e := check(tag); e != nil {
 				return nil, e
 			}
-			rules = append(rules, r)
 		}
-		if balanced != "" {
-			in := inName("smart-entry")
-			entries = append(entries, M{"tag": entry, "protocol": "loopback", "settings": M{"inboundTag": in}})
-			rules = append(rules, M{"type": "field", "inboundTag": []string{in}, "balancerTag": bTags[balanced]})
-		}
-		// Place the selected input first; preserve each component's real default as
-		// the explicit fallback for its inner balancers.
-		ordered := nodes
-		if primary != "" {
-			ordered = []any{}
-			for _, v := range nodes {
-				if v.(M)["tag"] == primary {
-					ordered = append(ordered, v)
-				}
-			}
-			for _, v := range nodes {
-				if v.(M)["tag"] != primary {
-					ordered = append(ordered, v)
-				}
-			}
-		}
-		for _, v := range ordered {
-			ob := v.(M)
-			tag := ob["tag"].(string)
-			ob["tag"] = tags[tag]
-			if e := rewrite(ob); e != nil {
+		for _, value := range nodes {
+			ob := value.(M)
+			old := ob["tag"].(string)
+			ob["tag"] = tags[old]
+			if e := rewriteReferences(ob, tags, fmt.Sprintf("member-%04d-", slot+1)); e != nil {
 				return nil, e
 			}
-			if stream, ok := ob["streamSettings"].(M); ok {
-				opt, _ := stream["sockopt"].(M)
-				if opt == nil {
-					opt = M{}
-					stream["sockopt"] = opt
-				}
-				if opt["tcpKeepAliveIdle"] == nil {
-					opt["tcpKeepAliveIdle"] = 30
-				}
-			}
-			if ob["tag"] == entry {
-				entries = append(entries, ob)
-			} else {
-				out = append(out, ob)
-			}
-		}
-		dns, _ := source["dns"].(M)
-		servers, _ := dns["servers"].([]any)
-		for _, v := range servers {
-			server, _ := v.(M)
-			address, _ := server["address"].(string)
-			if strings.HasPrefix(address, "https+local://") {
-				domains, _ := server["domains"].([]any)
-				for _, d := range domains {
-					if text, ok := d.(string); ok && strings.HasPrefix(text, "full:") {
-						bootstrap[text] = true
-					}
-				}
+			if !selectedSet[old] {
+				helpers = append(helpers, ob)
 			}
 		}
 	}
-	out = append(entries, out...)
+	out := append(entries, helpers...)
 	out = append(out, M{"tag": "direct", "protocol": "freedom", "settings": M{}}, M{"tag": "block", "protocol": "blackhole", "settings": M{}})
-	balancers = append(balancers, M{"tag": "smart-parallel-balancer", "selector": []string{"proxy-"}, "fallbackTag": "proxy-0001", "strategy": M{"type": "leastLoad", "settings": M{"expected": min(3, len(members)), "maxRTT": "2s", "tolerance": 0.15}}})
-	rules = append(rules, M{"type": "field", "inboundTag": []string{"dns-module"}, "balancerTag": "smart-parallel-balancer"}, M{"type": "field", "network": "tcp,udp", "balancerTag": "smart-parallel-balancer"})
-	root["outbounds"] = out
-	root["routing"] = M{"domainStrategy": "AsIs", "balancers": balancers, "rules": rules}
-	root["burstObservatory"].(M)["subjectSelector"] = subjects
-	if len(bootstrap) > 0 {
-		domains := []string{}
-		for d := range bootstrap {
-			domains = append(domains, d)
-		}
-		sort.Strings(domains)
-		dns := root["dns"].(M)
-		dns["servers"] = append([]any{M{"address": "https+local://1.1.1.1/dns-query", "domains": domains, "skipFallback": true}}, dns["servers"].([]any)...)
+	var body bytes.Buffer
+	if e := orderedJSON(&body, out); e != nil {
+		return nil, e
 	}
-	b, e := json.Marshal(root)
-	if len(b) > repair.MaxBytes {
+	// Raw replacement preserves every fixed field, nested field order and value.
+	result := bytes.Replace([]byte(base), []byte("\"outbounds\":[]"), append([]byte("\"outbounds\":"), body.Bytes()...), 1)
+	if len(result) > repair.MaxBytes {
 		return nil, errors.New("smart_profile_size_limit")
 	}
-	return b, e
+	return result, nil
+}
+
+// entryTags flattens only the selected top-level pool into the single requested
+// leastLoad balancer. Other outbound definitions remain copied helpers.
+func entryTags(source M, nodes []any) ([]string, error) {
+	routing, _ := source["routing"].(M)
+	rules, _ := routing["rules"].([]any)
+	primary, balanced := "", ""
+	for _, value := range rules {
+		r, _ := value.(M)
+		if r["network"] == "tcp,udp" && r["inboundTag"] == nil && r["port"] == nil {
+			// Refuse hidden predicates instead of treating a conditional route as universal.
+			for key := range r {
+				if key != "type" && key != "network" && key != "outboundTag" && key != "balancerTag" {
+					return nil, errors.New("smart_ambiguous_entry")
+				}
+			}
+			if primary != "" || balanced != "" {
+				return nil, errors.New("smart_ambiguous_entry")
+			}
+			primary, _ = r["outboundTag"].(string)
+			balanced, _ = r["balancerTag"].(string)
+		}
+	}
+	if (primary == "") == (balanced == "") {
+		return nil, errors.New("smart_ambiguous_entry")
+	}
+	if primary != "" {
+		return []string{primary}, nil
+	}
+	balancers, _ := routing["balancers"].([]any)
+	var pool M
+	for _, value := range balancers {
+		b, _ := value.(M)
+		if b["tag"] == balanced {
+			if pool != nil {
+				return nil, errors.New("smart_duplicate_balancer")
+			}
+			pool = b
+		}
+	}
+	if pool == nil {
+		return nil, errors.New("smart_missing_balancer")
+	}
+	selector, ok := pool["selector"].([]any)
+	if !ok || len(selector) == 0 {
+		return nil, errors.New("smart_invalid_selector")
+	}
+	for _, value := range selector {
+		if text, ok := value.(string); !ok || text == "" {
+			return nil, errors.New("smart_invalid_selector")
+		}
+	}
+	chosen := []string{}
+	for _, value := range nodes {
+		tag := value.(M)["tag"].(string)
+		for _, prefix := range selector {
+			if strings.HasPrefix(tag, prefix.(string)) {
+				chosen = append(chosen, tag)
+				break
+			}
+		}
+	}
+	if len(chosen) == 0 {
+		return nil, errors.New("smart_empty_balancer")
+	}
+	return chosen, nil
+}
+
+// References are rewritten in the same parsed copy, including nested download
+// streams. Credentials, TLS, transport, Mux and unknown extension values survive.
+func outboundReferences(value any) []string {
+	refs := []string{}
+	var walk func(any)
+	walk = func(value any) {
+		switch v := value.(type) {
+		case M:
+			for k, child := range v {
+				if k == "dialerProxy" || k == "outboundTag" {
+					if s, ok := child.(string); ok && s != "" {
+						refs = append(refs, s)
+					}
+				}
+				if k == "proxySettings" {
+					if p, ok := child.(M); ok {
+						if s, ok := p["tag"].(string); ok && s != "" {
+							refs = append(refs, s)
+						}
+					}
+				}
+				walk(child)
+			}
+		case []any:
+			for _, child := range v {
+				walk(child)
+			}
+		}
+	}
+	walk(value)
+	return refs
+}
+func rewriteReferences(value any, tags map[string]string, prefix string) error {
+	switch v := value.(type) {
+	case M:
+		for k, child := range v {
+			switch k {
+			case "dialerProxy", "outboundTag":
+				if s, ok := child.(string); ok && s != "" {
+					if tags[s] == "" {
+						return errors.New("smart_missing_dependency")
+					}
+					v[k] = tags[s]
+					continue
+				}
+			case "proxySettings":
+				if p, ok := child.(M); ok {
+					if s, ok := p["tag"].(string); ok && s != "" {
+						if tags[s] == "" {
+							return errors.New("smart_missing_dependency")
+						}
+						p["tag"] = tags[s]
+					}
+				}
+			}
+			if e := rewriteReferences(child, tags, prefix); e != nil {
+				return e
+			}
+		}
+		// Loopback inboundTag is a separate namespace, not an outbound reference.
+		if v["protocol"] == "loopback" {
+			if settings, ok := v["settings"].(M); ok {
+				if tag, ok := settings["inboundTag"].(string); ok && tag != "" {
+					settings["inboundTag"] = prefix + "in-" + tag
+				}
+			}
+		}
+	case []any:
+		for _, child := range v {
+			if e := rewriteReferences(child, tags, prefix); e != nil {
+				return e
+			}
+		}
+	}
+	return nil
+}
+
+// Stable schema-friendly field order without discarding unknown JSON fields or
+// coercing numbers. Arrays (including users/servers/ALPN) retain source order.
+func orderedJSON(out *bytes.Buffer, value any) error {
+	switch v := value.(type) {
+	case M:
+		order := []string{"tag", "protocol", "sendThrough", "settings", "streamSettings", "proxySettings", "mux", "vnext", "servers", "address", "port", "users", "id", "alterId", "encryption", "flow", "method", "password", "network", "security", "tcpSettings", "rawSettings", "xhttpSettings", "wsSettings", "grpcSettings", "httpSettings", "tlsSettings", "realitySettings", "sockopt", "header", "type", "request", "version", "mode", "path", "headers", "show", "serverName", "fingerprint", "publicKey", "shortId", "spiderX", "alpn"}
+		rank := map[string]int{}
+		for i, k := range order {
+			rank[k] = i + 1
+		}
+		keys := make([]string, 0, len(v))
+		for k := range v {
+			keys = append(keys, k)
+		}
+		sort.Slice(keys, func(i, j int) bool {
+			a, b := rank[keys[i]], rank[keys[j]]
+			if a == 0 {
+				a = len(order) + 1
+			}
+			if b == 0 {
+				b = len(order) + 1
+			}
+			if a != b {
+				return a < b
+			}
+			return keys[i] < keys[j]
+		})
+		out.WriteByte('{')
+		for i, k := range keys {
+			if i > 0 {
+				out.WriteByte(',')
+			}
+			b, _ := json.Marshal(k)
+			out.Write(b)
+			out.WriteByte(':')
+			if e := orderedJSON(out, v[k]); e != nil {
+				return e
+			}
+		}
+		out.WriteByte('}')
+	case []any:
+		out.WriteByte('[')
+		for i, child := range v {
+			if i > 0 {
+				out.WriteByte(',')
+			}
+			if e := orderedJSON(out, child); e != nil {
+				return e
+			}
+		}
+		out.WriteByte(']')
+	default:
+		b, e := json.Marshal(v)
+		if e != nil {
+			return e
+		}
+		out.Write(b)
+	}
+	return nil
 }

@@ -181,8 +181,8 @@ func (s *Store) ClaimSmart(ctx context.Context) (*probe.Job, error) {
 	// Revoke invalid leases before counting capacity; they must not occupy both
 	// independent slots until their crash-recovery timeout.
 	if _, e = tx.ExecContext(ctx, `UPDATE smart_heads SET state='queued',token='',lease_until=0,next_run=0
- WHERE token!='' AND (revision!=? OR expires<=? OR
- (SELECT count(*) FROM smart_owned_members m WHERE m.head=smart_heads.id)!=member_count)`, revision, now); e != nil {
+ WHERE token!='' AND (version!=? OR revision!=? OR expires<=? OR
+ (SELECT count(*) FROM smart_owned_members m WHERE m.head=smart_heads.id)!=member_count)`, smart.Version, revision, now); e != nil {
 		return nil, e
 	}
 	var active int

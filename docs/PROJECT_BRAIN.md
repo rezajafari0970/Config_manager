@@ -1,6 +1,6 @@
-# Project Brain — P14
+# Project Brain — P15
 
-Current user instruction (2026-10-30) replaces the persistent repair laboratory with a shared JSON conversion flow. Read PROJECT_STATE.json, HANDOFF.md, docs/CONVERSION.md and the P14 checkpoint. Earlier checkpoints describe history only.
+Current user instruction (2026-10-30) replaces the persistent repair laboratory with a shared JSON conversion flow. Read PROJECT_STATE.json, HANDOFF.md, docs/CONVERSION.md and the P15 checkpoint. Earlier checkpoints describe history only.
 
 Go fetches source links independently, extracts exact encrypted originals, maps supported protocols to the user's @shenvpn full JSON envelope, validates using pinned Xray26.7.28 and tracks connection separately. Output is a clean list plus the all-config JSONL and single-config rotation links. The bank, manual import, historical variants, learned model/rule data and old subscriptions are removed by schema6.
 
@@ -22,3 +22,5 @@ P13 uses template v4, structural v3 and probe-plan v3. URI repair encodes only u
 
 
 P14 adds Smart Output using the supplied smart-parallel-v6b envelope without replacing ordinary output. Read docs/checkpoints/P14-smart-output-20261101.md. Schema9 preserves ordinary/source rotations. Selection/composition lives in internal/smart; Smart persistence/routes in panel/smart*.go; a separate enabled systemd service uses mode smart, its own Unix queue, csm namespaces and instance lock. One cache profile per unique head enforces first-position coverage, with independent source/member usage counters and shuffled followers. Count defaults10; active accepted sources participate up to capacity, tiny/shared sources necessarily reuse/deduplicate followers. Exact source ownership, proof and shortest TTL gate every profile, independently pinned-core validated. Android and live QUIC remain not_run; leastLoad distributes connections, not one connection's bandwidth. Current private receipts use smart-*.
+
+P15 supersedes P14's Smart global merge at the user's explicit request. Every non-outbound field is now the exact ordered supplied template, except loglevel/access/error none and dnsLog false. Smart v2 copies all selected inputs' outbounds without pruning helpers or injecting socket options. Only collision-free tags/references change; selected entry tags run proxy-01 onward. One fixed leastLoad/burst handles selected real pools; source DNS/bootstrap/rules/strategies are not imported. Active loopback chains needing source routes fail explicitly rather than silently changing connectivity. Source/normal output behavior remains unchanged. Schema9 and all settings/rotations survive deployment; old Smart cache revalidates under v2. Private receipts are p15-*.

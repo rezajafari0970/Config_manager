@@ -397,3 +397,51 @@ func TestSmartSourceRevocationImmediatelyReleasesBothSlots(t *testing.T) {
 		t.Fatal(e)
 	}
 }
+
+func TestSmartTemplateVersionRevokesOldCacheAndOccupiedLeases(t *testing.T) {
+	s, _ := smartFixture(t)
+	ctx := context.Background()
+	finishSmart(t, s)
+	normal, _ := s.Conversions(ctx, 0, true)
+	settings, _ := s.SmartSettings(ctx)
+	first, _, cycle, e := s.smartNext(ctx)
+	if e != nil || first == nil {
+		t.Fatal(e)
+	}
+	var before int
+	s.db.QueryRow("SELECT count(*) FROM smart_rotation_queue").Scan(&before)
+	if _, e = s.db.Exec("UPDATE smart_heads SET version='xray-26.7.28.smart.v1'"); e != nil {
+		t.Fatal(e)
+	}
+	rows, e := querySmart(ctx, s.db, true, 0)
+	if e != nil {
+		t.Fatal(e)
+	}
+	for _, r := range rows {
+		if r.Available {
+			t.Fatal("old template exported")
+		}
+	}
+	if _, e = s.db.Exec("UPDATE smart_heads SET token='old-worker',lease_until=?,state='running' WHERE id IN (SELECT id FROM smart_heads LIMIT 2)", time.Now().Add(time.Minute).UnixMilli()); e != nil {
+		t.Fatal(e)
+	}
+	job, e := s.ClaimSmart(ctx)
+	if e != nil || job == nil || job.Issue != "" {
+		t.Fatal("old leases blocked new builder", e, job)
+	}
+	if e = s.CompleteSmart(ctx, smartResult(job)); e != nil {
+		t.Fatal(e)
+	}
+	finishSmart(t, s)
+	after, _ := s.SmartSettings(ctx)
+	normalAfter, _ := s.Conversions(ctx, 0, true)
+	var remaining int
+	s.db.QueryRow("SELECT count(*) FROM smart_rotation_queue").Scan(&remaining)
+	if after != settings || before != remaining || len(normalAfter) != len(normal) {
+		t.Fatal("version update reset settings, turns or normal outputs")
+	}
+	next, body, nextCycle, e := s.smartNext(ctx)
+	if e != nil || next == nil || next.ID == first.ID || nextCycle != cycle || !bytes.Contains(body, []byte(`"loglevel":"none"`)) {
+		t.Fatal("updated rotation/template", e)
+	}
+}

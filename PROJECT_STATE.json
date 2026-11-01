@@ -1,5 +1,5 @@
 {
-  "phase": "P14 independent Smart Output",
+  "phase": "P15 exact ordered Smart envelope",
   "date": "2026-11-01",
   "status": "implemented_and_deployed",
   "repository": "rezajafari0970/Config_manager",
@@ -30,7 +30,8 @@
     "balanced_template": "Explicit universal balancer route retains original pool, strategy, fallback, observer and necessary chain tags; collision-free common envelope helpers; no arbitrary server selection",
     "traffic": "SOCKS UDP and tcp,udp routing; Vision/Mux UDP443 gates open. No unsolicited Mux: explicit VLESS xudp input maps to UDP-only manager; upstream UDP/QUIC support remains separate.",
     "uri_compatibility": "Narrow userinfo space escaping preserves decoded credentials; TLS cs maps exactly; explicit VLESS packetEncoding=xudp uses one UDP stream with TCP multiplexing disabled. Missing REALITY keys remain explicit failures.",
-    "smart_output": "Additional cached smart-parallel-v6b profiles: configurable member count, source/member least-use counters, random followers, one unique canonical first position per durable round; ordinary/source exports unchanged."
+    "smart_output": "Additional cached smart-parallel-v6b profiles: configurable member count, source/member least-use counters, random followers, one unique canonical first position per durable round; ordinary/source exports unchanged.",
+    "smart_envelope": "Smart v2: exact fixed supplied envelope/order, loglevel/access/error none and dnsLog false; only complete copied outbounds vary with required tag/reference namespace changes. Single global leastLoad handles complete real pools; active loopback routing dependencies fail explicitly."
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -416,6 +417,82 @@
       "android": "not_run",
       "live_quic_handshake": "not_run",
       "live_findings": "Immediately revoke leases with lost ownership before counting Smart capacity; viewer resolves the current DOM row after refresh while JSON is in flight."
+    },
+    "smart_envelope": {
+      "unit_checks": "Full check.sh passed; exact ordered envelope/all values, unknown fields/null/number precision, pool/dependency and version/cache/rotation regressions",
+      "pinned_core_counts": [
+        1,
+        2,
+        10,
+        50
+      ],
+      "worker": {
+        "android": "not_run",
+        "whole_profile_connection": "not_run",
+        "live_samples": 4,
+        "passed": true,
+        "profiles": 59,
+        "members_per_profile": 50,
+        "sources": 4,
+        "max_active": 2,
+        "sigkill_recovered": true,
+        "unique_head_round": true,
+        "inline": true,
+        "core": "xray-26.7.28"
+      },
+      "production_copy_audit": {
+        "passed": true,
+        "version": "xray-26.7.28.smart.v2",
+        "profiles": 85,
+        "selected_inputs": 850,
+        "copied_outbounds": 3400,
+        "cached_bytes_exact": true,
+        "logs_off": true
+      },
+      "packet_fixture": "TCP/UDP/UDP443 passed with logs disabled; observed second live member",
+      "android": "not_run",
+      "live_quic_handshake": "not_run",
+      "public_browser": {
+        "passed": true,
+        "results": [
+          {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "profiles": 76,
+            "outbound_counts": [
+              42
+            ],
+            "settings_count": 10,
+            "exact_envelope": true,
+            "logs_off": true,
+            "inline": true,
+            "downloads": 0,
+            "overflow": false,
+            "errors": 0
+          },
+          {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "profiles": 97,
+            "outbound_counts": [
+              42
+            ],
+            "settings_count": 10,
+            "exact_envelope": true,
+            "logs_off": true,
+            "inline": true,
+            "downloads": 0,
+            "overflow": false,
+            "errors": 0
+          }
+        ],
+        "browser": "154.0.8037.57",
+        "android": "not_run"
+      }
     }
   },
   "runtime": {
@@ -426,9 +503,9 @@
       "config-repair-smart.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p14-3ab4b9d7c8d076f24092",
-    "panel_sha256": "3ab4b9d7c8d076f24092268e0e3fcc37c98db04d08e54774f31ccaa39b3ff42c",
-    "worker_sha256": "02b45d3936d719b163cb601eaea9bff1fafc9aa6a01a40d4f23b35b1fbab921c",
+    "release": "/opt/config-repair/releases/p15-b003f05d4d978a956f0e",
+    "panel_sha256": "b003f05d4d978a956f0e4506277efa4992cebea32c88c42bfb3d1bf84afbf884",
+    "worker_sha256": "977d48d2ad57d55caea16683f0e90dbe0bdd0dad4c367c506b5ce135604d5d0b",
     "template_version": "xray-26.7.28.template.v4",
     "retention_seconds": 7200,
     "fetch_concurrency": 16,
@@ -437,12 +514,12 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/smart-deployed.json",
-    "publication_receipt": ".local/smart-published.json",
+    "deployment_receipt": ".local/p15-deployed.json",
+    "publication_receipt": ".local/p15-published.json",
     "sandbox_driver_sha256": "c979512fb5ecd21e2cf97b0d73169aa338684b1cbdd40ab36a325b7b149199de",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
-    "smart_version": "xray-26.7.28.smart.v1",
+    "smart_version": "xray-26.7.28.smart.v2",
     "smart_count": 10,
     "smart_concurrency": 2,
     "adapter_sha256": "875088ecbd2f5f1c3b5b847b2d760014ef5e67ae0ec9d07d8677032298231c12",

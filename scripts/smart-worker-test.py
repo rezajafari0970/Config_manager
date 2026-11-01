@@ -55,7 +55,11 @@ def main():
     lines=get(state['export_url'])[0].splitlines();assert len(lines)==state['stats']['ready']==len(set(lines))
     for line in lines:
      j=json.loads(line);assert j['remarks']=='@shenvpn-smart-parallel-v6b'
-     assert len([x for x in j['outbounds'] if x['tag'].startswith('proxy-')])==50
+     assert list(j)==['remarks','log','dns','inbounds','outbounds','routing','burstObservatory','policy','stats']
+     assert j['log']=={'loglevel':'none','access':'none','error':'none','dnsLog':False}
+     assert len(j['dns']['servers'])==3 and len(j['routing']['balancers'])==1 and len(j['routing']['rules'])==2
+     assert j['outbounds'][0]['tag']=='proxy-01' and 'fallbackTag' not in j['routing']['balancers'][0]
+     assert len([x for x in j['outbounds'] if x['tag'].startswith('proxy-')])>=50
      assert j['routing']['balancers'][-1]['strategy']['type']=='leastLoad'
     turns=[]
     for i in range(len(lines)+1):

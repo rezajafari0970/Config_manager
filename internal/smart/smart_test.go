@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -117,7 +118,7 @@ func TestComposeGraphCredentialsAndPinnedCore(t *testing.T) {
 			t.Fatal("tag collision")
 		}
 		tags[tag] = true
-		if i < len(members) && tag != fmt.Sprintf("proxy-%04d", i+1) {
+		if i < len(members) && tag != fmt.Sprintf("proxy-%02d", i+1) {
 			t.Fatal("entry order", i, tag)
 		}
 	}
@@ -132,7 +133,7 @@ func TestComposeGraphCredentialsAndPinnedCore(t *testing.T) {
 	if bytes.Contains(b, []byte(`"dialerProxy":"proxy"`)) || bytes.Contains(b, []byte(`"balancerTag":"pool"`)) {
 		t.Fatal("unrenamed references")
 	}
-	for _, count := range []int{10, 50} {
+	for _, count := range []int{1, 2, 10, 50} {
 		group := []Member{}
 		for i := 1; i <= count; i++ {
 			group = append(group, member(t, i, "A"))
@@ -170,32 +171,29 @@ func TestComposeDoesNotInventMissingDependency(t *testing.T) {
 	}
 }
 
-func TestWeightAutoCostPreservedWhenRenaming(t *testing.T) {
+func TestSourceBalancerGlobalsCannotOverrideFixedEnvelope(t *testing.T) {
 	m := member(t, 1, "A")
-	var root M
-	json.Unmarshal(m.Body, &root)
+	root, _ := object(m.Body)
 	first := root["outbounds"].([]any)[0].(M)
 	first["tag"] = "node-bandwidth-42"
 	root["outbounds"] = []any{first}
-	root["routing"] = M{"balancers": []any{M{"tag": "balance", "selector": []string{"node-"}, "strategy": M{"type": "leastLoad", "settings": M{"costs": []any{M{"match": "bandwidth-42", "value": 0}, M{"match": "bandwidth-(\\d+)", "regexp": true, "value": 0}}}}}}, "rules": []any{M{"type": "field", "network": "tcp,udp", "balancerTag": "balance"}}}
+	root["routing"] = M{"balancers": []any{M{"tag": "balance", "selector": []string{"node-"}, "strategy": M{"type": "leastLoad", "settings": M{"costs": []any{M{"match": "bandwidth-42", "value": 0}}}}}}, "rules": []any{M{"type": "field", "network": "tcp,udp", "balancerTag": "balance"}}}
 	m.Body, _ = json.Marshal(root)
 	b, e := Compose([]Member{m})
 	if e != nil {
 		t.Fatal(e)
 	}
-	var got M
-	json.Unmarshal(b, &got)
-	bal := got["routing"].(M)["balancers"].([]any)[0].(M)
-	costs := bal["strategy"].(M)["settings"].(M)["costs"].([]any)
-	if len(costs) != 2 {
-		t.Fatal("substring and regex match lost")
+	got, _ := object(b)
+	want, _ := object([]byte(base))
+	if !reflect.DeepEqual(got["routing"], want["routing"]) || !reflect.DeepEqual(got["burstObservatory"], want["burstObservatory"]) {
+		t.Fatal("source globals leaked into template")
 	}
-	for _, v := range costs {
-		c := v.(M)
-		if c["value"] != float64(42) || c["regexp"] != false {
-			t.Fatal("auto cost changed", c)
-		}
+	out := got["outbounds"].([]any)
+	first["tag"] = "proxy-01"
+	if !reflect.DeepEqual(out[0], first) {
+		t.Fatal("flattening changed outbound values")
 	}
+	validateCore(t, b)
 }
 
 func TestSharedCanonicalSourceCoverageDoesNotRepeatMember(t *testing.T) {

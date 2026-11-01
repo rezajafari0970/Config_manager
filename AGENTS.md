@@ -72,3 +72,11 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - Smart composition must pass the exact pinned core in the sandbox. csm production and cst tests are disjoint from normal crw/ctw. Never expose Smart worker routes on TCP or run arbitrary configs directly.
 - Cache validity depends on all members/TTL/proofs/settings and current usable capacity/coverage. Blob I/O stays outside SQLite transactions; tests must cover source growth, revocation, stale completion and cross-Store rotation.
 - Run full checks, Smart50-member SIGKILL worker integration, observed failover TCP/UDP/UDP443 fixture and inline browser/restart checks. These are not Android or QUIC handshake receipts.
+
+## P15 exact Smart envelope — supersedes P14 global composition
+- Read docs/checkpoints/P15-smart-envelope-20261101.md. Smart v2, schema9 and normal template v4.
+- The user explicitly requires ALL selected input outbounds copied and every other global field fixed to the supplied template, with all logs off. Never prune DNS/direct/block helpers, inject keepalive/bootstrap DNS, or carry source globals into Smart.
+- Preserve every outbound value except required collision-free tag/reference renaming. Deterministic field order, proxy-01 onward, complete copied helpers, final template direct/block. Immutable originals remain untouched.
+- A selected source balancer contributes its entire selected real proxy pool to the single fixed global leastLoad; do not import inner strategies/costs/rules/observers. An active loopback-dependent chain cannot be represented by the fixed routes and must fail explicitly. Inactive helpers are still copied.
+- Fixed expected3/maxRTT2s/tolerance0.15, the exact three DoH servers/two rules/burst settings and ordered root keys are contract-tested. Never call pinned-core acceptance proof of exact template equality.
+- Version changes revoke old leases/cache without resetting settings or either rotation. Run independent envelope/all-outbound-value tests, pinned-core1/2/10/50, logs-off packet test, worker SIGKILL and browser/restart.
