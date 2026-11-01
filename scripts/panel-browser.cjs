@@ -52,7 +52,25 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
  assert.equal((await context.request.get(origin+'/api/bank')).status(),404);assert.equal((await context.request.get(origin+'/assets/bank.js')).status(),404);
  await page.locator('[data-view]').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('pre')].some(p=>!p.hidden&&p.textContent.startsWith('{')));await noOverflow();await page.screenshot({path:dir+'/output-mobile.png',fullPage:true});
  await page.setViewportSize({width:1440,height:1000});await noOverflow();await page.screenshot({path:dir+'/output-desktop.png',fullPage:true});
+
+ // Smart exports have a durable independent head round and stay inline.
+ await page.goto(origin+'/smart');await wait(async()=>{const x=await(await context.request.get(origin+'/api/smart')).json();return x.stats.ready===2});
+ const smart=await(await context.request.get(origin+'/api/smart')).json();assert.equal(smart.settings.count,phase==='1'?10:50);
+ assert.equal(await page.locator('#smart-all-url').getAttribute('href'),smart.export_url);
+ const smartPage=await context.newPage(),smartDownloads=[];smartPage.on('download',d=>smartDownloads.push(d));
+ const allSmart=await smartPage.goto(smart.export_url);assert.equal(allSmart.headers()['content-disposition'],'inline');assert.equal(await smartPage.evaluate(()=>document.contentType),'text/plain');
+ const smartLines=(await allSmart.text()).trim().split('\n');assert.equal(smartLines.length,2);assert.equal(new Set(smartLines).size,2);
+ for(const line of smartLines){const j=JSON.parse(line);assert.equal(j.remarks,'@shenvpn-smart-parallel-v6b');assert.equal(j.outbounds.filter(x=>x.tag.startsWith('proxy-')).length,2);assert.equal(j.inbounds[0].settings.udp,true)}
+ const smartTurns=[];for(let i=0;i<3;i++){const r=await smartPage.goto(smart.single_export_url);assert.equal(r.status(),200);assert.equal(r.headers()['content-disposition'],'inline');assert.equal((await r.text()).trim().split('\n').length,1);smartTurns.push({id:r.headers()['x-smart-first-id'],cycle:Number(r.headers()['x-export-cycle'])})}
+ assert.equal(smartDownloads.length,0);await smartPage.close();
+ assert.deepEqual(smartTurns.map(x=>x.cycle),phase==='1'?[1,1,2]:[2,3,3]);
+ for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)if(smartTurns[i].cycle===smartTurns[j].cycle)assert.notEqual(smartTurns[i].id,smartTurns[j].id);
+ // Re-render during the request: the viewer must update the current DOM row.
+ await page.route('**/smart/json/*',async route=>{await page.evaluate(()=>{const list=document.querySelector('#smart-list');list.innerHTML=list.innerHTML});await route.continue()});
+ await page.locator('[data-smart-view]').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('#smart-list pre')].some(p=>!p.hidden&&p.textContent.startsWith('{')));
+ await noOverflow();await page.screenshot({path:dir+'/smart-desktop.png',fullPage:true});await page.setViewportSize({width:390,height:844});await noOverflow();await page.screenshot({path:dir+'/smart-mobile.png',fullPage:true});
  await page.goto(origin+'/setting');await page.waitForFunction(()=>document.querySelector('#probe-concurrency').value!=='');await page.setViewportSize({width:390,height:844});await noOverflow();
+ if(phase==='1'){await page.locator('#smart-member-count').fill('۵۰');await page.locator('#smart-settings button').click();await wait(async()=>(await(await context.request.get(origin+'/api/smart')).json()).settings.count===50);await wait(async()=>(await(await context.request.get(origin+'/api/smart')).json()).stats.ready===2)}
  if(phase==='1'){await page.locator('#request-timeout').fill('۱۹');await page.getByRole('button',{name:'ذخیرهٔ تنظیمات',exact:true}).click();await wait(async()=>(await state()).settings.timeout_seconds===19);await page.locator('#probe-concurrency').fill('3');await page.locator('#probe-settings button').click();await wait(async()=>(await(await context.request.get(origin+'/api/conversions')).json()).settings.concurrency===3)}
  else{assert.equal(c.settings.concurrency,3);await page.locator('#retention-hours').fill('۰٫۰۰۲۵');await page.getByRole('button',{name:'ذخیرهٔ تنظیمات',exact:true}).click();await wait(async()=>(await state()).stats.configs===0);const converted=await(await context.request.get(origin+'/api/conversions')).json();assert.equal(converted.entries.length,0);assert.equal(await(await context.request.get(converted.export_url)).text(),'');const emptySingle=await context.request.get(converted.single_export_url);assert.equal(emptySingle.status(),204);assert.equal(await emptySingle.text(),'')}
  await page.screenshot({path:dir+'/setting-mobile.png',fullPage:true});assert.deepEqual(errors,[]);console.log(JSON.stringify({phase,passed:true,browser:await browser.version(),scope:'synthetic UI only; core matrix is separate'}));

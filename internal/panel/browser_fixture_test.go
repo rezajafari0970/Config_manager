@@ -88,6 +88,24 @@ func TestBrowserFixtureServer(t *testing.T) {
 		}
 	}()
 
+	smartDone := make(chan struct{})
+	go func() {
+		defer close(smartDone)
+		tick := time.NewTicker(100 * time.Millisecond)
+		defer tick.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-tick.C:
+				j, e := store.ClaimSmart(ctx)
+				if e == nil && j != nil {
+					_ = store.CompleteSmart(ctx, smartResult(j))
+				}
+			}
+		}
+	}()
+
 	server := &http.Server{Addr: "127.0.0.1:18192", Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second}
 	httpDone := make(chan error, 1)
 	go func() { httpDone <- server.ListenAndServe() }()
@@ -100,6 +118,7 @@ func TestBrowserFixtureServer(t *testing.T) {
 	defer cancel()
 	server.Shutdown(shutdown)
 	<-converted
+	<-smartDone
 	if e := <-done; e != nil {
 		t.Fatal(e)
 	}

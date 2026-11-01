@@ -12,6 +12,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/convert"
 	"github.com/rezajafari0970/Config_manager/internal/probe"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
+	"github.com/rezajafari0970/Config_manager/internal/smart"
 	"io"
 	"log"
 	"net"
@@ -25,14 +26,18 @@ import (
 	"time"
 )
 
-type client struct{ http *http.Client }
+type client struct {
+	http            *http.Client
+	prefix, version string
+	prepare         func([]byte) probe.Plan
+}
 
 func (c client) call(ctx context.Context, path string, in, out any) error {
 	b, e := json.Marshal(in)
 	if e != nil {
 		return e
 	}
-	req, e := http.NewRequestWithContext(ctx, "POST", "http://unix"+path, bytes.NewReader(b))
+	req, e := http.NewRequestWithContext(ctx, "POST", "http://unix"+c.prefix+path, bytes.NewReader(b))
 	if e != nil {
 		return e
 	}
@@ -57,9 +62,9 @@ type helperResult struct {
 }
 
 func execute(ctx context.Context, c client, helper, core string, slot int, j probe.Job) {
-	p := convert.Prepare(j.Raw)
+	p := c.prepare(j.Raw)
 	code := p.Code
-	if repair.Digest(j.Raw) != j.Hash {
+	if c.prefix == "" && repair.Digest(j.Raw) != j.Hash {
 		code = "original_blob_unavailable"
 		p.Candidates = nil
 	}
@@ -71,7 +76,7 @@ func execute(ctx context.Context, c client, helper, core string, slot int, j pro
 		p.Kind = j.Kind
 	}
 	p.Code = code
-	r := probe.Result{Hash: j.Hash, Token: j.Token, Revision: j.Revision, Version: convert.Version, CoreSHA256: probe.CoreSHA256, Attempt: probe.Attempt{SHA256: j.Hash, Rule: "preparation", Core: "not_run", Connection: "not_run", Code: code}}
+	r := probe.Result{Hash: j.Hash, Token: j.Token, Revision: j.Revision, Version: c.version, CoreSHA256: probe.CoreSHA256, Attempt: probe.Attempt{SHA256: j.Hash, Rule: "preparation", Core: "not_run", Connection: "not_run", Code: code}}
 	if len(p.Candidates) > 0 {
 		deadline := time.Duration(len(p.Candidates)*(50+2*j.Settings.TimeoutSeconds)) * time.Second
 		jobCtx, cancel := context.WithTimeout(ctx, deadline)
@@ -142,7 +147,11 @@ func run() error {
 	helper := flag.String("helper", "/opt/config-repair/current/scripts/probe-one.py", "trusted sandbox driver")
 	core := flag.String("core", "/opt/config-repair/core-26.7.28/xray", "pinned core")
 	lockPath := flag.String("lock-file", "/run/config-repair-prober.lock", "supervisor instance lock")
+	mode := flag.String("mode", "conversion", "independent conversion or smart queue")
 	flag.Parse()
+	if *mode != "conversion" && *mode != "smart" {
+		return errors.New("invalid worker mode")
+	}
 	if os.Geteuid() != 0 {
 		return errors.New("privileged sandbox supervisor required")
 	}
@@ -156,13 +165,22 @@ func run() error {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer stop()
-	c := client{&http.Client{Transport: &http.Transport{DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+	c := client{http: &http.Client{Transport: &http.Transport{DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
 		return (&net.Dialer{}).DialContext(ctx, "unix", *socket)
-	}}, Timeout: 30 * time.Second}}
+	}}, Timeout: 30 * time.Second}, version: convert.Version, prepare: convert.Prepare}
+	slots := 8
+	interval := time.Second
+	if *mode == "smart" {
+		c.prefix = "/smart"
+		c.version = smart.Version
+		c.prepare = smart.Prepare
+		slots = 2
+		interval = 200 * time.Millisecond
+	}
 	status := func(state, code string, active int) {
 		sc, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
-		_ = c.call(sc, "/status", probe.WorkerStatus{Status: state, Code: code, Version: convert.Version, Active: active}, nil)
+		_ = c.call(sc, "/status", probe.WorkerStatus{Status: state, Code: code, Version: c.version, Active: active}, nil)
 	}
 	clean := exec.CommandContext(ctx, "/usr/bin/python3", *helper, "--cleanup")
 	if e = clean.Run(); e != nil {
@@ -179,11 +197,11 @@ func run() error {
 	}
 	var active atomic.Int32
 	var wg sync.WaitGroup
-	for slot := 1; slot <= 8; slot++ {
+	for slot := 1; slot <= slots; slot++ {
 		wg.Add(1)
 		go func(slot int) {
 			defer wg.Done()
-			tick := time.NewTicker(time.Second)
+			tick := time.NewTicker(interval)
 			defer tick.Stop()
 			for {
 				select {

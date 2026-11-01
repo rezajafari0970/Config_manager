@@ -82,3 +82,12 @@ Read docs/checkpoints/P13-shared-repair-20261030.md, PROJECT_STATE.json and docs
 Full checks,22pinned protocol fixtures,4balancer fixtures,3real packet controls, browser and isolated SIGKILL recovery passed. Four previously blocked private samples became core-valid, but their fresh HTTPS probes did not connect.14Hot inputs lacked REALITY keys at inspection. Actual live counts can change; consult the current API rather than restoring historical sources/revisions. Android and QUIC handshake remain untested.
 
 Deployment preserved schema8 and all current definitions/settings, used a stopped-service matching backup, and verified both running binary hashes. Current receipts are .local/hot-deployed.json, hot-live.json, hot-public-browser.json and hot-published.json; runtime hashes are in PROJECT_STATE.json. Initial browser failure was a missing static-asset allowlist entry, now covered and fixed. No source sample bank was restored.
+
+
+## P14 Smart Output — 2026-11-01
+
+Read docs/checkpoints/P14-smart-output-20261101.md and current PROJECT_STATE.json before further work. Additive schema9, Smart v1, normal template v4 unchanged. Current release /opt/config-repair/releases/p14-3ab4b9d7c8d076f24092; all three services active/enabled. Independent Smart full/single URLs are returned by /api/smart, with count10 configurable in Setting.
+
+Coverage, dedup, full first-position cycles, restart, member lifecycle, current pool growth and source-change lease revocation are tested. Exact-core50-member worker/SIGKILL integration and observed synthetic TCP/UDP/UDP443 failover passed. Public browser checks passed; production counts remain transient. Android app/TUN and live QUIC handshake are not_run. Originals and all normal/source settings/rotation scopes were preserved. Smart JSON viewer uses the current row after an asynchronous refresh.
+
+Publication must read back the exact branch commit and compare running binary hashes separately. Parent before this phase:15cb39b22fc5b168b86fe7423496767a7a37b89f. The final receipt is .local/smart-published.json (not committed). No subagents, unrelated infrastructure changes or example endpoint imports were used.

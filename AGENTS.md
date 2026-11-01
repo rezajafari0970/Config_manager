@@ -64,3 +64,11 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - TLS cs maps to cipherSuites without rewriting its order or fingerprint. Explicit VLESS packetEncoding=xudp maps to an XUDP manager with one UDP stream and TCP multiplexing disabled. This source-requested mapping is the narrow exception to P12's no-new-mux rule; never add it to inputs without that explicit option or silently discard unsupported encodings.
 - Missing/invalid REALITY key/shortId diagnostics apply to retained chains, pools and nested download streams. Never fabricate keys, borrow another config's proof, downgrade security, or label a failed HTTPS probe connected.
 - Canonical issue counts must use the same source-filtered representative as Output. Pending/stale results are not final failures; raw-response format status remains distinct.
+
+## P14 independent Smart Output
+- Read docs/checkpoints/P14-smart-output-20261101.md and docs/CONVERSION.md. Schema9 is additive; ordinary template-v4, source/global URLs and turns must stay unchanged.
+- Use one cached profile per canonical head, persistent source/member counters, no duplicate IDs/candidate hashes, random follower order, and an independent durable first-position round. Small-source reuse is necessary for per-profile source coverage; never promise conflicting global no-repeat semantics.
+- Preserve accepted source-specific proof and dependency graphs. Namespace tags/selectors/costs/references, retain pinned weight semantics and explicit real-proxy fallback. No fabricated credentials or direct fail-open.
+- Smart composition must pass the exact pinned core in the sandbox. csm production and cst tests are disjoint from normal crw/ctw. Never expose Smart worker routes on TCP or run arbitrary configs directly.
+- Cache validity depends on all members/TTL/proofs/settings and current usable capacity/coverage. Blob I/O stays outside SQLite transactions; tests must cover source growth, revocation, stale completion and cross-Store rotation.
+- Run full checks, Smart50-member SIGKILL worker integration, observed failover TCP/UDP/UDP443 fixture and inline browser/restart checks. These are not Android or QUIC handshake receipts.

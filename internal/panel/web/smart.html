@@ -1,0 +1,10 @@
+{{define "smart"}}
+<div class="row-actions"><a class="button secondary" href="/output">بازگشت به Output</a><a class="button secondary" href="/setting">تنظیم تعداد اعضا</a></div>
+<section class="panel output-panel"><div class="section-title"><div><h2>خروجی اسمارت</h2><p dir="ltr">@shenvpn-smart-parallel-v6b · leastLoad</p></div><span id="smart-worker" class="badge wait">در حال بررسی</span></div>
+<p id="smart-counts" class="hint"></p><p class="hint">هر کانفیگ یکتا یک اسمارت با خودش در جایگاه اول دارد؛ چیدمان بقیهٔ اعضا تصادفی است. منابع تا حد ظرفیت سهم می‌گیرند و منابع کوچک پس از مصرف اعضایشان دور جدید دارند. منابع بدون ورودی قابل‌استفاده سهمی ندارند.</p>
+<div class="subscription-box"><label>لینک همهٔ اسمارت‌ها</label><div class="sub-link"><a id="smart-all-url" dir="ltr"></a><button id="smart-copy-all" class="secondary">کپی لینک</button></div></div>
+<div class="subscription-box"><label>لینک اسمارت تکی چرخشی</label><div class="sub-link"><a id="smart-single-url" dir="ltr"></a><button id="smart-copy-single" class="secondary">کپی لینک</button></div></div>
+<p class="hint">هر خروجی یک JSON کامل و تک‌خطی است. کش تا زمان نگهداری تنظیم‌شده و اعتبار همهٔ اعضا باقی می‌ماند. نوبت تکی با ریستارت حفظ می‌شود. در زمان آماده‌سازی اعضای باقی‌مانده، ممکن است لینک تکی پاسخ خالی بدهد تا جایگاه اول زودتر از پایان دور تکرار نشود.</p>
+<p class="hint">هستهٔ هدف، JSON نهایی هر اسمارت را بررسی می‌کند. اتصال اعضا جداگانه سنجیده می‌شود؛ پذیرش هسته به معنی اتصال همهٔ سرورها یا تجمیع پهنای باند نیست. آزمون برنامهٔ اندروید انجام نشده است. JSONL قالب ساب آرایه‌ای v2rayNG نیست؛ خروجی تکی قابل کپی برای ایمپورت است.</p>
+<div id="smart-list"><div class="loading">در حال خواندن کش اسمارت…</div></div><div class="pagination"><button class="secondary" id="smart-prev">قبلی</button><span id="smart-page">۱</span><button class="secondary" id="smart-next">بعدی</button></div>
+</section>{{end}}

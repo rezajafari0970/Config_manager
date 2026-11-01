@@ -446,11 +446,14 @@ func (s *Store) Expire(ctx context.Context, now time.Time) error {
 	if e = syncConversions(ctx, tx); e != nil {
 		return e
 	}
+	if _, e = tx.ExecContext(ctx, "DELETE FROM smart_heads WHERE expires>0 AND expires<=?", now.UnixMilli()); e != nil {
+		return e
+	}
 	return tx.Commit()
 }
 func (s *Store) Referenced(ctx context.Context, hash string) (bool, error) {
 	var used bool
-	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+") UNION ALL SELECT 1 FROM conversion_results r JOIN conversion_inputs i ON i.hash=r.hash WHERE r.candidate_hash=?)", hash, hash, hash, hash, hash).Scan(&used)
+	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+") UNION ALL SELECT 1 FROM conversion_results r JOIN conversion_inputs i ON i.hash=r.hash WHERE r.candidate_hash=? UNION ALL SELECT 1 FROM smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER))", hash, hash, hash, hash, hash, hash).Scan(&used)
 	return used, e
 }
 

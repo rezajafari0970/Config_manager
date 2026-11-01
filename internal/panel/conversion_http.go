@@ -218,6 +218,7 @@ func (s *Server) writeJSONLines(w http.ResponseWriter, r *http.Request, source s
 // This handler is served ONLY on a protected Unix socket, never public TCP.
 func (s *Store) PrivateProbeHandler() http.Handler {
 	mux := http.NewServeMux()
+	s.registerPrivateSmart(mux)
 	mux.HandleFunc("POST /claim", func(w http.ResponseWriter, r *http.Request) {
 		j, e := s.ClaimProbe(r.Context())
 		if e != nil {
