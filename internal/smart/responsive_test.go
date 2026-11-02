@@ -48,7 +48,7 @@ func TestEndpointBootstrapIsScopedAndPreservesOutbounds(t *testing.T) {
 	}
 }
 
-func TestSmartResponsiveDNSAndLatency(t *testing.T) {
+func TestSmartLeastLoadDistributionDNSAndRecovery(t *testing.T) {
 	if os.Getenv("XRAY_TRAFFIC_TEST") != "1" {
 		t.Skip("explicit isolated traffic test")
 	}
@@ -75,7 +75,7 @@ func TestSmartResponsiveDNSAndLatency(t *testing.T) {
 	cmd.Stdin = bytes.NewReader(request)
 	out, e := cmd.CombinedOutput()
 	if e != nil {
-		t.Fatalf("responsive comparison: %v\n%s", e, out)
+		t.Fatalf("leastLoad comparison: %v\n%s", e, out)
 	}
 	var receipt struct{ Passed bool }
 	if json.Unmarshal(out, &receipt) != nil || !receipt.Passed {

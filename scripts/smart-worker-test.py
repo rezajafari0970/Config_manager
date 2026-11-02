@@ -60,7 +60,7 @@ def main():
      assert len(j['dns']['servers']) in (3,5) and len(j['routing']['balancers'])==1 and len(j['routing']['rules'])==3
      assert j['outbounds'][0]['tag']=='proxy-01' and j['routing']['balancers'][0]['fallbackTag']=='block'
      assert len([x for x in j['outbounds'] if x['tag'].startswith('proxy-')])>=50
-     assert j['routing']['balancers'][-1]['strategy']['type']=='leastPing'
+     assert j['routing']['balancers'][-1]['strategy']=={'type':'leastLoad','settings':{'expected':3,'maxRTT':'2s','tolerance':.15}}
     turns=[]
     for i in range(len(lines)+1):
      body,headers=get(state['single_export_url']);assert body.strip() in lines

@@ -1,6 +1,6 @@
-# Handoff — current P18 source acquisition
+# Handoff — current P19 leastLoad
 
-Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and docs/checkpoints/P18-acquisition-20261102.md. Verify actual HEAD/origin/status and private p18 receipts. Earlier checkpoint sections below are historical. The latest request is false successful acquisition with zero configs; preserve the existing bank-free lifecycle.
+Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and docs/checkpoints/P19-leastload-20261102.md. Verify actual HEAD/origin/status and private p19 receipts. Earlier checkpoint sections below are historical. The latest request explicitly selects leastLoad; preserve the existing bank-free lifecycle.
 
 Authoritative server tree: /root/projects/v2ray-config-repair. GitHub: rezajafari0970/Config_manager, branch go/v2rayng-2.3.6. Legacy main and unrelated DigitalOcean infrastructure are outside scope.
 
@@ -125,3 +125,7 @@ Controlled request latency/failover results are lab-only; real carrier/Android/Q
 ## Current P18 acquisition — 2026-11-02
 
 Schema10 adds only stored/suppressed receipt counts. Current source ownership now overrides historical HTTP/content success, and deletion suppression is explicit rather than hidden as duplicates. The scoped restore button undoes only deleted identities from that source's unexpired retained response, fences old jobs and queues fresh fetch/validation. Subsequent deletion remains authoritative. Source schedules and enabled states were preserved. Final public browser observed Speedray31/31 printable and large Agood92/92; rotating single Agood1 pending/0 printable was accurately amber. No Android/network-speed claim. See P18 checkpoint for tests, exact release/hashes and the two distinct migration vs same-schema rollback procedures. Current runtime/publication pointers are in PROJECT_STATE.json; private p18 receipts are authoritative.
+
+
+## Current P19 — user-selected leastLoad
+Smart v6 uses leastLoad expected3/maxRTT2s/tolerance0.15. Keep current35members/revision10, burst10s/1/3s, block fallback, DNS, all copied outbounds and fresh site admission. Schema10/ordinary template v4/P18 acquisition fixes remain. Prior leastPing cache is ineligible and rebuilds without resetting settings or rotations. Full checks, controlled traffic, Smart50worker recovery, public full/single output and exact-copy audit passed. Read docs/checkpoints/P19-leastload-20261102.md and private p19 receipts; P17 leastPing performance is historical. No new carrier/Android evidence.

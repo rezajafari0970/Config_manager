@@ -1,6 +1,6 @@
-# Project Brain — P18
+# Project Brain — P19
 
-Current user instruction (2026-10-30) replaces the persistent repair laboratory with a shared JSON conversion flow. Read PROJECT_STATE.json, HANDOFF.md, docs/CONVERSION.md and the P18 checkpoint. Earlier checkpoints describe history only.
+Current user instruction (2026-10-30) replaces the persistent repair laboratory with a shared JSON conversion flow. Read PROJECT_STATE.json, HANDOFF.md, docs/CONVERSION.md and the P19 checkpoint. Earlier checkpoints describe history only.
 
 Go fetches source links independently, extracts exact encrypted originals, maps supported protocols to the user's @shenvpn full JSON envelope, validates using pinned Xray26.7.28 and tracks connection separately. Output is a clean list plus the all-config JSONL and single-config rotation links. The bank, manual import, historical variants, learned model/rule data and old subscriptions are removed by schema6.
 
@@ -31,3 +31,7 @@ P17 supersedes P15/P16 global Smart behavior under the latest performance reques
 
 
 P18 fixes false collection success when manual-deletion controls suppress every acquired item. Schema10 adds receipt counts; deleted items are separated from duplicates, current ownership gates success, missing-membership304 triggers an unconditional retry, and enabled live ownership gates source statistics. The UI never shows zero-current configs as successful and distinguishes pending output validation. Explicit scoped restoration parses the retained immutable response, clears only matching deleted identities, fences old work and requires fresh fetch/validation. All11 live source definitions, schedules, settings and rotations were preserved; normal template v4 and Smart v5 are unchanged. Read docs/checkpoints/P18-acquisition-20261102.md and private p18 receipts; historical counts are not current state.
+
+
+## Current P19 — user-selected leastLoad
+Smart v6 uses leastLoad expected3/maxRTT2s/tolerance0.15. Keep current35members/revision10, burst10s/1/3s, block fallback, DNS, all copied outbounds and fresh site admission. Schema10/ordinary template v4/P18 acquisition fixes remain. Prior leastPing cache is ineligible and rebuilds without resetting settings or rotations. Full checks, controlled traffic, Smart50worker recovery, public full/single output and exact-copy audit passed. Read docs/checkpoints/P19-leastload-20261102.md and private p19 receipts; P17 leastPing performance is historical. No new carrier/Android evidence.

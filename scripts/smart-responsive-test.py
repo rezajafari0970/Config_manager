@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Pinned-core comparison using synthetic peers in a closed network namespace.
-Tests DNS interception/non-IP relay, endpoint bootstrap and latency selection.
+Tests requested leastLoad distribution, DNS, endpoint bootstrap and failed-peer exclusion.
+leastPing is an explicit comparison fixture, not the generated production strategy.
 No live subscription, Android, carrier, throughput or real QUIC claim.
 """
 import copy,hashlib,importlib.util,json,math,os,pathlib,secrets,socket,struct
@@ -79,13 +80,11 @@ def main():
  request=json.load(sys.stdin);core=pathlib.Path(request['core']).resolve()
  assert os.geteuid()==0 and hashlib.sha256(core.read_bytes()).hexdigest()=='64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d'
  lab=module('responsive_sandbox',HERE/'live-probe.py');report={}
- for phase in ('before','after','domain'):
+ assert request['config']['routing']['balancers'][0]['strategy']=={'type':'leastLoad','settings':{'expected':3,'maxRTT':'2s','tolerance':.15}}
+ for phase in ('reference_leastping','leastload','domain'):
   config=copy.deepcopy(request['config'])
-  if phase=='before':
-   config['routing']['balancers'][0].pop('fallbackTag',None)
-   config['routing']['balancers'][0]['strategy']={'type':'leastLoad','settings':{'expected':3,'maxRTT':'2s','tolerance':.15}}
-   config['routing']['rules']=[r for r in config['routing']['rules'] if r.get('port')!='53']
-   config['burstObservatory']['pingConfig'].update(interval='20s',sampling=3,timeout='4s')
+  if phase=='reference_leastping':
+   config['routing']['balancers'][0]['strategy']={'type':'leastPing'}
   # Non-IP forwarding remains tunneled; redirect only the test resolver here.
   next(x for x in config['outbounds'] if x['tag']=='smart-dns-out')['settings'].update(rewriteAddress='127.0.0.1',rewritePort=24453)
   proxies=[x for x in config['outbounds'] if x['tag'].startswith('proxy-')]
@@ -111,31 +110,38 @@ def main():
     assert process.poll() is None,'synthetic core exited'
     result=box.net([sys.executable,__file__,'--exercise'],timeout=40)
     report[phase]=json.loads(result.stdout)
-    if phase=='after':
-     # Fail the preferred peer after established success; the spare is independent.
+    if phase=='leastload':
+     # Fail the fast peer after both peers carried requests; verify subsequent exclusion.
      box.net(['/usr/sbin/nft','add','table','inet','fixture_failure'])
      box.net(['/usr/sbin/nft','add','chain','inet','fixture_failure','out','{ type filter hook output priority 200; policy accept; }'])
      box.net(['/usr/sbin/nft','add','rule','inet','fixture_failure','out','tcp','dport','24443','drop'])
-     started=time.monotonic();recovered=False;failures=0
+     started=time.monotonic();recovered=False;failures=0;successes=0
      while time.monotonic()-started<28:
       try:
        r=box.net(['/usr/bin/curl','--noproxy','','--proxy','socks5h://127.0.0.1:10808','--max-time','1','--silent','--output','/dev/null','--write-out','%{http_code}','http://127.0.0.1:24447/generate_204'],timeout=2)
-       if r.stdout==b'204':recovered=True;break
-      except (subprocess.SubprocessError,OSError):failures+=1
+       if r.stdout==b'204':successes+=1
+       else:failures+=1;successes=0
+      except (subprocess.SubprocessError,OSError):failures+=1;successes=0
+      if time.monotonic()-started>=14 and successes>=3:
+       recovered=True;break
       time.sleep(.3)
-     assert recovered,'preferred peer failure did not recover within test deadline'
-     report[phase]['failover_seconds']=round(time.monotonic()-started,2)
+     assert recovered,'failed-peer exclusion did not settle within test deadline'
+     result=box.net([sys.executable,__file__,'--exercise'],timeout=40)
+     post=json.loads(result.stdout)
+     assert post['slow_requests']==post['requests'] and all(post['dns'].values()),post
+     report[phase]['post_failure']=post
+     report[phase]['verified_recovery_seconds']=round(time.monotonic()-started,2)
      report[phase]['requests_failed_during_detection']=failures
 
    finally:
     child.terminate()
     try:child.wait(timeout=3)
     except subprocess.TimeoutExpired:child.kill();child.wait()
- assert report['before']['slow_requests']>0,report
- assert not report['before']['dns']['intercept_a'],report
- for phase in ('after','domain'):
-  assert report[phase]['slow_requests']==0 and all(report[phase]['dns'].values()),report
- assert report['after']['p95_ms']<report['before']['p95_ms']/2,report
+ assert report['reference_leastping']['slow_requests']==0,report
+ for phase in ('leastload','domain'):
+  assert 0<report[phase]['slow_requests']<report[phase]['requests'],report
+ for phase in report:
+  assert all(report[phase]['dns'].values()),report
  print(json.dumps({'passed':True,'comparison':report,'scope':'closed synthetic namespace; 120ms per-direction delay on one peer','carrier_tests':'not_run','quic_handshake':'not_run'}))
 if __name__=='__main__':
  if len(sys.argv)>1 and sys.argv[1]=='--services':services()

@@ -103,3 +103,9 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - HTTP/extraction is not storage or export evidence. Separate deletion suppression from ordinary duplicates; zero current memberships never show green collection success.304 requires retained response and live memberships. Historical receipt counts must not override current ownership.
 - Explicit recovery may clear only matching deleted identities parsed from the source's retained unexpired response; global shared identity semantics must stay explicit. Fence stale jobs, preserve unrelated/disabled controls and require new collection/validation. Later deletion still wins. Vault reads stay outside transactions.
 - Preserve source schedules, enabled state, fixed TTL, settings and rotation state. Distinguish stored-but-pending output from ready/connected output, including rapidly rotating one-item sources. Test suppression/recovery in the real browser as well as both completion paths.
+
+
+## P19 leastLoad — supersedes P17 strategy
+- The user explicitly selects leastLoad: expected3/maxRTT2s/tolerance0.15. Smart v6; preserve burst10s/1/3s, block fallback, DNS, site admission, all copied outbound values and current35-member setting. Schema10/ordinary template v4 stay unchanged.
+- Read docs/checkpoints/P19-leastload-20261102.md. Old leastPing results are historical. Controlled tests must validate requested distribution/DNS/failure behavior without claiming leastLoad always chooses minimum RTT.
+- Invalidate previous strategy cache/leases while preserving settings/rotations. Verify real full/single output and copied-value equality. Existing client JSON needs reimport; no carrier or2-second guarantee without measurement.
