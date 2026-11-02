@@ -1,6 +1,6 @@
-# Handoff — current P17 responsive Smart
+# Handoff — current P18 source acquisition
 
-Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and the P12 checkpoint (P7/P8/P9/P10/P11 are historical context). Verify actual HEAD/origin/status and private p7 receipts. The user's latest instruction explicitly removes the P6 persistent bank; do not resurrect it based on older checkpoints.
+Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and docs/checkpoints/P18-acquisition-20261102.md. Verify actual HEAD/origin/status and private p18 receipts. Earlier checkpoint sections below are historical. The latest request is false successful acquisition with zero configs; preserve the existing bank-free lifecycle.
 
 Authoritative server tree: /root/projects/v2ray-config-repair. GitHub: rezajafari0970/Config_manager, branch go/v2rayng-2.3.6. Legacy main and unrelated DigitalOcean infrastructure are outside scope.
 
@@ -120,3 +120,8 @@ A live two-profile canary exposed Instagram TLS failure despite general HTTPS su
 Final receipts: .local/p17-final-check.log, p17-final-browser.log, p17-final-worker.log, p17-conversion-worker.log, p17-responsive.log, p17-deployed.json, p17-public.json, p17-audit.json, p17-site-canary.json and p17-published.json. Earlier p17 preview used Smart v4 before site admission; do not confuse its receipt with final v5. Runtime checksums and actual release are in PROJECT_STATE.json after deployment. Same-schema rollback selects the matching prior binaries/driver; do not restore an old DB over newer user data.
 
 Controlled request latency/failover results are lab-only; real carrier/Android/QUIC/throughput remain not_run. Instagram homepage success on server does not prove media/app behavior or each nested member of a balanced source. Existing Custom JSON must be reimported to receive the new client envelope.
+
+
+## Current P18 acquisition — 2026-11-02
+
+Schema10 adds only stored/suppressed receipt counts. Current source ownership now overrides historical HTTP/content success, and deletion suppression is explicit rather than hidden as duplicates. The scoped restore button undoes only deleted identities from that source's unexpired retained response, fences old jobs and queues fresh fetch/validation. Subsequent deletion remains authoritative. Source schedules and enabled states were preserved. Final public browser observed Speedray31/31 printable and large Agood92/92; rotating single Agood1 pending/0 printable was accurately amber. No Android/network-speed claim. See P18 checkpoint for tests, exact release/hashes and the two distinct migration vs same-schema rollback procedures. Current runtime/publication pointers are in PROJECT_STATE.json; private p18 receipts are authoritative.

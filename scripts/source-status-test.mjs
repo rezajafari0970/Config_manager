@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const source=await readFile(new URL('../internal/panel/web/source-status.js',import.meta.url),'utf8');
+const {sourceStatus}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const base={enabled:true,state:'updated',config_count:0,content_state:'config',received_count:31,suppressed_count:0};
+for(const state of ['updated','unchanged','empty','invalid','filtered'])assert.notEqual(sourceStatus({...base,state})[1],'good');
+assert.match(sourceStatus({...base,state:'filtered',suppressed_count:31})[0],/حذف/);
+assert.equal(sourceStatus({...base,config_count:31})[1],'good');
+assert.equal(sourceStatus({...base,enabled:false,config_count:31})[0],'متوقف');
+assert.equal(sourceStatus({...base,state:'error',config_count:31})[1],'bad');
+assert.equal(sourceStatus({...base,state:'fetching'})[1],'working');
+assert.equal(sourceStatus({...base,config_count:29,suppressed_count:1})[1],'wait');
+assert.equal(sourceStatus({...base,config_count:1},{blocked:1})[1],'wait');
+assert.equal(sourceStatus({...base,config_count:1,content_state:'partial'},{total:1,ready:1})[1],'good');
+assert.equal(sourceStatus({...base,config_count:1},{total:1,ready:0,pending:1})[1],'wait');
+console.log('14 source status assertions passed; zero current configs never show collection success');

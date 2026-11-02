@@ -96,3 +96,10 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - One first-position round snapshots only smart_ready. Remove unavailable heads before deciding whether to start a new round. Newly ready entries join next round. Return503 with explanatory text/Retry-After only when none are ready; never successful empty204 because other heads are warming. HEAD/prefetch do not consume.
 - Controlled comparison proved DNS A/TXT, endpoint bootstrap, lower latency under a deliberately delayed peer and recovery after preferred-peer failure. It did NOT test carriers, Android APK, real QUIC, throughput or zero packet loss.
 - Run complete checks, scripts/smart-responsive-test.py through its Go test with XRAY_TRAFFIC_TEST=1, both worker integrations after probe changes, browser/restart, public single navigation and fresh-proof audit. Private p17 receipts include interim and final runtime; use final deployed/published receipts, not an earlier preview.
+
+
+## P18 truthful acquisition
+- Read docs/checkpoints/P18-acquisition-20261102.md. Schema10 is additive; normal template v4 and Smart v5 stay unchanged.
+- HTTP/extraction is not storage or export evidence. Separate deletion suppression from ordinary duplicates; zero current memberships never show green collection success.304 requires retained response and live memberships. Historical receipt counts must not override current ownership.
+- Explicit recovery may clear only matching deleted identities parsed from the source's retained unexpired response; global shared identity semantics must stay explicit. Fence stale jobs, preserve unrelated/disabled controls and require new collection/validation. Later deletion still wins. Vault reads stay outside transactions.
+- Preserve source schedules, enabled state, fixed TTL, settings and rotation state. Distinguish stored-but-pending output from ready/connected output, including rapidly rotating one-item sources. Test suppression/recovery in the real browser as well as both completion paths.

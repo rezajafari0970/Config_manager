@@ -28,29 +28,31 @@ type Source struct {
 	ExportURL       string `json:"export_url"`
 	SingleExportURL string `json:"single_export_url"`
 	SourceInput
-	ID             string    `json:"id"`
-	DisplayURL     string    `json:"display_url"`
-	Revision       int64     `json:"revision"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
-	NextRunAt      time.Time `json:"next_at"`
-	State          string    `json:"state"`
-	ErrorCode      string    `json:"error_code"`
-	LastFetch      int64     `json:"last_fetch"`
-	LastSuccess    int64     `json:"last_success"`
-	HTTPStatus     int       `json:"http_status"`
-	DurationMS     int64     `json:"duration_ms"`
-	FetchCount     int64     `json:"fetch_count"`
-	ConfigCount    int       `json:"config_count"`
-	DuplicateCount int       `json:"duplicates"`
-	HasResponse    bool      `json:"has_response"`
-	ContentState   string    `json:"content_state"`
-	ValidCount     int       `json:"valid_count"`
-	InvalidCount   int       `json:"invalid_count"`
-	UnknownCount   int       `json:"unknown_count"`
-	ReceivedCount  int       `json:"received_count"`
-	ResponseBytes  int64     `json:"response_bytes"`
-	ErrorStreak    int       `json:"error_streak"`
+	ID              string    `json:"id"`
+	DisplayURL      string    `json:"display_url"`
+	Revision        int64     `json:"revision"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	NextRunAt       time.Time `json:"next_at"`
+	State           string    `json:"state"`
+	ErrorCode       string    `json:"error_code"`
+	LastFetch       int64     `json:"last_fetch"`
+	LastSuccess     int64     `json:"last_success"`
+	HTTPStatus      int       `json:"http_status"`
+	DurationMS      int64     `json:"duration_ms"`
+	FetchCount      int64     `json:"fetch_count"`
+	ConfigCount     int       `json:"config_count"`
+	DuplicateCount  int       `json:"duplicates"`
+	HasResponse     bool      `json:"has_response"`
+	ContentState    string    `json:"content_state"`
+	ValidCount      int       `json:"valid_count"`
+	InvalidCount    int       `json:"invalid_count"`
+	UnknownCount    int       `json:"unknown_count"`
+	StoredCount     int       `json:"stored_count"`
+	SuppressedCount int       `json:"suppressed_count"`
+	ReceivedCount   int       `json:"received_count"`
+	ResponseBytes   int64     `json:"response_bytes"`
+	ErrorStreak     int       `json:"error_streak"`
 }
 
 func (s SourceInput) durations() (time.Duration, time.Duration, error) {

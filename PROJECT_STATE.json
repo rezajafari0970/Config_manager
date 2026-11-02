@@ -1,6 +1,6 @@
 {
-  "phase": "P17 responsive Smart, application-site admission and ready-only single output",
-  "date": "2026-11-01",
+  "phase": "P18 truthful source acquisition and scoped recovery",
+  "date": "2026-11-02",
   "status": "implemented_and_deployed",
   "repository": "rezajafari0970/Config_manager",
   "branch": "go/v2rayng-2.3.6",
@@ -33,7 +33,8 @@
     "smart_output": "Additional cached smart-parallel-v6b profiles: configurable member count, source/member least-use counters, random followers, one unique canonical first position per durable round; ordinary/source exports unchanged.",
     "smart_envelope": "Smart v5: complete member outbounds preserved except namespace references; logs off; leastPing burst10s/1/3s, block fallback, SOCKS/TUN DNS, proxy-routed non-IP DNS, exact endpoint-only bootstrap. Explicitly supersedes P15 fixed globals under renewed performance request.",
     "smart_admission": "Fresh source-owned https_multi_site_verified: two public HTTPS destinations plus TLS-valid Instagram homepage200/206. Ordinary core-valid output and base connection status unchanged. TTL-bounded; no persistent bank; not a claim about app media/carriers or every nested balanced outbound.",
-    "smart_single": "Durable finite round over ready eligible cache only; skip rebuilding/revoked entries, next round when drained, new ready heads join next round. HTTP200 one inline JSON; no ready503 message+Retry-After; HEAD/prefetch nonconsuming."
+    "smart_single": "Durable finite round over ready eligible cache only; skip rebuilding/revoked entries, next round when drained, new ready heads join next round. HTTP200 one inline JSON; no ready503 message+Retry-After; HEAD/prefetch nonconsuming.",
+    "acquisition": "HTTP/extraction, current source ownership, core-valid output and connectivity are separate. Deletion-suppressed inputs are not ordinary duplicates or successful storage. Explicit source recovery clears only matching retained-response deletion controls, fences old jobs and requires fresh collection/validation."
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -803,18 +804,233 @@
           ]
         }
       ]
+    },
+    "acquisition": {
+      "full_checks": "passed: modules, gofmt, vet, race, builds, pinned-core regressions, 12 Python tests, 14 source-status assertions",
+      "synthetic_browser": "passed mobile/desktop, restart, TTL, delete/refetch/filtered/explicit-restore and shared dedup",
+      "normal_worker": {
+        "android": "not_run",
+        "live_samples": 4,
+        "passed": true,
+        "total": 9,
+        "completed": 9,
+        "core_passed": 8,
+        "connected": 2,
+        "jsonl_configs": 8,
+        "max_active": 3,
+        "sigkill_recovered": true,
+        "codes": {
+          "https_multi_site_verified": 2,
+          "hysteria1_unsupported_by_target_core": 1,
+          "nonpublic_endpoint_blocked": 4,
+          "proxy_request_failed": 1,
+          "test_destination_partial": 1
+        }
+      },
+      "smart_worker": {
+        "android": "not_run",
+        "whole_profile_connection": "not_run",
+        "live_samples": 2,
+        "passed": true,
+        "profiles": 57,
+        "members_per_profile": 50,
+        "sources": 4,
+        "max_active": 2,
+        "sigkill_recovered": true,
+        "unique_head_round": true,
+        "inline": true,
+        "core": "xray-26.7.28"
+      },
+      "public_browser": {
+        "passed": true,
+        "at": "2026-11-02T11:25:01.159Z",
+        "viewports": [
+          {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "errors": 0,
+            "overflow": false,
+            "sources": [
+              {
+                "name": "Raytunnel",
+                "stored": 1,
+                "label": "خروجی‌های شناسایی‌شده آماده‌اند"
+              },
+              {
+                "name": "sub",
+                "stored": 0,
+                "label": "متوقف"
+              },
+              {
+                "name": "output",
+                "stored": 0,
+                "label": "متوقف"
+              },
+              {
+                "name": "Hot",
+                "stored": 0,
+                "label": "متوقف"
+              },
+              {
+                "name": "Afrak",
+                "stored": 20,
+                "label": "برخی ورودی‌ها نیازمند تکمیل یا اصلاح‌اند"
+              },
+              {
+                "name": "Yak",
+                "stored": 20,
+                "label": "کانفیگ ذخیره شد"
+              },
+              {
+                "name": "Exir",
+                "stored": 0,
+                "label": "متوقف"
+              },
+              {
+                "name": "Agood",
+                "stored": 1,
+                "label": "ذخیره شد؛ خروجی در حال بررسی"
+              },
+              {
+                "name": "Agood",
+                "stored": 92,
+                "label": "کانفیگ ذخیره شد"
+              },
+              {
+                "name": "Mixo",
+                "stored": 30,
+                "label": "کانفیگ ذخیره شد"
+              },
+              {
+                "name": "Speedray",
+                "stored": 31,
+                "label": "کانفیگ ذخیره شد"
+              }
+            ]
+          },
+          {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "errors": 0,
+            "overflow": false,
+            "sources": [
+              {
+                "name": "Raytunnel",
+                "stored": 1,
+                "label": "خروجی‌های شناسایی‌شده آماده‌اند"
+              },
+              {
+                "name": "sub",
+                "stored": 0,
+                "label": "متوقف"
+              },
+              {
+                "name": "output",
+                "stored": 0,
+                "label": "متوقف"
+              },
+              {
+                "name": "Hot",
+                "stored": 0,
+                "label": "متوقف"
+              },
+              {
+                "name": "Afrak",
+                "stored": 20,
+                "label": "برخی ورودی‌ها نیازمند تکمیل یا اصلاح‌اند"
+              },
+              {
+                "name": "Yak",
+                "stored": 20,
+                "label": "کانفیگ ذخیره شد"
+              },
+              {
+                "name": "Exir",
+                "stored": 0,
+                "label": "متوقف"
+              },
+              {
+                "name": "Agood",
+                "stored": 1,
+                "label": "ذخیره شد؛ خروجی در حال بررسی"
+              },
+              {
+                "name": "Agood",
+                "stored": 92,
+                "label": "کانفیگ ذخیره شد"
+              },
+              {
+                "name": "Mixo",
+                "stored": 30,
+                "label": "کانفیگ ذخیره شد"
+              },
+              {
+                "name": "Speedray",
+                "stored": 31,
+                "label": "کانفیگ ذخیره شد"
+              }
+            ]
+          }
+        ],
+        "exports": [
+          {
+            "name": "Agood",
+            "stored": 1,
+            "printed": 0,
+            "readiness": "pending_validation",
+            "scope": "raw receipt exists; no claim of export or connectivity"
+          },
+          {
+            "name": "Agood",
+            "stored": 92,
+            "printed": 92,
+            "unique": true,
+            "inline": true
+          },
+          {
+            "name": "Speedray",
+            "stored": 31,
+            "printed": 31,
+            "unique": true,
+            "inline": true
+          }
+        ],
+        "scope": "truthful collection status and currently available inline output"
+      },
+      "preserved_sources": 11,
+      "raw_response_hash_audit": "7 of 7 retained response bytes matched references in private recovery receipt",
+      "sqlite": "quick_check ok; foreign_key_check empty",
+      "schema_migration_receipt": ".local/p18-initial-deployed.json",
+      "receipts": [
+        ".local/p18-validation.json",
+        ".local/p18-final-check.log",
+        ".local/p18-final-browser.log",
+        ".local/p18-workers.json",
+        ".local/p18-recovery.json",
+        ".local/p18-public.json",
+        ".local/p18-final-runtime.json"
+      ],
+      "android_carrier_speed": "not_run",
+      "preserved_current_smart_settings": {
+        "member_count": 35,
+        "revision": 10
+      }
     }
   },
   "runtime": {
-    "database_schema": 9,
+    "database_schema": 10,
     "services": [
       "config-repair.service",
       "config-repair-prober.service",
       "config-repair-smart.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p17-6ace5eb1d551b0bc63f7",
-    "panel_sha256": "6ace5eb1d551b0bc63f78246c8d64c1a0049b4cccbee52faf3d5dd439bc89a24",
+    "release": "/opt/config-repair/releases/p18-671ffd82e8b215532041-r2",
+    "panel_sha256": "671ffd82e8b2155320413b2e9ce6d779e2e37ceeb2d5779de797681c17185cb6",
     "worker_sha256": "274b5b5eb3b4a4edcd71aeb191b79ea4d6196568e08659aedf77487e91ed4b29",
     "template_version": "xray-26.7.28.template.v4",
     "retention_seconds": 7200,
@@ -824,13 +1040,13 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/p17-deployed.json",
-    "publication_receipt": ".local/p17-published.json",
+    "deployment_receipt": ".local/p18-deployed.json",
+    "publication_receipt": ".local/p18-published.json",
     "sandbox_driver_sha256": "7c72e55456eb7bac75f1284560f61ef3d220ef16dc7c3fd17d678f547d73a136",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
     "smart_version": "xray-26.7.28.smart.v5",
-    "smart_count": 10,
+    "smart_count": 35,
     "smart_concurrency": 2,
     "adapter_sha256": "875088ecbd2f5f1c3b5b847b2d760014ef5e67ae0ec9d07d8677032298231c12",
     "smart_adapter_sha256": "315174552cdac75a509eb3fa45079dacda57e8e6d60eb966cb60f2ba5b3d0190"

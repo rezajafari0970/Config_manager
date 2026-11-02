@@ -128,6 +128,9 @@ func (s *Server) action(w http.ResponseWriter, r *http.Request) {
 		source.Enabled = !source.Enabled
 		_, e = s.store.Save(r.Context(), id, v.Revision, source.SourceInput)
 		cancel = true
+	case "restore":
+		_, e = s.store.RestoreSource(r.Context(), id, v.Revision)
+		cancel = true
 	case "run":
 		e = s.store.RunNow(r.Context(), id)
 	default:

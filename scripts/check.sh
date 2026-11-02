@@ -10,3 +10,5 @@ go build -trimpath -buildvcs=false -o bin/config-panel ./cmd/config-panel
 go build -trimpath -buildvcs=false -o bin/config-probe-plan ./cmd/config-probe-plan
 go build -trimpath -buildvcs=false -o bin/config-probe-worker ./cmd/config-probe-worker
 python3 scripts/live-probe-test.py
+
+node scripts/source-status-test.mjs

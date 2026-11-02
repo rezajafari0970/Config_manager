@@ -70,6 +70,20 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
  await page.route('**/smart/json/*',async route=>{await page.evaluate(()=>{const list=document.querySelector('#smart-list');list.innerHTML=list.innerHTML});await route.continue()});
  await page.locator('[data-smart-view]').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('#smart-list pre')].some(p=>!p.hidden&&p.textContent.startsWith('{')));
  await noOverflow();await page.screenshot({path:dir+'/smart-desktop.png',fullPage:true});await page.setViewportSize({width:390,height:844});await noOverflow();await page.screenshot({path:dir+'/smart-mobile.png',fullPage:true});
+ if(phase==='2'){
+  await page.goto(origin+'/input');
+  const post=async(path,body)=>page.evaluate(async({path,body})=>{const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(body)});if(!r.ok)throw new Error('POST '+r.status);return r.json()},{path,body});
+  const before=await state(),rosa=before.sources.find(x=>x.name==='Rosa');
+  const original=before.outputs.find(x=>x.sources===2);assert.ok(original);
+  await post('/api/configs/batch',{action:'delete',ids:[original.id]});
+  await post('/api/sources/'+rosa.id+'/run',{revision:rosa.revision});
+  await wait(async()=>{const r=(await state()).sources.find(x=>x.id===rosa.id);return r.state==='filtered'&&r.suppressed_count===1&&r.config_count===0&&r.duplicates===0});
+  const row=page.locator('.source-row[data-id="'+rosa.id+'"]');await page.waitForFunction(id=>document.querySelector('.source-row[data-id="'+id+'"] .badge')?.textContent.includes('قبلاً حذف'),rosa.id);
+  assert.equal(await row.locator('.badge.good').count(),0);await row.locator('summary').click();await row.getByRole('button',{name:'بازیابی و دریافت دوباره',exact:true}).click();
+  await wait(async()=>{const r=(await state()).sources.find(x=>x.id===rosa.id);return r.config_count===1&&r.suppressed_count===0&&r.state==='updated'});
+  await wait(async()=>(await(await context.request.get(origin+'/api/conversions')).json()).entries.length===2);
+  assert.equal((await state()).stats.configs,2);await noOverflow();await page.screenshot({path:dir+'/restored-source.png',fullPage:true});
+ }
  await page.goto(origin+'/setting');await page.waitForFunction(()=>document.querySelector('#probe-concurrency').value!=='');await page.setViewportSize({width:390,height:844});await noOverflow();
  if(phase==='1'){await page.locator('#smart-member-count').fill('۵۰');await page.locator('#smart-settings button').click();await wait(async()=>(await(await context.request.get(origin+'/api/smart')).json()).settings.count===50);await wait(async()=>(await(await context.request.get(origin+'/api/smart')).json()).stats.ready===2)}
  if(phase==='1'){await page.locator('#request-timeout').fill('۱۹');await page.getByRole('button',{name:'ذخیرهٔ تنظیمات',exact:true}).click();await wait(async()=>(await state()).settings.timeout_seconds===19);await page.locator('#probe-concurrency').fill('3');await page.locator('#probe-settings button').click();await wait(async()=>(await(await context.request.get(origin+'/api/conversions')).json()).settings.concurrency===3)}

@@ -61,13 +61,13 @@ PRAGMA user_version=2;`)
 type scanner interface{ Scan(...any) error }
 
 const baseColumns = "id,name,url,display_url,min,max,unit,enabled,revision,created,updated,next_run"
-const sourceColumns = baseColumns + ",state,error_code,last_fetch,last_success,http_status,duration_ms,fetch_count,duplicates,timeout_seconds,content_state,valid_count,invalid_count,unknown_count,received_count,response_bytes,error_streak"
+const sourceColumns = baseColumns + ",state,error_code,last_fetch,last_success,http_status,duration_ms,fetch_count,duplicates,timeout_seconds,content_state,valid_count,invalid_count,unknown_count,received_count,response_bytes,error_streak,stored_count,suppressed_count"
 
 func scanSource(row scanner) (Source, []byte, error) {
 	var s Source
 	var sealed []byte
 	var created, updated, next int64
-	e := row.Scan(&s.ID, &s.Name, &sealed, &s.DisplayURL, &s.Min, &s.Max, &s.Unit, &s.Enabled, &s.Revision, &created, &updated, &next, &s.State, &s.ErrorCode, &s.LastFetch, &s.LastSuccess, &s.HTTPStatus, &s.DurationMS, &s.FetchCount, &s.DuplicateCount, &s.TimeoutSeconds, &s.ContentState, &s.ValidCount, &s.InvalidCount, &s.UnknownCount, &s.ReceivedCount, &s.ResponseBytes, &s.ErrorStreak, &s.ConfigCount, &s.HasResponse)
+	e := row.Scan(&s.ID, &s.Name, &sealed, &s.DisplayURL, &s.Min, &s.Max, &s.Unit, &s.Enabled, &s.Revision, &created, &updated, &next, &s.State, &s.ErrorCode, &s.LastFetch, &s.LastSuccess, &s.HTTPStatus, &s.DurationMS, &s.FetchCount, &s.DuplicateCount, &s.TimeoutSeconds, &s.ContentState, &s.ValidCount, &s.InvalidCount, &s.UnknownCount, &s.ReceivedCount, &s.ResponseBytes, &s.ErrorStreak, &s.StoredCount, &s.SuppressedCount, &s.ConfigCount, &s.HasResponse)
 	s.CreatedAt = time.Unix(created, 0)
 	s.UpdatedAt = time.Unix(updated, 0)
 	s.NextRunAt = time.Unix(0, next)
@@ -169,7 +169,7 @@ func (s *Store) Save(ctx context.Context, id string, revision int64, input Sourc
 			if _, e = tx.ExecContext(ctx, "DELETE FROM responses WHERE source_id=?", id); e != nil {
 				return "", e
 			}
-			_, e = tx.ExecContext(ctx, "UPDATE sources SET etag='',modified='',last_fetch=0,last_success=0,http_status=0,duration_ms=0,duplicates=0,content_state='unknown',valid_count=0,invalid_count=0,unknown_count=0,received_count=0,response_bytes=0,error_streak=0 WHERE id=?", id)
+			_, e = tx.ExecContext(ctx, "UPDATE sources SET etag='',modified='',last_fetch=0,last_success=0,http_status=0,duration_ms=0,duplicates=0,content_state='unknown',valid_count=0,invalid_count=0,unknown_count=0,received_count=0,response_bytes=0,error_streak=0,stored_count=0,suppressed_count=0 WHERE id=?", id)
 		}
 	}
 	if e == nil {
@@ -342,6 +342,7 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 		}
 	}
 	duplicates := result.Extracted - len(result.Items)
+	suppressed := 0
 	var stagedCount int
 	if result.Staged {
 		if e = tx.QueryRowContext(ctx, "SELECT count(*) FROM staged WHERE token=?", job.Token).Scan(&stagedCount); e != nil {
@@ -370,7 +371,15 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 				return e
 			}
 			if inserted == 0 {
-				duplicates++
+				var deleted bool
+				if e = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM config_controls WHERE id=? AND action='deleted' AND expires>?)", item.Identity, stamp).Scan(&deleted); e != nil {
+					return e
+				}
+				if deleted {
+					suppressed++
+				} else {
+					duplicates++
+				}
 			}
 			if _, e = tx.ExecContext(ctx, "INSERT INTO memberships SELECT ?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM artifacts WHERE id=?)", job.ID, item.Identity, generation, item.Hash, item.Kind, item.Size, item.Identity); e != nil {
 				return e
@@ -379,7 +388,7 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 	}
 	if result.State == "unchanged" {
 		var count int
-		if e = tx.QueryRowContext(ctx, "SELECT count(*) FROM responses WHERE source_id=? AND expires>?", job.ID, stamp).Scan(&count); e != nil {
+		if e = tx.QueryRowContext(ctx, "SELECT count(*) FROM responses WHERE source_id=? AND expires>? AND EXISTS(SELECT 1 FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=? AND a.expires>?)", job.ID, stamp, job.ID, stamp).Scan(&count); e != nil {
 			return e
 		}
 		if count == 0 {
@@ -395,11 +404,28 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 			return err
 		}
 		inserted, _ := res.RowsAffected()
-		duplicates = result.Extracted - int(inserted)
+		if e = tx.QueryRowContext(ctx, "SELECT count(*) FROM staged t JOIN config_controls c ON c.id=t.identity WHERE t.token=? AND c.action='deleted' AND c.expires>?", job.Token, stamp).Scan(&suppressed); e != nil {
+			return e
+		}
+		duplicates = result.Extracted - int(inserted) - suppressed
 		if _, e = tx.ExecContext(ctx, "UPDATE artifacts SET quality=(SELECT quality FROM staged WHERE token=? AND identity=artifacts.id) WHERE id IN (SELECT identity FROM staged WHERE token=?)", job.Token, job.Token); e != nil {
 			return e
 		}
 		if _, e = tx.ExecContext(ctx, "INSERT INTO memberships SELECT source_id,identity,?,hash,kind,size FROM staged WHERE token=? AND EXISTS(SELECT 1 FROM artifacts a WHERE a.id=staged.identity)", generation, job.Token); e != nil {
+			return e
+		}
+	}
+	// A successful HTTP/extraction stage is not evidence that a source owns output.
+	// Deleted identities are intentionally suppressed, not ordinary duplicates.
+	if result.State == "updated" || result.ContentState != "" {
+		var stored int
+		if e = tx.QueryRowContext(ctx, "SELECT count(*) FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=? AND a.expires>?", job.ID, stamp).Scan(&stored); e != nil {
+			return e
+		}
+		if result.State == "updated" && stored == 0 && suppressed > 0 {
+			result.State, result.ErrorCode = "filtered", "configs_deleted"
+		}
+		if _, e = tx.ExecContext(ctx, "UPDATE sources SET stored_count=?,suppressed_count=? WHERE id=?", stored, suppressed, job.ID); e != nil {
 			return e
 		}
 	}
@@ -413,7 +439,7 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 			return e
 		}
 	}
-	_, e = tx.ExecContext(ctx, "UPDATE sources SET state=?,error_code=?,last_fetch=?,last_success=CASE WHEN ? THEN ? ELSE last_success END,http_status=?,duration_ms=?,fetch_count=fetch_count+1,duplicates=?,generation=?,error_streak=CASE WHEN ? THEN 0 ELSE error_streak+1 END,lease_token='',lease_until=0,next_run=?,etag=CASE WHEN ? THEN ? ELSE etag END,modified=CASE WHEN ? THEN ? ELSE modified END WHERE id=? AND revision=? AND lease_token=?", result.State, result.ErrorCode, stamp, success, stamp, result.HTTPStatus, result.DurationMS, duplicates, generation, success, next.UnixNano(), result.HTTPStatus == 200 || result.ErrorCode == "cache_missing", result.ETag, result.HTTPStatus == 200 || result.ErrorCode == "cache_missing", result.Modified, job.ID, job.Revision, job.Token)
+	_, e = tx.ExecContext(ctx, "UPDATE sources SET state=?,error_code=?,last_fetch=?,last_success=CASE WHEN ? THEN ? ELSE last_success END,http_status=?,duration_ms=?,fetch_count=fetch_count+1,duplicates=?,generation=?,error_streak=CASE WHEN ? THEN 0 ELSE error_streak+1 END,lease_token='',lease_until=0,next_run=?,etag=CASE WHEN ? THEN ? ELSE etag END,modified=CASE WHEN ? THEN ? ELSE modified END WHERE id=? AND revision=? AND lease_token=?", result.State, result.ErrorCode, stamp, success, stamp, result.HTTPStatus, result.DurationMS, duplicates, generation, success || result.State == "filtered", next.UnixNano(), result.HTTPStatus == 200 || result.ErrorCode == "cache_missing", result.ETag, result.HTTPStatus == 200 || result.ErrorCode == "cache_missing", result.Modified, job.ID, job.Revision, job.Token)
 	if e != nil {
 		return e
 	}
@@ -540,7 +566,7 @@ type Stats struct {
 
 func (s *Store) Stats(ctx context.Context) (Stats, error) {
 	var v Stats
-	e := s.db.QueryRowContext(ctx, "SELECT count(*),coalesce(sum(enabled),0),coalesce(sum(state='fetching'),0),coalesce(sum(state IN ('error','invalid')),0),coalesce(sum(content_state IN ('config','partial','unverified')),0),coalesce(sum(content_state='empty'),0),coalesce(sum(content_state IN ('invalid','partial','unrecognized','error_response')),0) FROM sources").Scan(&v.Sources, &v.Enabled, &v.Fetching, &v.Errors, &v.GivingConfigs, &v.EmptySources, &v.InvalidSources)
+	e := s.db.QueryRowContext(ctx, "SELECT count(*),coalesce(sum(enabled),0),coalesce(sum(state='fetching'),0),coalesce(sum(state IN ('error','invalid')),0),coalesce(sum(enabled=1 AND EXISTS(SELECT 1 FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=sources.id AND a.expires>CAST(unixepoch('subsec')*1000 AS INTEGER))),0),coalesce(sum(content_state='empty'),0),coalesce(sum(content_state IN ('invalid','partial','unrecognized','error_response')),0) FROM sources").Scan(&v.Sources, &v.Enabled, &v.Fetching, &v.Errors, &v.GivingConfigs, &v.EmptySources, &v.InvalidSources)
 	if e != nil {
 		return v, e
 	}
