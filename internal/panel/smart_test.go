@@ -410,7 +410,7 @@ func TestSmartTemplateVersionRevokesOldCacheAndOccupiedLeases(t *testing.T) {
 	}
 	var before int
 	s.db.QueryRow("SELECT count(*) FROM smart_rotation_queue").Scan(&before)
-	if _, e = s.db.Exec("UPDATE smart_heads SET version='xray-26.7.28.smart.v1'"); e != nil {
+	if _, e = s.db.Exec("UPDATE smart_heads SET version='xray-26.7.28.smart.v6'"); e != nil {
 		t.Fatal(e)
 	}
 	rows, e := querySmart(ctx, s.db, true, 0)

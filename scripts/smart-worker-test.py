@@ -55,10 +55,10 @@ def main():
     lines=get(state['export_url'])[0].splitlines();assert len(lines)==state['stats']['ready']==len(set(lines))
     for line in lines:
      j=json.loads(line);assert j['remarks']=='@shenvpn-smart-parallel-v6b'
-     assert list(j)==['remarks','log','dns','inbounds','outbounds','routing','burstObservatory','policy','stats']
+     assert list(j)==['remarks','log','dns','inbounds','outbounds','routing','burstObservatory','policy','stats','metrics']
      assert j['log']=={'loglevel':'none','access':'none','error':'none','dnsLog':False}
-     assert len(j['dns']['servers']) in (3,5) and len(j['routing']['balancers'])==1 and len(j['routing']['rules'])==3
-     assert j['outbounds'][0]['tag']=='proxy-01' and j['routing']['balancers'][0]['fallbackTag']=='block'
+     assert len(j['dns']['servers'])==4 and len(j['routing']['balancers'])==2 and len(j['routing']['rules'])==4
+     assert j['outbounds'][0]['tag']=='block' and j['outbounds'][1]['tag']=='proxy-01' and j['routing']['balancers'][0]['fallbackTag']=='block'
      assert len([x for x in j['outbounds'] if x['tag'].startswith('proxy-')])>=50
      assert j['routing']['balancers'][-1]['strategy']=={'type':'leastLoad','settings':{'expected':3,'maxRTT':'2s','tolerance':.15}}
     turns=[]

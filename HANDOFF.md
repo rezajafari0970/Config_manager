@@ -1,6 +1,6 @@
-# Handoff — current P19 leastLoad
+# Handoff — current P20 tunneled bootstrap
 
-Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and docs/checkpoints/P19-leastload-20261102.md. Verify actual HEAD/origin/status and private p19 receipts. Earlier checkpoint sections below are historical. The latest request explicitly selects leastLoad; preserve the existing bank-free lifecycle.
+Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and docs/checkpoints/P20-tunneled-bootstrap-20261107.md. Verify actual HEAD/origin/status and private p20 receipts. Earlier checkpoint sections below are historical. The latest request applies tunneled DoH, independent IP bootstrap, burst15/3/5, keepalive45/15 and local metrics to all existing Smart outputs; preserve raw/non-Smart data and the bank-free lifecycle.
 
 Authoritative server tree: /root/projects/v2ray-config-repair. GitHub: rezajafari0970/Config_manager, branch go/v2rayng-2.3.6. Legacy main and unrelated DigitalOcean infrastructure are outside scope.
 
@@ -129,3 +129,9 @@ Schema10 adds only stored/suppressed receipt counts. Current source ownership no
 
 ## Current P19 — user-selected leastLoad
 Smart v6 uses leastLoad expected3/maxRTT2s/tolerance0.15. Keep current35members/revision10, burst10s/1/3s, block fallback, DNS, all copied outbounds and fresh site admission. Schema10/ordinary template v4/P18 acquisition fixes remain. Prior leastPing cache is ineligible and rebuilds without resetting settings or rotations. Full checks, controlled traffic, Smart50worker recovery, public full/single output and exact-copy audit passed. Read docs/checkpoints/P19-leastload-20261102.md and private p19 receipts; P17 leastPing performance is historical. No new carrier/Android evidence.
+
+
+## Current P20 — Smart v7
+Use the P20 checkpoint and PROJECT_STATE runtime pointers. The generator is shared across all existing Smart output/cache/API paths. Normal source/global outputs stay template v4. Dynamic endpoint domains never include SNI/Host; equal-width flattened proxy numbering avoids prefix collisions above99. Bootstrap requires an independently IP-only endpoint/dependency graph. No-IP profiles block with smart_bootstrap_no_ip. All original helpers survive; only tag references and requested Smart socket policy change copied values.
+
+Requested UseIPv4 permits system-resolver fallback when core DNS fails. The isolated TLS HTTP/2 fixture distinguishes actual proxied DNS from direct/system attempts and blocks egress with a test-only firewall; do not claim that firewall exists in exported JSON. Do not silently switch to ForceIPv4 or weaken TLS. The request did not authorize replacing the user's endpoint domains with resolved IPs. Existing Android Custom JSON needs refresh/reimport; no current APK/carrier evidence.

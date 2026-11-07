@@ -91,16 +91,19 @@ def main():
   assert len(proxies)==2 and all(x['protocol']=='vless' for x in proxies)
   config['dns']['servers']=[{'address':'tcp://127.0.0.1:24453','skipFallback':False}]
   if phase=='domain':
-   for ob in proxies:
+   # Only endpoint-bootstrap phase uses accelerated observation; strategy and DNS route stay unchanged.
+   config['burstObservatory']['pingConfig'].update(interval='1s',sampling=1,timeout='2s')
+   for ob in proxies[:1]:
     settings=ob['settings']
     if 'address' in settings:settings['address']='peer.test'
     else:settings['vnext'][0]['address']='peer.test'
-   config['dns']['servers'].insert(0,{'address':'tcp+local://127.0.0.1:24454','domains':['full:peer.test'],'skipFallback':True})
+   config['routing']['balancers'][1]['selector']=[proxies[1]['tag']]
+   config['dns']['servers'].insert(0,{'address':'tcp://127.0.0.1:24454','domains':['full:peer.test'],'skipFallback':True,'tag':'dns-bootstrap'})
   config['inbounds'].append({'tag':'fixture-server','listen':'127.0.0.1','port':24443,'protocol':'vless','settings':{'decryption':'none','clients':[{'id':'11111111-1111-4111-8111-111111111111'}]},'streamSettings':{'network':'tcp','security':'none'}})
   spare=copy.deepcopy(config['inbounds'][-1]);spare.update(tag='fixture-spare',port=24449);config['inbounds'].append(spare)
-  config['outbounds'].append({'tag':'fixture-direct','protocol':'freedom','settings':{'finalRules':[{'action':'allow','network':'tcp,udp','ip':['127.0.0.1/32'],'port':'53,24447,24453'}]}})
+  config['outbounds'].append({'tag':'fixture-direct','protocol':'freedom','settings':{'finalRules':[{'action':'allow','network':'tcp,udp','ip':['127.0.0.1/32'],'port':'53,24447,24453,24454'}]}})
   config['routing']['rules'].insert(0,{'type':'field','inboundTag':['fixture-server','fixture-spare'],'outboundTag':'fixture-direct'})
-  # Probe destination and test DNS services are local; shipped timing is retained.
+  # Local probe destination; shipped timing remains in the IP comparison/recovery phase.
   config['burstObservatory']['pingConfig']['destination']='http://127.0.0.1:24447/generate_204'
   with lab.Sandbox(str(core),secrets.token_hex(3),8199,prefix='csrf') as box:
    box.policy({})
@@ -108,6 +111,12 @@ def main():
    try:
     time.sleep(.2);process=box.launch(json.dumps(config).encode());time.sleep(3)
     assert process.poll() is None,'synthetic core exited'
+    # Wait for actual peer observations, not a fixed assumed bootstrap delay.
+    for _ in range(60):
+     status=json.loads(box.net(['/usr/bin/curl','--noproxy','*','--max-time','2','--silent','http://127.0.0.1:11111/debug/vars']).stdout)['observatory']
+     if all(status.get(p['tag'],{}).get('alive') and status[p['tag']].get('delay',999999)<2000 for p in proxies):break
+     time.sleep(.5)
+    else:raise RuntimeError('peers not observed: '+json.dumps(status))
     result=box.net([sys.executable,__file__,'--exercise'],timeout=40)
     report[phase]=json.loads(result.stdout)
     if phase=='leastload':

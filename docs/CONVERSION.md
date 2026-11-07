@@ -136,3 +136,16 @@ The Input restore action is explicit and revision/CSRF guarded. It restores perm
 
 ## Current P19 — user-selected leastLoad
 Smart v6 uses leastLoad expected3/maxRTT2s/tolerance0.15. Keep current35members/revision10, burst10s/1/3s, block fallback, DNS, all copied outbounds and fresh site admission. Schema10/ordinary template v4/P18 acquisition fixes remain. Prior leastPing cache is ineligible and rebuilds without resetting settings or rotations. Full checks, controlled traffic, Smart50worker recovery, public full/single output and exact-copy audit passed. Read docs/checkpoints/P19-leastload-20261102.md and private p19 receipts; P17 leastPing performance is historical. No new carrier/Android evidence.
+
+
+## P20 current Smart v7 — tunneled bootstrap
+
+This section supersedes earlier Smart envelope descriptions. All existing Smart output paths reuse internal/smart.Compose and versioned validated bytes: individual /smart/json/{id}, full/single subscriptions and /api/smart metadata. Ordinary per-source/global exports remain template v4; no ordinary link is silently converted to Smart.
+
+Exactly four DNS entries are generated: tagged Google/Cloudflare endpoint bootstrap, then general Cloudflare/Google; all use tunneled https:// and timeoutMs2500. Bootstrap entries skip fallback; general entries do not. Global UseIPv4, disableFallbackIfMatch, parallel queries, enabled cache, serveStale and serveExpiredTTL60 match the requested template. Full-match domains are deduplicated/sorted from actual compact/legacy/WireGuard/XHTTP endpoints, never SNI, Host or source global DNS.
+
+Main leastLoad includes all flattened selected entries. The separate bootstrap pool includes only entries whose endpoints and complete dialer dependency graph are IP-based; a domain download endpoint excludes the entry. Numeric tag width is max(2,digits(total flattened entries)), preventing prefix collisions such as proxy-10 matching proxy-100. A profile with no independent IP entry reports smart_bootstrap_no_ip; it cannot bootstrap through its own unresolved domain pool.
+
+All copied outbound definitions remain, including inactive helpers. Namespace renaming and explicit UseIPv4/tcpKeepAliveIdle45/tcpKeepAliveInterval15 are the only permitted outbound changes; credentials/TLS/transports/Mux/unknown extensions remain intact. Dynamic substitutions occur in the empty envelope before inserting copied values. Generated outbounds are leading block plus trailing DNS and loopback; total equals copied count+3. Both balancers retain expected3/maxRTT2s/tolerance0.15 and block fallback. Burst15s/3/5s/GET, system counters and local metrics11111 are enabled with all logs disabled. Old Smart v6 cache is ineligible; raw data, admission/TTL, settings and rotations stay intact.
+
+UseIPv4 does not enforce strict resolution failure: pinned Xray may attempt the system resolver when internal DNS fails. The requested template is preserved; exported JSON alone is not a DNS leak guarantee. Test firewall protection must not be confused with the exported routing policy.

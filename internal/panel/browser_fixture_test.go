@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-const browserURI = "vless://00000000-0000-4000-8000-000000000001@vpn.example:443?security=tls#Original%20Label\r\n"
+const browserURI = "vless://00000000-0000-4000-8000-000000000001@192.0.2.1:443?security=tls&sni=vpn.example#Original%20Label\r\n"
 const browserJSON = "{ \"outbounds\" : [{\"protocol\":\"vless\",\"settings\":{\"address\":\"vpn.example\",\"port\":443,\"id\":\"00000000-0000-4000-8000-000000000002\"}}], \"stats\" : [], \"opaque\" : 9007199254740993 }\r\n"
 
 type browserDriver struct{}

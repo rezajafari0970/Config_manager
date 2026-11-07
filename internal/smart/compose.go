@@ -8,14 +8,14 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/probe"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 	"github.com/rezajafari0970/Config_manager/internal/target"
-	"net"
 	"sort"
+	"strconv"
 	"strings"
 )
 
 type M = map[string]any
 
-const base = `{"remarks":"@shenvpn-smart-parallel-v6b","log":{"loglevel":"none","access":"none","error":"none","dnsLog":false},"dns":{"tag":"dns-module","queryStrategy":"UseIPv4","servers":[{"address":"https://1.1.1.1/dns-query","skipFallback":false},{"address":"https://8.8.8.8/dns-query","skipFallback":false},{"address":"https://9.9.9.9/dns-query","skipFallback":false}],"disableFallbackIfMatch":true},"inbounds":[{"tag":"socks","listen":"127.0.0.1","port":10808,"protocol":"socks","settings":{"auth":"noauth","udp":true},"sniffing":{"enabled":true,"destOverride":["http","tls","quic"],"routeOnly":true}}],"outbounds":[],"routing":{"domainStrategy":"AsIs","balancers":[{"tag":"smart-parallel-balancer","selector":["proxy-"],"strategy":{"type":"leastLoad","settings":{"expected":3,"maxRTT":"2s","tolerance":0.15}},"fallbackTag":"block"}],"rules":[{"type":"field","inboundTag":["socks","tun"],"port":"53","network":"tcp,udp","outboundTag":"smart-dns-out"},{"type":"field","inboundTag":["dns-module"],"balancerTag":"smart-parallel-balancer"},{"type":"field","network":"tcp,udp","balancerTag":"smart-parallel-balancer"}]},"burstObservatory":{"subjectSelector":["proxy-"],"pingConfig":{"destination":"https://www.gstatic.com/generate_204","interval":"10s","sampling":1,"timeout":"3s","httpMethod":"GET"}},"policy":{"levels":{"0":{"handshake":15,"connIdle":600,"uplinkOnly":2,"downlinkOnly":5}}},"stats":{}}`
+const base = `{"remarks":"@shenvpn-smart-parallel-v6b","log":{"loglevel":"none","access":"none","error":"none","dnsLog":false},"dns":{"tag":"dns-module","queryStrategy":"UseIPv4","servers":[{"address":"https://8.8.8.8/dns-query","domains":[],"skipFallback":true,"tag":"dns-bootstrap","timeoutMs":2500},{"address":"https://1.1.1.1/dns-query","domains":[],"skipFallback":true,"tag":"dns-bootstrap","timeoutMs":2500},{"address":"https://1.1.1.1/dns-query","skipFallback":false,"timeoutMs":2500},{"address":"https://8.8.8.8/dns-query","skipFallback":false,"timeoutMs":2500}],"disableFallbackIfMatch":true,"disableCache":false,"serveStale":true,"serveExpiredTTL":60,"enableParallelQuery":true},"inbounds":[{"tag":"socks","listen":"127.0.0.1","port":10808,"protocol":"socks","settings":{"auth":"noauth","udp":true},"sniffing":{"enabled":true,"destOverride":["http","tls","quic"],"routeOnly":true}}],"outbounds":[],"routing":{"domainStrategy":"AsIs","balancers":[{"tag":"smart-parallel-balancer","selector":["proxy-"],"strategy":{"type":"leastLoad","settings":{"expected":3,"maxRTT":"2s","tolerance":0.15}},"fallbackTag":"block"},{"tag":"bootstrap-ip-balancer","selector":[],"strategy":{"type":"leastLoad","settings":{"expected":3,"maxRTT":"2s","tolerance":0.15}},"fallbackTag":"block"}],"rules":[{"type":"field","inboundTag":["socks","tun"],"port":"53","network":"tcp,udp","outboundTag":"smart-dns-out"},{"type":"field","inboundTag":["dns-bootstrap"],"balancerTag":"bootstrap-ip-balancer"},{"type":"field","inboundTag":["dns-module","smart-dns-egress"],"balancerTag":"smart-parallel-balancer"},{"type":"field","network":"tcp,udp","balancerTag":"smart-parallel-balancer"}]},"burstObservatory":{"subjectSelector":["proxy-"],"pingConfig":{"destination":"https://www.gstatic.com/generate_204","interval":"15s","sampling":3,"timeout":"5s","httpMethod":"GET"}},"policy":{"levels":{"0":{"handshake":15,"connIdle":600,"uplinkOnly":2,"downlinkOnly":5}},"system":{"statsInboundUplink":true,"statsInboundDownlink":true,"statsOutboundUplink":true,"statsOutboundDownlink":true}},"stats":{},"metrics":{"tag":"debug-metrics","listen":"127.0.0.1:11111"}}`
 
 func object(b []byte) (M, error) {
 	var m M
@@ -42,8 +42,8 @@ func Compose(members []Member) ([]byte, error) {
 	if len(members) == 0 {
 		return nil, errors.New("smart_empty_profile")
 	}
-	entries, helpers := []any{}, []any{}
-	bootstrap := map[string]bool{}
+	sources := make([]M, len(members))
+	total := 0
 	for slot, member := range members {
 		source, e := object(member.Body)
 		if e != nil {
@@ -53,6 +53,31 @@ func Compose(members []Member) ([]byte, error) {
 		if !ok || len(nodes) == 0 {
 			return nil, errors.New("smart_missing_outbounds")
 		}
+		seen := map[string]bool{}
+		for _, node := range nodes {
+			ob, ok := node.(M)
+			if !ok {
+				return nil, errors.New("smart_invalid_outbound")
+			}
+			tag, _ := ob["tag"].(string)
+			if tag == "" || seen[tag] {
+				return nil, errors.New("smart_duplicate_tag")
+			}
+			seen[tag] = true
+		}
+		selected, e := entryTags(source, nodes)
+		if e != nil {
+			return nil, e
+		}
+		total += len(selected)
+		sources[slot] = source
+	}
+	width := max(2, len(strconv.Itoa(total)))
+	entries, helpers := []any{}, []any{}
+	bootstrap := map[string]bool{}
+	bootstrapTags := []string{}
+	for slot, source := range sources {
+		nodes := source["outbounds"].([]any)
 		byTag := map[string]M{}
 		tags := map[string]string{}
 		for i, value := range nodes {
@@ -82,7 +107,7 @@ func Compose(members []Member) ([]byte, error) {
 				return nil, errors.New("smart_requires_source_routing")
 			}
 			selectedSet[tag] = true
-			tags[tag] = fmt.Sprintf("proxy-%02d", len(entries)+1)
+			tags[tag] = fmt.Sprintf("proxy-%0*d", width, len(entries)+1)
 			entries = append(entries, byTag[tag])
 		}
 		// A copied entry must remain usable with the global proxy routes.
@@ -119,10 +144,16 @@ func Compose(members []Member) ([]byte, error) {
 				return nil, e
 			}
 		}
+		for _, tag := range selected {
+			if independentIP(tag, byTag, map[string]bool{}) {
+				bootstrapTags = append(bootstrapTags, tags[tag])
+			}
+		}
 		for _, value := range nodes {
 			ob := value.(M)
 			old := ob["tag"].(string)
 			ob["tag"] = tags[old]
+			applySmartSocketPolicy(ob)
 			if e := rewriteReferences(ob, tags, fmt.Sprintf("member-%04d-", slot+1)); e != nil {
 				return nil, e
 			}
@@ -131,28 +162,28 @@ func Compose(members []Member) ([]byte, error) {
 			}
 		}
 	}
-	out := append(entries, helpers...)
-	out = append(out, M{"tag": "smart-dns-out", "protocol": "dns", "settings": M{"rewriteNetwork": "tcp", "rewriteAddress": "1.1.1.1", "rewritePort": 53, "rules": []any{M{"action": "hijack", "qType": "1,28"}, M{"action": "direct"}}}, "streamSettings": M{"sockopt": M{"dialerProxy": "smart-dns-relay"}}}, M{"tag": "smart-dns-relay", "protocol": "loopback", "settings": M{"inboundTag": "smart-dns-egress"}}, M{"tag": "direct", "protocol": "freedom", "settings": M{}}, M{"tag": "block", "protocol": "blackhole", "settings": M{}})
+	if len(bootstrapTags) == 0 {
+		return nil, errors.New("smart_bootstrap_no_ip")
+	}
+	out := append([]any{M{"tag": "block", "protocol": "blackhole", "settings": M{}}}, entries...)
+	out = append(out, helpers...)
+	out = append(out, M{"tag": "smart-dns-out", "protocol": "dns", "settings": M{"rewriteNetwork": "tcp", "rewriteAddress": "1.1.1.1", "rewritePort": 53, "rules": []any{M{"action": "hijack", "qType": "1,28"}, M{"action": "direct"}}}, "streamSettings": M{"sockopt": M{"dialerProxy": "smart-dns-relay"}}}, M{"tag": "smart-dns-relay", "protocol": "loopback", "settings": M{"inboundTag": "smart-dns-egress"}})
 	var body bytes.Buffer
 	if e := orderedJSON(&body, out); e != nil {
 		return nil, e
 	}
 	// Raw replacement preserves fixed field order; bootstrap is scoped to endpoint names.
-	result := bytes.Replace([]byte(base), []byte("\"outbounds\":[]"), append([]byte("\"outbounds\":"), body.Bytes()...), 1)
-	if len(bootstrap) > 0 {
-		domains := make([]string, 0, len(bootstrap))
-		for name := range bootstrap {
-			domains = append(domains, "full:"+name)
-		}
-		sort.Strings(domains)
-		servers, _ := json.Marshal([]M{
-			{"address": "https+local://1.1.1.1/dns-query", "domains": domains, "skipFallback": true},
-			{"address": "https+local://8.8.8.8/dns-query", "domains": domains, "skipFallback": true},
-		})
-		prefix := append([]byte("\"servers\":["), servers[1:len(servers)-1]...)
-		prefix = append(prefix, ',')
-		result = bytes.Replace(result, []byte("\"servers\":["), prefix, 1)
+	result := []byte(base)
+	domains := make([]string, 0, len(bootstrap))
+	for name := range bootstrap {
+		domains = append(domains, "full:"+name)
 	}
+	sort.Strings(domains)
+	encoded, _ := json.Marshal(domains)
+	result = bytes.ReplaceAll(result, []byte("\"domains\":[]"), append([]byte("\"domains\":"), encoded...))
+	encoded, _ = json.Marshal(bootstrapTags)
+	result = bytes.Replace(result, []byte("\"selector\":[]"), append([]byte("\"selector\":"), encoded...), 1)
+	result = bytes.Replace(result, []byte("\"outbounds\":[]"), append([]byte("\"outbounds\":"), body.Bytes()...), 1)
 	if len(result) > repair.MaxBytes {
 		return nil, errors.New("smart_profile_size_limit")
 	}
@@ -362,53 +393,4 @@ func orderedJSON(out *bytes.Buffer, value any) error {
 		out.Write(b)
 	}
 	return nil
-}
-
-// collectEndpointDomains breaks endpoint DNS -> unconnected proxy recursion.
-// Source globals are deliberately ignored. It covers compact/legacy proxy settings,
-// WireGuard peers and XHTTP's separate download endpoint without rewriting them.
-func collectEndpointDomains(ob M, found map[string]bool) {
-	add := func(v any) {
-		h, ok := v.(string)
-		h = strings.TrimSuffix(strings.ToLower(h), ".")
-		if ok && h != "" && net.ParseIP(strings.Trim(h, "[]")) == nil {
-			found[h] = true
-		}
-	}
-	settings, _ := ob["settings"].(M)
-	add(settings["address"])
-	for _, key := range []string{"vnext", "servers"} {
-		list, _ := settings[key].([]any)
-		for _, value := range list {
-			item, _ := value.(M)
-			add(item["address"])
-		}
-	}
-	peers, _ := settings["peers"].([]any)
-	for _, value := range peers {
-		item, _ := value.(M)
-		if endpoint, ok := item["endpoint"].(string); ok {
-			if host, _, err := net.SplitHostPort(endpoint); err == nil {
-				add(host)
-			}
-		}
-	}
-	var downloads func(any)
-	downloads = func(value any) {
-		switch v := value.(type) {
-		case M:
-			for key, child := range v {
-				if key == "downloadSettings" {
-					item, _ := child.(M)
-					add(item["address"])
-				}
-				downloads(child)
-			}
-		case []any:
-			for _, child := range v {
-				downloads(child)
-			}
-		}
-	}
-	downloads(ob["streamSettings"])
 }

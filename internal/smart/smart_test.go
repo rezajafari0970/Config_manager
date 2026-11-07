@@ -118,7 +118,7 @@ func TestComposeGraphCredentialsAndPinnedCore(t *testing.T) {
 			t.Fatal("tag collision")
 		}
 		tags[tag] = true
-		if i < len(members) && tag != fmt.Sprintf("proxy-%02d", i+1) {
+		if i > 0 && i <= len(members) && tag != fmt.Sprintf("proxy-%02d", i) {
 			t.Fatal("entry order", i, tag)
 		}
 	}
@@ -133,7 +133,7 @@ func TestComposeGraphCredentialsAndPinnedCore(t *testing.T) {
 	if bytes.Contains(b, []byte(`"dialerProxy":"proxy"`)) || bytes.Contains(b, []byte(`"balancerTag":"pool"`)) {
 		t.Fatal("unrenamed references")
 	}
-	for _, count := range []int{1, 2, 10, 50} {
+	for _, count := range []int{1, 2, 5, 7, 10, 15, 50, 100} {
 		group := []Member{}
 		for i := 1; i <= count; i++ {
 			group = append(group, member(t, i, "A"))
@@ -185,12 +185,14 @@ func TestSourceBalancerGlobalsCannotOverrideFixedEnvelope(t *testing.T) {
 	}
 	got, _ := object(b)
 	want, _ := object([]byte(base))
+	got["routing"].(M)["balancers"].([]any)[1].(M)["selector"] = []any{}
 	if !reflect.DeepEqual(got["routing"], want["routing"]) || !reflect.DeepEqual(got["burstObservatory"], want["burstObservatory"]) {
 		t.Fatal("source globals leaked into template")
 	}
 	out := got["outbounds"].([]any)
 	first["tag"] = "proxy-01"
-	if !reflect.DeepEqual(out[0], first) {
+	applySmartSocketPolicy(first)
+	if !reflect.DeepEqual(out[1], first) {
 		t.Fatal("flattening changed outbound values")
 	}
 	validateCore(t, b)

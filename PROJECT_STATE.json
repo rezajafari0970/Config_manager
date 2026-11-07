@@ -1,6 +1,6 @@
 {
-  "phase": "P19 user-selected leastLoad Smart strategy",
-  "date": "2026-11-02",
+  "phase": "P20 tunneled dual DoH and independent IP bootstrap",
+  "date": "2026-11-07",
   "status": "implemented_and_deployed",
   "repository": "rezajafari0970/Config_manager",
   "branch": "go/v2rayng-2.3.6",
@@ -31,10 +31,11 @@
     "traffic": "SOCKS UDP and tcp,udp routing; Vision/Mux UDP443 gates open. No unsolicited Mux: explicit VLESS xudp input maps to UDP-only manager; upstream UDP/QUIC support remains separate.",
     "uri_compatibility": "Narrow userinfo space escaping preserves decoded credentials; TLS cs maps exactly; explicit VLESS packetEncoding=xudp uses one UDP stream with TCP multiplexing disabled. Missing REALITY keys remain explicit failures.",
     "smart_output": "Additional cached smart-parallel-v6b profiles: configurable member count, source/member least-use counters, random followers, one unique canonical first position per durable round; ordinary/source exports unchanged.",
-    "smart_envelope": "Smart v6: complete member outbounds preserved except namespace references; logs off; leastLoad expected3/maxRTT2s/tolerance0.15, burst10s/1/3s, block fallback, SOCKS/TUN DNS, proxy-routed non-IP DNS, exact endpoint-only bootstrap. Explicitly supersedes P15 fixed globals under renewed performance request.",
+    "smart_envelope": "Smart v7: four tunneled DoH resolvers, endpoint-only bootstrap domains, separate independent-IP leastLoad pool with prefix-safe dynamic tags, main leastLoad unchanged; block first, all copied input helpers retained, only namespaces and explicit UseIPv4/keepalive45/15 overridden. Burst15s/3/5s, counters/local metrics11111, logs off. No raw/non-Smart mutation.",
     "smart_admission": "Fresh source-owned https_multi_site_verified: two public HTTPS destinations plus TLS-valid Instagram homepage200/206. Ordinary core-valid output and base connection status unchanged. TTL-bounded; no persistent bank; not a claim about app media/carriers or every nested balanced outbound.",
     "smart_single": "Durable finite round over ready eligible cache only; skip rebuilding/revoked entries, next round when drained, new ready heads join next round. HTTP200 one inline JSON; no ready503 message+Retry-After; HEAD/prefetch nonconsuming.",
-    "acquisition": "HTTP/extraction, current source ownership, core-valid output and connectivity are separate. Deletion-suppressed inputs are not ordinary duplicates or successful storage. Explicit source recovery clears only matching retained-response deletion controls, fences old jobs and requires fresh collection/validation."
+    "acquisition": "HTTP/extraction, current source ownership, core-valid output and connectivity are separate. Deletion-suppressed inputs are not ordinary duplicates or successful storage. Explicit source recovery clears only matching retained-response deletion controls, fences old jobs and requires fresh collection/validation.",
+    "smart_dns_limit": "UseIPv4 retained as requested; pinned core can attempt system DNS on startup/internal resolver failure. Fixture firewall blocks/counts attempts, but exported JSON alone does not guarantee DNS leak prevention. No independent IP yields explicit smart_bootstrap_no_ip."
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -1158,6 +1159,192 @@
       "count_preserved": 35,
       "revision_preserved": 10,
       "android_carriers": "not_run"
+    },
+    "tunneled_bootstrap": {
+      "checks": [
+        {
+          "name": "check",
+          "exit_code": 0,
+          "at": 1794025011.8922756
+        },
+        {
+          "name": "traffic",
+          "exit_code": 0,
+          "at": 1794025231.7433515
+        },
+        {
+          "name": "smart-worker",
+          "exit_code": 0,
+          "at": 1794025380.0925722
+        },
+        {
+          "name": "browser",
+          "exit_code": 0,
+          "at": 1794025529.9595556
+        }
+      ],
+      "traffic": [
+        {
+          "passed": true,
+          "comparison": {
+            "reference_leastping": {
+              "requests": 24,
+              "slow_requests": 0,
+              "p50_ms": 2.72,
+              "p95_ms": 6.68,
+              "dns": {
+                "intercept_a": true,
+                "relay_txt": true
+              }
+            },
+            "leastload": {
+              "requests": 24,
+              "slow_requests": 18,
+              "p50_ms": 242.8,
+              "p95_ms": 245.71,
+              "dns": {
+                "intercept_a": true,
+                "relay_txt": true
+              },
+              "post_failure": {
+                "requests": 24,
+                "slow_requests": 24,
+                "p50_ms": 243.64,
+                "p95_ms": 253.49,
+                "dns": {
+                  "intercept_a": true,
+                  "relay_txt": true
+                }
+              },
+              "verified_recovery_seconds": 20.66,
+              "requests_failed_during_detection": 4
+            },
+            "domain": {
+              "requests": 24,
+              "slow_requests": 13,
+              "p50_ms": 242.94,
+              "p95_ms": 250.15,
+              "dns": {
+                "intercept_a": true,
+                "relay_txt": true
+              }
+            }
+          },
+          "scope": "closed synthetic namespace; 120ms per-direction delay on one peer",
+          "carrier_tests": "not_run",
+          "quic_handshake": "not_run"
+        },
+        {
+          "passed": true,
+          "tls_doh_resolvers": 2,
+          "bootstrap_ip_only": true,
+          "domain_member_connected": true,
+          "dns_a_and_txt_tunneled": true,
+          "cold_proxy_failure_closed": true,
+          "blocked_startup_dns_attempts": 8,
+          "blocked_cold_failure_dns_attempts": 20,
+          "useipv4_system_fallback": "possible; prevented by fixture firewall, not by this JSON",
+          "carrier_tests": "not_run"
+        },
+        {
+          "passed": true,
+          "dead_first_member_skipped": true,
+          "traffic": {
+            "tcp": true,
+            "udp": true,
+            "udp443": true
+          },
+          "quic_handshake": "not_run"
+        }
+      ],
+      "smart_worker": {
+        "android": "not_run",
+        "whole_profile_connection": "not_run",
+        "passed": true,
+        "profiles": 55,
+        "members_per_profile": 50,
+        "sources": 3,
+        "max_active": 2,
+        "sigkill_recovered": true,
+        "unique_head_round": true,
+        "inline": true,
+        "core": "xray-26.7.28"
+      },
+      "public": {
+        "at": "2026-11-07T04:26:58.928Z",
+        "passed": true,
+        "viewports": [
+          {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "full_profiles": 78,
+            "count": 35,
+            "errors": 0,
+            "downloads": 0,
+            "inline": true,
+            "individual_hash_and_full_bytes_match": true
+          },
+          {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "full_profiles": 85,
+            "count": 35,
+            "errors": 0,
+            "downloads": 0,
+            "inline": true,
+            "individual_hash_and_full_bytes_match": true
+          }
+        ],
+        "strategy": {
+          "type": "leastLoad",
+          "settings": {
+            "expected": 3,
+            "maxRTT": "2s",
+            "tolerance": 0.15
+          }
+        },
+        "single_requests": 6,
+        "scope": "public Smart API, individual/full/single cached output; no Android or carrier measurement"
+      },
+      "cache_copy_audit": {
+        "passed": true,
+        "version": "xray-26.7.28.smart.v7",
+        "profiles": 4,
+        "selected_inputs": 140,
+        "copied_outbounds": 560,
+        "cached_bytes_exact": true,
+        "logs_off": true
+      },
+      "sources_preserved": 18,
+      "count_preserved": 35,
+      "revision_preserved": 10,
+      "pinned_core_counts": [
+        1,
+        2,
+        5,
+        7,
+        10,
+        15,
+        50,
+        100
+      ],
+      "dynamic_selector_counts": [
+        5,
+        7,
+        10,
+        15,
+        50,
+        100,
+        101,
+        150
+      ],
+      "sqlite": "quick_check ok; foreign_key_check empty",
+      "normal_pipeline_diff": "none",
+      "android_carriers": "not_run"
     }
   },
   "runtime": {
@@ -1168,9 +1355,9 @@
       "config-repair-smart.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p19-7ef4bd9a853895ffa91e-r2",
-    "panel_sha256": "7ef4bd9a853895ffa91e5eadc98e8c1fbbb446f9a2ea200dc63c87a3b1294b4d",
-    "worker_sha256": "5a6ae7e297dc7b87fcd50cd3d0739ab2986585957bce95384fd81a5b08ead341",
+    "release": "/opt/config-repair/releases/p20-7715237b769db399549a-r1",
+    "panel_sha256": "7715237b769db399549a1c4af71c2e71f0878520c1bfd02062af83ee668fac67",
+    "worker_sha256": "afe8de61cb84a3f74dc502c579c1b85f988653efb67dc0361f88637e5a35e638",
     "template_version": "xray-26.7.28.template.v4",
     "retention_seconds": 7200,
     "fetch_concurrency": 16,
@@ -1179,12 +1366,12 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/p19-deployed.json",
-    "publication_receipt": ".local/p19-published.json",
+    "deployment_receipt": ".local/p20-deployed.json",
+    "publication_receipt": ".local/p20-published.json",
     "sandbox_driver_sha256": "7c72e55456eb7bac75f1284560f61ef3d220ef16dc7c3fd17d678f547d73a136",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
-    "smart_version": "xray-26.7.28.smart.v6",
+    "smart_version": "xray-26.7.28.smart.v7",
     "smart_count": 35,
     "smart_concurrency": 2,
     "adapter_sha256": "875088ecbd2f5f1c3b5b847b2d760014ef5e67ae0ec9d07d8677032298231c12",
