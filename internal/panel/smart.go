@@ -467,7 +467,7 @@ func (s *Store) smartNext(ctx context.Context) (*SmartEntry, []byte, int64, erro
 			return nil, nil, 0, e
 		}
 		if queued == 0 {
-			res, err := tx.ExecContext(ctx, "INSERT INTO smart_rotation_queue(position,head) SELECT row_number() OVER(ORDER BY sequence,id),id FROM smart_ready")
+			res, err := tx.ExecContext(ctx, "INSERT INTO smart_rotation_queue(position,head) SELECT row_number() OVER(ORDER BY random(),id),id FROM smart_ready")
 			if err != nil {
 				tx.Rollback()
 				return nil, nil, 0, err

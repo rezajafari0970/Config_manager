@@ -118,7 +118,7 @@ func TestComposeGraphCredentialsAndPinnedCore(t *testing.T) {
 			t.Fatal("tag collision")
 		}
 		tags[tag] = true
-		if i > 0 && i <= len(members) && tag != fmt.Sprintf("proxy-%02d", i) {
+		if i < len(members) && tag != fmt.Sprintf("proxy-%02d", i+1) {
 			t.Fatal("entry order", i, tag)
 		}
 	}
@@ -192,7 +192,7 @@ func TestSourceBalancerGlobalsCannotOverrideFixedEnvelope(t *testing.T) {
 	out := got["outbounds"].([]any)
 	first["tag"] = "proxy-01"
 	applySmartSocketPolicy(first)
-	if !reflect.DeepEqual(out[1], first) {
+	if !reflect.DeepEqual(out[0], first) {
 		t.Fatal("flattening changed outbound values")
 	}
 	validateCore(t, b)

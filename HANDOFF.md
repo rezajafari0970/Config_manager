@@ -1,6 +1,6 @@
-# Handoff — current P20 tunneled bootstrap
+# Handoff — current P21 RealPing and random delivery
 
-Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and docs/checkpoints/P20-tunneled-bootstrap-20261107.md. Verify actual HEAD/origin/status and private p20 receipts. Earlier checkpoint sections below are historical. The latest request applies tunneled DoH, independent IP bootstrap, burst15/3/5, keepalive45/15 and local metrics to all existing Smart outputs; preserve raw/non-Smart data and the bank-free lifecycle.
+Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and docs/checkpoints/P21-realping-random-order-20261107.md. Verify actual HEAD/origin/status and private p21 receipts. Earlier checkpoint sections below are historical. The latest request applies tunneled DoH, independent IP bootstrap, burst15/3/5, keepalive45/15 and local metrics to all existing Smart outputs; preserve raw/non-Smart data and the bank-free lifecycle.
 
 Authoritative server tree: /root/projects/v2ray-config-repair. GitHub: rezajafari0970/Config_manager, branch go/v2rayng-2.3.6. Legacy main and unrelated DigitalOcean infrastructure are outside scope.
 
@@ -135,3 +135,9 @@ Smart v6 uses leastLoad expected3/maxRTT2s/tolerance0.15. Keep current35members/
 Use the P20 checkpoint and PROJECT_STATE runtime pointers. The generator is shared across all existing Smart output/cache/API paths. Normal source/global outputs stay template v4. Dynamic endpoint domains never include SNI/Host; equal-width flattened proxy numbering avoids prefix collisions above99. Bootstrap requires an independently IP-only endpoint/dependency graph. No-IP profiles block with smart_bootstrap_no_ip. All original helpers survive; only tag references and requested Smart socket policy change copied values.
 
 Requested UseIPv4 permits system-resolver fallback when core DNS fails. The isolated TLS HTTP/2 fixture distinguishes actual proxied DNS from direct/system attempts and blocks egress with a test-only firewall; do not claim that firewall exists in exported JSON. Do not silently switch to ForceIPv4 or weaken TLS. The request did not authorize replacing the user's endpoint domains with resolved IPs. Existing Android Custom JSON needs refresh/reimport; no current APK/carrier evidence.
+
+
+## Current P21 — RealPing and random order
+Smart v8 fixes Lib40 group RealPing by placing an independently IP-addressed proxy first. Exact pinned Lib source strips routing/DNS/observers, so the former first block necessarily fails. Full normal routing keeps both leastLoad pools, block fallback and all other P20 settings. Group ping remains one proxy's result, not every member's health.
+
+Full/single subscription delivery randomizes proxy order per GET, retaining independent-IP first and every object/tag/reference unchanged. Full also randomizes profile order; newly created single rounds are random while unfinished turns persist. Canonical individual/API cache bytes remain stable; body and cache hashes are separate. The stale UI leastPing/always-first-head wording is corrected. See P21 checkpoint and .local/p21-* receipts for checks/runtime/publication; preserve current live counts/settings, not historical snapshots. Phone was offline during investigation; APK/carrier validation remains not_run.

@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/rezajafari0970/Config_manager/internal/probe"
+	"github.com/rezajafari0970/Config_manager/internal/repair"
 	"github.com/rezajafari0970/Config_manager/internal/smart"
+	"math/rand/v2"
 	"net/http"
 	"strconv"
 	"strings"
@@ -103,6 +105,7 @@ func (m smartModule) Register(mux *http.ServeMux) {
 		var out bytes.Buffer
 		count := 0
 		seen := map[string]bool{}
+		rand.Shuffle(len(rows), func(i, j int) { rows[i], rows[j] = rows[j], rows[i] })
 		for _, v := range rows {
 			if !v.Available || seen[v.Hash] {
 				continue
@@ -113,12 +116,18 @@ func (m smartModule) Register(mux *http.ServeMux) {
 				continue
 			}
 			seen[v.Hash] = true
+			b, e = smart.Shuffle(b)
+			if e != nil {
+				failure(w, e)
+				return
+			}
 			out.Write(b)
 			out.WriteByte('\n')
 			count++
 		}
 		smartHeaders(w)
 		w.Header().Set("X-Config-Count", strconv.Itoa(count))
+		w.Header().Set("X-Content-SHA256", repair.Digest(out.Bytes()))
 		w.Write(out.Bytes())
 	})
 	mux.HandleFunc("GET /smart-subscription/{token}/next.json", func(w http.ResponseWriter, r *http.Request) {
@@ -148,13 +157,22 @@ func (m smartModule) Register(mux *http.ServeMux) {
 		}
 		w.Header().Set("X-Config-Count", "1")
 		w.Header().Set("X-Export-Cycle", strconv.FormatInt(cycle, 10))
-		w.Header().Set("X-Content-SHA256", v.Hash)
-		w.Header().Set("X-Smart-First-ID", v.ID)
+		b, e = smart.Shuffle(b)
+		if e != nil {
+			failure(w, e)
+			return
+		}
+		w.Header().Set("X-Content-SHA256", repair.Digest(b))
+		w.Header().Set("X-Smart-Cache-SHA256", v.Hash)
+		w.Header().Set("X-Smart-First-ID", v.ID) // Legacy profile identity, not the first outbound.
+		w.Header().Set("X-Smart-Profile-ID", v.ID)
 		w.Write(b)
 		w.Write([]byte{'\n'})
 	})
 }
 func smartHeaders(w http.ResponseWriter) {
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("X-Smart-Order", "random-per-request; independent-ip-first")
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("Content-Disposition", "inline")
 	w.Header().Set("X-Android-Import", "not-run")

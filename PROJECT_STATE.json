@@ -1,5 +1,5 @@
 {
-  "phase": "P20 tunneled dual DoH and independent IP bootstrap",
+  "phase": "P21 Smart RealPing compatibility and random subscription order",
   "date": "2026-11-07",
   "status": "implemented_and_deployed",
   "repository": "rezajafari0970/Config_manager",
@@ -11,7 +11,8 @@
     "xray": "26.7.28",
     "core_sha256": "64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d",
     "v2rayng_commit": "13138dddcab291ba3618cc54721ce4c7dd926be0",
-    "xray_commit": "5ca6f4b7d4dc20a881d4330e498892697627ec0c"
+    "xray_commit": "5ca6f4b7d4dc20a881d4330e498892697627ec0c",
+    "android_lib_commit": "d1d167b508457ebfd650c9e99bfca50c054c98df"
   },
   "contract": {
     "input": "independent source fetch/extraction with immutable originals",
@@ -30,12 +31,13 @@
     "balanced_template": "Explicit universal balancer route retains original pool, strategy, fallback, observer and necessary chain tags; collision-free common envelope helpers; no arbitrary server selection",
     "traffic": "SOCKS UDP and tcp,udp routing; Vision/Mux UDP443 gates open. No unsolicited Mux: explicit VLESS xudp input maps to UDP-only manager; upstream UDP/QUIC support remains separate.",
     "uri_compatibility": "Narrow userinfo space escaping preserves decoded credentials; TLS cs maps exactly; explicit VLESS packetEncoding=xudp uses one UDP stream with TCP multiplexing disabled. Missing REALITY keys remain explicit failures.",
-    "smart_output": "Additional cached smart-parallel-v6b profiles: configurable member count, source/member least-use counters, random followers, one unique canonical first position per durable round; ordinary/source exports unchanged.",
-    "smart_envelope": "Smart v7: four tunneled DoH resolvers, endpoint-only bootstrap domains, separate independent-IP leastLoad pool with prefix-safe dynamic tags, main leastLoad unchanged; block first, all copied input helpers retained, only namespaces and explicit UseIPv4/keepalive45/15 overridden. Burst15s/3/5s, counters/local metrics11111, logs off. No raw/non-Smart mutation.",
+    "smart_output": "One canonical cached Smart profile per eligible head; full/single subscription GET randomizes proxy order, full also randomizes profile order; canonical individual API bytes remain stable. Raw and ordinary/source exports unchanged.",
+    "smart_envelope": "Smart v8 keeps P20 DNS/balancers/socket policy/burst/stats/metrics/logs-off; independent-IP real proxy first for Lib40 route-less RealPing, block retained as explicit leastLoad fallback after copied entries/helpers; all source values retained except existing namespace/socket policy.",
     "smart_admission": "Fresh source-owned https_multi_site_verified: two public HTTPS destinations plus TLS-valid Instagram homepage200/206. Ordinary core-valid output and base connection status unchanged. TTL-bounded; no persistent bank; not a claim about app media/carriers or every nested balanced outbound.",
-    "smart_single": "Durable finite round over ready eligible cache only; skip rebuilding/revoked entries, next round when drained, new ready heads join next round. HTTP200 one inline JSON; no ready503 message+Retry-After; HEAD/prefetch nonconsuming.",
+    "smart_single": "Durable ready-only rounds, new rounds random, unfinished queue/cycle preserved; each GET returns order-only random rendition with independent IP first. HEAD/prefetch nonconsuming. Canonical profile identity and cache hash distinguished from returned body hash; no-ready503 retained.",
     "acquisition": "HTTP/extraction, current source ownership, core-valid output and connectivity are separate. Deletion-suppressed inputs are not ordinary duplicates or successful storage. Explicit source recovery clears only matching retained-response deletion controls, fences old jobs and requires fresh collection/validation.",
-    "smart_dns_limit": "UseIPv4 retained as requested; pinned core can attempt system DNS on startup/internal resolver failure. Fixture firewall blocks/counts attempts, but exported JSON alone does not guarantee DNS leak prevention. No independent IP yields explicit smart_bootstrap_no_ip."
+    "smart_dns_limit": "UseIPv4 retained as requested; pinned core can attempt system DNS on startup/internal resolver failure. Fixture firewall blocks/counts attempts, but exported JSON alone does not guarantee DNS leak prevention. No independent IP yields explicit smart_bootstrap_no_ip.",
+    "smart_ping": "Pinned Lib40 MeasureOutboundDelay removes routing/DNS/observers and tests default only. Fixed block-first failure; a failed default does not prove full leastLoad pool failure. No universal ping guarantee or APK/carrier claim."
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -1345,6 +1347,359 @@
       "sqlite": "quick_check ok; foreign_key_check empty",
       "normal_pipeline_diff": "none",
       "android_carriers": "not_run"
+    },
+    "p21": {
+      "checks": [
+        {
+          "name": "check",
+          "exit_code": 0,
+          "at": 1794028544.433956
+        },
+        {
+          "name": "traffic",
+          "exit_code": 0,
+          "at": 1794028594.4855175
+        },
+        {
+          "name": "smart-worker",
+          "exit_code": 0,
+          "at": 1794028932.1616843
+        },
+        {
+          "name": "browser",
+          "exit_code": 0,
+          "at": 1794028805.853995
+        }
+      ],
+      "traffic": [
+        {
+          "passed": true,
+          "lib": "v40",
+          "android_apk": "not_run",
+          "results": {
+            "block_first": {
+              "android_apk": "not_run",
+              "core": "26.7.28",
+              "error": "Get \"http://127.0.0.1:24447/generate_204\": io: read/write on closed pipe",
+              "passed": false
+            },
+            "independent_ip_first": {
+              "android_apk": "not_run",
+              "core": "26.7.28",
+              "elapsed_ms": 1,
+              "passed": true
+            }
+          }
+        },
+        {
+          "passed": true,
+          "comparison": {
+            "reference_leastping": {
+              "requests": 24,
+              "slow_requests": 0,
+              "p50_ms": 1.15,
+              "p95_ms": 2.39,
+              "dns": {
+                "intercept_a": true,
+                "relay_txt": true
+              }
+            },
+            "leastload": {
+              "requests": 24,
+              "slow_requests": 9,
+              "p50_ms": 4.25,
+              "p95_ms": 247.79,
+              "dns": {
+                "intercept_a": true,
+                "relay_txt": true
+              },
+              "post_failure": {
+                "requests": 24,
+                "slow_requests": 24,
+                "p50_ms": 243.44,
+                "p95_ms": 250.47,
+                "dns": {
+                  "intercept_a": true,
+                  "relay_txt": true
+                }
+              },
+              "verified_recovery_seconds": 20.25,
+              "requests_failed_during_detection": 8
+            },
+            "domain": {
+              "requests": 24,
+              "slow_requests": 10,
+              "p50_ms": 2.56,
+              "p95_ms": 243.85,
+              "dns": {
+                "intercept_a": true,
+                "relay_txt": true
+              }
+            }
+          },
+          "scope": "closed synthetic namespace; 120ms per-direction delay on one peer",
+          "carrier_tests": "not_run",
+          "quic_handshake": "not_run"
+        },
+        {
+          "passed": true,
+          "tls_doh_resolvers": 2,
+          "bootstrap_ip_only": true,
+          "domain_member_connected": true,
+          "dns_a_and_txt_tunneled": true,
+          "cold_proxy_failure_closed": true,
+          "blocked_startup_dns_attempts": 8,
+          "blocked_cold_failure_dns_attempts": 20,
+          "useipv4_system_fallback": "possible; prevented by fixture firewall, not by this JSON",
+          "carrier_tests": "not_run"
+        },
+        {
+          "passed": true,
+          "dead_first_member_skipped": true,
+          "traffic": {
+            "tcp": true,
+            "udp": true,
+            "udp443": true
+          },
+          "quic_handshake": "not_run"
+        }
+      ],
+      "smart_worker": {
+        "android": "not_run",
+        "whole_profile_connection": "not_run",
+        "passed": true,
+        "profiles": 55,
+        "members_per_profile": 50,
+        "sources": 3,
+        "max_active": 2,
+        "sigkill_recovered": true,
+        "unique_head_round": true,
+        "inline": true,
+        "core": "xray-26.7.28"
+      },
+      "public": {
+        "at": "2026-11-07T05:22:51.583Z",
+        "passed": true,
+        "viewports": [
+          {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "full_profiles": 2,
+            "count": 35,
+            "errors": 0,
+            "downloads": 0,
+            "inline": true,
+            "individual_hash_and_full_values_match": true,
+            "randomized": true
+          },
+          {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "full_profiles": 6,
+            "count": 35,
+            "errors": 0,
+            "downloads": 0,
+            "inline": true,
+            "individual_hash_and_full_values_match": true,
+            "randomized": true
+          }
+        ],
+        "strategy": {
+          "type": "leastLoad",
+          "settings": {
+            "expected": 3,
+            "maxRTT": "2s",
+            "tolerance": 0.15
+          }
+        },
+        "single_requests": 6,
+        "randomized_variants": 26,
+        "scope": "public Smart API, canonical individual and shuffled full/single output; no Android or carrier measurement"
+      },
+      "cache_copy_audit": {
+        "passed": true,
+        "version": "xray-26.7.28.smart.v8",
+        "profiles": 2,
+        "selected_inputs": 70,
+        "copied_outbounds": 284,
+        "cached_bytes_exact": true,
+        "logs_off": true
+      },
+      "server_before": {
+        "at": 1794028618.7357008,
+        "version": "xray-26.7.28.smart.v7",
+        "scope": "exact cached Smart JSON, server-network sandbox; no Android/carrier evidence",
+        "profiles": [
+          {
+            "index": 1,
+            "sites": [
+              {
+                "site": "www.google.com",
+                "curl_exit": 0,
+                "http_status": "204",
+                "timings_seconds": [
+                  "0.020427",
+                  "0.020465"
+                ]
+              },
+              {
+                "site": "www.cloudflare.com",
+                "curl_exit": 0,
+                "http_status": "200",
+                "timings_seconds": [
+                  "0.014861",
+                  "0.014930"
+                ]
+              },
+              {
+                "site": "www.instagram.com",
+                "curl_exit": 0,
+                "http_status": "200",
+                "timings_seconds": [
+                  "0.083249",
+                  "0.254511"
+                ]
+              }
+            ],
+            "waited_seconds": 0.519,
+            "observed_alive": 23
+          },
+          {
+            "index": 2,
+            "sites": [
+              {
+                "site": "www.google.com",
+                "curl_exit": 0,
+                "http_status": "204",
+                "timings_seconds": [
+                  "0.029147",
+                  "0.029258"
+                ]
+              },
+              {
+                "site": "www.cloudflare.com",
+                "curl_exit": 0,
+                "http_status": "200",
+                "timings_seconds": [
+                  "0.032988",
+                  "0.033072"
+                ]
+              },
+              {
+                "site": "www.instagram.com",
+                "curl_exit": 0,
+                "http_status": "200",
+                "timings_seconds": [
+                  "0.198039",
+                  "0.470220"
+                ]
+              }
+            ],
+            "waited_seconds": 0.52,
+            "observed_alive": 23
+          }
+        ],
+        "passed": true
+      },
+      "server_after": {
+        "at": 1794028969.479558,
+        "version": "xray-26.7.28.smart.v8",
+        "scope": "exact cached Smart JSON, server-network sandbox; no Android/carrier evidence",
+        "profiles": [
+          {
+            "index": 1,
+            "sites": [
+              {
+                "site": "www.google.com",
+                "curl_exit": 0,
+                "http_status": "204",
+                "timings_seconds": [
+                  "0.022639",
+                  "0.022689"
+                ]
+              },
+              {
+                "site": "www.cloudflare.com",
+                "curl_exit": 0,
+                "http_status": "200",
+                "timings_seconds": [
+                  "0.014103",
+                  "0.014173"
+                ]
+              },
+              {
+                "site": "www.instagram.com",
+                "curl_exit": 0,
+                "http_status": "200",
+                "timings_seconds": [
+                  "0.243858",
+                  "0.725311"
+                ]
+              }
+            ],
+            "waited_seconds": 0.515,
+            "observed_alive": 25
+          },
+          {
+            "index": 2,
+            "sites": [
+              {
+                "site": "www.google.com",
+                "curl_exit": 0,
+                "http_status": "204",
+                "timings_seconds": [
+                  "0.039205",
+                  "0.039256"
+                ]
+              },
+              {
+                "site": "www.cloudflare.com",
+                "curl_exit": 0,
+                "http_status": "200",
+                "timings_seconds": [
+                  "0.016972",
+                  "0.017057"
+                ]
+              },
+              {
+                "site": "www.instagram.com",
+                "curl_exit": 0,
+                "http_status": "200",
+                "timings_seconds": [
+                  "0.247325",
+                  "0.459224"
+                ]
+              }
+            ],
+            "waited_seconds": 0.515,
+            "observed_alive": 25
+          }
+        ],
+        "passed": true
+      },
+      "sources_preserved": 18,
+      "settings_preserved": {
+        "enabled": true,
+        "count": 35,
+        "revision": 10
+      },
+      "pinned_core_random_counts": [
+        1,
+        2,
+        5,
+        7,
+        10,
+        15,
+        50,
+        100
+      ],
+      "normal_pipeline_diff": "none",
+      "android_carriers": "not_run; phone offline",
+      "initial_test_failure": "worker checksum assertion treated HTTP headers case-sensitively; corrected harness and reran worker successfully"
     }
   },
   "runtime": {
@@ -1355,9 +1710,9 @@
       "config-repair-smart.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p20-7715237b769db399549a-r1",
-    "panel_sha256": "7715237b769db399549a1c4af71c2e71f0878520c1bfd02062af83ee668fac67",
-    "worker_sha256": "afe8de61cb84a3f74dc502c579c1b85f988653efb67dc0361f88637e5a35e638",
+    "release": "/opt/config-repair/releases/p21-584b681a0ed3b76b46f8-r1",
+    "panel_sha256": "584b681a0ed3b76b46f8fbe845c1cdf7123be3ff8f2dec1f61907d5235b477eb",
+    "worker_sha256": "3da71a77db09b3d2483159e758e0926c8230350861a620249ee423eb6a18c8e5",
     "template_version": "xray-26.7.28.template.v4",
     "retention_seconds": 7200,
     "fetch_concurrency": 16,
@@ -1366,12 +1721,12 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/p20-deployed.json",
-    "publication_receipt": ".local/p20-published.json",
+    "deployment_receipt": ".local/p21-deployed.json",
+    "publication_receipt": ".local/p21-published.json",
     "sandbox_driver_sha256": "7c72e55456eb7bac75f1284560f61ef3d220ef16dc7c3fd17d678f547d73a136",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
-    "smart_version": "xray-26.7.28.smart.v7",
+    "smart_version": "xray-26.7.28.smart.v8",
     "smart_count": 35,
     "smart_concurrency": 2,
     "adapter_sha256": "875088ecbd2f5f1c3b5b847b2d760014ef5e67ae0ec9d07d8677032298231c12",

@@ -38,18 +38,18 @@ func TestBootstrapUsesOnlyIndependentIPEntries(t *testing.T) {
 		}
 	}
 	out := root["outbounds"].([]any)
-	for _, value := range out[1:6] {
+	for _, value := range out[:5] {
 		socket := value.(M)["streamSettings"].(M)["sockopt"].(M)
 		if socket["domainStrategy"] != "UseIPv4" || socket["tcpKeepAliveIdle"] != json.Number("45") || socket["tcpKeepAliveInterval"] != json.Number("15") {
 			t.Fatal(socket)
 		}
 	}
-	socket := out[5].(M)["streamSettings"].(M)["sockopt"].(M)
+	socket := out[4].(M)["streamSettings"].(M)["sockopt"].(M)
 	if socket["tcpFastOpen"] != true || socket["dialerProxy"] != "proxy-01" {
 		t.Fatal("socket dependency changed", socket)
 	}
-	if out[0].(M)["tag"] != "block" {
-		t.Fatal("implicit fallback must block")
+	if out[0].(M)["tag"] != "proxy-01" {
+		t.Fatal("RealPing default must use an independent IP proxy")
 	}
 }
 
@@ -102,7 +102,7 @@ func TestBootstrapSelectorsCannotMatchLongerDomainTags(t *testing.T) {
 			}
 			root, _ := object(b)
 			out := root["outbounds"].([]any)
-			domainTag := out[count].(M)["tag"].(string)
+			domainTag := out[count-1].(M)["tag"].(string)
 			selector := root["routing"].(M)["balancers"].([]any)[1].(M)["selector"].([]any)
 			if len(selector) != count-1 {
 				t.Fatal(len(selector))

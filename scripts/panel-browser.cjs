@@ -55,6 +55,7 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
 
  // Smart exports have a durable independent head round and stay inline.
  await page.goto(origin+'/smart');await wait(async()=>{const x=await(await context.request.get(origin+'/api/smart')).json();return x.stats.ready===2});
+ assert((await page.locator('.output-panel').innerText()).includes('leastLoad'));assert(!(await page.locator('.output-panel').innerText()).includes('leastPing'));
  const smart=await(await context.request.get(origin+'/api/smart')).json();assert.equal(smart.settings.count,phase==='1'?10:50);
  await wait(async()=>await page.locator('#smart-all-url').getAttribute('href')===smart.export_url);
  assert.equal(await page.locator('#smart-all-url').getAttribute('href'),smart.export_url);
@@ -62,7 +63,7 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
  const allSmart=await smartPage.goto(smart.export_url);assert.equal(allSmart.headers()['content-disposition'],'inline');assert.equal(await smartPage.evaluate(()=>document.contentType),'text/plain');
  const smartLines=(await allSmart.text()).trim().split('\n');assert.equal(smartLines.length,2);assert.equal(new Set(smartLines).size,2);
  for(const line of smartLines){
-  const j=JSON.parse(line);assert.equal(j.remarks,'@shenvpn-smart-parallel-v6b');assert.deepEqual(Object.keys(j),['remarks','log','dns','inbounds','outbounds','routing','burstObservatory','policy','stats','metrics']);assert.deepEqual(j.log,{loglevel:'none',access:'none',error:'none',dnsLog:false});assert.equal(j.outbounds[0].tag,'block');assert.equal(j.outbounds[1].tag,'proxy-01');assert.equal(j.dns.servers.length,4);
+  const j=JSON.parse(line);assert.equal(j.remarks,'@shenvpn-smart-parallel-v6b');assert.deepEqual(Object.keys(j),['remarks','log','dns','inbounds','outbounds','routing','burstObservatory','policy','stats','metrics']);assert.deepEqual(j.log,{loglevel:'none',access:'none',error:'none',dnsLog:false});assert(j.routing.balancers[1].selector.includes(j.outbounds[0].tag));assert(j.outbounds.some(x=>x.tag==='block'&&x.protocol==='blackhole'));assert.equal(j.dns.servers.length,4);
   assert.deepEqual(j.dns.servers.map(d=>d.address),['https://8.8.8.8/dns-query','https://1.1.1.1/dns-query','https://1.1.1.1/dns-query','https://8.8.8.8/dns-query']);for(const d of j.dns.servers){assert.equal(d.timeoutMs,2500)}
   for(const d of j.dns.servers.slice(0,2)){assert.equal(d.skipFallback,true);assert.equal(d.tag,'dns-bootstrap');assert.deepEqual(d.domains,['full:vpn.example'])}
   assert.equal(j.routing.balancers.length,2);assert.equal(j.routing.rules.length,4);assert.equal(j.routing.balancers[0].fallbackTag,'block');assert.equal(j.routing.balancers[1].selector.length,1);

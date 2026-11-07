@@ -131,7 +131,7 @@ func TestBalancedAllEntriesAndInactiveHelpersPreserved(t *testing.T) {
 	}
 	parsed, _ := object(b)
 	out := parsed["outbounds"].([]any)
-	if len(out) != 6 || out[0].(M)["tag"] != "block" || out[1].(M)["tag"] != "proxy-01" || out[2].(M)["tag"] != "proxy-02" || out[3].(M)["protocol"] != "loopback" {
+	if len(out) != 6 || out[0].(M)["tag"] != "proxy-01" || out[1].(M)["tag"] != "proxy-02" || out[2].(M)["protocol"] != "loopback" || out[3].(M)["tag"] != "block" {
 		t.Fatal("pool members or helper lost")
 	}
 	var raw map[string]json.RawMessage

@@ -1,6 +1,6 @@
-# Project Brain — P19
+# Project Brain — P21
 
-Current user instruction (2026-10-30) replaces the persistent repair laboratory with a shared JSON conversion flow. Read PROJECT_STATE.json, HANDOFF.md, docs/CONVERSION.md and the P19 checkpoint. Earlier checkpoints describe history only.
+Current user instruction (2026-10-30) replaces the persistent repair laboratory with a shared JSON conversion flow. Read PROJECT_STATE.json, HANDOFF.md, docs/CONVERSION.md and the P21 checkpoint. Earlier checkpoints describe history only.
 
 Go fetches source links independently, extracts exact encrypted originals, maps supported protocols to the user's @shenvpn full JSON envelope, validates using pinned Xray26.7.28 and tracks connection separately. Output is a clean list plus the all-config JSONL and single-config rotation links. The bank, manual import, historical variants, learned model/rule data and old subscriptions are removed by schema6.
 
@@ -41,3 +41,7 @@ Smart v6 uses leastLoad expected3/maxRTT2s/tolerance0.15. Keep current35members/
 User's 2026-11-07 template supersedes P19 globals and explicitly adds Smart-only socket policy. See docs/checkpoints/P20-tunneled-bootstrap-20261107.md. Smart v7, same schema10 and ordinary template v4. Common generation supplies existing full/single/individual/API/cached Smart output. Four tunneled resolvers, endpoint-only domains, independent IP bootstrap leastLoad and dynamic equal-width proxy tags; no hardcoded36 servers/domains. Both balancers use expected3/maxRTT2s/tolerance0.15 with block fallback. Burst15/3/5, keepalive45/15, UseIPv4, counters and local metrics11111; logs off. All copied helpers remain; generated block first, DNS/loopback last, no generated direct. Raw and non-Smart data remain untouched. Preserve live source settings and both rotations on deployment.
 
 No independent IP produces a readable blocked-profile diagnosis, never domain-recursive/direct bootstrap. A new fixture uses actual TLS HTTP/2 DoH through synthetic proxy peers and records the independent IP source. UseIPv4 may attempt system DNS on failure/startup: fixture-only firewall containment is not an exported anti-leak guarantee. No Android/operator/throughput or2-second selection claim. Final p20 receipts, not failed intermediate fixture diagnostics, establish runtime/publication evidence.
+
+
+## Current P21 — RealPing compatibility and per-request shuffle
+The user's ping/random-order request supersedes P20 block-first. Smart v8's first outbound is an independent IP proxy because pinned Lib40 MeasureOutboundDelay removes routing, DNS and observation apps. Full runtime retains the requested leastLoad, block fallback and other P20 globals. Cache proof remains versioned and canonical; full/single subscription rendering permutes unchanged proxy objects, keeping an independent IP first. Full profile order and newly created durable rounds are also random. Individual JSON stays byte-exact, headers distinguish rendition/cache hashes, and unfinished turns/settings/ordinary outputs stay intact. No sample endpoints or raw data are altered. Exact-source filter regression is server-side, not an Android APK test; phone was offline. Read P21 checkpoint and private receipts before claiming deployed/publicly verified state.

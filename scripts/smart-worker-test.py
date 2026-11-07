@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Real pinned-core smart worker, isolated queue, restart, sources and inline exports."""
-import argparse,json,os,pathlib,sqlite3,subprocess,tempfile,time,urllib.request
+import argparse,hashlib,json,os,pathlib,sqlite3,subprocess,tempfile,time,urllib.request
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 ORIGIN='http://127.0.0.1:18195'
 def get(url,prod=False):
  req=urllib.request.Request(url,headers={'Host':'85.192.63.181:18443'} if prod else {})
  with urllib.request.urlopen(req,timeout=30) as f:return f.read(),dict(f.headers)
+def normalize(body):
+ value=json.loads(body);value['outbounds'].sort(key=lambda x:x['tag'])
+ return json.dumps(value,sort_keys=True,separators=(',',':'))
 def main():
  parser=argparse.ArgumentParser();parser.add_argument('--live-canary',type=int,default=0);args=parser.parse_args()
  if os.geteuid()!=0:raise SystemExit('root required for sandbox integration')
@@ -58,12 +61,14 @@ def main():
      assert list(j)==['remarks','log','dns','inbounds','outbounds','routing','burstObservatory','policy','stats','metrics']
      assert j['log']=={'loglevel':'none','access':'none','error':'none','dnsLog':False}
      assert len(j['dns']['servers'])==4 and len(j['routing']['balancers'])==2 and len(j['routing']['rules'])==4
-     assert j['outbounds'][0]['tag']=='block' and j['outbounds'][1]['tag']=='proxy-01' and j['routing']['balancers'][0]['fallbackTag']=='block'
+     assert j['outbounds'][0]['tag'] in j['routing']['balancers'][1]['selector'] and j['routing']['balancers'][0]['fallbackTag']=='block'
      assert len([x for x in j['outbounds'] if x['tag'].startswith('proxy-')])>=50
      assert j['routing']['balancers'][-1]['strategy']=={'type':'leastLoad','settings':{'expected':3,'maxRTT':'2s','tolerance':.15}}
+    normalized={normalize(line) for line in lines}
     turns=[]
     for i in range(len(lines)+1):
-     body,headers=get(state['single_export_url']);assert body.strip() in lines
+     body,headers=get(state['single_export_url']);assert normalize(body) in normalized
+     assert hashlib.sha256(body.strip()).hexdigest()=={k.lower():v for k,v in headers.items()}['x-content-sha256']
      assert headers['Content-Disposition']=='inline'
      turns.append((int(headers['X-Export-Cycle']),headers['X-Smart-First-Id']))
     assert all(c==1 for c,_ in turns[:-1]) and len(set(h for _,h in turns[:-1]))==len(lines) and turns[-1][0]==2

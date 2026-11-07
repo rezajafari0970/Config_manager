@@ -165,8 +165,18 @@ func Compose(members []Member) ([]byte, error) {
 	if len(bootstrapTags) == 0 {
 		return nil, errors.New("smart_bootstrap_no_ip")
 	}
-	out := append([]any{M{"tag": "block", "protocol": "blackhole", "settings": M{}}}, entries...)
+	// AndroidLibXrayLite MeasureOutboundDelay removes routing/DNS/observers.
+	// Its default outbound must therefore be a real, DNS-independent proxy.
+	// Normal operation still uses the catch-all leastLoad rule and block fallback.
+	for i, entry := range entries {
+		if entry.(M)["tag"] == bootstrapTags[0] {
+			entries[0], entries[i] = entries[i], entries[0]
+			break
+		}
+	}
+	out := append([]any{}, entries...)
 	out = append(out, helpers...)
+	out = append(out, M{"tag": "block", "protocol": "blackhole", "settings": M{}})
 	out = append(out, M{"tag": "smart-dns-out", "protocol": "dns", "settings": M{"rewriteNetwork": "tcp", "rewriteAddress": "1.1.1.1", "rewritePort": 53, "rules": []any{M{"action": "hijack", "qType": "1,28"}, M{"action": "direct"}}}, "streamSettings": M{"sockopt": M{"dialerProxy": "smart-dns-relay"}}}, M{"tag": "smart-dns-relay", "protocol": "loopback", "settings": M{"inboundTag": "smart-dns-egress"}})
 	var body bytes.Buffer
 	if e := orderedJSON(&body, out); e != nil {
