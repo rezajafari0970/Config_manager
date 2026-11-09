@@ -229,6 +229,7 @@ func TestSmartPersistentConcurrentRoundsAndMigration(t *testing.T) {
 	path := filepath.Join(filepath.Dir(s.vault.Directory()), "panel.db")
 	key := bytes.Clone(s.key)
 	// Schema8 upgrade preserves the existing normal rotation state and queue.
+	dropSplashForMigration(t, s)
 	s.db.Exec("PRAGMA user_version=8")
 	other, e := Open(path, key)
 	if e != nil {
@@ -237,7 +238,7 @@ func TestSmartPersistentConcurrentRoundsAndMigration(t *testing.T) {
 	defer other.Close()
 	var schema int
 	other.db.QueryRow("PRAGMA user_version").Scan(&schema)
-	if schema != 10 {
+	if schema != 13 {
 		t.Fatal(schema)
 	}
 	var wg sync.WaitGroup
@@ -314,8 +315,8 @@ func TestSmartGrowingInputsFillCapacityAndNewSource(t *testing.T) {
 	}
 	newExportSource(t, s, "GrowingB", sourceURI(2))
 	rows, _ = querySmart(ctx, s.db, true, 0)
-	if len(rows) != 1 || rows[0].Available {
-		t.Fatal("underfilled old cache exposed")
+	if len(rows) != 1 || !rows[0].Available {
+		t.Fatal("safe cache lost during growth")
 	}
 	finishSmart(t, s)
 	rows, _ = querySmart(ctx, s.db, true, 0)
@@ -410,7 +411,7 @@ func TestSmartTemplateVersionRevokesOldCacheAndOccupiedLeases(t *testing.T) {
 	}
 	var before int
 	s.db.QueryRow("SELECT count(*) FROM smart_rotation_queue").Scan(&before)
-	if _, e = s.db.Exec("UPDATE smart_heads SET version='xray-26.7.28.smart.v7'"); e != nil {
+	if _, e = s.db.Exec("UPDATE smart_heads SET version='xray-26.7.28.smart.v7';UPDATE smart_cache SET version='xray-26.7.28.smart.v7'"); e != nil {
 		t.Fatal(e)
 	}
 	rows, e := querySmart(ctx, s.db, true, 0)

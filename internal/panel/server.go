@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -26,6 +27,7 @@ type Server struct {
 	template     *template.Template
 	engine       *collect.Engine
 	modules      []PanelModule
+	modulesMu    sync.RWMutex
 }
 
 func NewServer(store *Store, origin string) (*Server, error) {
@@ -120,7 +122,7 @@ func (s *Server) Handler() http.Handler {
 		}
 		mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "/input", 303) })
 	}
-	for _, page := range []string{"input", "output", "setting", "smart"} {
+	for _, page := range []string{"input", "output", "setting", "smart", "smart-splash"} {
 		page := page
 		mux.HandleFunc("GET /"+page, func(w http.ResponseWriter, r *http.Request) {
 			token := s.token(r)
@@ -133,8 +135,10 @@ func (s *Server) Handler() http.Handler {
 		})
 	}
 	mux.HandleFunc("GET /api/state", s.state)
-	modules := []PanelModule{inputModule{s}, outputModule{s}, settingModule{s}, conversionModule{s}, rotationModule{s}, sourceExportModule{s}, smartModule{s}}
+	modules := []PanelModule{inputModule{s}, outputModule{s}, settingModule{s}, conversionModule{s}, rotationModule{s}, sourceExportModule{s}, smartModule{s, s.store.Smart()}, smartModule{s, s.store.SplashSmart()}}
+	s.modulesMu.RLock()
 	modules = append(modules, s.modules...)
+	s.modulesMu.RUnlock()
 	for _, module := range modules {
 		module.Register(mux)
 	}
@@ -163,19 +167,30 @@ func (s *Server) Handler() http.Handler {
 func (s *Server) state(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	sources, e := s.store.ListPage(ctx, r.URL.Query().Get("q"), page)
-	if e != nil {
-		failure(w, e)
+	view := r.URL.Query().Get("view")
+	if view != "" && view != "input" && view != "summary" {
+		failure(w, ErrInvalid)
 		return
 	}
-	for i := range sources {
-		sources[i].ExportURL = s.exportURL(sources[i].ID, false)
-		sources[i].SingleExportURL = s.exportURL(sources[i].ID, true)
+	var e error
+	sources, outputs := []Source{}, []Artifact{}
+	if view != "summary" {
+		sources, e = s.store.ListPage(ctx, r.URL.Query().Get("q"), page)
+		if e != nil {
+			failure(w, e)
+			return
+		}
+		for i := range sources {
+			sources[i].ExportURL = s.exportURL(sources[i].ID, false)
+			sources[i].SingleExportURL = s.exportURL(sources[i].ID, true)
+		}
 	}
-	outputs, e := s.store.OutputsFiltered(ctx, r.URL.Query().Get("kind"), r.URL.Query().Get("repair"), page, false)
-	if e != nil {
-		failure(w, e)
-		return
+	if view == "" {
+		outputs, e = s.store.OutputsFiltered(ctx, r.URL.Query().Get("kind"), r.URL.Query().Get("repair"), page, false)
+		if e != nil {
+			failure(w, e)
+			return
+		}
 	}
 	settings, e := s.store.Settings(ctx)
 	if e != nil {
@@ -195,10 +210,13 @@ func (s *Server) state(w http.ResponseWriter, r *http.Request) {
 		blocked = s.engine.BlockedReason()
 		capacity = s.engine.Capacity()
 	}
-	repairs, e := s.store.RepairSummary(ctx, outputs)
-	if e != nil {
-		failure(w, e)
-		return
+	repairs := RepairSummary{Outputs: map[string]string{}, Sources: map[string]map[string]int{}, Counts: map[string]int{}}
+	if view == "" {
+		repairs, e = s.store.RepairSummary(ctx, outputs)
+		if e != nil {
+			failure(w, e)
+			return
+		}
 	}
 	conversions, e := s.store.SourceConversionSummaries(ctx, sources)
 	if e != nil {
@@ -211,4 +229,11 @@ func (s *Server) state(w http.ResponseWriter, r *http.Request) {
 // PanelModule is the compiled extension boundary for independent feature routes.
 type PanelModule interface{ Register(*http.ServeMux) }
 
-func (s *Server) RegisterModule(module PanelModule) { s.modules = append(s.modules, module) }
+func (s *Server) RegisterModule(module PanelModule) {
+	if module == nil {
+		return
+	}
+	s.modulesMu.Lock()
+	defer s.modulesMu.Unlock()
+	s.modules = append(s.modules, module)
+}

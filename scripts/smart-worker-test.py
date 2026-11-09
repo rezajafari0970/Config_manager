@@ -2,7 +2,6 @@
 """Real pinned-core smart worker, isolated queue, restart, sources and inline exports."""
 import argparse,hashlib,json,os,pathlib,sqlite3,subprocess,tempfile,time,urllib.request
 ROOT=pathlib.Path(__file__).resolve().parents[1]
-ORIGIN='http://127.0.0.1:18195'
 def get(url,prod=False):
  req=urllib.request.Request(url,headers={'Host':'85.192.63.181:18443'} if prod else {})
  with urllib.request.urlopen(req,timeout=30) as f:return f.read(),dict(f.headers)
@@ -10,12 +9,14 @@ def normalize(body):
  value=json.loads(body);value['outbounds'].sort(key=lambda x:x['tag'])
  return json.dumps(value,sort_keys=True,separators=(',',':'))
 def main():
- parser=argparse.ArgumentParser();parser.add_argument('--live-canary',type=int,default=0);args=parser.parse_args()
+ parser=argparse.ArgumentParser();parser.add_argument('--splash',action='store_true');parser.add_argument('--live-canary',type=int,default=0);args=parser.parse_args()
  if os.geteuid()!=0:raise SystemExit('root required for sandbox integration')
- subprocess.run(['go','test','-c','-o',str(ROOT/'.local/smart-worker-fixture'),'./internal/panel'],cwd=ROOT,check=True)
- receipt={'android':'not_run','whole_profile_connection':'not_run'}
+ scope='splash' if args.splash else 'normal';api='/api/smart-splash' if args.splash else '/api/smart';table='splash_smart_' if args.splash else 'smart_';mode='smart-splash' if args.splash else 'smart'
+ receipt={'scope':scope,'android':'not_run','whole_profile_connection':'not_run'}
  with tempfile.TemporaryDirectory(prefix='smart-worker-',dir=ROOT/'.local') as tmp:
   work=pathlib.Path(tmp);os.chmod(work,0o700)
+  fixture=work/'fixture'
+  subprocess.run(['go','test','-c','-o',str(fixture),'./internal/panel'],cwd=ROOT,check=True)
   samples={name:[] for name in ['Alpha','Beta','Gamma']}
   for i in range(1,56):
    name='Alpha' if i<50 else 'Beta' if i<54 else 'Gamma'
@@ -30,22 +31,24 @@ def main():
    samples['Canary']=picked;receipt['live_samples']=len(picked)
   (work/'samples.json').write_text(json.dumps(samples))
   for name in ['probe-one.py','live-probe.py']:(work/name).write_text((ROOT/'scripts'/name).read_text())
-  (work/'smart-probe-one.py').write_text((ROOT/'scripts/smart-probe-one.py').read_text().replace("PREFIX='csm'","PREFIX='cst'"))
+  (work/'smart-probe-one.py').write_text((ROOT/'scripts'/('splash-probe-one.py' if args.splash else 'smart-probe-one.py')).read_text().replace("PREFIX='csm'","PREFIX='cst'").replace("PREFIX='csp'","PREFIX='cpt'"))
   panel=worker=None
   with (work/'panel.log').open('w') as pl,(work/'worker.log').open('w') as wl:
    try:
-    panel=subprocess.Popen([str(ROOT/'.local/smart-worker-fixture'),'-test.run=^TestSmartWorkerFixture$','-test.v'],env=dict(os.environ,CONFIG_SMART_FIXTURE_DIR=str(work)),stdout=pl,stderr=pl)
+    panel=subprocess.Popen([str(fixture),'-test.run=^TestSmartWorkerFixture$','-test.v'],env=dict(os.environ,CONFIG_SMART_FIXTURE_DIR=str(work),CONFIG_SMART_FIXTURE_SCOPE=scope),stdout=pl,stderr=pl)
     for _ in range(150):
      if panel.poll() is not None:raise RuntimeError('fixture exited; '+(work/'panel.log').read_text()[-2000:])
-     try:json.loads(get(ORIGIN+'/api/smart')[0]);break
-     except OSError:time.sleep(.1)
+     try:
+      ready=json.loads((work/'public.json').read_text());assert ready['scope']==scope
+      origin=ready['origin'];json.loads(get(origin+api)[0]);break
+     except (OSError,json.JSONDecodeError):time.sleep(.1)
     else:raise RuntimeError('fixture unavailable')
-    def launch():return subprocess.Popen([str(ROOT/'bin/config-probe-worker'),'-mode','smart','-socket',str(work/'data/probe.sock'),'-helper',str(work/'smart-probe-one.py'),'-core',str(ROOT/'.local/xray-26.7.28/xray'),'-lock-file',str(work/'smart.lock')],stdout=wl,stderr=wl)
+    def launch():return subprocess.Popen([str(ROOT/'bin/config-probe-worker'),'-mode',mode,'-socket',str(work/'data/probe.sock'),'-helper',str(work/'smart-probe-one.py'),'-core',str(ROOT/'.local/xray-26.7.28/xray'),'-lock-file',str(work/'smart.lock')],stdout=wl,stderr=wl)
     worker=launch();killed=False;start=time.monotonic();last=-1;max_active=0
     while time.monotonic()-start<480:
-     state=json.loads(get(ORIGIN+'/api/smart')[0]);active=state['worker']['active'];max_active=max(max_active,active)
+     state=json.loads(get(origin+api)[0]);active=state['worker']['active'];max_active=max(max_active,active)
      running=sum(r['state']=='running' for r in state['entries'])
-     with sqlite3.connect(str(work/'data/panel.db')) as claims:live_claims=claims.execute("SELECT count(*) FROM smart_heads WHERE token!='' AND lease_until>?",(int(time.time()*1000),)).fetchone()[0]
+     with sqlite3.connect(str(work/'data/panel.db')) as claims:live_claims=claims.execute("SELECT count(*) FROM "+table+"heads WHERE token!='' AND lease_until>?",(int(time.time()*1000),)).fetchone()[0]
      max_active=max(max_active,live_claims)
      if not killed and running:worker.kill();worker.wait(timeout=10);worker=launch();killed=True
      if state['stats']['total']>=55 and state['stats']['ready']==state['stats']['total']:break
@@ -73,9 +76,12 @@ def main():
      turns.append((int(headers['X-Export-Cycle']),headers['X-Smart-First-Id']))
     assert all(c==1 for c,_ in turns[:-1]) and len(set(h for _,h in turns[:-1]))==len(lines) and turns[-1][0]==2
     with sqlite3.connect(str(work/'data/panel.db')) as db:
-     covered=db.execute('SELECT head,count(DISTINCT source) FROM smart_members GROUP BY head').fetchall()
+     covered=db.execute('SELECT head,count(DISTINCT source) FROM '+table+'members GROUP BY head').fetchall()
      assert all(n==len(samples) for _,n in covered)
      assert db.execute('SELECT status FROM conversion_worker').fetchone()[0]=='offline'
+    if args.splash:
+     other=json.loads(get(origin+'/api/smart')[0]);assert other['stats']['ready']==0 and other['settings']['count']==10
+     assert all(b'192.0.2.200' not in line for line in lines)
     receipt.update(passed=True,profiles=len(lines),members_per_profile=50,sources=len(samples),max_active=max_active,sigkill_recovered=True,unique_head_round=True,inline=True,core='xray-26.7.28')
    finally:
     for process in [worker,panel]:
@@ -84,6 +90,6 @@ def main():
       try:process.wait(timeout=35)
       except subprocess.TimeoutExpired:process.kill();process.wait()
     subprocess.run(['/usr/bin/python3',str(work/'smart-probe-one.py'),'--cleanup'],check=True,timeout=30)
-    (ROOT/'.local/smart-worker-diagnostic.log').write_text((work/'worker.log').read_text()[-8000:])
- (ROOT/'.local/smart-worker-test.json').write_text(json.dumps(receipt,indent=2));print(json.dumps(receipt),flush=True)
+    (ROOT/('.local/splash-worker-diagnostic.log' if args.splash else '.local/smart-worker-diagnostic.log')).write_text((work/'worker.log').read_text()[-8000:])
+ (ROOT/('.local/splash-worker-test.json' if args.splash else '.local/smart-worker-test.json')).write_text(json.dumps(receipt,indent=2));print(json.dumps(receipt),flush=True)
 if __name__=='__main__':main()

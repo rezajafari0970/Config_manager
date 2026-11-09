@@ -203,6 +203,7 @@ func TestV5BankRemovalPreservesSources(t *testing.T) {
 	s := testStore(t)
 	ctx := context.Background()
 	id, _ := s.Save(ctx, "", 0, testSource())
+	dropSplashForMigration(t, s)
 	_, e := s.db.Exec(`DROP VIEW conversion_inputs;DROP TABLE conversion_results;DROP TABLE conversion_jobs;DROP TABLE conversion_settings;DROP TABLE conversion_worker;
  CREATE TABLE bank_samples(hash TEXT PRIMARY KEY);CREATE TABLE probe_jobs(hash TEXT REFERENCES bank_samples(hash));CREATE TABLE probe_results(hash TEXT REFERENCES bank_samples(hash));CREATE TABLE bank_variants(hash TEXT REFERENCES bank_samples(hash));CREATE TABLE probe_models(x);CREATE TABLE probe_rule_evidence(x);CREATE TABLE probe_settings(id,enabled,concurrency,timeout_seconds,retest_seconds,health_ttl_seconds);INSERT INTO probe_settings VALUES(1,1,3,7,120,300);CREATE TABLE probe_worker(x);INSERT INTO bank_samples VALUES('synthetic');PRAGMA user_version=5;`)
 	if e != nil {
@@ -211,7 +212,8 @@ func TestV5BankRemovalPreservesSources(t *testing.T) {
 	if e = s.migrateV6(); e != nil {
 		t.Fatal(e)
 	}
-	if _, e = s.Get(ctx, id); e != nil {
+	var kept string
+	if e = s.db.QueryRowContext(ctx, "SELECT id FROM sources WHERE id=?", id).Scan(&kept); e != nil || kept != id {
 		t.Fatal("migration lost source", e)
 	}
 	var v int

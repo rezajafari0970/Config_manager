@@ -99,13 +99,22 @@ def runtime_config(config, resolved):
     c.pop('api',None);c.pop('metrics',None)
     return c
 
+# Disjoint /30 blocks for simultaneous worker scopes and trusted test adapters.
+# Keep crw's existing block stable. Resource names/cleanup ownership do not change.
+SANDBOX_ADDRESS_BASES={'crw':8192,'csm':8224,'csp':8256,'ctw':8288,'cst':8320,'cpt':8352,'ctf':8384,'cstf':8416,'csrf':8448,'cstb':8480,'cstp':8512}
+
 class Sandbox:
     def __init__(self, core, runid, index, prefix="crp"):
         self.core=pathlib.Path(core).resolve();self.name=prefix+runid[:6]+format(index,'x')
         self.table=self.name;self.hostif=self.name+'h';self.peer=self.name+'p'
         # /30 from the dedicated benchmark range; none of it is allowed as egress.
-        base=int(ipaddress.IPv4Address('198.18.0.0'))+4*(index+1)
-        if index>=32760: raise ValueError('namespace_address_capacity')
+        if not 0<=index<32760: raise ValueError('namespace_address_capacity')
+        address_index=index
+        if prefix in SANDBOX_ADDRESS_BASES:
+            slot=index-8192
+            if not 0<=slot<32:raise ValueError('namespace_slot_capacity')
+            address_index=SANDBOX_ADDRESS_BASES[prefix]+slot
+        base=int(ipaddress.IPv4Address('198.18.0.0'))+4*(address_index+1)
         self.gateway=str(ipaddress.IPv4Address(base+1));self.addr=str(ipaddress.IPv4Address(base+2))
         self.cg=pathlib.Path('/sys/fs/cgroup')/self.name;self.temp=None;self.process=None
     def __enter__(self):

@@ -7,6 +7,18 @@ spec=importlib.util.spec_from_file_location('probe',pathlib.Path(__file__).with_
 p=importlib.util.module_from_spec(spec);spec.loader.exec_module(p)
 
 class ProbeTests(unittest.TestCase):
+ def test_worker_and_lab_networks_are_disjoint(self):
+  seen=set()
+  for prefix in p.SANDBOX_ADDRESS_BASES:
+   for slot in range(9):
+    box=p.Sandbox('/synthetic/core','abcdef',8192+slot,prefix=prefix)
+    self.assertEqual(box.name,prefix+'abcdef'+format(8192+slot,'x'))
+    self.assertNotIn(box.gateway,seen);self.assertNotIn(box.addr,seen)
+    seen.update([box.gateway,box.addr])
+  self.assertEqual(p.Sandbox('/synthetic/core','abcdef',8192,prefix='crw').gateway,'198.18.128.5')
+  with self.assertRaisesRegex(ValueError,'namespace_slot_capacity'):p.Sandbox('/synthetic/core','abcdef',8191,prefix='csp')
+  with self.assertRaisesRegex(ValueError,'namespace_address_capacity'):p.Sandbox('/synthetic/core','abcdef',-1)
+
  def test_site_health_requires_successful_tls_and_expected_http(self):
   box=SimpleNamespace(name='synthetic')
   for rc,status,expected in [(0,b'200',True),(0,b'206',True),(35,b'200',False),(0,b'403',False),(0,b'302',False),(63,b'200',False),(0,b'000',False)]:

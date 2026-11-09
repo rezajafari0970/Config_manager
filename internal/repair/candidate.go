@@ -33,17 +33,23 @@ type CandidateDriver interface {
 	Kind() string
 	Propose([]byte) Diagnostic
 }
-type Registry struct{ drivers map[string]CandidateDriver }
+type Registry struct {
+	drivers driver.Registry[CandidateDriver]
+}
 
 func NewRegistry() *Registry {
-	r := &Registry{drivers: map[string]CandidateDriver{}}
+	r := &Registry{}
 	r.Register(JSONDriver{})
 	for _, kind := range []string{"vless", "trojan", "ss", "hy2", "hysteria2", "socks", "socks5"} {
 		r.Register(URIUserinfoDriver{Protocol: kind})
 	}
 	return r
 }
-func (r *Registry) Register(d CandidateDriver) { r.drivers[d.Kind()] = d }
+func (r *Registry) Register(d CandidateDriver) {
+	if d != nil {
+		r.drivers.Put(d.Kind(), d)
+	}
+}
 func baseDiagnostic(raw []byte) Diagnostic {
 	return Diagnostic{Version: RulesVersion, Target: target.Pinned().ID, Status: "unchanged", OriginalSHA256: Digest(raw), Patches: []driver.Patch{}, Findings: []driver.Finding{}, CoreValidation: "not_run", AndroidImport: "not_run", Connection: "not_run"}
 }
@@ -61,7 +67,7 @@ func (r *Registry) Propose(raw []byte, complete bool, kind, quality string) (d D
 		d.Findings = append(d.Findings, driver.Finding{Code: "inspection_size_limit", Severity: "warning"})
 		return
 	}
-	if impl := r.drivers[kind]; impl != nil {
+	if impl := r.drivers.Get(kind); impl != nil {
 		result := impl.Propose(raw)
 		if result.Status != "unchanged" || quality != "invalid" {
 			return result

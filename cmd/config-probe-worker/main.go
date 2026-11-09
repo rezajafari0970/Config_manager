@@ -13,6 +13,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/probe"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 	"github.com/rezajafari0970/Config_manager/internal/smart"
+	"github.com/rezajafari0970/Config_manager/internal/worker"
 	"io"
 	"log"
 	"net"
@@ -54,6 +55,12 @@ func (c client) call(ctx context.Context, path string, in, out any) error {
 		return json.NewDecoder(io.LimitReader(res.Body, 4<<20)).Decode(out)
 	}
 	return nil
+}
+
+func (c client) Claim(ctx context.Context) (*probe.Job, error) {
+	var j *probe.Job
+	e := c.call(ctx, "/claim", nil, &j)
+	return j, e
 }
 
 type helperResult struct {
@@ -149,7 +156,7 @@ func run() error {
 	lockPath := flag.String("lock-file", "/run/config-repair-prober.lock", "supervisor instance lock")
 	mode := flag.String("mode", "conversion", "independent conversion or smart queue")
 	flag.Parse()
-	if *mode != "conversion" && *mode != "smart" {
+	if *mode != "conversion" && *mode != "smart" && *mode != "smart-splash" {
 		return errors.New("invalid worker mode")
 	}
 	if os.Geteuid() != 0 {
@@ -170,8 +177,8 @@ func run() error {
 	}}, Timeout: 30 * time.Second}, version: convert.Version, prepare: convert.Prepare}
 	slots := 8
 	interval := time.Second
-	if *mode == "smart" {
-		c.prefix = "/smart"
+	if *mode == "smart" || *mode == "smart-splash" {
+		c.prefix = "/" + *mode
 		c.version = smart.Version
 		c.prepare = smart.Prepare
 		slots = 2
@@ -182,8 +189,11 @@ func run() error {
 		defer cancel()
 		_ = c.call(sc, "/status", probe.WorkerStatus{Status: state, Code: code, Version: c.version, Active: active}, nil)
 	}
-	clean := exec.CommandContext(ctx, "/usr/bin/python3", *helper, "--cleanup")
-	if e = clean.Run(); e != nil {
+	cleanCtx, cleanCancel := context.WithTimeout(ctx, 30*time.Second)
+	clean := exec.CommandContext(cleanCtx, "/usr/bin/python3", *helper, "--cleanup")
+	e = clean.Run()
+	cleanCancel()
+	if e != nil {
 		return errors.New("probe_cleanup_failed")
 	}
 	status("starting", "sandbox_preflight", 0)
@@ -201,22 +211,11 @@ func run() error {
 		wg.Add(1)
 		go func(slot int) {
 			defer wg.Done()
-			tick := time.NewTicker(interval)
-			defer tick.Stop()
-			for {
-				select {
-				case <-ctx.Done():
-					return
-				case <-tick.C:
-					var j *probe.Job
-					if e := c.call(ctx, "/claim", nil, &j); e != nil || j == nil {
-						continue
-					}
-					active.Add(1)
-					execute(ctx, c, *helper, *core, slot, *j)
-					active.Add(-1)
-				}
-			}
+			worker.RunSlot(ctx, c, func(ctx context.Context, slot int, j probe.Job) {
+				active.Add(1)
+				defer active.Add(-1)
+				execute(ctx, c, *helper, *core, slot, j)
+			}, slot, interval, 2*time.Second)
 		}(slot)
 	}
 	tick := time.NewTicker(5 * time.Second)

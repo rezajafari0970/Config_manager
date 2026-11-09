@@ -81,7 +81,7 @@ func Open(path string, key []byte) (*Store, error) {
 	if err = db.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
 		return nil, err
 	}
-	if version > 10 {
+	if version > 13 {
 		return nil, errors.New("database schema newer than application")
 	}
 	if version == 0 {
@@ -142,6 +142,12 @@ PRAGMA user_version=1;`)
 		return nil, err
 	}
 	if err = s.migrateV10(); err != nil {
+		return nil, err
+	}
+	if err = s.migrateV12AfterV11(); err != nil {
+		return nil, err
+	}
+	if err = s.migrateV13(); err != nil {
 		return nil, err
 	}
 	// Reconcile transient children left by older connections with foreign keys

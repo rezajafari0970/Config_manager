@@ -1,7 +1,7 @@
 {
-  "phase": "P21 Smart RealPing compatibility and random subscription order",
-  "date": "2026-11-07",
-  "status": "implemented_and_deployed",
+  "phase": "P23 independent Smart Splash, including P22 pipeline recovery",
+  "date": "2026-11-09",
+  "status": "deployed_verified",
   "repository": "rezajafari0970/Config_manager",
   "branch": "go/v2rayng-2.3.6",
   "legacy_main": "unchanged",
@@ -37,14 +37,17 @@
     "smart_single": "Durable ready-only rounds, new rounds random, unfinished queue/cycle preserved; each GET returns order-only random rendition with independent IP first. HEAD/prefetch nonconsuming. Canonical profile identity and cache hash distinguished from returned body hash; no-ready503 retained.",
     "acquisition": "HTTP/extraction, current source ownership, core-valid output and connectivity are separate. Deletion-suppressed inputs are not ordinary duplicates or successful storage. Explicit source recovery clears only matching retained-response deletion controls, fences old jobs and requires fresh collection/validation.",
     "smart_dns_limit": "UseIPv4 retained as requested; pinned core can attempt system DNS on startup/internal resolver failure. Fixture firewall blocks/counts attempts, but exported JSON alone does not guarantee DNS leak prevention. No independent IP yields explicit smart_bootstrap_no_ip.",
-    "smart_ping": "Pinned Lib40 MeasureOutboundDelay removes routing/DNS/observers and tests default only. Fixed block-first failure; a failed default does not prove full leastLoad pool failure. No universal ping guarantee or APK/carrier claim."
+    "smart_ping": "Pinned Lib40 MeasureOutboundDelay removes routing/DNS/observers and tests default only. Fixed block-first failure; a failed default does not prove full leastLoad pool failure. No universal ping guarantee or APK/carrier claim.",
+    "smart_cache": "Schema13 validated cache and exact provenance are independent of pending replacements; capacity/source growth refreshes in background, while proof/ownership/settings/version/TTL revocation is immediate.",
+    "resource_recovery": "Atomic same-plaintext blob replacement, synchronized compiled registries, bounded validated-IP fallback and worker idle polling, scoped UI reads with fetch deadline, unlinked full-export spooling.",
+    "smart_splash": "Source flag; closed shared SmartPipeline drivers with separate settings/jobs/cache/provenance/counters/rotation/status/token domains and csp worker. Splash identity/candidate ownership takes precedence over ordinary duplicates. No cross-pool filling; ordinary/source outputs unchanged."
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
-    "python_regressions": 12,
+    "python_regressions": 13,
     "pinned_core_template_fixtures": 22,
     "template_fuzz_executions": 240370,
-    "browser": "passed synthetic Input/Output/Setting, mobile/desktop, restart, expiry and JSONL",
+    "browser": "passed synthetic Input/Output/Smart/Smart Splash/Setting, mobile/desktop, restart, toggles, TTL and separate full/single links",
     "isolated_worker": {
       "total": 21,
       "live_samples": 16,
@@ -54,7 +57,7 @@
       "jsonl_configs": 19,
       "sigkill_lease_recovery": "passed"
     },
-    "migration": "schema5 bank removed; 54 source definitions/revisions and source/conversion settings preserved",
+    "migration": "schema10 to12 pre-adoption and schema12 to13 after adoption, guarded rollback/re-upgrade on isolated copies; all table-row fingerprints preserved",
     "android": "not_run",
     "sqlite_reconnect": "passed DSN pragmas, recycled-connection cascades, startup orphan reconciliation; production foreign_key_check empty",
     "export_isolation": "passed missing blob isolation/requeue and stale snapshot protection",
@@ -1700,19 +1703,292 @@
       "normal_pipeline_diff": "none",
       "android_carriers": "not_run; phone offline",
       "initial_test_failure": "worker checksum assertion treated HTTP headers case-sensitively; corrected harness and reran worker successfully"
+    },
+    "p22": {
+      "status": "in_progress",
+      "db_snapshot_query_ms": {
+        "before_median": 101.361,
+        "after_median": 7.551,
+        "before_max": 207.303,
+        "after_max": 18.007,
+        "reads": 12,
+        "rows": 100,
+        "ready": 9
+      },
+      "gc_reference_ms": {
+        "before": 676.216,
+        "after": 460.319,
+        "count": 556
+      },
+      "raw_and_normal_template": "unchanged",
+      "android_carriers": "not_run; phone offline"
+    },
+    "splash_isolation": "passed focused race tests: both scopes, duplicate identity/candidate, slots, settings, cache, stale completion, proof/source/TTL, migration/reopen",
+    "p23_release_checks": "all six passed; see .local/p23-validation.json",
+    "p23_migration_rollback": "passed isolated schema10 to12, guarded legacy rollback through actual P21 binary and re-upgrade; original fingerprints preserved",
+    "p23": {
+      "checks": [
+        {
+          "name": "browser",
+          "exit_code": 0,
+          "at": 1794187694.3744707
+        },
+        {
+          "name": "traffic",
+          "exit_code": 0,
+          "at": 1794187722.3152559
+        },
+        {
+          "name": "conversion-worker",
+          "exit_code": 0,
+          "at": 1794187823.2679214
+        },
+        {
+          "name": "check",
+          "exit_code": 0,
+          "at": 1794188056.8124228
+        },
+        {
+          "name": "splash-worker",
+          "exit_code": 0,
+          "at": 1794188227.1062405
+        },
+        {
+          "name": "smart-worker",
+          "exit_code": 0,
+          "at": 1794188227.2186847
+        }
+      ],
+      "normal_worker": {
+        "scope": "normal",
+        "android": "not_run",
+        "whole_profile_connection": "not_run",
+        "passed": true,
+        "profiles": 55,
+        "members_per_profile": 50,
+        "sources": 3,
+        "max_active": 2,
+        "sigkill_recovered": true,
+        "unique_head_round": true,
+        "inline": true,
+        "core": "xray-26.7.28"
+      },
+      "splash_worker": {
+        "scope": "splash",
+        "android": "not_run",
+        "whole_profile_connection": "not_run",
+        "passed": true,
+        "profiles": 55,
+        "members_per_profile": 50,
+        "sources": 3,
+        "max_active": 2,
+        "sigkill_recovered": true,
+        "unique_head_round": true,
+        "inline": true,
+        "core": "xray-26.7.28"
+      },
+      "sandbox_isolation": {
+        "passed": true,
+        "simultaneous_normal_splash_routes": true,
+        "cleanup_preserved_other_scope": true
+      },
+      "audit": {
+        "passed": true,
+        "version": "xray-26.7.28.smart.v8",
+        "profiles": 4,
+        "selected_inputs": 200,
+        "copied_outbounds": 842,
+        "cached_bytes_exact": true,
+        "logs_off": true
+      },
+      "public": {
+        "at": "2026-11-09T01:43:09.582Z",
+        "passed": true,
+        "viewports": [
+          {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "scopes": [
+              {
+                "scope": "smart",
+                "count": 50,
+                "ready_at_read": 25,
+                "eligible_sources": 9,
+                "full_profiles": 29,
+                "single_status": 200,
+                "full_timings_ms": [
+                  681,
+                  1345,
+                  573
+                ],
+                "randomized_variants": 52,
+                "canonical_checked": true
+              },
+              {
+                "scope": "smart-splash",
+                "count": 10,
+                "ready_at_read": 15,
+                "eligible_sources": 1,
+                "full_profiles": 15,
+                "single_status": 200,
+                "full_timings_ms": [
+                  178,
+                  544,
+                  147
+                ],
+                "randomized_variants": 30,
+                "canonical_checked": true
+              }
+            ],
+            "errors": 0,
+            "downloads": 0
+          },
+          {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "scopes": [
+              {
+                "scope": "smart",
+                "count": 50,
+                "ready_at_read": 36,
+                "eligible_sources": 9,
+                "full_profiles": 37,
+                "single_status": 200,
+                "full_timings_ms": [
+                  1039
+                ],
+                "randomized_variants": 0,
+                "canonical_checked": true
+              },
+              {
+                "scope": "smart-splash",
+                "count": 10,
+                "ready_at_read": 15,
+                "eligible_sources": 1,
+                "full_profiles": 15,
+                "single_status": 200,
+                "full_timings_ms": [
+                  721
+                ],
+                "randomized_variants": 0,
+                "canonical_checked": true
+              }
+            ],
+            "errors": 0,
+            "downloads": 0
+          }
+        ],
+        "strategy": {
+          "type": "leastLoad",
+          "settings": {
+            "expected": 3,
+            "maxRTT": "2s",
+            "tolerance": 0.15
+          }
+        },
+        "single_requests": 8,
+        "scope": "public HTTPS UI at mobile/desktop, normal and adopted Splash canonical/full/single output, hash/envelope/randomization; dynamic user-owned data, no Android or carrier measurement"
+      },
+      "cloud_browser": {
+        "at": 1794186869.456219,
+        "passed": false,
+        "reason": "net::ERR_CERT_COMMON_NAME_INVALID",
+        "security_warning_bypassed": false,
+        "scope": "independent cloud browser; server-side HTTPS/browser validation recorded separately"
+      },
+      "benchmark": {
+        "before": {
+          "page_rows": 100,
+          "ready": 6,
+          "query_median_ms": 70.22,
+          "query_max_ms": 93.762,
+          "gc_reference_count": 527,
+          "gc_reference_total_ms": 325.098,
+          "schema": 10
+        },
+        "after": {
+          "page_rows": 100,
+          "ready": 6,
+          "query_median_ms": 6.885,
+          "query_max_ms": 9.499,
+          "gc_reference_count": 527,
+          "gc_reference_total_ms": 257.214,
+          "schema": 12
+        },
+        "preserved_state": true,
+        "additive_rollback_reupgrade_passed": true,
+        "scope": "same isolated production database snapshot; read queries only; no configuration executed"
+      },
+      "adopted_query_migration": {
+        "passed": true,
+        "schema12_before": {
+          "smart_inputs": {
+            "median_ms": 32.077,
+            "max_ms": 130.42,
+            "rows": 315
+          },
+          "smart_ready": {
+            "median_ms": 405.619,
+            "max_ms": 541.095,
+            "rows": 37
+          },
+          "smart_refresh_needed": {
+            "median_ms": 408.913,
+            "max_ms": 442.618,
+            "rows": 266
+          },
+          "splash_smart_ready": {
+            "median_ms": 0.232,
+            "max_ms": 0.662,
+            "rows": 12
+          }
+        },
+        "schema13_after": {
+          "smart_inputs": {
+            "median_ms": 1.767,
+            "max_ms": 3.241,
+            "rows": 315
+          },
+          "smart_ready": {
+            "median_ms": 19.02,
+            "max_ms": 21.441,
+            "rows": 37
+          },
+          "smart_refresh_needed": {
+            "median_ms": 24.33,
+            "max_ms": 26.405,
+            "rows": 266
+          },
+          "splash_smart_ready": {
+            "median_ms": 0.482,
+            "max_ms": 5.069,
+            "rows": 12
+          }
+        },
+        "same_results": true,
+        "all_table_rows_preserved": true,
+        "rollback_reupgrade_passed": true,
+        "scope": "same isolated adopted-production snapshot, seven SQL reads per view, fixed SQL clock; not carrier speed"
+      },
+      "android_carriers": "not_run"
     }
   },
   "runtime": {
-    "database_schema": 10,
+    "database_schema": 13,
     "services": [
       "config-repair.service",
       "config-repair-prober.service",
-      "config-repair-smart.service"
+      "config-repair-smart.service",
+      "config-repair-splash.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p21-584b681a0ed3b76b46f8-r1",
-    "panel_sha256": "584b681a0ed3b76b46f8fbe845c1cdf7123be3ff8f2dec1f61907d5235b477eb",
-    "worker_sha256": "3da71a77db09b3d2483159e758e0926c8230350861a620249ee423eb6a18c8e5",
+    "release": "/opt/config-repair/releases/p23-828164866449b4c7c9a5-r2",
+    "panel_sha256": "828164866449b4c7c9a54d3152372ca05c968cc4a759d6643018195b23516d6c",
+    "worker_sha256": "3b8960ded16dffda5a9ddc947968bff3128daf10232042af8fa25657630706cd",
     "template_version": "xray-26.7.28.template.v4",
     "retention_seconds": 7200,
     "fetch_concurrency": 16,
@@ -1721,16 +1997,24 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/p21-deployed.json",
-    "publication_receipt": ".local/p21-published.json",
-    "sandbox_driver_sha256": "7c72e55456eb7bac75f1284560f61ef3d220ef16dc7c3fd17d678f547d73a136",
+    "deployment_receipt": ".local/p23-deployed.json",
+    "publication_receipt": ".local/p23-published.json",
+    "sandbox_driver_sha256": "c241c605f1b4c04dec9ac96d43a2b1eed17333d2b42c596720aecb82b58c355b",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
     "smart_version": "xray-26.7.28.smart.v8",
-    "smart_count": 35,
+    "smart_count": 50,
     "smart_concurrency": 2,
-    "adapter_sha256": "875088ecbd2f5f1c3b5b847b2d760014ef5e67ae0ec9d07d8677032298231c12",
-    "smart_adapter_sha256": "315174552cdac75a509eb3fa45079dacda57e8e6d60eb966cb60f2ba5b3d0190"
+    "adapter_sha256": "d7bd647d629f3e140a7f4ea0e77600578d109b901fa6b63752f27c0d771b1065",
+    "smart_adapter_sha256": "315174552cdac75a509eb3fa45079dacda57e8e6d60eb966cb60f2ba5b3d0190",
+    "smart_revision": 11,
+    "source_count_at_inspection": 29,
+    "splash_adapter_sha256": "03a6869f905713358d31e6fb997b841610b499a56d93d7875609a712f4bfd935",
+    "splash_count": 10,
+    "splash_revision": 1,
+    "splash_enabled": true,
+    "splash_sources_at_inspection": 7,
+    "splash_concurrency": 2
   },
   "next": [
     "Obtain actual target APK/device tests on MCI, Irancell, Rightel and Wi-Fi, including Instagram media/CDNs and network handover",

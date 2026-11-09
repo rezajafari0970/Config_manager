@@ -188,11 +188,19 @@ func (s *Server) writeJSONLines(w http.ResponseWriter, r *http.Request, source s
 		failure(w, e)
 		return
 	}
-	// Buffer before writing headers, so a failed blob can never corrupt JSONL.
-	var out bytes.Buffer
+	// Prepare complete validated lines before headers with bounded working RAM.
+	out, e := newExportSpool()
+	if e != nil {
+		failure(w, e)
+		return
+	}
+	defer out.Close()
 	seen := map[string]bool{}
 	count := 0
 	for _, c := range rows {
+		if r.Context().Err() != nil {
+			return
+		}
 		if !c.Available || seen[c.CandidateHash] {
 			continue
 		}
@@ -202,9 +210,15 @@ func (s *Server) writeJSONLines(w http.ResponseWriter, r *http.Request, source s
 			continue
 		}
 		seen[c.CandidateHash] = true
-		out.Write(b)
-		out.WriteByte('\n')
+		if e = out.Line(b); e != nil {
+			failure(w, e)
+			return
+		}
 		count++
+	}
+	if e = out.Rewind(); e != nil {
+		failure(w, e)
+		return
 	}
 	// Keep JSONL bytes intact while letting browsers render the export as text.
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -212,7 +226,7 @@ func (s *Server) writeJSONLines(w http.ResponseWriter, r *http.Request, source s
 	w.Header().Set("X-Config-Count", strconv.Itoa(count))
 	w.Header().Set("X-Android-Import", "not-run")
 	w.Header().Set("X-Verification-Scope", "pinned-core-template; connection-is-separate")
-	w.Write(out.Bytes())
+	_, _ = out.WriteTo(w)
 }
 
 // This handler is served ONLY on a protected Unix socket, never public TCP.

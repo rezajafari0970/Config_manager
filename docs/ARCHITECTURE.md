@@ -1,21 +1,72 @@
-# Architecture — P7
+# Architecture — P23 (includes P22 recovery)
 
-The Go panel and collector own source scheduling, immutable encrypted input, SQLite migrations and public management. A separate systemd supervisor owns only isolated Xray execution. Compiled format/protocol/template/feature drivers provide modular boundaries; sources never execute arbitrary plugin code.
+The independent Go service owns collection, encrypted content and SQLite publication. Three separate supervisors own ordinary validation, ordinary Smart validation and Splash Smart validation. Protocol preparation and JSON composition are pure transformations; network evidence comes only from the pinned sandbox. No service depends on ChatGPT, the remote-management connector, or a browser session to keep running.
 
-## Source and conversion lifecycle
+## Active module and extension boundaries
 
-Source revision/token checks guard generation replacement. Memberships associate canonical identity with each source's original hash. Exact encrypted originals are never rewritten. Nonempty fetches replace one source; empty/error retains membership until its original fixed TTL. Identical repeated fetches/304 do not extend TTL. Controls, deletion and expiry invalidate publication atomically.
+| Responsibility | Implementation / contract | Isolation |
+| --- | --- | --- |
+| Scheduling, source revisions and generations | collect.Engine / collect.Repository | Per-source context, lease, timeout, cancellation and retry |
+| Acquisition transport | collect.FetchDriver, HTTPDriver | Per-job HTTP transport; public-address gate before literal-IP dialing; at most two dials with250ms stagger and3s attempt deadlines |
+| Exact extraction | collect.FormatDriver / Registry | Compiled plugins; new IDs take priority; replacement of an existing ID preserves its position; immutable decoded payloads |
+| Content diagnostics | collect.InspectionDriver / InspectionRegistry | Annotation only; panic becomes unknown, never connectivity proof |
+| Structural candidates | repair.CandidateDriver / Registry | Offline proposals; immutable originals; later core/connection gates remain mandatory |
+| Shared plugin catalog | driver.Registry[T] | Synchronized registration; copied ordered snapshots; no registry lock during callbacks |
+| Protocol adapters | probe preparation/adapters | Preserve endpoints, credentials, TLS and dependencies; unsupported protocols fail explicitly |
+| Ordinary JSON envelope | convert | Template v4; source-specific proof and ordinary export policy |
+| Smart selection/composition | smart | Version v8; dynamic namespaces, both leastLoad pools, safe default and unchanged requested envelope |
+| Published Smart cache | panel/smart_cache.go | Schema13; validated bytes and exact member provenance independent of in-progress jobs |
+| HTTP features | panel.PanelModule + feature route files | Compiled route registration, Host/Origin/CSRF gates; worker API never on public TCP |
+| Queue polling | worker.Queue / worker.RunSlot | Transport-independent, per-slot bounded idle/error backoff; context cancellation |
+| Execution | config-probe-worker + trusted Python sandbox adapters | Protected Unix socket, pinned core, netns/cgroup/bwrap; independent resource prefixes |
+| Content storage | blob.Vault | AEAD chunks, content digest, atomic replacement and publication pins |
+| Subscription delivery | panel/export_spool.go | Exact JSONL/count/hash; bounded working RAM, immediately unlinked private temporary file |
+| Browser features | web/app.js + input/output/smart/setting modules | Scoped state reads;20s fetch deadline and retry on later refresh |
 
-Schema6 conversion jobs/results reference current eligible membership. They are a transient cache and durable work queue, not a sample bank. Completed results must match the active lease, exact original, deterministic template candidate, pinned rule/core version and stage evidence. There is no history/model/learned-priority store. One source disappearing cannot delete another source's ownership.
+Compiled extension registration is supported for format, inspection, repair and panel modules. This is not arbitrary runtime plugin upload or a promise that any new protocol works without an adapter and acceptance tests. Legacy generic interfaces in driver.go describe evidence types; active transport/preparation contracts are the concrete contracts listed above.
 
-## Template and export
+## Splash publication repository
 
-The common @shenvpn envelope owns log/DNS/SOCKS/routing/stats/policy. A protocol driver retains real endpoint/auth/security/transport; chain dependencies are renamed consistently. Invalid or ambiguous mapping is diagnosed. Missing VLESS encryption and scoped endpoint DNS bootstrap are deterministic template repairs. Semantic TLS alternatives stay connection-gated.
+Each source has an optional Splash classification (existing sources default to ordinary). SmartPipeline uses one builder, selector, composer and HTTP module, bound to one of two closed repository drivers. The fixed SQL-identifier vocabulary maps only the Splash instance to splash_smart_* tables/views. No client-controlled SQL or arbitrary runtime plugin upload is accepted.
 
-Export is JSONL: one compact exact core-tested object per line. Core-valid ordinary configs are eligible while their source remains eligible. Connectivity is a separate, time-limited status. Semantic hypotheses additionally require fresh two-destination HTTPS success. Duplicate identities and JSON hashes are excluded. JSONL is intentionally not represented as the pinned Android app's native JSON-array subscription format.
+Ordinary and Splash have independent settings/revisions, pending heads and member provenance, validated cache, source/member usage counters, durable single rotation, worker status, private Unix routes, public token domains and per-scope locks. Services use disjoint csm and csp sandbox resources (cst/cpt in integration tests). Collection, immutable content-addressed blobs, conversion evidence, SQLite and the host remain shared resources. This is logical publication isolation, not separate hardware.
 
-## Execution and failure isolation
+Admission first filters by current source classification and exact source-owned proof. If a canonical identity or candidate is owned by a Splash source, ordinary Smart excludes it even when duplicated by an ordinary source. Splash never fills capacity from ordinary sources. Ordinary template-v4 exports remain unchanged. Changing a source flag immediately revokes incompatible ready-cache membership and completion/renewal eligibility. Revision fencing cancels an obsolete acquisition lease without deleting retained bytes or extending TTL.
 
-Private Unix worker API is protected by directory/socket permissions. Eight maximum sandbox slots enforce configured concurrency. Leases renew during bounded attempts; death/restart recovers uncompleted jobs. The helper runs only checksum-pinned Xray in netns/cgroup/bwrap with no host secrets, non-root UID, read-only filesystem and approved public endpoint egress. Raw errors are reduced to bounded codes. Exact core validation and modified isolated-runtime network testing have separate hashes. Android remains not_run.
+A fingerprint of the eligible pool lets a previously blocked composition retry immediately when membership changes; an unchanged pool retains backoff. The fingerprint excludes expiry timestamps to avoid retry storms on mere proof renewal.
 
-SQLite, disk, host and network are shared physical infrastructure; source independence does not imply immunity to host failure. systemd handles reboot/restart, but a powered-off server cannot process work. Upgrade requires a stopped-service matching data/key/blob/binary backup, atomic release symlink, health checks and separate source/deployment receipts.
+## Source and publication lifecycle
+
+Original response/config plaintext remains exact. Ciphertext may change when identical bytes are acquired again; a completed/fsynced atomic replacement repairs corruption at the same content address. Existing open readers retain their inode. Pins and database references protect publication from collection. Vault I/O remains outside database transactions, and the sole SQLite connection must never be recursively acquired.
+
+Accepted nonempty generations replace only that source's memberships. Empty/error results retain prior data until fixed TTL.304 and repeated acquisition do not renew TTL. Source disable/delete/edit, config controls and expiry invalidate current ownership; stale workers cannot resurrect it. Current source counts override historical acquisition receipts.
+
+Ordinary outputs remain exact template-v4 candidates with pinned-core acceptance. Semantic repair hypotheses additionally need fresh HTTPS evidence. Smart admission additionally requires source-owned fresh https_multi_site_verified proof. No profile may borrow another source's proof, retain a revoked member, or extend artifact retention.
+
+## Safe replacement instead of cache outages
+
+smart_heads/smart_members hold queued or running work. smart_cache/smart_cache_members hold only completed, exact core-validated publication. CompleteSmart atomically replaces both cache bytes and provenance after checking the active lease, revision, hash, all current member proofs and deadlines.
+
+smart_ready checks cache safety at every read independently of job status. More usable sources/capacity schedule an improvement through smart_refresh_needed; a still-valid cache remains available during that work and after a failed replacement. Lost ownership, failed/expired proof, changed settings/template, or cache TTL still hides it immediately. Missing/corrupt bytes revoke only the matching cache generation and queue rebuilding; a canceled or merely stale read does not cancel a healthy concurrent builder.
+
+Both durable rotations retain their existing scope/cycle. Smart full/single delivery keeps per-request random order and independent-IP first; canonical individual bytes remain exact. Schema13 does not reset source/settings/rotation/ordinary data or alter Smart v8 JSON.
+
+## Bounded recovery and resource use
+
+The collector is deadline-bound and supervised. Workers use per-slot leases, heartbeats, startup cleanup/self-test and independent idle/error polling backoff up to2s. A killed worker recovers through lease expiry; active slots remain bounded. systemd supervises whole-process failure. These mechanisms recover transient faults; they cannot invent missing credentials or make unreachable upstreams reachable.
+
+Queries use exact keyed ownership joins and indexed content references. UI polling requests only the current feature's payload; the old unscoped API remains compatible. Large full exports spool validated lines instead of keeping the full subscription in memory. Spool files are0600 and unlinked before writing, so normal close, cancellation and process death leave no named plaintext export. Storage failures occur before successful response headers.
+
+SQLite, disk, CPU and networking remain shared host resources. Per-source isolation does not imply immunity to host or operator failure. A phone/operator receipt is required for Android/TUN, throughput, media playback, jitter or loss claims.
+
+## Upgrade and rollback
+
+Take a matching stopped-service DB/blob/key/release backup. Verify migration on an isolated database copy, including source/settings/rotation/ordinary-state fingerprints. Schema12 adds Splash tables and a source flag alongside the P22 validated cache. The tested pre-feature rollback drops only additive transient structures/columns, resets user_version to10, and starts the prior release to recreate its views. It preserves current source/settings/rotation data. Legacy rollback is refused once any source is Splash or its queue is populated: the older builder cannot enforce classification. Use a feature-aware release after Splash adoption; never silently expose Splash inputs to the old unpartitioned builder. A matching full backup remains mandatory.
+
+Publish only tested source, read back its exact Git tree, and verify installed and running binary hashes independently. See the P22 checkpoint and private receipts for this release's measurements and limitations. A standalone checksum-pinned installer/update/rollback product remains a separate release task.
+
+
+Final sandbox correction: the new csp/cpt prefixes are explicitly registered. Existing worker/test prefixes previously shared their IPv4 /30 addresses despite different resource names. The sandbox now reserves disjoint address blocks for all active workers and trusted fixture prefixes, retaining crw’s original block and exact cleanup names. Address disjointness and bounds have an unprivileged regression; all real worker/traffic tests must run against this final adapter.
+
+
+Schema13 only replaces normal smart_inputs with equivalent non-null Splash identity/candidate reservation sets evaluated by the current query. The original correlated OR join caused repeated scans under an adopted Splash source and held the shared SQLite connection long enough for a full Splash export to exceed30s. This is a query-plan correction, not a relaxed admission/cache gate. The schema12 predecessor supports Splash adoption; a guarded13→12 rollback restores its exact view without changing table rows. The older10 downgrade remains forbidden after adoption.

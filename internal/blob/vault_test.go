@@ -78,6 +78,20 @@ func TestTamperingAndTruncationFail(t *testing.T) {
 			if e == nil {
 				t.Fatal("damaged blob accepted")
 			}
+			// Re-acquisition must heal the file at the same content address.
+			healed, e := v.Put(context.Background(), bytes.NewReader([]byte("synthetic-sensitive-config")))
+			if e != nil || healed != ref {
+				t.Fatal("repair changed identity", e)
+			}
+			r, e = v.Open(ref.Hash)
+			if e != nil {
+				t.Fatal(e)
+			}
+			plain, e := io.ReadAll(r)
+			r.Close()
+			if e != nil || string(plain) != "synthetic-sensitive-config" {
+				t.Fatal("re-acquisition retained corrupt ciphertext", e)
+			}
 		})
 	}
 }

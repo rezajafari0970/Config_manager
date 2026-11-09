@@ -24,10 +24,37 @@ func (m inputModule) Register(mux *http.ServeMux) {
 	})
 	mux.HandleFunc("POST /api/sources/import", s.bulk)
 	mux.HandleFunc("POST /api/sources/{id}/edit", s.edit)
+	mux.HandleFunc("POST /api/sources/{id}/splash", func(w http.ResponseWriter, r *http.Request) {
+		var v struct {
+			Revision int64 `json:"revision"`
+			Splash   *bool `json:"splash"`
+		}
+		if decode(r, &v) != nil || v.Splash == nil {
+			failure(w, ErrInvalid)
+			return
+		}
+		if e := s.store.SetSplash(r.Context(), r.PathValue("id"), v.Revision, *v.Splash); e != nil {
+			failure(w, e)
+			return
+		}
+		if s.engine != nil {
+			s.engine.Wake(r.PathValue("id"), true)
+		}
+		respond(w, 200, true)
+	})
 	mux.HandleFunc("POST /api/sources/{id}/{action}", s.action)
 	mux.HandleFunc("GET /input/raw/{id}", s.response)
 }
 func (s *Server) bulk(w http.ResponseWriter, r *http.Request) {
+	splash := false
+	if raw := r.URL.Query().Get("splash"); raw != "" {
+		var err error
+		splash, err = strconv.ParseBool(raw)
+		if err != nil {
+			failure(w, ErrInvalid)
+			return
+		}
+	}
 	min, max, e := parseInterval(r.URL.Query().Get("interval"))
 	unit := r.URL.Query().Get("unit")
 	timeout, parseError := strconv.ParseInt(normalizeDigits(r.URL.Query().Get("timeout_seconds")), 10, 64)
@@ -55,7 +82,7 @@ func (s *Server) bulk(w http.ResponseWriter, r *http.Request) {
 		lineNo++
 		raw := strings.TrimSpace(strings.TrimPrefix(line, "\ufeff"))
 		if raw != "" {
-			input := SourceInput{URL: raw, Min: min, Max: max, Unit: unit, Enabled: true, TimeoutSeconds: timeout}
+			input := SourceInput{Splash: &splash, URL: raw, Min: min, Max: max, Unit: unit, Enabled: true, TimeoutSeconds: timeout}
 			_, e = s.store.Save(r.Context(), "", 0, input)
 			switch {
 			case e == nil:

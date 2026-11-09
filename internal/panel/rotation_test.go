@@ -47,6 +47,7 @@ func TestRotationCyclesRestartAndSchema6Upgrade(t *testing.T) {
 	path := filepath.Join(filepath.Dir(s.vault.Directory()), "panel.db")
 	key := append([]byte(nil), s.key...)
 	// Simulate an existing schema6 installation, preserving all active data.
+	dropSplashForMigration(t, s)
 	if _, e := s.db.Exec("DROP TABLE export_rotation_queue;DROP TABLE export_rotation_state;PRAGMA user_version=6;"); e != nil {
 		t.Fatal(e)
 	}
@@ -56,7 +57,7 @@ func TestRotationCyclesRestartAndSchema6Upgrade(t *testing.T) {
 		t.Fatal(e)
 	}
 	var version int
-	if e = s.db.QueryRow("PRAGMA user_version").Scan(&version); e != nil || version != 10 {
+	if e = s.db.QueryRow("PRAGMA user_version").Scan(&version); e != nil || version != 13 {
 		t.Fatal("schema8", version, e)
 	}
 	first := nextRotation(t, s)

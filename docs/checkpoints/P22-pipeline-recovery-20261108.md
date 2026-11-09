@@ -1,0 +1,31 @@
+# P22 — pipeline audit, recovery and bounded resource use
+
+Parent:2de71d0d76db7f2dea349e454c39aa0637e73707. Branch go/v2rayng-2.3.6. The user requests a project-wide audit and fixes for independence, modular/driver/plugin boundaries, speed and self-recovery. Target versions, actual connection information, immutable raw bytes, ordinary template v4 and Smart v8 envelope remain unchanged. Additive database schema11 separates published Smart cache from pending replacements.
+
+## Reproduced faults and corrections
+
+1. Adding a usable source immediately revoked otherwise-safe Smart cache through capacity/coverage gates. Claiming a replacement then cleared the old hash and members before validation. Live pre-change samples included zero ready profiles despite hundreds of eligible inputs. Published cache now has its own exact provenance and lifetime; capacity/coverage growth requests a background improvement. Invalid/expired member proof, source revocation, settings/template change or TTL still blocks immediately. Failed replacement cannot erase valid cache. Rebuild requests distinguish corrupt blobs from canceled/stale reads.
+2. Vault.Put discarded a newly written file when the same content-addressed filename already existed. Both tampered and truncated blobs stayed corrupt forever on reacquisition. Regression tests failed before the change with AEAD/unexpected-EOF errors. Publication now atomically replaces the old ciphertext using completed/fsynced identical plaintext; digest, bytes and pins are preserved.
+3. HTTP acquisition tried resolved IPs serially with the whole job deadline. A blackhole could prevent any fallback. Resolve and validate all addresses first; literal-IP attempts now alternate families, stagger250ms, cap concurrency at2, bound each attempt to3s, cancel/close losers, and preserve existing redirect/SSRF/TLS rules.
+4. Smart queries repeatedly materialized/ranked the same exact membership, including a redundant window over a unique(source,id) key. Exact keyed ownership joins, a materialized page-ready snapshot and content-reference indexes reduce work. Canonical individual Smart lookup now queries its ID directly. Ordinary claims avoid inventory synchronization when disabled/full.
+5. Idle workers polled expensive queues continuously. Scheduling is now a small independent worker.Queue/RunSlot module with bounded idle/error backoff and cancellation. Startup cleanup has a deadline; execution and proof remain in the existing sandbox.
+6. Format/inspection/repair registration could race readers. A shared generic registry synchronizes mutation and gives callbacks stable snapshots without holding its lock. Reentrant registration and race tests cover it. Panel module registration also snapshots under a lock; current handlers retain their built route table.
+7. Every page fetched unrelated source/output/repair payloads each second. Optional input/summary state views preserve the default API while reducing UI work. Browser fetches now time out after20s, release busy state, and can recover on the next refresh; tests cover timeout/recovery, CSRF, error propagation and immutable caller options.
+8. Full subscriptions retained every large profile in a bytes.Buffer. Shared export spooling keeps only per-profile working memory, preserves JSONL/count/Smart checksum and inline delivery, and immediately unlinks its0600 temporary file. No named plaintext export survives completion or process death.
+
+## Measurements and tests
+
+Private .local/p22-before-regressions.log records the failing corruption and source-growth regressions. Initial focused race tests passed after fixes. The complete check pipeline, controlled TCP/UDP/UDP443/DoH/cold-failure/Lib40 fixtures, both isolated worker SIGKILL recovery tests and browser/restart checks are required for release; final receipts are .local/p22-validation.json and .local/p22-check-final.log/.exit. Earlier passing checks do not substitute for the final source/build.
+
+The same isolated database snapshot yielded100 page rows and9ready profiles before/after. Smart page-query median:101.361ms→7.551ms, maximum207.303ms→18.007ms across12reads.556GC reference lookups:676.216ms→460.319ms. Source/settings/rotations/ownership/ordinary results were byte-fingerprint equal after migration. These are database processing measurements under the current host load, not Internet or operator speed. See .local/p22-dbbench.json; the separate rollback/re-upgrade receipt preserves the same invariants.
+
+New regressions cover safe cache during growth/running/failed replacement, immediate proof revocation, schema10upgrade/reopen without rotation reset, corrupt-cache rebuild and canceled-read isolation, exact large JSONL/checksum/unlinked spool, DNS blackholes/private-answer rejection/concurrency bounds, concurrent/reentrant plugin registration, idle-worker backoff/cancellation, and scoped API compatibility. Existing ownership, TTL, source deletion, stale lease, canonical bytes and randomized delivery tests remain mandatory.
+
+## Operational boundaries
+
+No claim of zero bugs, automatic repair of arbitrary credentials, universal protocol support, always-fastest leastLoad,2s network selection, no packet loss or guaranteed DNS leak prevention. P20 UseIPv4/system-resolver limitation and P21 group-ping semantics remain. The phone was offline at inspection; current work provides server/lab/browser evidence only. Sources may change while the service runs; deployment preserves live definitions and settings, not a historical count.
+
+Schema11 rollback is additive: stop the three services; drop only the new cache tables/views, set schema10, select the prior release and let its startup recreate legacy views. Keep current user data. Do not restore an old full DB over later edits. A matching stopped-service backup is still mandatory before migration. Exact deployment/publication receipts are recorded below after verification.
+
+
+P22 was not independently released. Its final release is combined with P23 Splash/schema12. The second isolated P22 snapshot measured145.729ms→39.928ms median, while GC lookups were405.420ms→515.156ms (slower under that load). These differing observations are not a universal speed guarantee. Use final P23 receipts for the deployed source and its new scoped-query measurement.

@@ -30,12 +30,13 @@ func TestSmartSingleReadyRoundSkipsRebuildAndNeverReturnsEmptySuccess(t *testing
 	if e != nil || first == nil {
 		t.Fatal(e)
 	}
-	// Simulate a cache rebuilt in the background while a durable round is open.
+	// Simulate a revoked cache while a durable round is open. Safe background
+	// refresh is covered separately and must remain available.
 	var queued string
 	if e = s.db.QueryRow("SELECT head FROM smart_rotation_queue ORDER BY position LIMIT 1").Scan(&queued); e != nil {
 		t.Fatal(e)
 	}
-	if _, e = s.db.Exec("UPDATE smart_heads SET state='queued' WHERE id=?", queued); e != nil {
+	if _, e = s.db.Exec("DELETE FROM smart_cache WHERE id=?", queued); e != nil {
 		t.Fatal(e)
 	}
 	seen := map[string]bool{first.ID: true}

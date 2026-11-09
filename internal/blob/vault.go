@@ -117,7 +117,10 @@ func (v *Vault) Put(ctx context.Context, r io.Reader) (Ref, error) {
 	ref := Ref{Hash: hex.EncodeToString(hash.Sum(nil)), Size: size}
 	v.mu.Lock()
 	defer v.mu.Unlock()
-	if err = os.Link(name, v.path(ref.Hash)); err != nil && !os.IsExist(err) {
+	// The completed, fsynced ciphertext also repairs a corrupt existing file.
+	// Rename is atomic; readers holding the previous inode remain unaffected.
+	// Content identity and plaintext are unchanged, even when ciphertext rotates.
+	if err = os.Rename(name, v.path(ref.Hash)); err != nil {
 		return Ref{}, err
 	}
 	v.pins[ref.Hash]++

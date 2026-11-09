@@ -16,6 +16,7 @@ var ErrConflict = errors.New("source changed or duplicate")
 var ErrNotFound = errors.New("not found")
 
 type SourceInput struct {
+	Splash         *bool   `json:"splash,omitempty"`
 	Name           string  `json:"name"`
 	URL            string  `json:"url"`
 	Min            float64 `json:"min"`
@@ -25,6 +26,7 @@ type SourceInput struct {
 	TimeoutSeconds int64   `json:"timeout_seconds"`
 }
 type Source struct {
+	Splash          bool   `json:"splash"`
 	ExportURL       string `json:"export_url"`
 	SingleExportURL string `json:"single_export_url"`
 	SourceInput

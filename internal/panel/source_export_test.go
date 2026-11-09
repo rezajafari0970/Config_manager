@@ -339,6 +339,7 @@ func TestSchema7MigrationPreservesGlobalQueue(t *testing.T) {
 		t.Fatal(e)
 	}
 	// Recreate the old schema7 rotation layout with an already-started round.
+	dropSplashForMigration(t, s)
 	_, e = s.db.Exec(`ALTER TABLE export_rotation_queue RENAME TO scoped_queue;ALTER TABLE export_rotation_state RENAME TO scoped_state;
  CREATE TABLE export_rotation_state(id INTEGER PRIMARY KEY,cycle INTEGER NOT NULL);INSERT INTO export_rotation_state SELECT 1,cycle FROM scoped_state WHERE scope='';
  CREATE TABLE export_rotation_queue(position INTEGER PRIMARY KEY,candidate_hash TEXT NOT NULL UNIQUE);INSERT INTO export_rotation_queue SELECT position,candidate_hash FROM scoped_queue WHERE scope='';
@@ -360,7 +361,7 @@ func TestSchema7MigrationPreservesGlobalQueue(t *testing.T) {
 	}
 	var version int
 	s.db.QueryRow("PRAGMA user_version").Scan(&version)
-	if version != 10 {
+	if version != 13 {
 		t.Fatal("schema version", version)
 	}
 }

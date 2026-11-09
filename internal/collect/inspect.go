@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/rezajafari0970/Config_manager/internal/driver"
 	"io"
 	"net/url"
 	"os"
@@ -188,7 +189,9 @@ func ContentState(path string, valid, invalid, unknown int) string {
 	return "unrecognized"
 }
 
-type InspectionRegistry struct{ drivers map[string]InspectionDriver }
+type InspectionRegistry struct {
+	drivers driver.Registry[InspectionDriver]
+}
 type basicInspector struct{ kind string }
 
 func (d basicInspector) Kind() string { return d.kind }
@@ -196,13 +199,17 @@ func (d basicInspector) Inspect(raw []byte, complete bool) string {
 	return InspectConfig(raw, complete, d.kind)
 }
 func NewInspectionRegistry() *InspectionRegistry {
-	r := &InspectionRegistry{drivers: map[string]InspectionDriver{}}
+	r := &InspectionRegistry{}
 	for _, kind := range []string{"json", "vless", "vmess", "trojan", "ss", "hysteria", "hysteria2", "hy2", "wireguard", "wg", "socks", "socks5"} {
 		r.Register(basicInspector{kind})
 	}
 	return r
 }
-func (r *InspectionRegistry) Register(driver InspectionDriver) { r.drivers[driver.Kind()] = driver }
+func (r *InspectionRegistry) Register(d InspectionDriver) {
+	if d != nil {
+		r.drivers.Put(d.Kind(), d)
+	}
+}
 func (r *InspectionRegistry) Inspect(raw []byte, complete bool, kind string) (quality string) {
 	quality = "unknown"
 	defer func() {
@@ -210,7 +217,7 @@ func (r *InspectionRegistry) Inspect(raw []byte, complete bool, kind string) (qu
 			quality = "unknown"
 		}
 	}()
-	if d := r.drivers[kind]; d != nil {
+	if d := r.drivers.Get(kind); d != nil {
 		quality = d.Inspect(raw, complete)
 	}
 	if quality != "valid" && quality != "invalid" {

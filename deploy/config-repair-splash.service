@@ -1,0 +1,23 @@
+[Unit]
+Description=Independent Splash smart JSON profile builder and sandbox validator
+After=network-online.target config-repair.service
+Wants=network-online.target config-repair.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/config-repair/current
+ExecStart=/opt/config-repair/current/config-probe-worker -mode smart-splash -helper /opt/config-repair/current/scripts/splash-probe-one.py -lock-file /run/config-repair-splash.lock
+Restart=always
+RestartSec=10
+TimeoutStopSec=40
+KillMode=control-group
+UMask=0077
+Environment=GOMEMLIMIT=256MiB
+MemoryMax=1G
+TasksMax=1024
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target

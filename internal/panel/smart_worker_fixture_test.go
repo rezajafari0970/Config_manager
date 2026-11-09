@@ -32,12 +32,21 @@ func TestSmartWorkerFixture(t *testing.T) {
 	if e != nil || json.Unmarshal(data, &samples) != nil {
 		t.Fatal("samples unavailable")
 	}
-	for name, raws := range samples {
-		newExportSource(t, s, name, raws...)
+	pipeline := s.Smart()
+	splash := os.Getenv("CONFIG_SMART_FIXTURE_SCOPE") == "splash"
+	if splash {
+		pipeline = s.SplashSmart()
+		newExportSource(t, s, "NormalExcluded", sourceURI(200))
 	}
-	v, _ := s.SmartSettings(ctx)
+	for name, raws := range samples {
+		id, _ := newExportSource(t, s, name, raws...)
+		if splash {
+			markSplash(t, s, id, true)
+		}
+	}
+	v, _ := pipeline.SmartSettings(ctx)
 	v.Count = 50
-	if e = s.SaveSmartSettings(ctx, v); e != nil {
+	if e = pipeline.SaveSmartSettings(ctx, v); e != nil {
 		t.Fatal(e)
 	}
 	listener, e := net.Listen("unix", filepath.Join(dir, "data", "probe.sock"))
@@ -47,9 +56,25 @@ func TestSmartWorkerFixture(t *testing.T) {
 	os.Chmod(filepath.Join(dir, "data", "probe.sock"), 0600)
 	private := &http.Server{Handler: s.PrivateProbeHandler(), ReadHeaderTimeout: 5 * time.Second}
 	go private.Serve(listener)
-	app, _ := NewServer(s, "http://127.0.0.1:18195")
-	public := &http.Server{Addr: "127.0.0.1:18195", Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second}
-	go public.ListenAndServe()
+	publicListener, e := net.Listen("tcp", "127.0.0.1:0")
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer publicListener.Close()
+	origin := "http://" + publicListener.Addr().String()
+	app, e := NewServer(s, origin)
+	if e != nil {
+		t.Fatal(e)
+	}
+	public := &http.Server{Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second}
+	go public.Serve(publicListener)
+	ready, e := json.Marshal(map[string]string{"origin": origin, "scope": os.Getenv("CONFIG_SMART_FIXTURE_SCOPE")})
+	if e != nil {
+		t.Fatal(e)
+	}
+	if e = os.WriteFile(filepath.Join(dir, "public.json"), ready, 0600); e != nil {
+		t.Fatal(e)
+	}
 	<-ctx.Done()
 	shutdown, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

@@ -32,6 +32,9 @@ func (browserDriver) Fetch(ctx context.Context, job collect.Job) (collect.Respon
 		return collect.Response{}, ctx.Err()
 	}
 	body := browserURI
+	if strings.Contains(job.URL, "Splash") {
+		body = sourceURI(71) + "\n" + sourceURI(72) + "\n"
+	}
 	if strings.Contains(job.URL, "Verde") {
 		body = browserURI + browserURI + browserJSON
 	}
@@ -98,9 +101,17 @@ func TestBrowserFixtureServer(t *testing.T) {
 			case <-ctx.Done():
 				return
 			case <-tick.C:
-				j, e := store.ClaimSmart(ctx)
-				if e == nil && j != nil {
-					_ = store.CompleteSmart(ctx, smartResult(j))
+				for _, p := range []*SmartPipeline{store.Smart(), store.SplashSmart()} {
+					j, e := p.ClaimSmart(ctx)
+					if e == nil && j != nil {
+						r := smartResult(j)
+						if j.Issue != "" {
+							r.Core = "blocked"
+							r.Code = j.Issue
+							r.Candidate = nil
+						}
+						_ = p.CompleteSmart(ctx, r)
+					}
 				}
 			}
 		}

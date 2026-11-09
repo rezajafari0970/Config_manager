@@ -66,26 +66,7 @@ func (d HTTPDriver) Fetch(ctx context.Context, job Job) (Response, error) {
 		if err != nil {
 			return nil, err
 		}
-		if len(ips) == 0 {
-			return nil, errors.New("dns_empty")
-		}
-		for _, ip := range ips {
-			if !PublicIP(ip) {
-				return nil, ErrBlocked
-			}
-		}
-		var last error
-		for _, ip := range ips {
-			c, e := dial(ctx, network, net.JoinHostPort(ip.Unmap().String(), port))
-			if e == nil {
-				return c, nil
-			}
-			last = e
-			if ctx.Err() != nil {
-				break
-			}
-		}
-		return nil, last
+		return dialPublic(ctx, network, port, ips, dial, 250*time.Millisecond, 3*time.Second)
 	}}
 	client := &http.Client{Transport: transport, CheckRedirect: func(req *http.Request, via []*http.Request) error {
 		if len(via) >= 20 {

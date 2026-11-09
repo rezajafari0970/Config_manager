@@ -12,3 +12,5 @@ go build -trimpath -buildvcs=false -o bin/config-probe-worker ./cmd/config-probe
 python3 scripts/live-probe-test.py
 
 node scripts/source-status-test.mjs
+
+node scripts/client-api-test.mjs

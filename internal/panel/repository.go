@@ -61,13 +61,13 @@ PRAGMA user_version=2;`)
 type scanner interface{ Scan(...any) error }
 
 const baseColumns = "id,name,url,display_url,min,max,unit,enabled,revision,created,updated,next_run"
-const sourceColumns = baseColumns + ",state,error_code,last_fetch,last_success,http_status,duration_ms,fetch_count,duplicates,timeout_seconds,content_state,valid_count,invalid_count,unknown_count,received_count,response_bytes,error_streak,stored_count,suppressed_count"
+const sourceColumns = baseColumns + ",state,error_code,last_fetch,last_success,http_status,duration_ms,fetch_count,duplicates,timeout_seconds,content_state,valid_count,invalid_count,unknown_count,received_count,response_bytes,error_streak,stored_count,suppressed_count,splash"
 
 func scanSource(row scanner) (Source, []byte, error) {
 	var s Source
 	var sealed []byte
 	var created, updated, next int64
-	e := row.Scan(&s.ID, &s.Name, &sealed, &s.DisplayURL, &s.Min, &s.Max, &s.Unit, &s.Enabled, &s.Revision, &created, &updated, &next, &s.State, &s.ErrorCode, &s.LastFetch, &s.LastSuccess, &s.HTTPStatus, &s.DurationMS, &s.FetchCount, &s.DuplicateCount, &s.TimeoutSeconds, &s.ContentState, &s.ValidCount, &s.InvalidCount, &s.UnknownCount, &s.ReceivedCount, &s.ResponseBytes, &s.ErrorStreak, &s.StoredCount, &s.SuppressedCount, &s.ConfigCount, &s.HasResponse)
+	e := row.Scan(&s.ID, &s.Name, &sealed, &s.DisplayURL, &s.Min, &s.Max, &s.Unit, &s.Enabled, &s.Revision, &created, &updated, &next, &s.State, &s.ErrorCode, &s.LastFetch, &s.LastSuccess, &s.HTTPStatus, &s.DurationMS, &s.FetchCount, &s.DuplicateCount, &s.TimeoutSeconds, &s.ContentState, &s.ValidCount, &s.InvalidCount, &s.UnknownCount, &s.ReceivedCount, &s.ResponseBytes, &s.ErrorStreak, &s.StoredCount, &s.SuppressedCount, &s.Splash, &s.ConfigCount, &s.HasResponse)
 	s.CreatedAt = time.Unix(created, 0)
 	s.UpdatedAt = time.Unix(updated, 0)
 	s.NextRunAt = time.Unix(0, next)
@@ -180,6 +180,11 @@ func (s *Store) Save(ctx context.Context, id string, revision int64, input Sourc
 			return "", ErrConflict
 		}
 		return "", e
+	}
+	if input.Splash != nil {
+		if _, e = tx.ExecContext(ctx, "UPDATE sources SET splash=? WHERE id=?", *input.Splash, id); e != nil {
+			return "", e
+		}
 	}
 	if e = syncConversions(ctx, tx); e != nil {
 		return "", e
@@ -472,14 +477,17 @@ func (s *Store) Expire(ctx context.Context, now time.Time) error {
 	if e = syncConversions(ctx, tx); e != nil {
 		return e
 	}
-	if _, e = tx.ExecContext(ctx, "DELETE FROM smart_heads WHERE expires>0 AND expires<=?", now.UnixMilli()); e != nil {
+	if _, e = tx.ExecContext(ctx, "DELETE FROM smart_heads WHERE expires>0 AND expires<=? AND NOT EXISTS(SELECT 1 FROM smart_ready c WHERE c.id=smart_heads.id)", now.UnixMilli()); e != nil {
+		return e
+	}
+	if _, e = tx.ExecContext(ctx, "DELETE FROM splash_smart_heads WHERE expires>0 AND expires<=? AND NOT EXISTS(SELECT 1 FROM splash_smart_ready c WHERE c.id=splash_smart_heads.id)", now.UnixMilli()); e != nil {
 		return e
 	}
 	return tx.Commit()
 }
 func (s *Store) Referenced(ctx context.Context, hash string) (bool, error) {
 	var used bool
-	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+") UNION ALL SELECT 1 FROM conversion_results r JOIN conversion_inputs i ON i.hash=r.hash WHERE r.candidate_hash=? UNION ALL SELECT 1 FROM smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER))", hash, hash, hash, hash, hash, hash).Scan(&used)
+	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+") UNION ALL SELECT 1 FROM conversion_results r JOIN conversion_inputs i ON i.hash=r.hash WHERE r.candidate_hash=? UNION ALL SELECT 1 FROM smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM splash_smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM splash_smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER))", hash, hash, hash, hash, hash, hash, hash, hash, hash).Scan(&used)
 	return used, e
 }
 

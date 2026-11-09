@@ -21,18 +21,26 @@ type SmartSettings struct {
 	Revision int64 `json:"revision"`
 }
 type SmartEntry struct {
-	ID        string `json:"id"`
-	Hash      string `json:"hash"`
-	Count     int    `json:"count"`
-	Sources   int    `json:"sources"`
-	State     string `json:"state"`
-	Code      string `json:"code"`
-	Created   int64  `json:"created"`
-	Expires   int64  `json:"expires"`
-	Available bool   `json:"available"`
+	ID         string `json:"id"`
+	Hash       string `json:"hash"`
+	Count      int    `json:"count"`
+	Sources    int    `json:"sources"`
+	State      string `json:"state"`
+	Code       string `json:"code"`
+	Created    int64  `json:"created"`
+	Expires    int64  `json:"expires"`
+	Available  bool   `json:"available"`
+	Refreshing bool   `json:"refreshing"`
 }
 
 func (s *Store) migrateV9() error {
+	var version int
+	if e := s.db.QueryRow("PRAGMA user_version").Scan(&version); e != nil {
+		return e
+	}
+	if version >= 9 {
+		return nil
+	}
 	tx, e := s.db.Begin()
 	if e != nil {
 		return e
@@ -82,12 +90,12 @@ func (s *Store) migrateV9() error {
 	}
 	return tx.Commit()
 }
-func (s *Store) SmartSettings(ctx context.Context) (SmartSettings, error) {
+func (s *SmartPipeline) SmartSettings(ctx context.Context) (SmartSettings, error) {
 	var v SmartSettings
 	e := s.db.QueryRowContext(ctx, "SELECT enabled,member_count,revision FROM smart_settings WHERE id=1").Scan(&v.Enabled, &v.Count, &v.Revision)
 	return v, e
 }
-func (s *Store) SaveSmartSettings(ctx context.Context, v SmartSettings) error {
+func (s *SmartPipeline) SaveSmartSettings(ctx context.Context, v SmartSettings) error {
 	if v.Count < 1 {
 		return ErrInvalid
 	}
@@ -126,7 +134,7 @@ func smartInventory(ctx context.Context, db conversionQuerier) ([]smart.Member, 
 	}
 	return out, rows.Err()
 }
-func smartLedger(ctx context.Context, tx *sql.Tx) (smart.Ledger, error) {
+func smartLedger(ctx context.Context, tx smartTransaction) (smart.Ledger, error) {
 	v := smart.Ledger{Sources: map[string]smart.Usage{}, Members: map[string]smart.Usage{}}
 	rows, e := tx.QueryContext(ctx, "SELECT source,uses,last_used FROM smart_source_usage")
 	if e != nil {
@@ -161,7 +169,7 @@ func smartLedger(ctx context.Context, tx *sql.Tx) (smart.Ledger, error) {
 	}
 	return v, rows.Err()
 }
-func (s *Store) ClaimSmart(ctx context.Context) (*probe.Job, error) {
+func (s *SmartPipeline) ClaimSmart(ctx context.Context) (*probe.Job, error) {
 	tx, e := s.db.BeginTx(ctx, nil)
 	if e != nil {
 		return nil, e
@@ -217,6 +225,14 @@ func (s *Store) ClaimSmart(ctx context.Context) (*probe.Job, error) {
 		}
 	}
 	pool = uniquePool
+	inventoryBytes, _ := json.Marshal(func() [][4]string {
+		v := make([][4]string, 0, len(pool))
+		for _, m := range pool {
+			v = append(v, [4]string{m.ID, m.Source, m.RawHash, m.Hash})
+		}
+		return v
+	}())
+	inventory := repair.Digest(inventoryBytes)
 	if _, e = tx.ExecContext(ctx, "CREATE TEMP TABLE IF NOT EXISTS smart_ids(id TEXT PRIMARY KEY);DELETE FROM smart_ids"); e != nil {
 		return nil, e
 	}
@@ -233,12 +249,12 @@ func (s *Store) ClaimSmart(ctx context.Context) (*probe.Job, error) {
 	}
 	// Invalidated ownership/expiry/proof is hidden by the view immediately. Rebuild
 	// independently; a pending job never retains an obsolete completion token.
-	_, e = tx.ExecContext(ctx, "UPDATE smart_heads SET state='queued',next_run=0 WHERE state='ready' AND id NOT IN(SELECT id FROM smart_ready)")
+	_, e = tx.ExecContext(ctx, "UPDATE smart_heads SET state='queued',next_run=0 WHERE state='ready' AND id IN(SELECT id FROM smart_refresh_needed)")
 	if e != nil {
 		return nil, e
 	}
 	var head string
-	e = tx.QueryRowContext(ctx, "SELECT id FROM smart_heads WHERE (token='' OR lease_until<=?) AND (state!='ready' OR revision!=? OR version!=?) AND next_run<=? ORDER BY sequence,created,id LIMIT 1", now, revision, smart.Version, now).Scan(&head)
+	e = tx.QueryRowContext(ctx, "SELECT id FROM smart_heads WHERE (token='' OR lease_until<=?) AND (state!='ready' OR revision!=? OR version!=?) AND (next_run<=? OR inventory!=?) ORDER BY EXISTS(SELECT 1 FROM smart_ready c WHERE c.id=smart_heads.id),sequence,created,id LIMIT 1", now, revision, smart.Version, now, inventory).Scan(&head)
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, tx.Commit()
 	}
@@ -280,7 +296,7 @@ func (s *Store) ClaimSmart(ctx context.Context) (*probe.Job, error) {
 			return nil, e
 		}
 	}
-	_, e = tx.ExecContext(ctx, "UPDATE smart_heads SET hash='',member_count=?,created=?,expires=?,revision=?,version=?,state='running',code='',token=?,lease_until=?,next_run=0,sequence=? WHERE id=?", len(members), now, expires, revision, smart.Version, token, now+120000, sequence, head)
+	_, e = tx.ExecContext(ctx, "UPDATE smart_heads SET hash='',member_count=?,created=?,expires=?,revision=?,version=?,state='running',code='',token=?,lease_until=?,next_run=0,sequence=?,inventory=? WHERE id=?", len(members), now, expires, revision, smart.Version, token, now+120000, sequence, inventory, head)
 	if e != nil {
 		return nil, e
 	}
@@ -316,7 +332,7 @@ func (s *Store) ClaimSmart(ctx context.Context) (*probe.Job, error) {
 	}
 	return j, nil
 }
-func (s *Store) RenewSmart(ctx context.Context, j probe.Job) error {
+func (s *SmartPipeline) RenewSmart(ctx context.Context, j probe.Job) error {
 	res, e := s.db.ExecContext(ctx, `UPDATE smart_heads SET lease_until=? WHERE id=? AND token=? AND revision=? AND lease_until>? AND revision=(SELECT revision FROM smart_settings WHERE id=1 AND enabled=1) AND (SELECT count(*) FROM smart_owned_members m WHERE m.head=smart_heads.id)=member_count`, time.Now().Add(2*time.Minute).UnixMilli(), j.Hash, j.Token, j.Revision, time.Now().UnixMilli())
 	if e != nil {
 		return e
@@ -327,7 +343,7 @@ func (s *Store) RenewSmart(ctx context.Context, j probe.Job) error {
 	}
 	return nil
 }
-func (s *Store) CompleteSmart(ctx context.Context, r probe.Result) error {
+func (s *SmartPipeline) CompleteSmart(ctx context.Context, r probe.Result) error {
 	if r.Version != smart.Version || r.CoreSHA256 != probe.CoreSHA256 || !validDigest(r.Hash) || !safeCode(r.Code) || r.Connection != "not_run" {
 		return ErrInvalid
 	}
@@ -364,6 +380,9 @@ func (s *Store) CompleteSmart(ctx context.Context, r probe.Result) error {
 	if r.Core == "passed" {
 		state = "ready"
 		next = 0
+		if e = publishSmartCache(ctx, tx, r.Hash); e != nil {
+			return e
+		}
 	}
 	_, e = tx.ExecContext(ctx, "UPDATE smart_heads SET state=?,code=?,token='',lease_until=0,next_run=? WHERE id=?", state, r.Code, next, r.Hash)
 	if e != nil {
@@ -371,12 +390,12 @@ func (s *Store) CompleteSmart(ctx context.Context, r probe.Result) error {
 	}
 	return tx.Commit()
 }
-func (s *Store) SmartWorker(ctx context.Context) (probe.WorkerStatus, error) {
+func (s *SmartPipeline) SmartWorker(ctx context.Context) (probe.WorkerStatus, error) {
 	var v probe.WorkerStatus
 	e := s.db.QueryRowContext(ctx, "SELECT status,code,version,active,heartbeat FROM smart_worker WHERE id=1").Scan(&v.Status, &v.Code, &v.Version, &v.Active, &v.Heartbeat)
 	return v, e
 }
-func (s *Store) SetSmartWorker(ctx context.Context, v probe.WorkerStatus) error {
+func (s *SmartPipeline) SetSmartWorker(ctx context.Context, v probe.WorkerStatus) error {
 	if !safeCode(v.Status) || v.Code != "" && !safeCode(v.Code) {
 		return ErrInvalid
 	}
@@ -384,7 +403,7 @@ func (s *Store) SetSmartWorker(ctx context.Context, v probe.WorkerStatus) error 
 	return e
 }
 func querySmart(ctx context.Context, db conversionQuerier, all bool, page int) ([]SmartEntry, error) {
-	query := `SELECT h.id,h.hash,h.member_count,(SELECT count(DISTINCT source) FROM smart_members m WHERE m.head=h.id),h.state,h.code,h.created,h.expires,EXISTS(SELECT 1 FROM smart_ready r WHERE r.id=h.id) FROM smart_heads h ORDER BY CASE h.state WHEN 'ready' THEN 0 WHEN 'running' THEN 1 WHEN 'queued' THEN 2 ELSE 3 END,h.sequence,h.id`
+	query := `WITH ready AS MATERIALIZED(SELECT * FROM smart_ready) SELECT h.id,coalesce(c.hash,h.hash),coalesce(c.member_count,h.member_count),CASE WHEN c.id IS NOT NULL THEN (SELECT count(DISTINCT source) FROM smart_cache_members m WHERE m.head=h.id) ELSE (SELECT count(DISTINCT source) FROM smart_members m WHERE m.head=h.id) END,h.state,h.code,coalesce(c.created,h.created),coalesce(c.expires,h.expires),c.id IS NOT NULL,c.id IS NOT NULL AND h.state!='ready' FROM smart_heads h LEFT JOIN ready c ON c.id=h.id ORDER BY c.id IS NULL,CASE h.state WHEN 'ready' THEN 0 WHEN 'running' THEN 1 WHEN 'queued' THEN 2 ELSE 3 END,h.sequence,h.id`
 	if !all {
 		query += " LIMIT 100 OFFSET ?"
 	}
@@ -400,27 +419,30 @@ func querySmart(ctx context.Context, db conversionQuerier, all bool, page int) (
 	out := []SmartEntry{}
 	for rows.Next() {
 		var v SmartEntry
-		if e = rows.Scan(&v.ID, &v.Hash, &v.Count, &v.Sources, &v.State, &v.Code, &v.Created, &v.Expires, &v.Available); e != nil {
+		if e = rows.Scan(&v.ID, &v.Hash, &v.Count, &v.Sources, &v.State, &v.Code, &v.Created, &v.Expires, &v.Available, &v.Refreshing); e != nil {
 			return nil, e
 		}
 		out = append(out, v)
 	}
 	return out, rows.Err()
 }
-func (s *Store) smartBytes(ctx context.Context, v SmartEntry) ([]byte, error) {
+func (s *SmartPipeline) smartBytes(ctx context.Context, v SmartEntry) ([]byte, error) {
 	if !v.Available {
 		return nil, ErrNotFound
 	}
 	body, e := s.vault.Open(v.Hash)
 	if e != nil {
+		s.retrySmartBlob(ctx, v)
 		return nil, e
 	}
 	defer body.Close()
 	b, e := io.ReadAll(io.LimitReader(body, repair.MaxBytes+1))
 	if e != nil {
+		s.retrySmartBlob(ctx, v)
 		return nil, e
 	}
 	if len(b) > repair.MaxBytes || repair.Digest(b) != v.Hash || !json.Valid(b) {
+		s.retrySmartBlob(ctx, v)
 		return nil, ErrInvalid
 	}
 	var present bool
@@ -433,11 +455,8 @@ func (s *Store) smartBytes(ctx context.Context, v SmartEntry) ([]byte, error) {
 	}
 	return b, nil
 }
-func (s *Store) retrySmartBlob(ctx context.Context, v SmartEntry) {
-	_, _ = s.db.ExecContext(ctx, "UPDATE smart_heads SET state='queued',next_run=0,token='',lease_until=0,code='smart_blob_unavailable' WHERE id=? AND hash=?", v.ID, v.Hash)
-}
-func (s *Store) smartNext(ctx context.Context) (*SmartEntry, []byte, int64, error) {
-	unlock, e := s.lockRotation(ctx, "smart-output")
+func (s *SmartPipeline) smartNext(ctx context.Context) (*SmartEntry, []byte, int64, error) {
+	unlock, e := s.lockRotation(ctx, s.path()+"-output")
 	if e != nil {
 		return nil, nil, 0, e
 	}
@@ -501,7 +520,6 @@ func (s *Store) smartNext(ctx context.Context) (*SmartEntry, []byte, int64, erro
 		v.Available = true
 		b, e := s.smartBytes(ctx, v)
 		if e != nil {
-			s.retrySmartBlob(ctx, v)
 			continue
 		}
 		tx, e = s.db.BeginTx(ctx, nil)

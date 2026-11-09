@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"github.com/rezajafari0970/Config_manager/internal/driver"
 	"golang.org/x/sys/unix"
 	"io"
 	"net/url"
@@ -19,13 +20,17 @@ import (
 )
 
 // Format drivers only extract. Raw files are never re-serialized or repaired.
-type Registry struct{ drivers []FormatDriver }
+type Registry struct{ drivers driver.Registry[FormatDriver] }
 
 func NewRegistry() *Registry {
-	return &Registry{drivers: []FormatDriver{textFormat{}}}
+	r := &Registry{}
+	r.Register(textFormat{})
+	return r
 }
-func (r *Registry) Register(driver FormatDriver) {
-	r.drivers = append([]FormatDriver{driver}, r.drivers...)
+func (r *Registry) Register(d FormatDriver) {
+	if d != nil {
+		r.drivers.Put(d.Name(), d)
+	}
 }
 func (r *Registry) Extract(ctx context.Context, path string, emit Emitter) error {
 	return r.extract(ctx, path, emit, 0)
@@ -45,7 +50,7 @@ func (r *Registry) extract(ctx context.Context, path string, emit Emitter, depth
 	if len(prefix) == 0 {
 		return nil
 	}
-	for _, driver := range r.drivers {
+	for _, driver := range r.drivers.NewestFirst() {
 		if driver.Match(prefix) {
 			if d, ok := driver.(textFormat); ok {
 				d.registry, d.depth = r, depth

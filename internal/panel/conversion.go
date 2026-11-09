@@ -120,7 +120,8 @@ func (s *Store) ClaimProbe(ctx context.Context) (*probe.Job, error) {
 		return nil, e
 	}
 	defer tx.Rollback()
-	if e = syncConversions(ctx, tx); e != nil {
+	// Reserve the writer before reading capacity (also serializes other Stores).
+	if _, e = tx.ExecContext(ctx, "UPDATE conversion_settings SET enabled=enabled WHERE id=1"); e != nil {
 		return nil, e
 	}
 	var settings probe.Settings
@@ -134,6 +135,9 @@ func (s *Store) ClaimProbe(ctx context.Context) (*probe.Job, error) {
 	}
 	if !settings.Enabled || active >= min(8, settings.Concurrency) {
 		return nil, tx.Commit()
+	}
+	if e = syncConversions(ctx, tx); e != nil {
+		return nil, e
 	}
 	j := &probe.Job{Settings: settings}
 	var size int64
