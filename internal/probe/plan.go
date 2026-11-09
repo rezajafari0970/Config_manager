@@ -285,7 +285,7 @@ func uri(u *url.URL) (M, error) {
 			}
 		}
 	}
-	allowed := strings.Fields("type security encryption flow headerType host path sni fp alpn allowInsecure insecure allowinsecure pbk sid spx pqv ech vcn pcs serviceName authority mode extra xhttpMode xhttpExtra fm obfs obfs-password pinSHA256 mport x_padding_bytes cs packetEncoding")
+	allowed := strings.Fields("type security encryption flow headerType host path sni fp alpn allowInsecure insecure allowinsecure pbk sid spx pqv ech vcn pcs serviceName authority mode extra xhttpMode xhttpExtra fm obfs obfs-password pinSHA256 mport x_padding_bytes cs packetEncoding support-x25519mlkem768")
 	for k, values := range q {
 		known := false
 		for _, a := range allowed {
@@ -300,6 +300,9 @@ func uri(u *url.URL) (M, error) {
 		if len(values) != 1 {
 			return nil, errors.New("ambiguous_query_parameter")
 		}
+	}
+	if e := realityMLKEMHint(kind, q); e != nil {
+		return nil, e
 	}
 	// Explicit XUDP uses a single UDP stream; TCP multiplexing stays disabled.
 	if encoding, exists := q["packetEncoding"]; exists {

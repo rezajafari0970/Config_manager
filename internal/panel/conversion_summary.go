@@ -5,7 +5,6 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/convert"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 	"strings"
-	"time"
 )
 
 type SourceConversionSummary struct {
@@ -25,7 +24,7 @@ func (s *Store) SourceConversionSummaries(ctx context.Context, sources []Source)
 	if len(sources) == 0 {
 		return out, nil
 	}
-	now := time.Now().UnixMilli()
+	now := readStamp(ctx)
 	end := strings.Index(conversionQuery, "\n SELECT id,raw_hash")
 	q := conversionQuery[:end]
 	q = strings.Replace(q, "SELECT a.id,m.raw_hash", "SELECT m.source_id,r.version AS result_version,r.rule AS result_rule,a.id,m.raw_hash", 1)
@@ -39,7 +38,7 @@ func (s *Store) SourceConversionSummaries(ctx context.Context, sources []Source)
 	}
 	q = strings.Replace(q, "/* source filter */", "AND m.source_id IN ("+strings.Join(marks, ",")+")", 1)
 	q += ` SELECT source_id,coalesce(result_version,''),coalesce(result_rule,''),coalesce(state,'queued'),coalesce(code,''),coalesce(available,0),coalesce(connection,''),coalesce(valid_until,0) FROM choices WHERE choice=1`
-	rows, err := s.reader().QueryContext(ctx, q, args...)
+	rows, err := s.read(ctx).QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
 	}

@@ -122,7 +122,7 @@ func (s *Server) Handler() http.Handler {
 		}
 		mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "/input", 303) })
 	}
-	for _, page := range []string{"input", "output", "setting", "smart", "smart-splash"} {
+	for _, page := range []string{"input", "output", "setting", "smart", "smart-splash", "smart-ads"} {
 		page := page
 		mux.HandleFunc("GET /"+page, func(w http.ResponseWriter, r *http.Request) {
 			token := s.token(r)
@@ -135,7 +135,7 @@ func (s *Server) Handler() http.Handler {
 		})
 	}
 	mux.HandleFunc("GET /api/state", s.state)
-	modules := []PanelModule{inputModule{s}, outputModule{s}, settingModule{s}, conversionModule{s}, rotationModule{s}, sourceExportModule{s}, smartModule{s, s.store.Smart()}, smartModule{s, s.store.SplashSmart()}}
+	modules := []PanelModule{inputModule{s}, outputModule{s}, settingModule{s}, conversionModule{s}, rotationModule{s}, sourceExportModule{s}, smartModule{s, s.store.Smart()}, smartModule{s, s.store.SplashSmart()}, smartModule{s, s.store.AdsSmart()}}
 	s.modulesMu.RLock()
 	modules = append(modules, s.modules...)
 	s.modulesMu.RUnlock()
@@ -172,7 +172,12 @@ func (s *Server) state(w http.ResponseWriter, r *http.Request) {
 		failure(w, ErrInvalid)
 		return
 	}
-	var e error
+	ctx, finish, e := s.store.readSnapshot(ctx)
+	if e != nil {
+		failure(w, e)
+		return
+	}
+	defer finish()
 	sources, outputs := []Source{}, []Artifact{}
 	if view != "summary" {
 		sources, e = s.store.ListPage(ctx, r.URL.Query().Get("q"), page)
@@ -223,7 +228,7 @@ func (s *Server) state(w http.ResponseWriter, r *http.Request) {
 		failure(w, e)
 		return
 	}
-	respond(w, 200, map[string]any{"conversions": conversions, "repairs": repairs, "sources": sources, "outputs": outputs, "settings": settings, "stats": stats, "worker": map[string]any{"running": running, "active": active, "tick": tick, "blocked": blocked, "capacity": capacity}, "now": time.Now().UnixMilli()})
+	respond(w, 200, map[string]any{"conversions": conversions, "repairs": repairs, "sources": sources, "outputs": outputs, "settings": settings, "stats": stats, "worker": map[string]any{"running": running, "active": active, "tick": tick, "blocked": blocked, "capacity": capacity}, "now": readStamp(ctx)})
 }
 
 // PanelModule is the compiled extension boundary for independent feature routes.

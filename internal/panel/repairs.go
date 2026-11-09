@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/rezajafari0970/Config_manager/internal/collect"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
@@ -60,7 +59,7 @@ func (s *Store) RepairSummary(ctx context.Context, outputs []Artifact) (RepairSu
 	// Bound output metadata by the current UI page; do not expose raw data in state.
 	for _, a := range outputs {
 		var status string
-		e := s.reader().QueryRowContext(ctx, "SELECT status FROM repairs WHERE raw_hash=?", a.Hash).Scan(&status)
+		e := s.read(ctx).QueryRowContext(ctx, "SELECT status FROM repairs WHERE raw_hash=?", a.Hash).Scan(&status)
 		if e == sql.ErrNoRows {
 			continue
 		}
@@ -69,7 +68,7 @@ func (s *Store) RepairSummary(ctx context.Context, outputs []Artifact) (RepairSu
 		}
 		result.Outputs[a.Hash] = status
 	}
-	rows, e := s.reader().QueryContext(ctx, `SELECT m.source_id,r.status,count(*) FROM memberships m JOIN artifacts a ON a.id=m.artifact_id JOIN repairs r ON r.raw_hash=m.raw_hash WHERE a.expires>? GROUP BY m.source_id,r.status`, time.Now().UnixMilli())
+	rows, e := s.read(ctx).QueryContext(ctx, `SELECT m.source_id,r.status,count(*) FROM memberships m JOIN artifacts a ON a.id=m.artifact_id JOIN repairs r ON r.raw_hash=m.raw_hash WHERE a.expires>? GROUP BY m.source_id,r.status`, readStamp(ctx))
 	if e != nil {
 		return result, e
 	}
@@ -90,7 +89,7 @@ func (s *Store) RepairSummary(ctx context.Context, outputs []Artifact) (RepairSu
 	if e != nil {
 		return result, e
 	}
-	rows, e = s.reader().QueryContext(ctx, `SELECT r.status,count(*)`+representativeJoin+`JOIN repairs r ON r.raw_hash=m.raw_hash WHERE a.expires>? GROUP BY r.status`, time.Now().UnixMilli())
+	rows, e = s.read(ctx).QueryContext(ctx, `SELECT r.status,count(*)`+representativeJoin+`JOIN repairs r ON r.raw_hash=m.raw_hash WHERE a.expires>? GROUP BY r.status`, readStamp(ctx))
 	if e != nil {
 		return result, e
 	}

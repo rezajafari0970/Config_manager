@@ -61,27 +61,27 @@ PRAGMA user_version=2;`)
 type scanner interface{ Scan(...any) error }
 
 const baseColumns = "id,name,url,display_url,min,max,unit,enabled,revision,created,updated,next_run"
-const sourceColumns = baseColumns + ",state,error_code,last_fetch,last_success,http_status,duration_ms,fetch_count,duplicates,timeout_seconds,content_state,valid_count,invalid_count,unknown_count,received_count,response_bytes,error_streak,stored_count,suppressed_count,splash"
+const sourceColumns = baseColumns + ",state,error_code,last_fetch,last_success,http_status,duration_ms,fetch_count,duplicates,timeout_seconds,content_state,valid_count,invalid_count,unknown_count,received_count,response_bytes,error_streak,stored_count,suppressed_count,splash,receipt_unique,receipt_new,receipt_at,refresh_reason"
 
 func scanSource(row scanner) (Source, []byte, error) {
 	var s Source
 	var sealed []byte
 	var created, updated, next int64
-	e := row.Scan(&s.ID, &s.Name, &sealed, &s.DisplayURL, &s.Min, &s.Max, &s.Unit, &s.Enabled, &s.Revision, &created, &updated, &next, &s.State, &s.ErrorCode, &s.LastFetch, &s.LastSuccess, &s.HTTPStatus, &s.DurationMS, &s.FetchCount, &s.DuplicateCount, &s.TimeoutSeconds, &s.ContentState, &s.ValidCount, &s.InvalidCount, &s.UnknownCount, &s.ReceivedCount, &s.ResponseBytes, &s.ErrorStreak, &s.StoredCount, &s.SuppressedCount, &s.Splash, &s.ConfigCount, &s.HasResponse)
+	e := row.Scan(&s.ID, &s.Name, &sealed, &s.DisplayURL, &s.Min, &s.Max, &s.Unit, &s.Enabled, &s.Revision, &created, &updated, &next, &s.State, &s.ErrorCode, &s.LastFetch, &s.LastSuccess, &s.HTTPStatus, &s.DurationMS, &s.FetchCount, &s.DuplicateCount, &s.TimeoutSeconds, &s.ContentState, &s.ValidCount, &s.InvalidCount, &s.UnknownCount, &s.ReceivedCount, &s.ResponseBytes, &s.ErrorStreak, &s.StoredCount, &s.SuppressedCount, &s.Splash, &s.ReceiptUnique, &s.ReceiptNew, &s.ReceiptAt, &s.RefreshReason, &s.ConfigCount, &s.HasResponse, &s.DisabledCount)
 	s.CreatedAt = time.Unix(created, 0)
 	s.UpdatedAt = time.Unix(updated, 0)
 	s.NextRunAt = time.Unix(0, next)
 	return s, sealed, e
 }
 
-const sourceQuery = "SELECT " + sourceColumns + ",(SELECT count(*) FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=sources.id AND a.expires>?),EXISTS(SELECT 1 FROM responses r WHERE r.source_id=sources.id AND r.expires>?) FROM sources "
+const sourceQuery = "SELECT " + sourceColumns + ",(SELECT count(*) FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=sources.id AND a.expires>?),EXISTS(SELECT 1 FROM responses r WHERE r.source_id=sources.id AND r.expires>?),(SELECT count(*) FROM memberships m JOIN artifacts a ON a.id=m.artifact_id JOIN config_controls c ON c.id=a.id WHERE m.source_id=sources.id AND c.action='disabled' AND min(a.expires,c.expires)>CAST(unixepoch('subsec')*1000 AS INTEGER)) FROM sources "
 
 func (s *Store) List(ctx context.Context) ([]Source, error) { return s.list(ctx, "", 0, false) }
 func (s *Store) ListPage(ctx context.Context, search string, page int) ([]Source, error) {
 	return s.list(ctx, search, page, true)
 }
 func (s *Store) list(ctx context.Context, search string, page int, paged bool) ([]Source, error) {
-	now := time.Now().UnixMilli()
+	now := readStamp(ctx)
 	args := []any{now, now}
 	query := sourceQuery
 	if search != "" {
@@ -96,7 +96,7 @@ func (s *Store) list(ctx context.Context, search string, page int, paged bool) (
 		query += "LIMIT 100 OFFSET ?"
 		args = append(args, page*100)
 	}
-	rows, e := s.reader().QueryContext(ctx, query, args...)
+	rows, e := s.read(ctx).QueryContext(ctx, query, args...)
 	if e != nil {
 		return nil, e
 	}
@@ -112,8 +112,8 @@ func (s *Store) list(ctx context.Context, search string, page int, paged bool) (
 	return out, rows.Err()
 }
 func (s *Store) Get(ctx context.Context, id string) (Source, error) {
-	now := time.Now().UnixMilli()
-	v, sealed, e := scanSource(s.reader().QueryRowContext(ctx, sourceQuery+"WHERE id=?", now, now, id))
+	now := readStamp(ctx)
+	v, sealed, e := scanSource(s.read(ctx).QueryRowContext(ctx, sourceQuery+"WHERE id=?", now, now, id))
 	if errors.Is(e, sql.ErrNoRows) {
 		return v, ErrNotFound
 	}
@@ -169,7 +169,7 @@ func (s *Store) Save(ctx context.Context, id string, revision int64, input Sourc
 			if _, e = tx.ExecContext(ctx, "DELETE FROM responses WHERE source_id=?", id); e != nil {
 				return "", e
 			}
-			_, e = tx.ExecContext(ctx, "UPDATE sources SET etag='',modified='',last_fetch=0,last_success=0,http_status=0,duration_ms=0,duplicates=0,content_state='unknown',valid_count=0,invalid_count=0,unknown_count=0,received_count=0,response_bytes=0,error_streak=0,stored_count=0,suppressed_count=0 WHERE id=?", id)
+			_, e = tx.ExecContext(ctx, "UPDATE sources SET etag='',modified='',last_fetch=0,last_success=0,http_status=0,duration_ms=0,duplicates=0,content_state='unknown',valid_count=0,invalid_count=0,unknown_count=0,received_count=0,response_bytes=0,error_streak=0,stored_count=0,suppressed_count=0,receipt_unique=-1,receipt_new=-1,receipt_at=0,refresh_reason='' WHERE id=?", id)
 		}
 	}
 	if e == nil {
@@ -208,7 +208,7 @@ func (s *Store) RunNow(ctx context.Context, id string) error {
 }
 func (s *Store) Settings(ctx context.Context) (collect.Settings, error) {
 	var v collect.Settings
-	e := s.reader().QueryRowContext(ctx, "SELECT retention_seconds,concurrency,timeout_seconds FROM settings WHERE id=1").Scan(&v.RetentionSeconds, &v.Concurrency, &v.TimeoutSeconds)
+	e := s.read(ctx).QueryRowContext(ctx, "SELECT retention_seconds,concurrency,timeout_seconds FROM settings WHERE id=1").Scan(&v.RetentionSeconds, &v.Concurrency, &v.TimeoutSeconds)
 	return v, e
 }
 func (s *Store) SaveSettings(ctx context.Context, v collect.Settings) error {
@@ -220,6 +220,9 @@ func (s *Store) SaveSettings(ctx context.Context, v collect.Settings) error {
 		return e
 	}
 	defer tx.Rollback()
+	if e = queueExpiredSources(ctx, tx, time.Now()); e != nil {
+		return e
+	}
 	if _, e = tx.ExecContext(ctx, "DELETE FROM artifacts WHERE expires<=?", time.Now().UnixMilli()); e != nil {
 		return e
 	}
@@ -248,7 +251,10 @@ func (s *Store) Recover(ctx context.Context) error {
 		return e
 	}
 	_, e := s.db.ExecContext(ctx, "UPDATE sources SET lease_token='',lease_until=0,state=CASE WHEN enabled=1 THEN 'queued' ELSE 'paused' END,next_run=CASE WHEN enabled=1 AND lease_token!='' THEN 0 ELSE next_run END WHERE lease_token!=''")
-	return e
+	if e != nil {
+		return e
+	}
+	return s.recoverInventory(ctx)
 }
 func (s *Store) Claim(ctx context.Context, now time.Time, limit int, lease time.Duration) ([]collect.Job, error) {
 	tx, e := s.db.BeginTx(ctx, nil)
@@ -256,7 +262,7 @@ func (s *Store) Claim(ctx context.Context, now time.Time, limit int, lease time.
 		return nil, e
 	}
 	defer tx.Rollback()
-	rows, e := tx.QueryContext(ctx, "SELECT id,url,revision,min,max,unit,etag,modified,timeout_seconds,EXISTS(SELECT 1 FROM responses r WHERE r.source_id=sources.id AND r.expires>?),EXISTS(SELECT 1 FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=sources.id AND a.expires>?) FROM sources WHERE enabled=1 AND next_run<=? AND (lease_token='' OR lease_until<=?) ORDER BY next_run,id LIMIT ?", now.UnixMilli(), now.UnixMilli(), now.UnixNano(), now.UnixMilli(), limit)
+	rows, e := tx.QueryContext(ctx, "SELECT id,url,revision,min,max,unit,etag,modified,timeout_seconds,EXISTS(SELECT 1 FROM responses r WHERE r.source_id=sources.id AND r.expires>?),(stored_count>0 AND refresh_reason='' AND (SELECT count(*) FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=sources.id AND a.expires>?)>=stored_count) FROM sources WHERE enabled=1 AND next_run<=? AND (lease_token='' OR lease_until<=?) ORDER BY next_run,id LIMIT ?", now.UnixMilli(), now.UnixMilli(), now.UnixNano(), now.UnixMilli(), limit)
 	if e != nil {
 		return nil, e
 	}
@@ -334,6 +340,9 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 	}
 	stamp := now.UnixMilli()
 	expiry := stamp + retention*1000
+	if e = queueExpiredSources(ctx, tx, now); e != nil {
+		return e
+	}
 	if _, e = tx.ExecContext(ctx, "DELETE FROM artifacts WHERE expires<=?", stamp); e != nil {
 		return e
 	}
@@ -346,7 +355,17 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 			return e
 		}
 	}
-	duplicates := result.Extracted - len(result.Items)
+	seen := map[string]bool{}
+	items := result.Items[:0]
+	for _, item := range result.Items {
+		if !seen[item.Identity] {
+			seen[item.Identity] = true
+			items = append(items, item)
+		}
+	}
+	result.Items = items
+	newCount := 0
+	duplicates := max(0, result.Extracted-len(result.Items))
 	suppressed := 0
 	var stagedCount int
 	if result.Staged {
@@ -372,6 +391,7 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 				return err
 			}
 			inserted, _ := res.RowsAffected()
+			newCount += int(inserted)
 			if _, e = tx.ExecContext(ctx, "UPDATE artifacts SET quality=? WHERE id=?", item.Quality, item.Identity); e != nil {
 				return e
 			}
@@ -393,7 +413,7 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 	}
 	if result.State == "unchanged" {
 		var count int
-		if e = tx.QueryRowContext(ctx, "SELECT count(*) FROM responses WHERE source_id=? AND expires>? AND EXISTS(SELECT 1 FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=? AND a.expires>?)", job.ID, stamp, job.ID, stamp).Scan(&count); e != nil {
+		if e = tx.QueryRowContext(ctx, "SELECT count(*) FROM responses WHERE source_id=? AND expires>? AND (SELECT count(*) FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=? AND a.expires>?) >= (SELECT max(1,stored_count) FROM sources WHERE id=?)", job.ID, stamp, job.ID, stamp, job.ID).Scan(&count); e != nil {
 			return e
 		}
 		if count == 0 {
@@ -409,6 +429,7 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 			return err
 		}
 		inserted, _ := res.RowsAffected()
+		newCount += int(inserted)
 		if e = tx.QueryRowContext(ctx, "SELECT count(*) FROM staged t JOIN config_controls c ON c.id=t.identity WHERE t.token=? AND c.action='deleted' AND c.expires>?", job.Token, stamp).Scan(&suppressed); e != nil {
 			return e
 		}
@@ -439,10 +460,34 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 	}
 	success := result.State == "updated" || result.State == "unchanged"
 	if result.ContentState != "" {
+		unique := len(result.Items)
+		if result.Staged {
+			unique = stagedCount
+		}
+		if !success && result.State != "filtered" {
+			newCount = -1
+		}
+		if _, e = tx.ExecContext(ctx, "UPDATE sources SET receipt_unique=?,receipt_new=?,receipt_at=? WHERE id=?", unique, newCount, stamp, job.ID); e != nil {
+			return e
+		}
 		_, e = tx.ExecContext(ctx, "UPDATE sources SET content_state=?,valid_count=?,invalid_count=?,unknown_count=?,received_count=?,response_bytes=? WHERE id=?", result.ContentState, result.ValidCount, result.InvalidCount, result.UnknownCount, result.Extracted, result.Raw.Size, job.ID)
 		if e != nil {
 			return e
 		}
+	}
+	if result.State == "updated" || result.State == "filtered" {
+		if _, e = tx.ExecContext(ctx, "UPDATE sources SET refresh_reason='' WHERE id=?", job.ID); e != nil {
+			return e
+		}
+	}
+	if result.ErrorCode == "cache_missing" {
+		if _, e = tx.ExecContext(ctx, "UPDATE sources SET refresh_reason='missing_inventory' WHERE id=?", job.ID); e != nil {
+			return e
+		}
+	}
+	next, e = sourceRefreshDeadline(ctx, tx, job.ID, now, next)
+	if e != nil {
+		return e
 	}
 	_, e = tx.ExecContext(ctx, "UPDATE sources SET state=?,error_code=?,last_fetch=?,last_success=CASE WHEN ? THEN ? ELSE last_success END,http_status=?,duration_ms=?,fetch_count=fetch_count+1,duplicates=?,generation=?,error_streak=CASE WHEN ? THEN 0 ELSE error_streak+1 END,lease_token='',lease_until=0,next_run=?,etag=CASE WHEN ? THEN ? ELSE etag END,modified=CASE WHEN ? THEN ? ELSE modified END WHERE id=? AND revision=? AND lease_token=?", result.State, result.ErrorCode, stamp, success, stamp, result.HTTPStatus, result.DurationMS, duplicates, generation, success || result.State == "filtered", next.UnixNano(), result.HTTPStatus == 200 || result.ErrorCode == "cache_missing", result.ETag, result.HTTPStatus == 200 || result.ErrorCode == "cache_missing", result.Modified, job.ID, job.Revision, job.Token)
 	if e != nil {
@@ -459,6 +504,9 @@ func (s *Store) Expire(ctx context.Context, now time.Time) error {
 		return e
 	}
 	defer tx.Rollback()
+	if e = queueExpiredSources(ctx, tx, now); e != nil {
+		return e
+	}
 	if _, e = tx.ExecContext(ctx, "DELETE FROM config_controls WHERE expires<=?", now.UnixMilli()); e != nil {
 		return e
 	}
@@ -483,11 +531,15 @@ func (s *Store) Expire(ctx context.Context, now time.Time) error {
 	if _, e = tx.ExecContext(ctx, "DELETE FROM splash_smart_heads WHERE expires>0 AND expires<=? AND NOT EXISTS(SELECT 1 FROM splash_smart_ready c WHERE c.id=splash_smart_heads.id)", now.UnixMilli()); e != nil {
 		return e
 	}
+
+	if _, e = tx.ExecContext(ctx, "DELETE FROM ads_smart_heads WHERE expires>0 AND expires<=? AND NOT EXISTS(SELECT 1 FROM ads_smart_ready c WHERE c.id=ads_smart_heads.id)", now.UnixMilli()); e != nil {
+		return e
+	}
 	return tx.Commit()
 }
 func (s *Store) Referenced(ctx context.Context, hash string) (bool, error) {
 	var used bool
-	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+") UNION ALL SELECT 1 FROM conversion_results r JOIN conversion_inputs i ON i.hash=r.hash WHERE r.candidate_hash=? UNION ALL SELECT 1 FROM smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM splash_smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM splash_smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER))", hash, hash, hash, hash, hash, hash, hash, hash, hash).Scan(&used)
+	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+") UNION ALL SELECT 1 FROM conversion_results r JOIN conversion_inputs i ON i.hash=r.hash WHERE r.candidate_hash=? UNION ALL SELECT 1 FROM smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM splash_smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM splash_smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM ads_smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM ads_smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER))", hash, hash, hash, hash, hash, hash, hash, hash, hash, hash, hash).Scan(&used)
 	return used, e
 }
 
@@ -509,7 +561,7 @@ func (s *Store) Outputs(ctx context.Context, kind string, page int, all bool) ([
 	return s.OutputsFiltered(ctx, kind, "", page, all)
 }
 func (s *Store) OutputsFiltered(ctx context.Context, kind, repairStatus string, page int, all bool) ([]Artifact, error) {
-	args := []any{time.Now().UnixMilli()}
+	args := []any{readStamp(ctx)}
 	query := "SELECT a.id,m.raw_hash,m.kind,m.size,a.created,a.expires,(SELECT count(*) FROM memberships m3 WHERE m3.artifact_id=a.id),EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='disabled' AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)),a.quality" + representativeJoin + "WHERE a.expires>?"
 	if kind != "" {
 		query += " AND m.kind=?"
@@ -527,7 +579,7 @@ func (s *Store) OutputsFiltered(ctx context.Context, kind, repairStatus string, 
 		query += " LIMIT 100 OFFSET ?"
 		args = append(args, page*100)
 	}
-	rows, e := s.reader().QueryContext(ctx, query, args...)
+	rows, e := s.read(ctx).QueryContext(ctx, query, args...)
 	if e != nil {
 		return nil, e
 	}
@@ -544,7 +596,7 @@ func (s *Store) OutputsFiltered(ctx context.Context, kind, repairStatus string, 
 }
 func (s *Store) Output(ctx context.Context, id string) (Artifact, error) {
 	var a Artifact
-	e := s.reader().QueryRowContext(ctx, "SELECT a.id,m.raw_hash,m.kind,m.size,a.created,a.expires,EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='disabled' AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)),a.quality"+representativeJoin+"WHERE a.id=? AND a.expires>?", id, time.Now().UnixMilli()).Scan(&a.ID, &a.Hash, &a.Kind, &a.Size, &a.Created, &a.Expires, &a.Disabled, &a.Quality)
+	e := s.read(ctx).QueryRowContext(ctx, "SELECT a.id,m.raw_hash,m.kind,m.size,a.created,a.expires,EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='disabled' AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)),a.quality"+representativeJoin+"WHERE a.id=? AND a.expires>?", id, readStamp(ctx)).Scan(&a.ID, &a.Hash, &a.Kind, &a.Size, &a.Created, &a.Expires, &a.Disabled, &a.Quality)
 	if errors.Is(e, sql.ErrNoRows) {
 		e = ErrNotFound
 	}
@@ -552,7 +604,7 @@ func (s *Store) Output(ctx context.Context, id string) (Artifact, error) {
 }
 func (s *Store) Response(ctx context.Context, id string) (blob.Ref, error) {
 	var ref blob.Ref
-	e := s.reader().QueryRowContext(ctx, "SELECT hash,size FROM responses WHERE source_id=? AND expires>?", id, time.Now().UnixMilli()).Scan(&ref.Hash, &ref.Size)
+	e := s.read(ctx).QueryRowContext(ctx, "SELECT hash,size FROM responses WHERE source_id=? AND expires>?", id, readStamp(ctx)).Scan(&ref.Hash, &ref.Size)
 	if errors.Is(e, sql.ErrNoRows) {
 		e = ErrNotFound
 	}
@@ -574,13 +626,13 @@ type Stats struct {
 
 func (s *Store) Stats(ctx context.Context) (Stats, error) {
 	var v Stats
-	e := s.reader().QueryRowContext(ctx, "SELECT count(*),coalesce(sum(enabled),0),coalesce(sum(state='fetching'),0),coalesce(sum(state IN ('error','invalid')),0),coalesce(sum(enabled=1 AND EXISTS(SELECT 1 FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=sources.id AND a.expires>CAST(unixepoch('subsec')*1000 AS INTEGER))),0),coalesce(sum(content_state='empty'),0),coalesce(sum(content_state IN ('invalid','partial','unrecognized','error_response')),0) FROM sources").Scan(&v.Sources, &v.Enabled, &v.Fetching, &v.Errors, &v.GivingConfigs, &v.EmptySources, &v.InvalidSources)
+	e := s.read(ctx).QueryRowContext(ctx, "SELECT count(*),coalesce(sum(enabled),0),coalesce(sum(state='fetching'),0),coalesce(sum(state IN ('error','invalid')),0),coalesce(sum(enabled=1 AND EXISTS(SELECT 1 FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=sources.id AND a.expires>CAST(unixepoch('subsec')*1000 AS INTEGER))),0),coalesce(sum(enabled=1 AND NOT EXISTS(SELECT 1 FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=sources.id AND a.expires>CAST(unixepoch('subsec')*1000 AS INTEGER))),0),coalesce(sum(content_state IN ('invalid','partial','unrecognized','error_response')),0) FROM sources").Scan(&v.Sources, &v.Enabled, &v.Fetching, &v.Errors, &v.GivingConfigs, &v.EmptySources, &v.InvalidSources)
 	if e != nil {
 		return v, e
 	}
-	e = s.reader().QueryRowContext(ctx, "SELECT count(*),coalesce(sum(m.size),0)"+representativeJoin+"WHERE a.expires>?", time.Now().UnixMilli()).Scan(&v.Configs, &v.Bytes)
+	e = s.read(ctx).QueryRowContext(ctx, "SELECT count(*),coalesce(sum(m.size),0)"+representativeJoin+"WHERE a.expires>?", readStamp(ctx)).Scan(&v.Configs, &v.Bytes)
 	if e == nil {
-		e = s.reader().QueryRowContext(ctx, "SELECT count(*) FROM config_controls c JOIN artifacts a ON a.id=c.id WHERE c.action='disabled' AND c.expires>? AND a.expires>?", time.Now().UnixMilli(), time.Now().UnixMilli()).Scan(&v.DisabledConfigs)
+		e = s.read(ctx).QueryRowContext(ctx, "SELECT count(*) FROM config_controls c JOIN artifacts a ON a.id=c.id WHERE c.action='disabled' AND c.expires>? AND a.expires>?", readStamp(ctx), readStamp(ctx)).Scan(&v.DisabledConfigs)
 	}
 	return v, e
 }

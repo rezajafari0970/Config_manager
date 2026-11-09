@@ -156,3 +156,22 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - Browser features poll independently; thin settings APIs must not enumerate output rows. Preserve unsaved drafts, require explicit resubmission after409, disable unknown initial settings/copy links, and apply JSON only to the current matching-hash row. Keep the asset import HTTP regression.
 - Acquisition/envelope/restoration/export plaintext spools must be unlinked immediately; format drivers reopen the /proc/self/fd path while its owner is alive. Do not reintroduce named plaintext caches.
 - leastLoad failure detection tests must use the pinned shouldSelectNode predicate (alive, delay, fail/all tolerance), not three randomly successful requests. Burst scheduler interval is interval*sampling; do not claim a2-second failure bound from maxRTT. Preserve the user-requested JSON envelope.
+
+
+## P25 inventory and receipt accounting
+- Read docs/checkpoints/P25-inventory-accounting-20261109.md. Schema14 adds only source receipt/recovery metadata; Smartv8 and normal templatev4 remain unchanged.
+- Current unique membership, extracted occurrences, body-local duplicates, pre-existing/shared identities, disabled inputs and output/connectivity proofs are different counts. Legacy unmeasured receipts remain unknown; never infer unique count from the old combined duplicates field. Whole custom JSON remains one input with all internal outbounds preserved.
+- Queue enabled sources before every expiry cascade, cap next scheduling at retained expiry, force unconditional requests for incomplete inventory and keep recovery retries bounded. Do not extend fixed TTL, clear deletion controls, enable sources, mix Splash or invent fresh proof. Retention recovery may precede the user's normal random schedule without altering its min/max settings.
+- State summary reads use one readonly WAL snapshot and one expiry moment. No claims/mutations/rotation/blob I/O in that context. Preserve ordinary/source/Smart links and current settings.
+- Require duplicate/partial304/expiry/restart/backoff/snapshot regressions, full checks, browser outage→expiry→automatic refill, worker recovery, migration/rollback and public source/API verification before reporting deployment.
+
+
+## P26 independent Smart Ads
+- Read docs/checkpoints/P26-smart-ads-20261110.md. Schema15; Smart Adsv1 is a third compiled pipeline. Existing Smartv8 and ordinary templatev4 stay unchanged. Preserve every current source/setting/rotation and the P25 fixes.
+- Exactly one whole fresh Splash input occupies position0; main inputs come exclusively from ordinary offers. Every eligible Splash candidate is a head. Position-specific ownership and exact fresh proof gate claim/renew/complete/read, and source classification cannot silently swap roles. Count is main members plus one Ads input.
+- ComposeAds reuses Compose; keep all outbounds and namespaces. Only terminal supported Ads transports gain the main carrier. Preserve existing chains/download streams, reject ambiguity/cycles/unsupported custom dialers, keep Ads entries out of main/bootstrap, and never create direct fail-open. Balanced Ads source remains a whole input with its own exit pool.
+- Preserve the supplied Ads domains and require checksum-pinned geosite asset. Source-health proof and core validation do not prove a real end-to-end Ads session. No Android/operator/QUIC/zero-leak guarantee.
+- Independent csa production/cat worker test/csta traffic resources, service, locks, token domains and private Unix routes. GC protects both pending and published Ads blobs. All five services require separate runtime hash verification.
+- Require full checks, all four worker recoveries, controlled chain/failed-exit/negative-bypass TCP/UDP/UDP443, browser/restart, additive migration/rollback, stopped-service backup, public export verification and exact source publication/readback.
+
+- Positive support-x25519mlkem768=true/1 is an explicit VLESS REALITY URI compatibility hint, not an Xray JSON field. Preserve native candidate/fingerprint/credentials and raw bytes; reject disable, malformed, duplicate and mismatched-security uses. Never use hint acceptance as connection proof.

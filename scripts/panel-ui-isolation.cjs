@@ -50,6 +50,23 @@ module.exports=async(context,origin)=>{
    await page.locator(view).first().click();await page.waitForFunction(selector=>[...document.querySelectorAll(selector+' pre')].some(p=>!p.hidden&&p.textContent.startsWith('{')),list);
    await page.unroute('**'+path+'/json/*');
   }
+  await page.unroute('**/api/state?*');
+  await page.route('**/api/state?*',async route=>{
+   const response=await route.fetch(),state=await response.json();
+   const sample=state.sources[0];assert(sample,'fixture source required');
+   state.sources=[{...sample,id:'receipt-example',name:'Receipt fixture',enabled:true,state:'updated',config_count:2,received_count:6,stored_count:2,receipt_unique:2,receipt_new:0,receipt_at:Date.now(),duplicates:6,suppressed_count:0,disabled_count:0,content_state:'config',refresh_reason:''},
+    {...sample,id:'expired-example',name:'Recovery fixture',enabled:true,state:'queued',config_count:0,received_count:6,stored_count:6,receipt_unique:6,receipt_new:0,receipt_at:Date.now()-60000,refresh_reason:'retention'}];
+   state.conversions={};await route.fulfill({response,json:state});
+  });
+  await page.goto(origin+'/input');
+  const receipt=page.locator('[data-id="receipt-example"].source-row');
+  await receipt.locator('summary').click();
+  assert.match(await receipt.locator('.source-count').innerText(),/۲.*ورودی یکتای موجود/s);
+  for(const [label,value] of [['ورودی یکتا در همان پاسخ','۲'],['تکرار داخل همان پاسخ','۴'],['از قبل موجود یا مشترک با منبع دیگر','۲']]){
+   assert.equal(await receipt.locator('.source-data>div').filter({has:page.locator('span',{hasText:label})}).locator('strong').innerText(),value);
+  }
+  assert.match(await page.locator('[data-id="expired-example"] .badge').innerText(),/دریافت تازه/);
+  assert(!await page.locator('[data-id="expired-example"] .badge').innerText().then(v=>v.includes('فعالی')));
   assert.deepEqual(errors,[]);
  }finally{waits.forEach(r=>r());await page.close()}
 };

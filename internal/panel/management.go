@@ -203,7 +203,7 @@ func (s *Store) ManageConfigs(ctx context.Context, b ConfigBatch) (BatchResult, 
 			if e != nil {
 				return result, e
 			}
-			if _, e = tx.ExecContext(ctx, "DELETE FROM staged; DELETE FROM responses; UPDATE sources SET revision=revision+1,lease_token='',lease_until=0,etag='',modified='',state=CASE WHEN enabled=1 THEN 'queued' ELSE 'paused' END,content_state='unknown',valid_count=0,invalid_count=0,unknown_count=0,received_count=0,response_bytes=0,duplicates=0,stored_count=0,suppressed_count=0;"); e != nil {
+			if _, e = tx.ExecContext(ctx, "DELETE FROM staged; DELETE FROM responses; UPDATE sources SET revision=revision+1,lease_token='',lease_until=0,etag='',modified='',state=CASE WHEN enabled=1 THEN 'queued' ELSE 'paused' END,content_state='unknown',valid_count=0,invalid_count=0,unknown_count=0,received_count=0,response_bytes=0,duplicates=0,stored_count=0,suppressed_count=0,receipt_unique=-1,receipt_new=-1,receipt_at=0,refresh_reason='';"); e != nil {
 				return result, e
 			}
 		}

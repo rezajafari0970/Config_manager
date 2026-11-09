@@ -23,9 +23,7 @@ func (s *Server) pipelineURL(p *SmartPipeline, single bool) string {
 	if single {
 		mode, file = "smart-single-v1", "next.json"
 	}
-	if p.splash {
-		mode = "splash-" + mode
-	}
+	mode = p.tokenMode(mode)
 	return s.origin + p.path() + "-subscription/" + s.store.digest("subscription", mode) + "/" + file
 }
 func (m smartModule) Register(mux *http.ServeMux) {
@@ -40,12 +38,7 @@ func (m smartModule) Register(mux *http.ServeMux) {
 		}
 		respond(w, 200, map[string]any{"settings": settings})
 	})
-	tokenMode := func(v string) string {
-		if p.splash {
-			return "splash-" + v
-		}
-		return v
-	}
+	tokenMode := p.tokenMode
 	mux.HandleFunc("GET /api"+base, func(w http.ResponseWriter, r *http.Request) {
 		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 		entries, e := querySmart(r.Context(), p.reader(), false, page)
@@ -73,13 +66,26 @@ func (m smartModule) Register(mux *http.ServeMux) {
 			failure(w, e)
 			return
 		}
+		if p.ads {
+			var mainEligible, adsEligible, mainSources, adsSources int
+			e = p.Store.reader().QueryRowContext(r.Context(), `SELECT (SELECT count(DISTINCT id) FROM smart_offers),(SELECT count(DISTINCT id) FROM splash_smart_offers),(SELECT count(DISTINCT source) FROM smart_offers),(SELECT count(DISTINCT source) FROM splash_smart_offers)`).Scan(&mainEligible, &adsEligible, &mainSources, &adsSources)
+			if e != nil {
+				failure(w, e)
+				return
+			}
+			stats["main_eligible"] = mainEligible
+			stats["ads_eligible"] = adsEligible
+			stats["main_sources"] = mainSources
+			stats["ads_sources"] = adsSources
+			eligible = adsEligible
+		}
 		stats["total"] = total
 		stats["ready"] = ready
 		stats["blocked"] = blocked
 		stats["warming"] = max(0, total-ready-blocked)
 		stats["sources"] = sources
 		stats["eligible"] = eligible
-		respond(w, 200, map[string]any{"entries": entries, "settings": settings, "worker": worker, "stats": stats, "export_url": s.pipelineURL(p, false), "single_export_url": s.pipelineURL(p, true), "version": smart.Version, "android_import": "not_run"})
+		respond(w, 200, map[string]any{"entries": entries, "settings": settings, "worker": worker, "stats": stats, "export_url": s.pipelineURL(p, false), "single_export_url": s.pipelineURL(p, true), "version": p.version(), "android_import": "not_run"})
 	})
 	mux.HandleFunc("POST /api"+base+"/settings", func(w http.ResponseWriter, r *http.Request) {
 		var v SmartSettings
@@ -212,6 +218,7 @@ func smartHeaders(w http.ResponseWriter) {
 func (s *Store) registerPrivateSmart(mux *http.ServeMux) {
 	s.Smart().registerPrivate(mux)
 	s.SplashSmart().registerPrivate(mux)
+	s.AdsSmart().registerPrivate(mux)
 }
 func (s *SmartPipeline) registerPrivate(mux *http.ServeMux) {
 	mux.HandleFunc("POST "+s.path()+"/claim", func(w http.ResponseWriter, r *http.Request) {

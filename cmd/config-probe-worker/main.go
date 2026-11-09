@@ -156,7 +156,7 @@ func run() error {
 	lockPath := flag.String("lock-file", "/run/config-repair-prober.lock", "supervisor instance lock")
 	mode := flag.String("mode", "conversion", "independent conversion or smart queue")
 	flag.Parse()
-	if *mode != "conversion" && *mode != "smart" && *mode != "smart-splash" {
+	if *mode != "conversion" && *mode != "smart" && *mode != "smart-splash" && *mode != "smart-ads" {
 		return errors.New("invalid worker mode")
 	}
 	if os.Geteuid() != 0 {
@@ -177,10 +177,14 @@ func run() error {
 	}}, Timeout: 30 * time.Second}, version: convert.Version, prepare: convert.Prepare}
 	slots := 8
 	interval := time.Second
-	if *mode == "smart" || *mode == "smart-splash" {
+	if *mode == "smart" || *mode == "smart-splash" || *mode == "smart-ads" {
 		c.prefix = "/" + *mode
 		c.version = smart.Version
 		c.prepare = smart.Prepare
+		if *mode == "smart-ads" {
+			c.version = smart.AdsVersion
+			c.prepare = smart.PrepareAds
+		}
 		slots = 2
 		interval = 200 * time.Millisecond
 	}

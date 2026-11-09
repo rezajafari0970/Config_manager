@@ -15,6 +15,7 @@ import (
 // Build a real schema11 fixture, not merely a forged version marker on schema12.
 func dropSplashForMigration(t *testing.T, s *Store) {
 	t.Helper()
+	dropAdsForMigration(t, s)
 	rows, e := s.db.Query("SELECT name FROM sqlite_master WHERE type='view' AND name GLOB 'splash_smart_*'")
 	if e != nil {
 		t.Fatal(e)

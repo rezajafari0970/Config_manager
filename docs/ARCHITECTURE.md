@@ -1,6 +1,6 @@
-# Architecture — P24
+# Architecture — P26
 
-The independent Go service owns collection, encrypted content and SQLite publication. Three separate supervisors own ordinary validation, ordinary Smart validation and Splash Smart validation. Protocol preparation and JSON composition are pure transformations; network evidence comes only from the pinned sandbox. No service depends on ChatGPT, the remote-management connector, or a browser session to keep running.
+The independent Go service owns collection, encrypted content and SQLite publication. Four separate supervisors own ordinary validation, ordinary Smart validation, Splash Smart validation and Smart Ads validation. Protocol preparation and JSON composition are pure transformations; network evidence comes only from the pinned sandbox. No service depends on ChatGPT, the remote-management connector, or a browser session to keep running.
 
 ## Active module and extension boundaries
 
@@ -80,3 +80,18 @@ Store owns one write connection and at most three read-only connections. Open in
 GET settings endpoints return small metadata independently of output readiness. Feature polling cannot be blocked by shared summary failure; retries are bounded and one request per loop can be in flight. Settings drivers preserve dirty forms and use revision-aware explicit resubmission for Smart conflicts. A disabled initial control is unknown/loading, not an asserted saved false. JSON viewers apply completed data only to the current matching-hash row.
 
 Acquisition, nested envelope decoding, explicit restoration and full exports share an anonymous plaintext spool; persistent originals/candidates remain encrypted. Format plugins continue receiving a reopenable path. The Linux /proc requirement matches the deployed server and is exercised in tests.
+
+
+## P25 receipt and retention recovery
+Schema14 stores body receipt counters/time independently of current membership and output evidence. A new body measures extracted and unique occurrences plus newly inserted identities; presentation derives within-body repeats and pre-existing/shared identities without reusing the legacy combined duplicate count. Unknown legacy receipts are explicit. Whole JSON input identity remains distinct from its internal outbound count.
+
+Before any expiration cascade, affected enabled sources are queued for fresh acquisition; next_run is capped by the earliest retained expiry. Startup reconciliation repairs already-swept gaps, while partial/missing inventory disables conditional validators. Failed recovery backs off5seconds to5minutes and never extends fixed lifetimes or clears user controls. The normal configured interval is unchanged; retention is an independent recovery trigger.
+
+The state endpoint reads one WAL snapshot with a fixed presentation timestamp, preventing mixed generations/TTL moments within one response. Writer and export ownership gates remain unchanged. Schema14→13 rollback is additive and preserves Splash tables/settings; stop services before changing the schema marker and selecting P24. Re-upgrade discards unmaintained receipt measurements, not source data.
+
+
+## Smart Ads (P26)
+
+A third closed SmartPipeline repository driver owns ads_smart settings, jobs, validated cache, usage and durable turns. Its inputs are live immutable evidence from both existing pools, while position-specific gates require one whole Splash head and ordinary main followers. ComposeAds calls the common Smart composer, retains all namespaced outbounds and attaches terminal supported Ads dialers to a main leastLoad loopback. Nested balanced Ads inputs retain a distinct exit pool. The independent csa worker core-validates outputs before cache publication; source health, core acceptance and whole-chain connectivity remain separate evidence. The UI, public/canonical/full/single URLs and private Unix queue are isolated under the smart-ads scope. The same GC and lifecycle framework protects and revokes all three caches.
+
+VLESS REALITY's positive support-x25519mlkem768 URI extension has a narrowly scoped native-Xray compatibility adapter. It creates no nonfunctional JSON property and cannot disable ML-KEM; unknown or incompatible options fail explicitly.

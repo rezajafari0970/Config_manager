@@ -89,7 +89,7 @@ func (s *Store) exportSourceName(ctx context.Context, source string) (string, er
 		return "همهٔ منابع", nil
 	}
 	var name string
-	e := s.reader().QueryRowContext(ctx, "SELECT name FROM sources WHERE id=?", source).Scan(&name)
+	e := s.read(ctx).QueryRowContext(ctx, "SELECT name FROM sources WHERE id=?", source).Scan(&name)
 	if errors.Is(e, sql.ErrNoRows) {
 		return "", ErrNotFound
 	}

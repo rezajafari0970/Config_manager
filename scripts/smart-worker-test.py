@@ -9,9 +9,10 @@ def normalize(body):
  value=json.loads(body);value['outbounds'].sort(key=lambda x:x['tag'])
  return json.dumps(value,sort_keys=True,separators=(',',':'))
 def main():
- parser=argparse.ArgumentParser();parser.add_argument('--splash',action='store_true');parser.add_argument('--live-canary',type=int,default=0);args=parser.parse_args()
+ parser=argparse.ArgumentParser();parser.add_argument('--splash',action='store_true');parser.add_argument('--ads',action='store_true');parser.add_argument('--live-canary',type=int,default=0);args=parser.parse_args()
  if os.geteuid()!=0:raise SystemExit('root required for sandbox integration')
  scope='splash' if args.splash else 'normal';api='/api/smart-splash' if args.splash else '/api/smart';table='splash_smart_' if args.splash else 'smart_';mode='smart-splash' if args.splash else 'smart'
+ if args.ads:scope='ads';api='/api/smart-ads';table='ads_smart_';mode='smart-ads'
  receipt={'scope':scope,'android':'not_run','whole_profile_connection':'not_run'}
  with tempfile.TemporaryDirectory(prefix='smart-worker-',dir=ROOT/'.local') as tmp:
   work=pathlib.Path(tmp);os.chmod(work,0o700)
@@ -31,7 +32,7 @@ def main():
    samples['Canary']=picked;receipt['live_samples']=len(picked)
   (work/'samples.json').write_text(json.dumps(samples))
   for name in ['probe-one.py','live-probe.py']:(work/name).write_text((ROOT/'scripts'/name).read_text())
-  (work/'smart-probe-one.py').write_text((ROOT/'scripts'/('splash-probe-one.py' if args.splash else 'smart-probe-one.py')).read_text().replace("PREFIX='csm'","PREFIX='cst'").replace("PREFIX='csp'","PREFIX='cpt'"))
+  (work/'smart-probe-one.py').write_text((ROOT/'scripts'/('ads-probe-one.py' if args.ads else 'splash-probe-one.py' if args.splash else 'smart-probe-one.py')).read_text().replace("PREFIX='csm'","PREFIX='cst'").replace("PREFIX='csp'","PREFIX='cpt'").replace("PREFIX='csa'","PREFIX='cat'"))
   panel=worker=None
   with (work/'panel.log').open('w') as pl,(work/'worker.log').open('w') as wl:
    try:
@@ -60,10 +61,10 @@ def main():
     assert killed and max_active<=2
     lines=get(state['export_url'])[0].splitlines();assert len(lines)==state['stats']['ready']==len(set(lines))
     for line in lines:
-     j=json.loads(line);assert j['remarks']=='@shenvpn-smart-parallel-v6b'
+     j=json.loads(line);assert j['remarks']==('@shenvpn-smart-ads' if args.ads else '@shenvpn-smart-parallel-v6b')
      assert list(j)==['remarks','log','dns','inbounds','outbounds','routing','burstObservatory','policy','stats','metrics']
      assert j['log']=={'loglevel':'none','access':'none','error':'none','dnsLog':False}
-     assert len(j['dns']['servers'])==4 and len(j['routing']['balancers'])==2 and len(j['routing']['rules'])==4
+     assert len(j['dns']['servers'])==4 and len(j['routing']['balancers'])==2 and len(j['routing']['rules'])==(6 if args.ads else 4)
      assert j['outbounds'][0]['tag'] in j['routing']['balancers'][1]['selector'] and j['routing']['balancers'][0]['fallbackTag']=='block'
      assert len([x for x in j['outbounds'] if x['tag'].startswith('proxy-')])>=50
      assert j['routing']['balancers'][-1]['strategy']=={'type':'leastLoad','settings':{'expected':3,'maxRTT':'2s','tolerance':.15}}
@@ -77,12 +78,14 @@ def main():
     assert all(c==1 for c,_ in turns[:-1]) and len(set(h for _,h in turns[:-1]))==len(lines) and turns[-1][0]==2
     with sqlite3.connect(str(work/'data/panel.db')) as db:
      covered=db.execute('SELECT head,count(DISTINCT source) FROM '+table+'members GROUP BY head').fetchall()
-     assert all(n==len(samples) for _,n in covered)
+     assert all(n==(3 if args.ads else len(samples)) for _,n in covered)
+     if args.ads:
+      assert db.execute("SELECT count(*) FROM ads_smart_members m JOIN sources s ON s.id=m.source WHERE (m.position=0 AND s.splash!=1) OR(m.position>0 AND s.splash!=0)").fetchone()[0]==0
      assert db.execute('SELECT status FROM conversion_worker').fetchone()[0]=='offline'
     if args.splash:
      other=json.loads(get(origin+'/api/smart')[0]);assert other['stats']['ready']==0 and other['settings']['count']==10
      assert all(b'192.0.2.200' not in line for line in lines)
-    receipt.update(passed=True,profiles=len(lines),members_per_profile=50,sources=len(samples),max_active=max_active,sigkill_recovered=True,unique_head_round=True,inline=True,core='xray-26.7.28')
+    receipt.update(passed=True,profiles=len(lines),members_per_profile=51 if args.ads else 50,sources=len(samples),max_active=max_active,sigkill_recovered=True,unique_head_round=True,inline=True,core='xray-26.7.28')
    finally:
     for process in [worker,panel]:
      if process and process.poll() is None:
@@ -90,6 +93,6 @@ def main():
       try:process.wait(timeout=35)
       except subprocess.TimeoutExpired:process.kill();process.wait()
     subprocess.run(['/usr/bin/python3',str(work/'smart-probe-one.py'),'--cleanup'],check=True,timeout=30)
-    (ROOT/('.local/splash-worker-diagnostic.log' if args.splash else '.local/smart-worker-diagnostic.log')).write_text((work/'worker.log').read_text()[-8000:])
- (ROOT/('.local/splash-worker-test.json' if args.splash else '.local/smart-worker-test.json')).write_text(json.dumps(receipt,indent=2));print(json.dumps(receipt),flush=True)
+    (ROOT/('.local/ads-worker-diagnostic.log' if args.ads else '.local/splash-worker-diagnostic.log' if args.splash else '.local/smart-worker-diagnostic.log')).write_text((work/'worker.log').read_text()[-8000:])
+ (ROOT/('.local/ads-worker-test.json' if args.ads else '.local/splash-worker-test.json' if args.splash else '.local/smart-worker-test.json')).write_text(json.dumps(receipt,indent=2));print(json.dumps(receipt),flush=True)
 if __name__=='__main__':main()

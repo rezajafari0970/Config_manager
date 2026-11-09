@@ -34,13 +34,27 @@ func TestSmartWorkerFixture(t *testing.T) {
 	}
 	pipeline := s.Smart()
 	splash := os.Getenv("CONFIG_SMART_FIXTURE_SCOPE") == "splash"
+	ads := os.Getenv("CONFIG_SMART_FIXTURE_SCOPE") == "ads"
+	if ads {
+		pipeline = s.AdsSmart()
+		mainA, mainB := []string{}, []string{}
+		for n := 201; n <= 255; n++ {
+			if n <= 245 {
+				mainA = append(mainA, sourceURI(n))
+			} else {
+				mainB = append(mainB, sourceURI(n))
+			}
+		}
+		newExportSource(t, s, "MainA", mainA...)
+		newExportSource(t, s, "MainB", mainB...)
+	}
 	if splash {
 		pipeline = s.SplashSmart()
 		newExportSource(t, s, "NormalExcluded", sourceURI(200))
 	}
 	for name, raws := range samples {
 		id, _ := newExportSource(t, s, name, raws...)
-		if splash {
+		if splash || ads {
 			markSplash(t, s, id, true)
 		}
 	}

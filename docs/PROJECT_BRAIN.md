@@ -57,3 +57,9 @@ P23 final schema13 retains the schema12 Splash partition while replacing a repea
 
 ## Current P24 — independent reads and visible recovery
 Read the P24 checkpoint for the video-led audit. Bounded read-only WAL access separates presentation from the serialized writer; independent feature loops and thin settings APIs remove shared-summary gating. Form state,409 recovery, matching-row JSON delivery and anonymous plaintext spools have regressions. Schema13 and both JSON templates are unchanged; preserve every live source/setting/rotation. Do not claim missing credentials/unsupported semantics are repaired, or equate API timings with Android/operator speed. Final validation/deployment/publication receipts determine completion.
+
+
+## P26 — Smart Ads
+The requested third pipeline combines exactly one whole fresh Splash input as Ads exit with ordinary Smart carrier members. Shared selection/composition and scope-specific repositories keep health/ownership/TTL and durable turns independent. Read P26 checkpoint for the chain contract, geosite asset, five-service release and controlled traffic evidence.
+
+P26 final: third Smart Ads scope deployed and verified, with positive REALITY ML-KEM URI-hint compatibility. Its current live availability depends on fresh Splash proof; current server probes do not supply a healthy Ads head. See P26 checkpoint and PROJECT_STATE for final receipts, source/runtime identity and explicit untested phone/session boundaries.

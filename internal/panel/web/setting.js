@@ -4,7 +4,7 @@ import {bindSettings} from './settings-form.js';
 export default function Setting(ctx){
  const number=id=>{const n=Number(digit($('#'+id).value));if(!Number.isSafeInteger(n)||n<1)throw new Error('مقادیر باید عدد صحیح مثبت باشند.');return n};
  const tasks=[];
- for(const prefix of ['smart','smart-splash'])tasks.push(bindSettings({
+ for(const prefix of ['smart','smart-splash','smart-ads'])tasks.push(bindSettings({
   form:$('#'+prefix+'-settings'),path:'/api/'+prefix+'/settings',
   read:()=>({enabled:$('#'+prefix+'-enabled').checked,count:number(prefix+'-member-count')}),
   write:s=>{$('#'+prefix+'-enabled').checked=s.enabled;$('#'+prefix+'-member-count').value=s.count}

@@ -1,6 +1,6 @@
 {
-  "phase": "P24 independent stages, WAL readers, UI recovery and anonymous spools",
-  "date": "2026-11-09",
+  "phase": "P26 independent Smart Ads and native REALITY hint compatibility; includes P25 inventory recovery",
+  "date": "2026-11-10",
   "status": "validated_and_deployed",
   "repository": "rezajafari0970/Config_manager",
   "branch": "go/v2rayng-2.3.6",
@@ -40,7 +40,8 @@
     "smart_ping": "Pinned Lib40 MeasureOutboundDelay removes routing/DNS/observers and tests default only. Fixed block-first failure; a failed default does not prove full leastLoad pool failure. No universal ping guarantee or APK/carrier claim.",
     "smart_cache": "Schema13 validated cache and exact provenance are independent of pending replacements; capacity/source growth refreshes in background, while proof/ownership/settings/version/TTL revocation is immediate.",
     "resource_recovery": "Atomic same-plaintext blob replacement, synchronized compiled registries, bounded validated-IP fallback and worker idle polling, scoped UI reads with fetch deadline, unlinked full-export spooling.",
-    "smart_splash": "Source flag; closed shared SmartPipeline drivers with separate settings/jobs/cache/provenance/counters/rotation/status/token domains and csp worker. Splash identity/candidate ownership takes precedence over ordinary duplicates. No cross-pool filling; ordinary/source outputs unchanged."
+    "smart_splash": "Source flag; closed shared SmartPipeline drivers with separate settings/jobs/cache/provenance/counters/rotation/status/token domains and csp worker. Splash identity/candidate ownership takes precedence over ordinary duplicates. No cross-pool filling; ordinary/source outputs unchanged.",
+    "smart_ads": "One whole fresh Splash head plus ordinary main followers; independent repository/settings/jobs/cache/provenance/rounds/service. Main and bootstrap leastLoad unchanged; terminal Ads dialers chain through main. Missing Ads blocks publication; unsupported chains fail explicitly."
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -2005,20 +2006,92 @@
         "splash": 1.51
       },
       "note": "Server measurements only; live data and user settings can change. No2s/zero-loss/zero-defect guarantee."
+    },
+    "p25": {
+      "status": "validated_and_deployed",
+      "targeted": "passed",
+      "migration_rollback": "passed;35table fingerprints preserved",
+      "openai_api": "not_run:no configured API key",
+      "full_checks": "passed",
+      "worker_browser_traffic": "passed; private p25 receipts",
+      "public": "passed; source accounting and current inventory verified"
+    },
+    "p26": {
+      "checkpoint": "docs/checkpoints/P26-smart-ads-20261110.md",
+      "full_checks": "passed; final r2 race/vet/modules/build/pinned-core/Python/JS",
+      "worker_recovery": {
+        "conversion-worker": {
+          "exit_code": 0,
+          "seconds": 137.9,
+          "at": 1794266028.7238727
+        },
+        "splash-worker": {
+          "exit_code": 0,
+          "seconds": 187.26,
+          "at": 1794266078.0819025
+        },
+        "smart-worker": {
+          "exit_code": 0,
+          "seconds": 188.3,
+          "at": 1794266079.1144264
+        },
+        "ads-worker": {
+          "exit_code": 0,
+          "seconds": 191.78,
+          "at": 1794266082.5988634
+        }
+      },
+      "final_converter_worker": {
+        "exit_code": 0,
+        "seconds": 132.16,
+        "at": 1794266728.5518436
+      },
+      "ads_round": {
+        "profiles": 55,
+        "members_per_profile": 51,
+        "independent_sources": 3,
+        "all_heads_once": true,
+        "sigkill_recovered": true
+      },
+      "traffic": "passed controlled Ads chained/exit-down/bypass-negative TCP/UDP/UDP443; common DoH/cold-bootstrap/Lib40/leastLoad/traffic gates passed",
+      "browser": "passed synthetic restart/settings/rotation at390/1440; public HTTPS mobile/desktop has no page errors/downloads",
+      "public": {
+        "passed": true,
+        "empty_scopes": [
+          "smart-splash",
+          "smart-ads"
+        ],
+        "live_ads_profile": "not_run_no_fresh_Splash"
+      },
+      "cache_audit": {
+        "passed": true,
+        "version": "xray-26.7.28.smart-ads.v1",
+        "profiles": 4,
+        "ads_profiles": 0,
+        "selected_inputs": 200,
+        "copied_outbounds": 832,
+        "cached_bytes_exact": true,
+        "logs_off": true
+      },
+      "migration": "passed35 existing table fingerprints14→15; previous-binary rollback/re-upgrade; actual deployment fingerprints preserved",
+      "openai_review": "completed:gpt-6-astra; scoped architecture and chain review; private key/receipts",
+      "android_carriers": "not_run",
+      "whole_live_ads_chain": "not_run_no_fresh_Splash"
     }
   },
   "runtime": {
-    "database_schema": 13,
+    "database_schema": 15,
     "services": [
       "config-repair.service",
       "config-repair-prober.service",
       "config-repair-smart.service",
-      "config-repair-splash.service"
+      "config-repair-splash.service",
+      "config-repair-ads.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p24-7f0e103e325c54015669-r1",
-    "panel_sha256": "7f0e103e325c540156696112a0a48115a0da0226e9d8d1f8026828f66c91a878",
-    "worker_sha256": "3b8960ded16dffda5a9ddc947968bff3128daf10232042af8fa25657630706cd",
+    "release": "/opt/config-repair/releases/p26-97af99d36ffae0ccc4c7-r2",
+    "panel_sha256": "97af99d36ffae0ccc4c7034cf5ea2a61eb5548065285dfcffbb2ce78022a0b31",
+    "worker_sha256": "905696e03dbbc706261d203febad43493ae5d9f7c98b8cf1bf5bb1ce56ea4c50",
     "template_version": "xray-26.7.28.template.v4",
     "retention_seconds": 7200,
     "fetch_concurrency": 16,
@@ -2027,15 +2100,15 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/p24-deployed.json",
-    "publication_receipt": ".local/p24-published.json",
-    "sandbox_driver_sha256": "c241c605f1b4c04dec9ac96d43a2b1eed17333d2b42c596720aecb82b58c355b",
+    "deployment_receipt": ".local/p26-r2-deployed.json",
+    "publication_receipt": ".local/p26-published.json",
+    "sandbox_driver_sha256": "6dbbf156621338b6d644b1f1101d5ac3013cbc571e010a7c75e3e88c1089d28d",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
     "smart_version": "xray-26.7.28.smart.v8",
     "smart_count": 50,
     "smart_concurrency": 2,
-    "adapter_sha256": "d7bd647d629f3e140a7f4ea0e77600578d109b901fa6b63752f27c0d771b1065",
+    "adapter_sha256": "a8ada44cdc692a0774ccecd5cddd33d1ce2a263765a8f72b020dfd866a4fba02",
     "smart_adapter_sha256": "315174552cdac75a509eb3fa45079dacda57e8e6d60eb966cb60f2ba5b3d0190",
     "smart_revision": 11,
     "source_count_at_inspection": 29,
@@ -2043,10 +2116,17 @@
     "splash_count": 1,
     "splash_revision": 5,
     "splash_enabled": true,
-    "splash_sources_at_inspection": 7,
+    "splash_sources_at_inspection": 3,
     "splash_concurrency": 2,
-    "source_parent_commit": "1578810b04fa442640297d1f29293c0ad4c1d511",
-    "tested_runtime_manifest": ".local/p24-tested-runtime.json"
+    "source_parent_commit": "b977fbb7ea817105b2842ae2bb790485ddb9a9ae",
+    "tested_runtime_manifest": ".local/p26-tested-runtime.json",
+    "ads_adapter_sha256": "4a519c9f99c61b9b8c25d16a6350af83f8fb00b29808e1e275110e5918bdebec",
+    "ads_version": "xray-26.7.28.smart-ads.v1",
+    "geosite_sha256": "adf92de0cfc70e458b399f04c5f912bf42d115ed7e37281b30e2f1c68605e4e9",
+    "smart_enabled": true,
+    "ads_count": 50,
+    "ads_revision": 1,
+    "ads_enabled": true
   },
   "next": [
     "Actual Android/Termux and carrier/TUN/media/throughput measurements require a connected device; still not_run",
@@ -2054,5 +2134,16 @@
     "Standalone checksum-pinned installer/update/rollback remains a separate release task"
   ],
   "environment": "Use verified project-local Go1.27.1 toolchain/module/build caches; shared caches previously failed integrity checks and were not modified.",
-  "audit_checkpoint": "docs/checkpoints/P24-system-audit-20261109.md"
+  "audit_checkpoint": "docs/checkpoints/P26-smart-ads-20261110.md",
+  "smart_ads": {
+    "status": "deployed_verified; waiting for fresh eligible Splash input",
+    "schema": 15,
+    "version": "xray-26.7.28.smart-ads.v1",
+    "path": "/smart-ads",
+    "checkpoint": "docs/checkpoints/P26-smart-ads-20261110.md",
+    "openai_review": "completed:gpt-6-astra; private receipts",
+    "current_ready": 0,
+    "main_count": 50,
+    "automatic_retest": true
+  }
 }

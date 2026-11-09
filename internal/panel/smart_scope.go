@@ -6,25 +6,48 @@ import (
 	"regexp"
 
 	"github.com/rezajafari0970/Config_manager/internal/probe"
+	"github.com/rezajafari0970/Config_manager/internal/smart"
 )
 
 // SmartPipeline binds the common builder to one isolated publication repository.
 // Collection and immutable content storage stay shared; no queue/cache/counter is
-// shared across the two pipelines. Scope comes only from these constructors.
+// shared across the three pipelines. Scope comes only from these constructors.
 type SmartPipeline struct {
 	*Store
 	db     smartDB
 	splash bool
+	ads    bool
 }
 
 func (s *Store) Smart() *SmartPipeline { return &SmartPipeline{Store: s, db: smartDB{DB: s.db}} }
 func (s *Store) SplashSmart() *SmartPipeline {
 	return &SmartPipeline{Store: s, db: smartDB{DB: s.db, splash: true}, splash: true}
 }
+func (s *Store) AdsSmart() *SmartPipeline {
+	return &SmartPipeline{Store: s, db: smartDB{DB: s.db, ads: true}, ads: true}
+}
+func (s *SmartPipeline) version() string {
+	if s.ads {
+		return smart.AdsVersion
+	}
+	return smart.Version
+}
+func (s *SmartPipeline) tokenMode(v string) string {
+	if s.ads {
+		return "ads-" + v
+	}
+	if s.splash {
+		return "splash-" + v
+	}
+	return v
+}
 func (s *SmartPipeline) reader() smartDB {
-	return smartDB{DB: s.Store.reader(), splash: s.splash}
+	return smartDB{DB: s.Store.reader(), splash: s.splash, ads: s.ads}
 }
 func (s *SmartPipeline) path() string {
+	if s.ads {
+		return "/smart-ads"
+	}
 	if s.splash {
 		return "/smart-splash"
 	}
@@ -42,41 +65,50 @@ func smartSQL(q string, splash bool) string {
 	return smartIdentifiers.ReplaceAllString(q, "splash_$0")
 }
 
+func scopedSmartSQL(q string, splash, ads bool) string {
+	if ads {
+		return smartIdentifiers.ReplaceAllString(q, "ads_$0")
+	}
+	return smartSQL(q, splash)
+}
+
 type smartDB struct {
 	*sql.DB
 	splash bool
+	ads    bool
 }
 
 func (d smartDB) QueryContext(c context.Context, q string, a ...any) (*sql.Rows, error) {
-	return d.DB.QueryContext(c, smartSQL(q, d.splash), a...)
+	return d.DB.QueryContext(c, scopedSmartSQL(q, d.splash, d.ads), a...)
 }
 func (d smartDB) QueryRowContext(c context.Context, q string, a ...any) *sql.Row {
-	return d.DB.QueryRowContext(c, smartSQL(q, d.splash), a...)
+	return d.DB.QueryRowContext(c, scopedSmartSQL(q, d.splash, d.ads), a...)
 }
 func (d smartDB) ExecContext(c context.Context, q string, a ...any) (sql.Result, error) {
-	return d.DB.ExecContext(c, smartSQL(q, d.splash), a...)
+	return d.DB.ExecContext(c, scopedSmartSQL(q, d.splash, d.ads), a...)
 }
 func (d smartDB) BeginTx(c context.Context, o *sql.TxOptions) (*smartTx, error) {
 	t, e := d.DB.BeginTx(c, o)
 	if e != nil {
 		return nil, e
 	}
-	return &smartTx{Tx: t, splash: d.splash}, nil
+	return &smartTx{Tx: t, splash: d.splash, ads: d.ads}, nil
 }
 
 type smartTx struct {
 	*sql.Tx
 	splash bool
+	ads    bool
 }
 
 func (t *smartTx) QueryContext(c context.Context, q string, a ...any) (*sql.Rows, error) {
-	return t.Tx.QueryContext(c, smartSQL(q, t.splash), a...)
+	return t.Tx.QueryContext(c, scopedSmartSQL(q, t.splash, t.ads), a...)
 }
 func (t *smartTx) QueryRowContext(c context.Context, q string, a ...any) *sql.Row {
-	return t.Tx.QueryRowContext(c, smartSQL(q, t.splash), a...)
+	return t.Tx.QueryRowContext(c, scopedSmartSQL(q, t.splash, t.ads), a...)
 }
 func (t *smartTx) ExecContext(c context.Context, q string, a ...any) (sql.Result, error) {
-	return t.Tx.ExecContext(c, smartSQL(q, t.splash), a...)
+	return t.Tx.ExecContext(c, scopedSmartSQL(q, t.splash, t.ads), a...)
 }
 
 type smartTransaction interface {

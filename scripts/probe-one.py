@@ -31,7 +31,7 @@ def cleanup(slot=None,runid=None):
 
 def main(core_only=False):
     global OWN
-    if PREFIX not in ('crw','csm','csp','ctw','cst','cpt'):raise SystemExit('invalid resource prefix')
+    if PREFIX not in ('crw','csm','csp','csa','ctw','cst','cpt','cat'):raise SystemExit('invalid resource prefix')
     OWN=re.compile(r'^'+PREFIX+r'[0-9a-f]{6}20(?:0[0-8])$')
     a=argparse.ArgumentParser();a.add_argument('--core');a.add_argument('--slot',type=int);a.add_argument('--cleanup',action='store_true');a.add_argument('--cleanup-slot',type=int);a.add_argument('--self-test',action='store_true');a.add_argument('--run-id');a.add_argument('--cleanup-run');args=a.parse_args()
     if os.geteuid()!=0:raise SystemExit('root supervisor required')

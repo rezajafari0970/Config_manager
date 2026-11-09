@@ -24,6 +24,11 @@ type browserDriver struct{}
 
 func (browserDriver) Name() string { return "synthetic-browser-fixture.v1" }
 func (browserDriver) Fetch(ctx context.Context, job collect.Job) (collect.Response, error) {
+	if dir := os.Getenv("CONFIG_PANEL_BROWSER_FIXTURE_DIR"); dir != "" {
+		if _, e := os.Stat(filepath.Join(dir, "upstream-offline")); e == nil {
+			return collect.Response{}, errors.New("synthetic upstream outage")
+		}
+	}
 	if strings.Contains(job.URL, "Broken") {
 		return collect.Response{}, errors.New("synthetic failure")
 	}
@@ -101,10 +106,12 @@ func TestBrowserFixtureServer(t *testing.T) {
 			case <-ctx.Done():
 				return
 			case <-tick.C:
-				for _, p := range []*SmartPipeline{store.Smart(), store.SplashSmart()} {
+				for _, p := range []*SmartPipeline{store.Smart(), store.SplashSmart(), store.AdsSmart()} {
 					j, e := p.ClaimSmart(ctx)
 					if e == nil && j != nil {
 						r := smartResult(j)
+						r.Version = p.version()
+						r.Rule = p.version()
 						if j.Issue != "" {
 							r.Core = "blocked"
 							r.Code = j.Issue

@@ -119,7 +119,7 @@ func (s *SmartPipeline) SaveSmartSettings(ctx context.Context, v SmartSettings) 
 	return tx.Commit()
 }
 func smartInventory(ctx context.Context, db conversionQuerier) ([]smart.Member, error) {
-	rows, e := db.QueryContext(ctx, "SELECT id,source,raw_hash,hash,expires FROM smart_offers ORDER BY source,id")
+	rows, e := db.QueryContext(ctx, "SELECT i.id,i.source,i.raw_hash,i.hash,i.expires,s.splash FROM smart_offers i JOIN sources s ON s.id=i.source ORDER BY i.source,i.id")
 	if e != nil {
 		return nil, e
 	}
@@ -127,7 +127,7 @@ func smartInventory(ctx context.Context, db conversionQuerier) ([]smart.Member, 
 	out := []smart.Member{}
 	for rows.Next() {
 		var m smart.Member
-		if e = rows.Scan(&m.ID, &m.Source, &m.RawHash, &m.Hash, &m.Expires); e != nil {
+		if e = rows.Scan(&m.ID, &m.Source, &m.RawHash, &m.Hash, &m.Expires, &m.Ads); e != nil {
 			return nil, e
 		}
 		out = append(out, m)
@@ -190,7 +190,7 @@ func (s *SmartPipeline) ClaimSmart(ctx context.Context) (*probe.Job, error) {
 	// independent slots until their crash-recovery timeout.
 	if _, e = tx.ExecContext(ctx, `UPDATE smart_heads SET state='queued',token='',lease_until=0,next_run=0
  WHERE token!='' AND (version!=? OR revision!=? OR expires<=? OR
- (SELECT count(*) FROM smart_owned_members m WHERE m.head=smart_heads.id)!=member_count)`, smart.Version, revision, now); e != nil {
+ (SELECT count(*) FROM smart_owned_members m WHERE m.head=smart_heads.id)!=member_count)`, s.version(), revision, now); e != nil {
 		return nil, e
 	}
 	var active int
@@ -213,7 +213,9 @@ func (s *SmartPipeline) ClaimSmart(ctx context.Context) (*probe.Job, error) {
 			continue
 		}
 		hashes[m.Hash] = m.ID
-		ids[m.ID] = true
+		if !s.ads || m.Ads {
+			ids[m.ID] = true
+		}
 	}
 	// A byte-identical candidate belongs to one canonical head in this snapshot.
 	// Filter follower/leader offers by the same ownership, so a secondary raw
@@ -254,7 +256,7 @@ func (s *SmartPipeline) ClaimSmart(ctx context.Context) (*probe.Job, error) {
 		return nil, e
 	}
 	var head string
-	e = tx.QueryRowContext(ctx, "SELECT id FROM smart_heads WHERE (token='' OR lease_until<=?) AND (state!='ready' OR revision!=? OR version!=?) AND (next_run<=? OR inventory!=?) ORDER BY EXISTS(SELECT 1 FROM smart_ready c WHERE c.id=smart_heads.id),sequence,created,id LIMIT 1", now, revision, smart.Version, now, inventory).Scan(&head)
+	e = tx.QueryRowContext(ctx, "SELECT id FROM smart_heads WHERE (token='' OR lease_until<=?) AND (state!='ready' OR revision!=? OR version!=?) AND (next_run<=? OR inventory!=?) ORDER BY EXISTS(SELECT 1 FROM smart_ready c WHERE c.id=smart_heads.id),sequence,created,id LIMIT 1", now, revision, s.version(), now, inventory).Scan(&head)
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, tx.Commit()
 	}
@@ -265,7 +267,17 @@ func (s *SmartPipeline) ClaimSmart(ctx context.Context) (*probe.Job, error) {
 	if e != nil {
 		return nil, e
 	}
-	members, e := smart.Select(pool, head, count, ledger)
+	selectionPool := pool
+	if s.ads {
+		selectionPool = nil
+		for _, m := range pool {
+			if !m.Ads || m.ID == head {
+				selectionPool = append(selectionPool, m)
+			}
+		}
+		count++ // The setting counts main members; the one Ads member is additional.
+	}
+	members, e := smart.Select(selectionPool, head, count, ledger)
 	if e != nil {
 		return nil, e
 	}
@@ -296,7 +308,7 @@ func (s *SmartPipeline) ClaimSmart(ctx context.Context) (*probe.Job, error) {
 			return nil, e
 		}
 	}
-	_, e = tx.ExecContext(ctx, "UPDATE smart_heads SET hash='',member_count=?,created=?,expires=?,revision=?,version=?,state='running',code='',token=?,lease_until=?,next_run=0,sequence=?,inventory=? WHERE id=?", len(members), now, expires, revision, smart.Version, token, now+120000, sequence, inventory, head)
+	_, e = tx.ExecContext(ctx, "UPDATE smart_heads SET hash='',member_count=?,created=?,expires=?,revision=?,version=?,state='running',code='',token=?,lease_until=?,next_run=0,sequence=?,inventory=? WHERE id=?", len(members), now, expires, revision, s.version(), token, now+120000, sequence, inventory, head)
 	if e != nil {
 		return nil, e
 	}
@@ -311,7 +323,11 @@ func (s *SmartPipeline) ClaimSmart(ctx context.Context) (*probe.Job, error) {
 			return j, nil
 		}
 	}
-	j.Raw, e = smart.Compose(members)
+	if s.ads {
+		j.Raw, e = smart.ComposeAds(members[1:], members[0])
+	} else {
+		j.Raw, e = smart.Compose(members)
+	}
 	if e != nil {
 		j.Issue = e.Error()
 		j.Raw = nil
@@ -344,7 +360,7 @@ func (s *SmartPipeline) RenewSmart(ctx context.Context, j probe.Job) error {
 	return nil
 }
 func (s *SmartPipeline) CompleteSmart(ctx context.Context, r probe.Result) error {
-	if r.Version != smart.Version || r.CoreSHA256 != probe.CoreSHA256 || !validDigest(r.Hash) || !safeCode(r.Code) || r.Connection != "not_run" {
+	if r.Version != s.version() || r.CoreSHA256 != probe.CoreSHA256 || !validDigest(r.Hash) || !safeCode(r.Code) || r.Connection != "not_run" {
 		return ErrInvalid
 	}
 	if r.Core != "passed" && r.Core != "failed" && r.Core != "blocked" && r.Core != "not_run" {

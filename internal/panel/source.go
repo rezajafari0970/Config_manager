@@ -43,6 +43,11 @@ type Source struct {
 	HTTPStatus      int       `json:"http_status"`
 	DurationMS      int64     `json:"duration_ms"`
 	FetchCount      int64     `json:"fetch_count"`
+	ReceiptUnique   int       `json:"receipt_unique"`
+	ReceiptNew      int       `json:"receipt_new"`
+	ReceiptAt       int64     `json:"receipt_at"`
+	RefreshReason   string    `json:"refresh_reason"`
+	DisabledCount   int       `json:"disabled_count"`
 	ConfigCount     int       `json:"config_count"`
 	DuplicateCount  int       `json:"duplicates"`
 	HasResponse     bool      `json:"has_response"`

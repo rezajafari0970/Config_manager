@@ -1,0 +1,8 @@
+{
+  "geosite.dat": {
+    "sha256": "adf92de0cfc70e458b399f04c5f912bf42d115ed7e37281b30e2f1c68605e4e9",
+    "size": 10491954,
+    "required_rule": "geosite:google@ads",
+    "source": "existing server /usr/local/share/xray/geosite.dat; immutable deployment checksum"
+  }
+}
