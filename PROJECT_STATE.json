@@ -1,7 +1,7 @@
 {
-  "phase": "P23 independent Smart Splash, including P22 pipeline recovery",
+  "phase": "P24 independent stages, WAL readers, UI recovery and anonymous spools",
   "date": "2026-11-09",
-  "status": "deployed_verified",
+  "status": "validated_and_deployed",
   "repository": "rezajafari0970/Config_manager",
   "branch": "go/v2rayng-2.3.6",
   "legacy_main": "unchanged",
@@ -1975,6 +1975,36 @@
         "scope": "same isolated adopted-production snapshot, seven SQL reads per view, fixed SQL clock; not carrier speed"
       },
       "android_carriers": "not_run"
+    },
+    "p24": {
+      "checkpoint": "docs/checkpoints/P24-system-audit-20261109.md",
+      "race_vet_build_core": "passed",
+      "read_isolation_reconnect": "passed",
+      "thin_settings": "passed",
+      "ui_independence_conflict_recovery": "passed",
+      "anonymous_plaintext_spools": "passed",
+      "traffic": "passed actual TCP/UDP/UDP443, A/TXT DNS, dual tunneled DoH, cold failure, Lib40 filter and observer-gated recovery",
+      "worker_integrations": "passed ordinary plus independent normal/Splash55 profiles x50members SIGKILL recovery",
+      "android_carrier": "not_run",
+      "model_switch_or_openai_api": "not_run",
+      "public_browser": "passed HTTPS390/1440 layouts, canonical/full/single,8 single requests, zero page errors/download events",
+      "composer_audit": {
+        "passed": true,
+        "version": "xray-26.7.28.smart.v8",
+        "profiles": 8,
+        "selected_inputs": 204,
+        "copied_outbounds": 858,
+        "cached_bytes_exact": true,
+        "logs_off": true
+      },
+      "final_checks": "passed final gofmt/modules/vet/race/build/core and Python/JS checks",
+      "settings_api_median_ms": {
+        "general": 1.35,
+        "conversion": 1.32,
+        "smart": 1.14,
+        "splash": 1.51
+      },
+      "note": "Server measurements only; live data and user settings can change. No2s/zero-loss/zero-defect guarantee."
     }
   },
   "runtime": {
@@ -1986,8 +2016,8 @@
       "config-repair-splash.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p23-828164866449b4c7c9a5-r2",
-    "panel_sha256": "828164866449b4c7c9a54d3152372ca05c968cc4a759d6643018195b23516d6c",
+    "release": "/opt/config-repair/releases/p24-7f0e103e325c54015669-r1",
+    "panel_sha256": "7f0e103e325c540156696112a0a48115a0da0226e9d8d1f8026828f66c91a878",
     "worker_sha256": "3b8960ded16dffda5a9ddc947968bff3128daf10232042af8fa25657630706cd",
     "template_version": "xray-26.7.28.template.v4",
     "retention_seconds": 7200,
@@ -1997,8 +2027,8 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/p23-deployed.json",
-    "publication_receipt": ".local/p23-published.json",
+    "deployment_receipt": ".local/p24-deployed.json",
+    "publication_receipt": ".local/p24-published.json",
     "sandbox_driver_sha256": "c241c605f1b4c04dec9ac96d43a2b1eed17333d2b42c596720aecb82b58c355b",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
@@ -2010,17 +2040,19 @@
     "smart_revision": 11,
     "source_count_at_inspection": 29,
     "splash_adapter_sha256": "03a6869f905713358d31e6fb997b841610b499a56d93d7875609a712f4bfd935",
-    "splash_count": 10,
-    "splash_revision": 1,
+    "splash_count": 1,
+    "splash_revision": 5,
     "splash_enabled": true,
     "splash_sources_at_inspection": 7,
-    "splash_concurrency": 2
+    "splash_concurrency": 2,
+    "source_parent_commit": "1578810b04fa442640297d1f29293c0ad4c1d511",
+    "tested_runtime_manifest": ".local/p24-tested-runtime.json"
   },
   "next": [
-    "Obtain actual target APK/device tests on MCI, Irancell, Rightel and Wi-Fi, including Instagram media/CDNs and network handover",
-    "Measure client throughput, p95/jitter and numbered UDP loss; do not label server homepage results as operator or no-loss proof",
-    "Consider individually verified nested balanced entries without pruning the required copied outbound definitions",
-    "Complete separately verified reproducible install/update/rollback release"
+    "Actual Android/Termux and carrier/TUN/media/throughput measurements require a connected device; still not_run",
+    "Unsupported or missing upstream connection parameters require valid source data or separately evidenced adapters",
+    "Standalone checksum-pinned installer/update/rollback remains a separate release task"
   ],
-  "environment": "Use verified project-local Go1.27.1 toolchain/module/build caches; shared caches previously failed integrity checks and were not modified."
+  "environment": "Use verified project-local Go1.27.1 toolchain/module/build caches; shared caches previously failed integrity checks and were not modified.",
+  "audit_checkpoint": "docs/checkpoints/P24-system-audit-20261109.md"
 }

@@ -5,10 +5,10 @@ import (
 	"context"
 	"errors"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
+	"github.com/rezajafari0970/Config_manager/internal/transient"
 	"io"
 	"log"
 	"net"
-	"os"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -193,12 +193,11 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 		return
 	}
 
-	spool, err := os.CreateTemp("", "config-fetch-")
+	spool, spoolPath, err := transient.NewFile()
 	if err != nil {
 		result.ErrorCode = "storage_error"
 		return
 	}
-	defer os.Remove(spool.Name())
 	defer spool.Close()
 	raw, err := e.vault.Put(ctx, io.TeeReader(&contextReader{ctx, response.Body}, spool))
 	if err != nil {
@@ -212,13 +211,9 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 		result.ContentState = "http_error"
 		return
 	}
-	if err = spool.Close(); err != nil {
-		result.ErrorCode = "storage_error"
-		return
-	}
 	unique := 0
 	result.Staged = true
-	err = e.formats.Extract(ctx, spool.Name(), func(ctx context.Context, r io.Reader, kind string) error {
+	err = e.formats.Extract(ctx, spoolPath, func(ctx context.Context, r io.Reader, kind string) error {
 		sample := &sampleWriter{}
 		ref, err := e.vault.Put(ctx, io.TeeReader(r, sample))
 		if err != nil {
@@ -272,7 +267,7 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 			result.ErrorCode = "orphan_wireguard_section"
 		}
 	}
-	result.ContentState = ContentState(spool.Name(), result.ValidCount, result.InvalidCount, result.UnknownCount)
+	result.ContentState = ContentState(spoolPath, result.ValidCount, result.InvalidCount, result.UnknownCount)
 	result.State = "updated"
 	if unique == 0 {
 		result.State = "empty"

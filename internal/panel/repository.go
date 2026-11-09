@@ -96,7 +96,7 @@ func (s *Store) list(ctx context.Context, search string, page int, paged bool) (
 		query += "LIMIT 100 OFFSET ?"
 		args = append(args, page*100)
 	}
-	rows, e := s.db.QueryContext(ctx, query, args...)
+	rows, e := s.reader().QueryContext(ctx, query, args...)
 	if e != nil {
 		return nil, e
 	}
@@ -113,7 +113,7 @@ func (s *Store) list(ctx context.Context, search string, page int, paged bool) (
 }
 func (s *Store) Get(ctx context.Context, id string) (Source, error) {
 	now := time.Now().UnixMilli()
-	v, sealed, e := scanSource(s.db.QueryRowContext(ctx, sourceQuery+"WHERE id=?", now, now, id))
+	v, sealed, e := scanSource(s.reader().QueryRowContext(ctx, sourceQuery+"WHERE id=?", now, now, id))
 	if errors.Is(e, sql.ErrNoRows) {
 		return v, ErrNotFound
 	}
@@ -208,7 +208,7 @@ func (s *Store) RunNow(ctx context.Context, id string) error {
 }
 func (s *Store) Settings(ctx context.Context) (collect.Settings, error) {
 	var v collect.Settings
-	e := s.db.QueryRowContext(ctx, "SELECT retention_seconds,concurrency,timeout_seconds FROM settings WHERE id=1").Scan(&v.RetentionSeconds, &v.Concurrency, &v.TimeoutSeconds)
+	e := s.reader().QueryRowContext(ctx, "SELECT retention_seconds,concurrency,timeout_seconds FROM settings WHERE id=1").Scan(&v.RetentionSeconds, &v.Concurrency, &v.TimeoutSeconds)
 	return v, e
 }
 func (s *Store) SaveSettings(ctx context.Context, v collect.Settings) error {
@@ -527,7 +527,7 @@ func (s *Store) OutputsFiltered(ctx context.Context, kind, repairStatus string, 
 		query += " LIMIT 100 OFFSET ?"
 		args = append(args, page*100)
 	}
-	rows, e := s.db.QueryContext(ctx, query, args...)
+	rows, e := s.reader().QueryContext(ctx, query, args...)
 	if e != nil {
 		return nil, e
 	}
@@ -544,7 +544,7 @@ func (s *Store) OutputsFiltered(ctx context.Context, kind, repairStatus string, 
 }
 func (s *Store) Output(ctx context.Context, id string) (Artifact, error) {
 	var a Artifact
-	e := s.db.QueryRowContext(ctx, "SELECT a.id,m.raw_hash,m.kind,m.size,a.created,a.expires,EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='disabled' AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)),a.quality"+representativeJoin+"WHERE a.id=? AND a.expires>?", id, time.Now().UnixMilli()).Scan(&a.ID, &a.Hash, &a.Kind, &a.Size, &a.Created, &a.Expires, &a.Disabled, &a.Quality)
+	e := s.reader().QueryRowContext(ctx, "SELECT a.id,m.raw_hash,m.kind,m.size,a.created,a.expires,EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='disabled' AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)),a.quality"+representativeJoin+"WHERE a.id=? AND a.expires>?", id, time.Now().UnixMilli()).Scan(&a.ID, &a.Hash, &a.Kind, &a.Size, &a.Created, &a.Expires, &a.Disabled, &a.Quality)
 	if errors.Is(e, sql.ErrNoRows) {
 		e = ErrNotFound
 	}
@@ -552,7 +552,7 @@ func (s *Store) Output(ctx context.Context, id string) (Artifact, error) {
 }
 func (s *Store) Response(ctx context.Context, id string) (blob.Ref, error) {
 	var ref blob.Ref
-	e := s.db.QueryRowContext(ctx, "SELECT hash,size FROM responses WHERE source_id=? AND expires>?", id, time.Now().UnixMilli()).Scan(&ref.Hash, &ref.Size)
+	e := s.reader().QueryRowContext(ctx, "SELECT hash,size FROM responses WHERE source_id=? AND expires>?", id, time.Now().UnixMilli()).Scan(&ref.Hash, &ref.Size)
 	if errors.Is(e, sql.ErrNoRows) {
 		e = ErrNotFound
 	}
@@ -574,13 +574,13 @@ type Stats struct {
 
 func (s *Store) Stats(ctx context.Context) (Stats, error) {
 	var v Stats
-	e := s.db.QueryRowContext(ctx, "SELECT count(*),coalesce(sum(enabled),0),coalesce(sum(state='fetching'),0),coalesce(sum(state IN ('error','invalid')),0),coalesce(sum(enabled=1 AND EXISTS(SELECT 1 FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=sources.id AND a.expires>CAST(unixepoch('subsec')*1000 AS INTEGER))),0),coalesce(sum(content_state='empty'),0),coalesce(sum(content_state IN ('invalid','partial','unrecognized','error_response')),0) FROM sources").Scan(&v.Sources, &v.Enabled, &v.Fetching, &v.Errors, &v.GivingConfigs, &v.EmptySources, &v.InvalidSources)
+	e := s.reader().QueryRowContext(ctx, "SELECT count(*),coalesce(sum(enabled),0),coalesce(sum(state='fetching'),0),coalesce(sum(state IN ('error','invalid')),0),coalesce(sum(enabled=1 AND EXISTS(SELECT 1 FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=sources.id AND a.expires>CAST(unixepoch('subsec')*1000 AS INTEGER))),0),coalesce(sum(content_state='empty'),0),coalesce(sum(content_state IN ('invalid','partial','unrecognized','error_response')),0) FROM sources").Scan(&v.Sources, &v.Enabled, &v.Fetching, &v.Errors, &v.GivingConfigs, &v.EmptySources, &v.InvalidSources)
 	if e != nil {
 		return v, e
 	}
-	e = s.db.QueryRowContext(ctx, "SELECT count(*),coalesce(sum(m.size),0)"+representativeJoin+"WHERE a.expires>?", time.Now().UnixMilli()).Scan(&v.Configs, &v.Bytes)
+	e = s.reader().QueryRowContext(ctx, "SELECT count(*),coalesce(sum(m.size),0)"+representativeJoin+"WHERE a.expires>?", time.Now().UnixMilli()).Scan(&v.Configs, &v.Bytes)
 	if e == nil {
-		e = s.db.QueryRowContext(ctx, "SELECT count(*) FROM config_controls c JOIN artifacts a ON a.id=c.id WHERE c.action='disabled' AND c.expires>? AND a.expires>?", time.Now().UnixMilli(), time.Now().UnixMilli()).Scan(&v.DisabledConfigs)
+		e = s.reader().QueryRowContext(ctx, "SELECT count(*) FROM config_controls c JOIN artifacts a ON a.id=c.id WHERE c.action='disabled' AND c.expires>? AND a.expires>?", time.Now().UnixMilli(), time.Now().UnixMilli()).Scan(&v.DisabledConfigs)
 	}
 	return v, e
 }

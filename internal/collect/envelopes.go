@@ -6,8 +6,8 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"github.com/rezajafari0970/Config_manager/internal/transient"
 	"io"
-	"os"
 )
 
 // Envelopes are transport encodings, not repairs. Keep the response blob and
@@ -92,11 +92,10 @@ func (d textFormat) emitBase64(ctx context.Context, raw []byte, emit Emitter) er
 	if bytes.HasSuffix(trim, []byte("=")) {
 		encoding = encoding.WithPadding(base64.StdPadding)
 	}
-	out, err := os.CreateTemp("", "config-envelope-")
+	out, spoolPath, err := transient.NewFile()
 	if err != nil {
 		return err
 	}
-	defer os.Remove(out.Name())
 	defer out.Close()
 	reader := &envelopeWhitespaceReader{r: bufio.NewReader(&contextReader{ctx, bytes.NewReader(trim)})}
 	_, err = io.Copy(out, base64.NewDecoder(encoding, reader))
@@ -110,14 +109,11 @@ func (d textFormat) emitBase64(ctx context.Context, raw []byte, emit Emitter) er
 		}
 		return err
 	}
-	if err = out.Close(); err != nil {
-		return err
-	}
 	registry := d.registry
 	if registry == nil {
 		registry = NewRegistry()
 	}
-	return registry.extract(ctx, out.Name(), emit, d.depth+1)
+	return registry.extract(ctx, spoolPath, emit, d.depth+1)
 }
 
 // Unlike stripping all '=' characters, this preserves padding for the decoder

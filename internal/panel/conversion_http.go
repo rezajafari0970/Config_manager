@@ -46,7 +46,7 @@ type conversionQuerier interface {
 }
 
 func (s *Store) Conversions(ctx context.Context, page int, all bool) ([]Conversion, error) {
-	return queryConversions(ctx, s.db, page, all)
+	return queryConversions(ctx, s.reader(), page, all)
 }
 
 func queryConversions(ctx context.Context, db conversionQuerier, page int, all bool) ([]Conversion, error) {
@@ -104,6 +104,22 @@ type conversionModule struct{ s *Server }
 
 func (m conversionModule) Register(mux *http.ServeMux) {
 	s := m.s
+	mux.HandleFunc("GET /api/conversion/settings", func(w http.ResponseWriter, r *http.Request) {
+		settings, e := s.store.ProbeSettings(r.Context())
+		if e != nil {
+			failure(w, e)
+			return
+		}
+		worker, e := s.store.ProbeWorker(r.Context())
+		if e != nil {
+			failure(w, e)
+			return
+		}
+		if time.Now().UnixMilli()-worker.Heartbeat > 30000 {
+			worker.Status = "offline"
+		}
+		respond(w, 200, map[string]any{"settings": settings, "worker": worker})
+	})
 	mux.HandleFunc("GET /api/conversions", func(w http.ResponseWriter, r *http.Request) {
 		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 		source := r.URL.Query().Get("source")
@@ -112,7 +128,7 @@ func (m conversionModule) Register(mux *http.ServeMux) {
 			failure(w, e)
 			return
 		}
-		entries, e := querySourceConversions(r.Context(), s.store.db, source, page, false)
+		entries, e := querySourceConversions(r.Context(), s.store.reader(), source, page, false)
 		if e != nil {
 			failure(w, e)
 			return
@@ -150,7 +166,7 @@ func (m conversionModule) Register(mux *http.ServeMux) {
 			failure(w, e)
 			return
 		}
-		rows, e := querySourceConversions(r.Context(), s.store.db, source, 0, true)
+		rows, e := querySourceConversions(r.Context(), s.store.reader(), source, 0, true)
 		if e != nil {
 			failure(w, e)
 			return
@@ -183,7 +199,7 @@ func (s *Server) jsonLines(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) writeJSONLines(w http.ResponseWriter, r *http.Request, source string) {
-	rows, e := querySourceConversions(r.Context(), s.store.db, source, 0, true)
+	rows, e := querySourceConversions(r.Context(), s.store.reader(), source, 0, true)
 	if e != nil {
 		failure(w, e)
 		return

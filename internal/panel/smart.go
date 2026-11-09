@@ -92,7 +92,7 @@ func (s *Store) migrateV9() error {
 }
 func (s *SmartPipeline) SmartSettings(ctx context.Context) (SmartSettings, error) {
 	var v SmartSettings
-	e := s.db.QueryRowContext(ctx, "SELECT enabled,member_count,revision FROM smart_settings WHERE id=1").Scan(&v.Enabled, &v.Count, &v.Revision)
+	e := s.reader().QueryRowContext(ctx, "SELECT enabled,member_count,revision FROM smart_settings WHERE id=1").Scan(&v.Enabled, &v.Count, &v.Revision)
 	return v, e
 }
 func (s *SmartPipeline) SaveSmartSettings(ctx context.Context, v SmartSettings) error {
@@ -392,7 +392,7 @@ func (s *SmartPipeline) CompleteSmart(ctx context.Context, r probe.Result) error
 }
 func (s *SmartPipeline) SmartWorker(ctx context.Context) (probe.WorkerStatus, error) {
 	var v probe.WorkerStatus
-	e := s.db.QueryRowContext(ctx, "SELECT status,code,version,active,heartbeat FROM smart_worker WHERE id=1").Scan(&v.Status, &v.Code, &v.Version, &v.Active, &v.Heartbeat)
+	e := s.reader().QueryRowContext(ctx, "SELECT status,code,version,active,heartbeat FROM smart_worker WHERE id=1").Scan(&v.Status, &v.Code, &v.Version, &v.Active, &v.Heartbeat)
 	return v, e
 }
 func (s *SmartPipeline) SetSmartWorker(ctx context.Context, v probe.WorkerStatus) error {
@@ -446,7 +446,7 @@ func (s *SmartPipeline) smartBytes(ctx context.Context, v SmartEntry) ([]byte, e
 		return nil, ErrInvalid
 	}
 	var present bool
-	e = s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM smart_ready WHERE id=? AND hash=?)", v.ID, v.Hash).Scan(&present)
+	e = s.reader().QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM smart_ready WHERE id=? AND hash=?)", v.ID, v.Hash).Scan(&present)
 	if e != nil {
 		return nil, e
 	}

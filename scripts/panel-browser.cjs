@@ -53,6 +53,7 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
  await page.locator('[data-view]').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('pre')].some(p=>!p.hidden&&p.textContent.startsWith('{')));await noOverflow();await page.screenshot({path:dir+'/output-mobile.png',fullPage:true});
  await page.setViewportSize({width:1440,height:1000});await noOverflow();await page.screenshot({path:dir+'/output-desktop.png',fullPage:true});
 
+ await require('./panel-ui-isolation.cjs')(context,origin);
  // Smart exports have a durable independent head round and stay inline.
  await page.goto(origin+'/smart');await wait(async()=>{const x=await(await context.request.get(origin+'/api/smart')).json();return x.stats.ready===2});
  assert((await page.locator('.output-panel').innerText()).includes('leastLoad'));assert(!(await page.locator('.output-panel').innerText()).includes('leastPing'));

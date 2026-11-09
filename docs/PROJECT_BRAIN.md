@@ -1,4 +1,4 @@
-# Project Brain — P21
+# Project Brain — P24
 
 Current user instruction (2026-10-30) replaces the persistent repair laboratory with a shared JSON conversion flow. Read PROJECT_STATE.json, HANDOFF.md, docs/CONVERSION.md and the P21 checkpoint. Earlier checkpoints describe history only.
 
@@ -54,3 +54,6 @@ The user's project-wide improvement request authorizes the cache lifecycle refin
 The user requires a per-source Splash button, bulk classification, independent Smart Splash settings/member count and complete/single links with strict mutual exclusion. This continues the unfinished P22 audit; P21 remains the parent. Implemented one shared SmartPipeline with separate persistent repositories, HTTP token domains, counters/rotation and sandbox worker. Splash ownership takes precedence for duplicated identity/candidate bytes; changing classification invalidates incompatible cache and stale completions without changing original bytes. See P23 checkpoint and current release receipts, not earlier preview notes.
 
 P23 final schema13 retains the schema12 Splash partition while replacing a repeated duplicate-ownership scan with query-local identity/candidate sets. Smart v8 and all member proof/TTL/ownership rules remain unchanged. See the P23 checkpoint for the reproduced public full-export timeout, equivalent-query benchmark and adopted-data rollback evidence.
+
+## Current P24 — independent reads and visible recovery
+Read the P24 checkpoint for the video-led audit. Bounded read-only WAL access separates presentation from the serialized writer; independent feature loops and thin settings APIs remove shared-summary gating. Form state,409 recovery, matching-row JSON delivery and anonymous plaintext spools have regressions. Schema13 and both JSON templates are unchanged; preserve every live source/setting/rotation. Do not claim missing credentials/unsupported semantics are repaired, or equate API timings with Android/operator speed. Final validation/deployment/publication receipts determine completion.

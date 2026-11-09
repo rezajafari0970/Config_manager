@@ -3,6 +3,7 @@ package panel
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"github.com/rezajafari0970/Config_manager/internal/transient"
 	"hash"
 	"io"
 	"os"
@@ -18,12 +19,8 @@ type exportSpool struct {
 }
 
 func newExportSpool() (*exportSpool, error) {
-	f, e := os.CreateTemp("", "config-export-")
+	f, _, e := transient.NewFile()
 	if e != nil {
-		return nil, e
-	}
-	if e = os.Remove(f.Name()); e != nil {
-		f.Close()
 		return nil, e
 	}
 	return &exportSpool{file: f, digest: sha256.New()}, nil

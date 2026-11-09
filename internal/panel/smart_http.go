@@ -32,6 +32,14 @@ func (m smartModule) Register(mux *http.ServeMux) {
 	s := m.s
 	p := m.pipeline
 	base := p.path()
+	mux.HandleFunc("GET /api"+base+"/settings", func(w http.ResponseWriter, r *http.Request) {
+		settings, e := p.SmartSettings(r.Context())
+		if e != nil {
+			failure(w, e)
+			return
+		}
+		respond(w, 200, map[string]any{"settings": settings})
+	})
 	tokenMode := func(v string) string {
 		if p.splash {
 			return "splash-" + v
@@ -40,7 +48,7 @@ func (m smartModule) Register(mux *http.ServeMux) {
 	}
 	mux.HandleFunc("GET /api"+base, func(w http.ResponseWriter, r *http.Request) {
 		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-		entries, e := querySmart(r.Context(), p.db, false, page)
+		entries, e := querySmart(r.Context(), p.reader(), false, page)
 		if e != nil {
 			failure(w, e)
 			return
@@ -60,7 +68,7 @@ func (m smartModule) Register(mux *http.ServeMux) {
 		}
 		stats := map[string]int{}
 		var total, ready, blocked, sources, eligible int
-		e = p.db.QueryRowContext(r.Context(), `SELECT (SELECT count(*) FROM smart_heads),(SELECT count(*) FROM smart_ready),(SELECT count(*) FROM smart_heads WHERE state='blocked'),(SELECT count(DISTINCT source) FROM smart_offers),(SELECT count(DISTINCT id) FROM smart_offers)`).Scan(&total, &ready, &blocked, &sources, &eligible)
+		e = p.reader().QueryRowContext(r.Context(), `SELECT (SELECT count(*) FROM smart_heads),(SELECT count(*) FROM smart_ready),(SELECT count(*) FROM smart_heads WHERE state='blocked'),(SELECT count(DISTINCT source) FROM smart_offers),(SELECT count(DISTINCT id) FROM smart_offers)`).Scan(&total, &ready, &blocked, &sources, &eligible)
 		if e != nil {
 			failure(w, e)
 			return
@@ -87,7 +95,7 @@ func (m smartModule) Register(mux *http.ServeMux) {
 	})
 	mux.HandleFunc("GET "+base+"/json/{id}", func(w http.ResponseWriter, r *http.Request) {
 		var v SmartEntry
-		e := p.db.QueryRowContext(r.Context(), "SELECT id,hash,member_count,created,expires FROM smart_ready WHERE id=?", r.PathValue("id")).Scan(&v.ID, &v.Hash, &v.Count, &v.Created, &v.Expires)
+		e := p.reader().QueryRowContext(r.Context(), "SELECT id,hash,member_count,created,expires FROM smart_ready WHERE id=?", r.PathValue("id")).Scan(&v.ID, &v.Hash, &v.Count, &v.Created, &v.Expires)
 		if e != nil {
 			failure(w, ErrNotFound)
 			return
@@ -107,7 +115,7 @@ func (m smartModule) Register(mux *http.ServeMux) {
 			http.NotFound(w, r)
 			return
 		}
-		rows, e := querySmart(r.Context(), p.db, true, 0)
+		rows, e := querySmart(r.Context(), p.reader(), true, 0)
 		if e != nil {
 			failure(w, e)
 			return

@@ -14,3 +14,5 @@ python3 scripts/live-probe-test.py
 node scripts/source-status-test.mjs
 
 node scripts/client-api-test.mjs
+
+node scripts/client-poll-test.mjs

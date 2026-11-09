@@ -24,6 +24,7 @@ import (
 
 type Store struct {
 	db            *sql.DB
+	readDB        *sql.DB
 	aead          cipher.AEAD
 	key           []byte
 	vault         *blob.Vault
@@ -69,6 +70,9 @@ func Open(path string, key []byte) (*Store, error) {
 	success := false
 	defer func() {
 		if !success {
+			if s.readDB != nil {
+				s.readDB.Close()
+			}
 			db.Close()
 		}
 	}()
@@ -159,10 +163,37 @@ PRAGMA user_version=1;`)
 	if err != nil {
 		return nil, err
 	}
+	// WAL readers see committed data without waiting for the serialized writer.
+	// Keep writes/claims/rotation rechecks on db: multiple deferred writers can
+	// otherwise deadlock on a read-to-write upgrade (SQLITE_BUSY_SNAPSHOT).
+	params.Set("mode", "ro")
+	params.Add("_pragma", "query_only(1)")
+	dsn.RawQuery = params.Encode()
+	s.readDB, err = sql.Open("sqlite", dsn.String())
+	if err != nil {
+		return nil, err
+	}
+	s.readDB.SetMaxOpenConns(3)
+	s.readDB.SetMaxIdleConns(3)
+	if err = s.readDB.Ping(); err != nil {
+		return nil, err
+	}
 	success = true
 	return s, nil
 }
-func (s *Store) Close() error                   { return s.db.Close() }
+func (s *Store) Close() error {
+	var err error
+	if s.readDB != nil {
+		err = s.readDB.Close()
+	}
+	return errors.Join(err, s.db.Close())
+}
+func (s *Store) reader() *sql.DB {
+	if s.readDB != nil {
+		return s.readDB
+	}
+	return s.db // Migrations and isolated legacy-store fixtures.
+}
 func (s *Store) Ping(ctx context.Context) error { return s.db.PingContext(ctx) }
 func randomToken() string {
 	b := make([]byte, 32)

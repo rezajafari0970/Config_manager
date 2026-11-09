@@ -39,7 +39,7 @@ func (s *Store) SourceConversionSummaries(ctx context.Context, sources []Source)
 	}
 	q = strings.Replace(q, "/* source filter */", "AND m.source_id IN ("+strings.Join(marks, ",")+")", 1)
 	q += ` SELECT source_id,coalesce(result_version,''),coalesce(result_rule,''),coalesce(state,'queued'),coalesce(code,''),coalesce(available,0),coalesce(connection,''),coalesce(valid_until,0) FROM choices WHERE choice=1`
-	rows, err := s.db.QueryContext(ctx, q, args...)
+	rows, err := s.reader().QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
 	}

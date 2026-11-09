@@ -148,3 +148,11 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 
 - Schema13 replaces the correlated duplicate-ownership OR scan with two non-null current-query reservation sets. Preserve exact identity/candidate precedence, including retained disabled Splash membership and absent conversion rows. Never persist these sets or bypass current proof/TTL gates. Verify adopted schema12 migration/rollback/re-upgrade with all table-row fingerprints and equivalent query results.
 - Normal/Splash integration fixtures must use their own bound ephemeral loopback listeners, scope-specific readiness files and private binaries. Never infer fixture readiness from a shared fixed port; preserve cst/cpt resource separation.
+
+
+## P24 independent reads and browser recovery
+- Read docs/checkpoints/P24-system-audit-20261109.md. Schema13, Smartv8, ordinary templatev4 and all source/connection policies remain unchanged.
+- Store has a serialized writer plus a bounded mode=ro/query_only WAL reader. Never move claim/rotation/mutation transactions or GC reference checks to the reader, or perform vault I/O inside transactions. Reconnect pragmas and committed-state visibility are mandatory.
+- Browser features poll independently; thin settings APIs must not enumerate output rows. Preserve unsaved drafts, require explicit resubmission after409, disable unknown initial settings/copy links, and apply JSON only to the current matching-hash row. Keep the asset import HTTP regression.
+- Acquisition/envelope/restoration/export plaintext spools must be unlinked immediately; format drivers reopen the /proc/self/fd path while its owner is alive. Do not reintroduce named plaintext caches.
+- leastLoad failure detection tests must use the pinned shouldSelectNode predicate (alive, delay, fail/all tolerance), not three randomly successful requests. Burst scheduler interval is interval*sampling; do not claim a2-second failure bound from maxRTT. Preserve the user-requested JSON envelope.

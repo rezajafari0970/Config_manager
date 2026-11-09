@@ -4,8 +4,8 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"github.com/rezajafari0970/Config_manager/internal/transient"
 	"io"
-	"os"
 	"time"
 
 	"github.com/rezajafari0970/Config_manager/internal/collect"
@@ -90,20 +90,16 @@ func (s *Store) RestoreSource(ctx context.Context, id string, revision int64) (i
 		return 0, e
 	}
 	defer body.Close()
-	spool, e := os.CreateTemp("", "config-restore-")
+	spool, spoolPath, e := transient.NewFile()
 	if e != nil {
 		return 0, e
 	}
-	defer os.Remove(spool.Name())
 	defer spool.Close()
 	if _, e = io.Copy(spool, acquisitionReader{ctx, body}); e != nil {
 		return 0, e
 	}
-	if e = spool.Close(); e != nil {
-		return 0, e
-	}
 	ids := map[string]bool{}
-	e = collect.NewRegistry().Extract(ctx, spool.Name(), func(ctx context.Context, r io.Reader, kind string) error {
+	e = collect.NewRegistry().Extract(ctx, spoolPath, func(ctx context.Context, r io.Reader, kind string) error {
 		// Match collector identity exactly, including the one-MiB inspection boundary.
 		h := sha256.New()
 		r = io.TeeReader(acquisitionReader{ctx, r}, h)

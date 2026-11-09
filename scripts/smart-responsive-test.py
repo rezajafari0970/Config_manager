@@ -117,29 +117,44 @@ def main():
      if all(status.get(p['tag'],{}).get('alive') and status[p['tag']].get('delay',999999)<2000 for p in proxies):break
      time.sleep(.5)
     else:raise RuntimeError('peers not observed: '+json.dumps(status))
-    result=box.net([sys.executable,__file__,'--exercise'],timeout=40)
+    try:result=box.net([sys.executable,__file__,'--exercise'],timeout=40)
+    except subprocess.CalledProcessError as e:raise RuntimeError('exercise '+phase+': '+e.stderr.decode(errors='replace')[-2000:]) from e
     report[phase]=json.loads(result.stdout)
     if phase=='leastload':
      # Fail the fast peer after both peers carried requests; verify subsequent exclusion.
      box.net(['/usr/sbin/nft','add','table','inet','fixture_failure'])
      box.net(['/usr/sbin/nft','add','chain','inet','fixture_failure','out','{ type filter hook output priority 200; policy accept; }'])
      box.net(['/usr/sbin/nft','add','rule','inet','fixture_failure','out','tcp','dport','24443','drop'])
-     started=time.monotonic();recovered=False;failures=0;successes=0
-     while time.monotonic()-started<28:
+     started=time.monotonic();recovered=False;failures=0;successes=0;observed_unavailable=None
+     # Three random successful requests do not prove leastLoad has excluded a
+     # failed peer. Require the pinned core's actual exclusion predicate.
+     ping=config['burstObservatory']['pingConfig']
+     observation_window=max(10,float(ping['interval'].removesuffix('s')))*ping['sampling']
+     deadline=2*observation_window+float(ping['timeout'].removesuffix('s'))+5
+     while time.monotonic()-started<deadline:
       try:
        r=box.net(['/usr/bin/curl','--noproxy','','--proxy','socks5h://127.0.0.1:10808','--max-time','1','--silent','--output','/dev/null','--write-out','%{http_code}','http://127.0.0.1:24447/generate_204'],timeout=2)
        if r.stdout==b'204':successes+=1
        else:failures+=1;successes=0
       except (subprocess.SubprocessError,OSError):failures+=1;successes=0
-      if time.monotonic()-started>=14 and successes>=3:
+      status=json.loads(box.net(['/usr/bin/curl','--noproxy','*','--max-time','2','--silent','http://127.0.0.1:11111/debug/vars']).stdout)['observatory']
+      peer=status.get(proxies[1]['tag'],{});health=peer.get('health_ping',{})
+      # Pinned shouldSelectNode rejects fail/all > tolerance even while alive
+      # remains true (alive means at least one retained sample succeeded).
+      unavailable=bool(peer) and (not peer.get('alive',False) or peer.get('delay',0)>=2000 or (health.get('all',0)>0 and health.get('fail',0)/health['all']>.15))
+      if unavailable and observed_unavailable is None:observed_unavailable=round(time.monotonic()-started,2);successes=0
+      if unavailable and observed_unavailable is not None and successes>=3:
        recovered=True;break
       time.sleep(.3)
-     assert recovered,'failed-peer exclusion did not settle within test deadline'
-     result=box.net([sys.executable,__file__,'--exercise'],timeout=40)
+     assert recovered,'failed-peer exclusion did not settle within test deadline: '+json.dumps({'status':status,'successes':successes,'failures':failures,'observed':observed_unavailable})
+     verified_recovery=round(time.monotonic()-started,2)
+     try:result=box.net([sys.executable,__file__,'--exercise'],timeout=40)
+     except subprocess.CalledProcessError as e:raise RuntimeError('post-failure exercise: '+e.stderr.decode(errors='replace')[-2000:]+'; observer='+json.dumps(status)) from e
      post=json.loads(result.stdout)
      assert post['slow_requests']==post['requests'] and all(post['dns'].values()),post
      report[phase]['post_failure']=post
-     report[phase]['verified_recovery_seconds']=round(time.monotonic()-started,2)
+     report[phase]['verified_recovery_seconds']=verified_recovery
+     report[phase]['observed_unavailable_seconds']=observed_unavailable
      report[phase]['requests_failed_during_detection']=failures
 
    finally:

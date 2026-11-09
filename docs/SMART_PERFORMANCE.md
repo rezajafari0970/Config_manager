@@ -77,3 +77,7 @@ bootstrap صرفاً از آدرس واقعی endpointها، WireGuard peers و 
 - https://xtls.github.io/en/config/observatory.html
 - https://xtls.github.io/en/config/dns.html
 - https://xtls.github.io/en/config/outbounds/dns.html
+
+## P24 exact observer timing
+
+The requested leastLoad/15s interval/3 samples/5s timeout envelope is unchanged. Pinned burst healthping StartScheduler uses interval*sampling (45s) as its scheduling window and randomizes probes within it; maxRTT2s is an admission threshold, not a failover timer. shouldSelectNode excludes failed fractions above0.15 even if alive remains true. The P24 fixture now checks that predicate before declaring recovery, instead of three random successful requests. One controlled run measured24.61s until observed exclusion and26.33s until verified recovery, with11 failed requests during detection and24/24 subsequent successes. This test neither establishes a general upper latency bound nor Android/operator performance. UI/API latency improvements are separate measurements.

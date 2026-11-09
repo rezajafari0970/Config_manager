@@ -21,6 +21,9 @@ func (s *Store) Smart() *SmartPipeline { return &SmartPipeline{Store: s, db: sma
 func (s *Store) SplashSmart() *SmartPipeline {
 	return &SmartPipeline{Store: s, db: smartDB{DB: s.db, splash: true}, splash: true}
 }
+func (s *SmartPipeline) reader() smartDB {
+	return smartDB{DB: s.Store.reader(), splash: s.splash}
+}
 func (s *SmartPipeline) path() string {
 	if s.splash {
 		return "/smart-splash"

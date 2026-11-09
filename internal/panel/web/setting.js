@@ -1,19 +1,26 @@
 import {clearAll} from './actions.js';
-import {$,fa,clock,esc,icon,digit,interval,dateTime,countdown,toast,api,showResult,empty} from './core.js';
+import {$,fa,digit} from './core.js';
+import {bindSettings} from './settings-form.js';
 export default function Setting(ctx){
-function bindSmartSettings(prefix){
-let smartLoaded=false,smartBusy=false,smartRevision=0;
-async function smartSettings(){if(smartBusy)return;smartBusy=true;try{const s=await api('/api/'+prefix);if(!smartLoaded){$('#'+prefix+'-enabled').checked=s.settings.enabled;$('#'+prefix+'-member-count').value=s.settings.count;smartRevision=s.settings.revision;smartLoaded=true}}catch(e){toast(e.message)}finally{smartBusy=false}}
-$('#'+prefix+'-settings').addEventListener('submit',async e=>{e.preventDefault();const b=e.submitter;b.disabled=true;try{const count=Number(digit($('#'+prefix+'-member-count').value));if(!Number.isSafeInteger(count)||count<1)throw new Error('تعداد اعضا باید عدد صحیح مثبت باشد.');await api('/api/'+prefix+'/settings',{method:'POST',body:{enabled:$('#'+prefix+'-enabled').checked,count,revision:smartRevision}});smartLoaded=false;await smartSettings();toast('تنظیمات اسمارت ذخیره شد؛ بازسازی کش مستقل آغاز می‌شود.')}catch(e){toast(e.message)}finally{b.disabled=false}});
-return smartSettings;
-}
-const smartRefresh=[bindSmartSettings('smart'),bindSmartSettings('smart-splash')];
-let converterLoaded=false,converterBusy=false;
-async function converter(){if(converterBusy)return;converterBusy=true;try{const s=await api('/api/conversions');$('#probe-status').textContent=s.worker.status==='running'?'تبدیل خودکار فعال است':'در انتظار آماده‌شدن سرویس تبدیل';if(!converterLoaded){$('#probe-enabled').checked=s.settings.enabled;for(const k of ['concurrency','timeout_seconds','retest_seconds','health_ttl_seconds'])$('#probe-'+k).value=s.settings[k];converterLoaded=true}}catch(e){toast(e.message)}finally{converterBusy=false}}
-$('#probe-settings').addEventListener('submit',async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;try{const body={enabled:$('#probe-enabled').checked};for(const k of ['concurrency','timeout_seconds','retest_seconds','health_ttl_seconds'])body[k]=Number(digit($('#probe-'+k).value));await api('/api/conversion/settings',{method:'POST',body});toast('تنظیمات تبدیل ذخیره شد.');converterLoaded=false;await converter()}catch(e){toast(e.message)}finally{button.disabled=false}});
-let loaded=false;
-$('#settings-clear-configs').addEventListener('click',()=>clearAll('configs',ctx));
-$('#settings-clear-sources').addEventListener('click',()=>clearAll('sources',ctx));
-$('#settings-form')?.addEventListener('submit',async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;try{const retention=Number(digit($('#retention-hours').value))*3600;const concurrency=Number(digit($('#concurrency').value));const timeout=Number(digit($('#request-timeout').value));if(!Number.isSafeInteger(retention)||retention<=0||!Number.isSafeInteger(concurrency)||concurrency<=0||!Number.isSafeInteger(timeout)||timeout<=0)throw new Error('مقادیر مثبت و معتبر وارد کنید.');await api('/api/settings',{method:'POST',body:{retention_seconds:retention,concurrency,timeout_seconds:timeout}});$('#settings-result').textContent='تنظیمات ذخیره شد.';await ctx.refresh();toast('تنظیمات اعمال شد.')}catch(error){toast(error.message)}finally{button.disabled=false}});
-return {render(state){converter();for(const refresh of smartRefresh)refresh();$('#effective-concurrency').textContent='ظرفیت فعلی: '+fa.format(state.worker.capacity||0);if(loaded)return;$('#retention-hours').value=state.settings.retention_seconds/3600;$('#concurrency').value=state.settings.concurrency;$('#request-timeout').value=state.settings.timeout_seconds;loaded=true},filters(){return {}}};
+ const number=id=>{const n=Number(digit($('#'+id).value));if(!Number.isSafeInteger(n)||n<1)throw new Error('مقادیر باید عدد صحیح مثبت باشند.');return n};
+ const tasks=[];
+ for(const prefix of ['smart','smart-splash'])tasks.push(bindSettings({
+  form:$('#'+prefix+'-settings'),path:'/api/'+prefix+'/settings',
+  read:()=>({enabled:$('#'+prefix+'-enabled').checked,count:number(prefix+'-member-count')}),
+  write:s=>{$('#'+prefix+'-enabled').checked=s.enabled;$('#'+prefix+'-member-count').value=s.count}
+ }));
+ const fields=['concurrency','timeout_seconds','retest_seconds','health_ttl_seconds'];
+ tasks.push(bindSettings({form:$('#probe-settings'),path:'/api/conversion/settings',
+  read:()=>Object.fromEntries([['enabled',$('#probe-enabled').checked],...fields.map(k=>[k,number('probe-'+k)])]),
+  write:s=>{$('#probe-enabled').checked=s.enabled;for(const k of fields)$('#probe-'+k).value=s[k]},
+  onData:s=>{$('#probe-status').textContent=s.worker.status==='running'?'تبدیل خودکار فعال است':'در انتظار آماده‌شدن سرویس تبدیل'}
+ }));
+ tasks.push(bindSettings({form:$('#settings-form'),path:'/api/settings',
+  read:()=>{const retention=Number(digit($('#retention-hours').value))*3600;if(!Number.isSafeInteger(retention)||retention<1)throw new Error('مدت نگهداری معتبر وارد کنید.');return {retention_seconds:retention,concurrency:number('concurrency'),timeout_seconds:number('request-timeout')}},
+  write:s=>{$('#retention-hours').value=s.retention_seconds/3600;$('#concurrency').value=s.concurrency;$('#request-timeout').value=s.timeout_seconds},
+  onData:s=>{$('#effective-concurrency').textContent='ظرفیت فعلی: '+fa.format(s.capacity)}
+ }));
+ $('#settings-clear-configs').addEventListener('click',()=>clearAll('configs',ctx));
+ $('#settings-clear-sources').addEventListener('click',()=>clearAll('sources',ctx));
+ return {tasks,render(){},filters(){return {}}};
 }

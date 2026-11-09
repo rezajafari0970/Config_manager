@@ -1,4 +1,4 @@
-# Architecture — P23 (includes P22 recovery)
+# Architecture — P24
 
 The independent Go service owns collection, encrypted content and SQLite publication. Three separate supervisors own ordinary validation, ordinary Smart validation and Splash Smart validation. Protocol preparation and JSON composition are pure transformations; network evidence comes only from the pinned sandbox. No service depends on ChatGPT, the remote-management connector, or a browser session to keep running.
 
@@ -21,7 +21,9 @@ The independent Go service owns collection, encrypted content and SQLite publica
 | Execution | config-probe-worker + trusted Python sandbox adapters | Protected Unix socket, pinned core, netns/cgroup/bwrap; independent resource prefixes |
 | Content storage | blob.Vault | AEAD chunks, content digest, atomic replacement and publication pins |
 | Subscription delivery | panel/export_spool.go | Exact JSONL/count/hash; bounded working RAM, immediately unlinked private temporary file |
-| Browser features | web/app.js + input/output/smart/setting modules | Scoped state reads;20s fetch deadline and retry on later refresh |
+| Browser features | web/app.js + feature modules + poll/settings-form drivers | Independent loops, bounded retries,20s deadlines, loading gates and preserved drafts |
+| Database access | Serialized writer + three read-only WAL connections | Claims/mutations/rotation gates stay atomic; committed-state UI reads avoid writer queue |
+| Plaintext transient files | internal/transient.NewFile | Unlinked0600 inode; reopenable /proc/self/fd path for Linux format plugins |
 
 Compiled extension registration is supported for format, inspection, repair and panel modules. This is not arbitrary runtime plugin upload or a promise that any new protocol works without an adapter and acceptance tests. Legacy generic interfaces in driver.go describe evidence types; active transport/preparation contracts are the concrete contracts listed above.
 
@@ -37,7 +39,7 @@ A fingerprint of the eligible pool lets a previously blocked composition retry i
 
 ## Source and publication lifecycle
 
-Original response/config plaintext remains exact. Ciphertext may change when identical bytes are acquired again; a completed/fsynced atomic replacement repairs corruption at the same content address. Existing open readers retain their inode. Pins and database references protect publication from collection. Vault I/O remains outside database transactions, and the sole SQLite connection must never be recursively acquired.
+Original response/config plaintext remains exact. Ciphertext may change when identical bytes are acquired again; a completed/fsynced atomic replacement repairs corruption at the same content address. Existing open readers retain their inode. Pins and database references protect publication from collection. Vault I/O remains outside database transactions. Never recursively acquire the serialized writer from a transaction. Explicit read-only methods use the WAL reader driver; no transaction or GC reference check was moved to a stale snapshot.
 
 Accepted nonempty generations replace only that source's memberships. Empty/error results retain prior data until fixed TTL.304 and repeated acquisition do not renew TTL. Source disable/delete/edit, config controls and expiry invalidate current ownership; stale workers cannot resurrect it. Current source counts override historical acquisition receipts.
 
@@ -70,3 +72,11 @@ Final sandbox correction: the new csp/cpt prefixes are explicitly registered. Ex
 
 
 Schema13 only replaces normal smart_inputs with equivalent non-null Splash identity/candidate reservation sets evaluated by the current query. The original correlated OR join caused repeated scans under an adopted Splash source and held the shared SQLite connection long enough for a full Splash export to exceed30s. This is a query-plan correction, not a relaxed admission/cache gate. The schema12 predecessor supports Splash adoption; a guarded13→12 rollback restores its exact view without changing table rows. The older10 downgrade remains forbidden after adoption.
+
+## P24 reader and UI recovery
+
+Store owns one write connection and at most three read-only connections. Open initializes migrations/key checks before creating the reader; both pools close with Store. mode=ro and query_only(1) prohibit accidental reader mutations. Every connection carries foreign_keys, busy_timeout and synchronous pragmas. SmartPipeline wraps either connection with the same closed scope mapper. Source lists/metadata, conversion summaries/exports and Smart presentation reads use this driver; claims, lease checks, writes and rotation consumption remain on the existing writer. WAL is concurrency isolation, not independent hardware or immunity to long CPU/disk pressure.
+
+GET settings endpoints return small metadata independently of output readiness. Feature polling cannot be blocked by shared summary failure; retries are bounded and one request per loop can be in flight. Settings drivers preserve dirty forms and use revision-aware explicit resubmission for Smart conflicts. A disabled initial control is unknown/loading, not an asserted saved false. JSON viewers apply completed data only to the current matching-hash row.
+
+Acquisition, nested envelope decoding, explicit restoration and full exports share an anonymous plaintext spool; persistent originals/candidates remain encrypted. Format plugins continue receiving a reopenable path. The Linux /proc requirement matches the deployed server and is exercised in tests.

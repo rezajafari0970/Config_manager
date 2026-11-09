@@ -21,10 +21,22 @@ export async function api(path,options={}){
  try{
   const response=await fetch(path,{...options,headers,signal:controller.signal,credentials:'same-origin',cache:'no-store'});
   let data;try{data=await response.json()}catch{throw new Error('پاسخ سرور دریافت نشد؛ دوباره تلاش کنید.')}
-  if(!response.ok)throw new Error(data.error||'عملیات انجام نشد.');
+  if(!response.ok){const error=new Error(data.error||'عملیات انجام نشد.');error.status=response.status;throw error}
   return data
  }catch(error){if(controller.signal.aborted)throw new Error('مهلت ارتباط با سرور تمام شد؛ دوباره تلاش کنید.');throw error}
  finally{clearTimeout(timer);signal?.removeEventListener('abort',cancel)}
+}
+export async function verifiedJSON(path){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+ try{
+  const r=await fetch(path,{cache:'no-store',credentials:'same-origin',signal:controller.signal});
+  if(!r.ok)throw new Error('این خروجی تغییر کرده یا منقضی شده است.');
+  const bytes=await r.arrayBuffer();
+  const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(v=>v.toString(16).padStart(2,'0')).join('');
+  if(hash!==r.headers.get('X-Content-SHA256'))throw new Error('دریافت کامل نشد.');
+  return {hash,text:new TextDecoder('utf-8',{fatal:true}).decode(bytes)};
+ }catch(e){if(controller.signal.aborted)throw new Error('مهلت دریافت JSON تمام شد؛ دوباره تلاش کنید.');throw e}
+ finally{clearTimeout(timer)}
 }
 export function showResult(selector,text,error=false){const box=$(selector);box.textContent=text;box.classList.remove('hidden');box.classList.toggle('error',error)}
 export function empty(title,description,symbol){return `<div class="empty">${icon(symbol)}<h3>${esc(title)}</h3><p>${esc(description)}</p></div>`}

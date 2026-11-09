@@ -9,6 +9,18 @@ import (
 type settingModule struct{ s *Server }
 
 func (m settingModule) Register(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/settings", func(w http.ResponseWriter, r *http.Request) {
+		settings, e := m.s.store.Settings(r.Context())
+		if e != nil {
+			failure(w, e)
+			return
+		}
+		capacity := 0
+		if m.s.engine != nil {
+			capacity = m.s.engine.Capacity()
+		}
+		respond(w, 200, map[string]any{"settings": settings, "capacity": capacity})
+	})
 	mux.HandleFunc("POST /api/settings", m.s.settings)
 }
 func (s *Server) settings(w http.ResponseWriter, r *http.Request) {

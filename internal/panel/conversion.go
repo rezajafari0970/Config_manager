@@ -72,7 +72,7 @@ func syncConversions(ctx context.Context, tx *sql.Tx) error {
 }
 func (s *Store) ProbeSettings(ctx context.Context) (probe.Settings, error) {
 	var v probe.Settings
-	e := s.db.QueryRowContext(ctx, "SELECT enabled,concurrency,timeout_seconds,retest_seconds,health_ttl_seconds FROM conversion_settings WHERE id=1").Scan(&v.Enabled, &v.Concurrency, &v.TimeoutSeconds, &v.RetestSeconds, &v.HealthTTLSeconds)
+	e := s.reader().QueryRowContext(ctx, "SELECT enabled,concurrency,timeout_seconds,retest_seconds,health_ttl_seconds FROM conversion_settings WHERE id=1").Scan(&v.Enabled, &v.Concurrency, &v.TimeoutSeconds, &v.RetestSeconds, &v.HealthTTLSeconds)
 	return v, e
 }
 func (s *Store) SaveProbeSettings(ctx context.Context, v probe.Settings) error {
@@ -276,7 +276,7 @@ func (s *Store) CompleteProbe(ctx context.Context, r probe.Result) error {
 }
 func (s *Store) ProbeWorker(ctx context.Context) (probe.WorkerStatus, error) {
 	var v probe.WorkerStatus
-	e := s.db.QueryRowContext(ctx, "SELECT status,code,version,active,heartbeat FROM conversion_worker WHERE id=1").Scan(&v.Status, &v.Code, &v.Version, &v.Active, &v.Heartbeat)
+	e := s.reader().QueryRowContext(ctx, "SELECT status,code,version,active,heartbeat FROM conversion_worker WHERE id=1").Scan(&v.Status, &v.Code, &v.Version, &v.Active, &v.Heartbeat)
 	return v, e
 }
 func (s *Store) SetProbeWorker(ctx context.Context, v probe.WorkerStatus) error {
