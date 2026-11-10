@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/rezajafari0970/Config_manager/internal/convert"
-	"github.com/rezajafari0970/Config_manager/internal/probe"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 	"github.com/rezajafari0970/Config_manager/internal/residential"
 )
@@ -64,7 +63,7 @@ func (s *Store) claimResidentialFor(ctx context.Context, worker string) (*reside
 	j := &residential.Job{Policy: p, TrustHash: t.Digest()}
 	var size int64
 	priority := s.residentialTurn.Add(1)%4 != 0
-	e = tx.QueryRowContext(ctx, `SELECT hash,kind,size,revision,epoch,ever_accepted FROM residential_records r WHERE state!='DELETED' AND retain_until>CAST(unixepoch('subsec')*1000 AS INTEGER) AND paused=0 AND (token='' OR lease_until<=?) AND next_run<=? AND (?='' OR negative_worker!=? OR negative_last<?) ORDER BY CASE WHEN ever_accepted=1 AND ? THEN 0 ELSE 1 END,coalesce((SELECT min(coalesce(f.last_claim,0)) FROM residential_owners o LEFT JOIN residential_source_fairness f ON f.source=o.source WHERE o.hash=r.hash),0),next_run,first_seen,hash LIMIT 1`, now, now, worker, worker, now-120000, priority).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Epoch, &j.Deep)
+	e = tx.QueryRowContext(ctx, `SELECT hash,kind,size,revision,epoch,ever_accepted FROM residential_records r WHERE state!='DELETED' AND (ever_accepted=1 OR tested=0 OR retain_until>CAST(unixepoch('subsec')*1000 AS INTEGER)) AND paused=0 AND (token='' OR lease_until<=?) AND next_run<=? AND (?='' OR negative_worker!=? OR negative_last<?) ORDER BY CASE WHEN ever_accepted=1 AND ? THEN 0 ELSE 1 END,coalesce((SELECT min(coalesce(f.last_claim,0)) FROM residential_owners o LEFT JOIN residential_source_fairness f ON f.source=o.source WHERE o.hash=r.hash),0),next_run,first_seen,hash LIMIT 1`, now, now, worker, worker, now-120000, priority).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Epoch, &j.Deep)
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, tx.Commit()
 	}
@@ -100,7 +99,7 @@ func (s *Store) claimResidentialFor(ctx context.Context, worker string) (*reside
 }
 func (s *Store) RenewResidential(ctx context.Context, j residential.Job) error {
 	now := time.Now().UnixMilli()
-	r, e := s.db.ExecContext(ctx, `UPDATE residential_records SET lease_until=? WHERE hash=? AND revision=? AND epoch=? AND token=? AND lease_until>? AND state!='DELETED' AND retain_until>CAST(unixepoch('subsec')*1000 AS INTEGER) AND EXISTS(SELECT 1 FROM residential_settings WHERE enabled=1 AND policy_hash=? AND trust_hash=?)`, now+120000, j.Hash, j.Revision, j.Epoch, j.Token, now, j.Policy.Digest(), j.TrustHash)
+	r, e := s.db.ExecContext(ctx, `UPDATE residential_records SET lease_until=? WHERE hash=? AND revision=? AND epoch=? AND token=? AND lease_until>? AND state!='DELETED' AND (ever_accepted=1 OR tested=0 OR retain_until>CAST(unixepoch('subsec')*1000 AS INTEGER)) AND EXISTS(SELECT 1 FROM residential_settings WHERE enabled=1 AND policy_hash=? AND trust_hash=?)`, now+120000, j.Hash, j.Revision, j.Epoch, j.Token, now, j.Policy.Digest(), j.TrustHash)
 	if e != nil {
 		return e
 	}
@@ -158,8 +157,8 @@ func (s *Store) CompleteResidential(ctx context.Context, c residential.Completio
 	if readErr != nil {
 		return ErrConflict
 	}
-	expectedPlan := residential.NewCoreRegistry().Prepare("xray-26.7.28", original)
-	reportBound := len(expectedPlan.Variants) == 2 && len(c.Report.Variants) == 2
+	expectedPlan := residential.NewCoreRegistry().Select(original)
+	reportBound := (expectedPlan.Driver == "sing-box") == (residential.CoreID(c.Report.CoreSHA256) == residential.SingBoxID) && len(expectedPlan.Variants) == 2 && len(c.Report.Variants) == 2
 	for i := range c.Report.Variants {
 		v := &c.Report.Variants[i]
 		matched := false
@@ -179,46 +178,7 @@ func (s *Store) CompleteResidential(ctx context.Context, c residential.Completio
 	}
 
 	if len(c.Candidate) > 0 {
-		body, e := s.vault.Open(c.Hash)
-		if e != nil {
-			return e
-		}
-		raw, e := io.ReadAll(io.LimitReader(body, repair.MaxBytes+1))
-		body.Close()
-		if e != nil {
-			return e
-		}
-		plan := probe.Prepare(raw)
-		matched := false
-		for _, v := range plan.Candidates {
-			if v.RequiresConnection {
-				continue
-			}
-			expected, err := convert.Apply(v.Config)
-			if err != nil || !bytes.Equal(expected, c.Candidate) {
-				continue
-			}
-			rawMatch, templateMatch := false, false
-			expectedRaw := ""
-			for _, execution := range expectedPlan.Variants {
-				if execution.Name == "raw" {
-					expectedRaw = execution.SHA256
-				}
-			}
-			for _, variant := range c.Report.Variants {
-				if variant.Name == "raw" && variant.Hash == expectedRaw {
-					rawMatch = true
-				}
-				if variant.Name == "template" && variant.Hash == repair.Digest(expected) {
-					templateMatch = true
-				}
-			}
-			if rawMatch && templateMatch {
-				matched = true
-				break
-			}
-		}
-		if !matched {
+		if !reportBound || len(expectedPlan.Variants) != 2 || !bytes.Equal(expectedPlan.Variants[1].Config, c.Candidate) {
 			return ErrInvalid
 		}
 		ref, e := s.vault.Put(ctx, bytes.NewReader(c.Candidate))
@@ -245,11 +205,12 @@ func (s *Store) CompleteResidential(ctx context.Context, c residential.Completio
 		return ErrConflict
 	}
 	var accepted bool
+	var acceptedDecision string
 	var claimed int64
 	var count int
 	var first, last int64
 	var worker, epoch string
-	e = tx.QueryRowContext(ctx, `SELECT ever_accepted,claimed_at,negative_count,negative_first,negative_last,negative_worker,negative_epoch FROM residential_records WHERE hash=? AND revision=? AND epoch=? AND token=? AND lease_until>? AND state!='DELETED' AND retain_until>CAST(unixepoch('subsec')*1000 AS INTEGER)`, c.Hash, c.Revision, c.Epoch, c.Token, now).Scan(&accepted, &claimed, &count, &first, &last, &worker, &epoch)
+	e = tx.QueryRowContext(ctx, `SELECT ever_accepted,accepted_decision,claimed_at,negative_count,negative_first,negative_last,negative_worker,negative_epoch FROM residential_records WHERE hash=? AND revision=? AND epoch=? AND token=? AND lease_until>? AND state!='DELETED' AND (ever_accepted=1 OR tested=0 OR retain_until>CAST(unixepoch('subsec')*1000 AS INTEGER))`, c.Hash, c.Revision, c.Epoch, c.Token, now).Scan(&accepted, &acceptedDecision, &claimed, &count, &first, &last, &worker, &epoch)
 	if errors.Is(e, sql.ErrNoRows) {
 		return ErrConflict
 	}
@@ -283,6 +244,11 @@ func (s *Store) CompleteResidential(ctx context.Context, c residential.Completio
 	if d.Eligible && candidateHash == "" {
 		return ErrInvalid
 	}
+	var previous residential.Decision
+	_ = json.Unmarshal([]byte(acceptedDecision), &previous)
+	if accepted {
+		d.CredibleNegative = reportBound && residential.LostQualification(previous, d)
+	}
 	state := d.State
 	if accepted && !d.Eligible {
 		state = "QUARANTINED"
@@ -295,11 +261,13 @@ func (s *Store) CompleteResidential(ctx context.Context, c residential.Completio
 		worker = ""
 		epoch = ""
 	}
+	voteRecorded := false
 	if accepted && d.CredibleNegative && c.Report.InfrastructureOK && c.Report.Started >= last+int64(p.ConfirmationSeconds)*1000 {
 		if count == 0 {
 			first = c.Report.Started
 		}
 		count++
+		voteRecorded = true
 		last = c.Report.Finished
 		worker = c.Report.Worker
 		epoch = c.Report.InfrastructureEpoch
@@ -312,6 +280,9 @@ func (s *Store) CompleteResidential(ctx context.Context, c residential.Completio
 	}
 	report, _ := json.Marshal(c.Report)
 	decision, _ := json.Marshal(d)
+	if d.Eligible {
+		acceptedDecision = string(decision)
+	}
 	if len(report) > 2<<20 {
 		return ErrInvalid
 	}
@@ -319,7 +290,7 @@ func (s *Store) CompleteResidential(ctx context.Context, c residential.Completio
 	if state == "QUARANTINED" {
 		next = now + int64(p.ConfirmationSeconds)*1000 + int64(c.Hash[1]%11)*1000
 	}
-	if _, e = tx.ExecContext(ctx, `UPDATE residential_records SET state=?,reason=?,ever_accepted=?,candidate_hash=CASE WHEN ?!='' THEN ? ELSE candidate_hash END,candidate_size=CASE WHEN ?!='' THEN ? ELSE candidate_size END,policy_hash=?,trust_hash=?,template_version=?,tested=?,valid_until=?,decision=?,report=?,token='',lease_until=0,next_run=?,negative_count=?,negative_first=?,negative_last=?,negative_worker=?,negative_epoch=? WHERE hash=?`, state, d.Reason, accepted, candidateHash, candidateHash, candidateHash, candidateSize, p.Digest(), t.Digest(), convert.Version, c.Report.Finished, d.ValidUntil, string(decision), string(report), next, count, first, last, worker, epoch, c.Hash); e != nil {
+	if _, e = tx.ExecContext(ctx, `UPDATE residential_records SET state=?,reason=?,ever_accepted=?,candidate_hash=CASE WHEN ?!='' THEN ? ELSE candidate_hash END,candidate_size=CASE WHEN ?!='' THEN ? ELSE candidate_size END,policy_hash=?,trust_hash=?,template_version=?,tested=?,valid_until=?,decision=?,report=?,token='',lease_until=0,next_run=?,negative_count=?,negative_first=?,negative_last=?,negative_worker=?,negative_epoch=?,accepted_decision=? WHERE hash=?`, state, d.Reason, accepted, candidateHash, candidateHash, candidateHash, candidateSize, p.Digest(), t.Digest(), convert.Version, c.Report.Finished, d.ValidUntil, string(decision), string(report), next, count, first, last, worker, epoch, acceptedDecision, c.Hash); e != nil {
 		return e
 	}
 	if _, e = tx.ExecContext(ctx, "INSERT INTO residential_audit(hash,revision,at,state,reason,report,decision) VALUES(?,?,?,?,?,?,?)", c.Hash, c.Revision, now, state, d.Reason, string(report), string(decision)); e != nil {
@@ -340,22 +311,25 @@ func (s *Store) CompleteResidential(ctx context.Context, c residential.Completio
 	if _, e = tx.ExecContext(ctx, "UPDATE residential_settings SET generation=generation+CASE WHEN ? THEN 1 ELSE 0 END,updated=? WHERE id=1", accepted, now); e != nil {
 		return e
 	}
-	if accepted && count >= p.ConfirmationAttempts && last-first >= int64(p.ConfirmationAttempts-1)*int64(p.ConfirmationSeconds)*1000 {
-		// Two different retained configs failing together suspend destructive action.
-		// They remain unpublished; infrastructure/intel uncertainty never deletes.
+	// Latch shared failure as soon as correlated negative votes arrive. A slow
+	// or stalled worker must not erase that correlation before the final vote.
+	if accepted && voteRecorded {
 		var shared int
-		var circuit int64
 		if e = tx.QueryRowContext(ctx, "SELECT count(*) FROM residential_records WHERE ever_accepted=1 AND negative_count>0 AND negative_last>?", now-120000).Scan(&shared); e != nil {
 			return e
 		}
+		if shared > 1 {
+			if _, e = tx.ExecContext(ctx, "UPDATE residential_settings SET circuit_until=max(circuit_until,?) WHERE id=1", now+300000); e != nil {
+				return e
+			}
+		}
+	}
+	if accepted && count >= p.ConfirmationAttempts && last-first >= int64(p.ConfirmationAttempts-1)*int64(p.ConfirmationSeconds)*1000 {
+		var circuit int64
 		if e = tx.QueryRowContext(ctx, "SELECT circuit_until FROM residential_settings WHERE id=1").Scan(&circuit); e != nil {
 			return e
 		}
-		if shared > 1 {
-			if _, e = tx.ExecContext(ctx, "UPDATE residential_settings SET circuit_until=? WHERE id=1", now+300000); e != nil {
-				return e
-			}
-		} else if circuit <= now {
+		if circuit <= now {
 			if e = s.revokeResidential(ctx, tx, c.Hash, d.Reason, false, now); e != nil {
 				return e
 			}
@@ -369,7 +343,7 @@ func (s *Store) expireResidential(ctx context.Context, tx *sql.Tx, now int64) er
 	if e := s.expireResidentialLifetime(ctx, tx, now); e != nil {
 		return e
 	}
-	r, e := tx.ExecContext(ctx, `UPDATE residential_records SET state='QUARANTINED',reason='evidence_expired',next_run=min(next_run,?),valid_until=0 WHERE ever_accepted=1 AND state='ACCEPTED' AND valid_until<=?`, now, now)
+	r, e := tx.ExecContext(ctx, `UPDATE residential_records SET state='QUARANTINED',reason='evidence_expired',next_run=min(next_run,?),valid_until=0 WHERE ever_accepted=1 AND state IN ('ACCEPTED','ADS_DIFFERENT') AND valid_until<=?`, now, now)
 	if e != nil {
 		return e
 	}

@@ -7,7 +7,7 @@ import (
 
 func publicIP(s string) (netip.Addr, bool) {
 	ip, e := netip.ParseAddr(s)
-	return ip, e == nil && ip.IsGlobalUnicast() && !ip.IsPrivate() && !ip.IsLoopback() && !ip.IsLinkLocalUnicast() && !ip.IsUnspecified()
+	return ip, e == nil && !ip.Is4In6() && ip.IsGlobalUnicast() && !ip.IsPrivate() && !ip.IsLoopback() && !ip.IsLinkLocalUnicast() && !ip.IsUnspecified()
 }
 func digestOK(s string) bool {
 	if len(s) != 64 {
@@ -79,7 +79,7 @@ func Network(ip string, facts []IPFact, p Policy, t Trust, now int64) (string, i
 
 // Evaluate grants only the explicitly enumerated matrix; never all Google Ads.
 // Matching control/Ads IPs do not disqualify an all-residential configuration.
-func Evaluate(r Report, p Policy, t Trust, now int64) Decision {
+func evaluateResidential(r Report, p Policy, t Trust, now int64) Decision {
 	d := Decision{State: "UNKNOWN", Health: "UNKNOWN", Egress: "UNKNOWN", Network: "Unknown", Reason: "insufficient_evidence", Missing: []Scope{}, Diagnostics: RouteDiagnostics(r, p, t, now)}
 	d.CoreID, d.Compatibility = CoreID(r.CoreSHA256), r.Compatibility
 	if r.Version != Version || r.PolicyHash != p.Digest() || !recent(r.Finished, now, p.EvidenceTTLSeconds) || r.Started > r.Finished || r.Started <= 0 {

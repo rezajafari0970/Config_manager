@@ -106,7 +106,7 @@ func TestResidentialRetentionTTLSourceDeletionAndGC(t *testing.T) {
 	}
 	source, j, result := resSeed(t, s, 1)
 	ctx := context.Background()
-	if _, e := s.db.Exec("UPDATE artifacts SET created=created-10800000,expires=expires-10800000; UPDATE residential_records SET first_seen=first_seen-10800000,retain_until=retain_until-10800000"); e != nil {
+	if _, e := s.db.Exec("UPDATE artifacts SET created=created-108000000,expires=expires-108000000; UPDATE residential_records SET first_seen=first_seen-108000000,retain_until=retain_until-108000000"); e != nil {
 		t.Fatal(e)
 	}
 	if e := s.Expire(ctx, time.Now()); e != nil {

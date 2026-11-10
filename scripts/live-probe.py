@@ -157,6 +157,10 @@ class Sandbox:
         allow='\n'.join(f'ip daddr {ip} tcp dport {p} accept\nip daddr {ip} udp dport {p} accept' for ip,p in pairs)
         rules='flush ruleset\ntable inet guard { chain out { type filter hook output priority 0; policy drop; oifname "lo" accept; ip daddr 1.1.1.1 udp dport 53 accept; ip daddr 1.1.1.1 tcp dport 53 accept; '+allow+'\n}; chain in { type filter hook input priority 0; policy drop; iifname "lo" accept; ct state established,related accept; }; }\n'
         self.net([NFT,'-f','-'],input=rules.encode())
+    def core_mounts(self):
+        return []
+    def core_command(self,test):
+        return ['/xray','run']+(['-test'] if test else [])+['-c','/config.json']
     def launch(self,b,test=False):
         (self.work/'config.json').write_bytes(b);os.chmod(self.work/'config.json',0o444)
         (self.work/'resolv.conf').write_text('nameserver 1.1.1.1\noptions timeout:2 attempts:1\n')
@@ -164,7 +168,7 @@ class Sandbox:
         for name in ['geoip.dat','geosite.dat']:
             asset=self.core.parent/name
             if asset.exists():args+=['--ro-bind',str(asset),'/assets/'+name]
-        args+=['--','/xray','run']+(['-test'] if test else [])+['-c','/config.json']
+        args+=self.core_mounts()+['--']+self.core_command(test)
         self.log=tempfile.TemporaryFile(dir='/dev/shm')
         self.process=subprocess.Popen(['/usr/bin/python3',str(pathlib.Path(__file__).resolve()),'--sandbox-launch',str(self.cg)]+args,stdout=self.log,stderr=subprocess.STDOUT,start_new_session=True)
         return self.process

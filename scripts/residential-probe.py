@@ -201,7 +201,7 @@ def strict_policy(box,resolved):
     rules='flush ruleset\ntable inet guard { chain out { type filter hook output priority 0; policy drop; oifname "lo" accept; '+allow+'\n}; chain in { type filter hook input priority 0; policy drop; iifname "lo" accept; ct state established,related accept; }; }\n'
     box.net([lab.NFT,'-f','-'],input=rules.encode())
 
-def variant_test(box,v,policy,deep=False):
+def variant_test(box,v,policy,deep=False,engine=None):
     result={'name':v['name'],'import_rule':v.get('import_rule','original-json'),'hash':v['sha256'],'runtime_hash':'','core':'not_run','health':'UNKNOWN','paths':v['paths'],'paths_complete':v['paths_complete'],'code':'not_run'}
     data=base64.b64decode(v['config'],validate=True)
     if len(data)>2*1024*1024 or lab.digest(data)!=v['sha256']:raise ValueError('invalid_candidate')
@@ -212,13 +212,15 @@ def variant_test(box,v,policy,deep=False):
     rc=process.returncode;core_log=box.logs();box.stop()
     if rc!=0:result.update(core='failed',code=lab.classify(core_log,'core_validation_rejected'));return result,{},{}
     result['core']='passed';config=json.loads(data)
-    try:resolved=lab.endpoints(config);runtime=lab.runtime_config(config,resolved)
+    try:
+        if engine:resolved,runtime=engine.prepare(config)
+        else:resolved=lab.endpoints(config);runtime=lab.runtime_config(config,resolved)
     except (ValueError,KeyError,TypeError) as exc:
         unsupported=str(exc) in ('outbound_driver_pending','ipv6_only_probe_pending','invalid_download_settings','transport_dependency_depth')
         result.update(core='unsupported' if unsupported else 'passed',code='transport_driver_unsupported' if unsupported else 'endpoint_preparation_unavailable');return result,{},{}
     # Keep the selected inbound's sniffing semantics; no extra listener/API.
     original=next((b for b in config.get('inbounds',[]) if b.get('protocol')=='socks'),{})
-    if 'sniffing' in original:runtime['inbounds'][0]['sniffing']=original['sniffing']
+    if not engine and 'sniffing' in original:runtime['inbounds'][0]['sniffing']=original['sniffing']
     strict_policy(box,resolved);runtime_bytes=json.dumps(runtime,separators=(',',':')).encode();result['runtime_hash']=lab.digest(runtime_bytes)
     process=box.launch(runtime_bytes)
     ready=False
@@ -258,10 +260,16 @@ def main():
     threading.Thread(target=watch,daemon=True).start()
     request=json.load(sys.stdin);plan=request['plan'];policy=request['policy'];started=now();begin=time.monotonic();cpu=time.process_time()
     report={'version':'shen.residential.v1','policy_hash':request['policy_hash'],'template_version':request['template_version'],'core_sha256':core_sha,'core_id':args.core_id,'worker':request['worker'],'infrastructure_epoch':request['infrastructure_epoch'],'started':started,'finished':started,'infrastructure_ok':True,'variants':[],'observations':[],'controls':[],'ip_facts':[]}
+    engine=None;sandbox=lab.Sandbox
+    if args.core_id=='sing-box-1.14.4':
+        if plan.get('driver')!='sing-box':raise ValueError('core_driver_mismatch')
+        native_spec=importlib.util.spec_from_file_location('residential_native',HERE/'residential-native.py')
+        engine=importlib.util.module_from_spec(native_spec);native_spec.loader.exec_module(engine);sandbox=engine.sandbox_type(lab)
+    elif plan.get('driver','xray')!='xray':raise ValueError('core_driver_mismatch')
     try:
-        with lab.Sandbox(args.core,args.run_id,8192+args.slot,prefix=PREFIX) as box:
+        with sandbox(args.core,args.run_id,8192+args.slot,prefix=PREFIX) as box:
             for v in plan['variants']:
-                try:variant,observations,controls=variant_test(box,v,policy,request.get('deep',False) or pathlib.Path('/etc/config-repair/residential-observer.json').exists())
+                try:variant,observations,controls=variant_test(box,v,policy,request.get('deep',False) or pathlib.Path('/etc/config-repair/residential-observer.json').exists(),engine)
                 except Exception:
                     box.stop();variant={'name':v['name'],'hash':v['sha256'],'core':'not_run','health':'UNKNOWN','paths':v['paths'],'paths_complete':False,'code':'probe_infrastructure_error'};observations=[];controls=[];report['infrastructure_ok']=False
                 report['variants'].append(variant);report['observations'].extend(observations or []);report['controls'].extend(controls or [])

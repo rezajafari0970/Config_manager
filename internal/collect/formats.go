@@ -97,7 +97,7 @@ func kindOf(raw []byte) string {
 	}
 	scheme = strings.ToLower(scheme)
 	switch scheme {
-	case "vless", "vmess", "trojan", "ss", "ssr", "hysteria", "hysteria2", "hy2", "hy", "wireguard", "wg", "json", "custom", "socks", "socks5", "httpcustom", "napsternet":
+	case "vless", "vmess", "trojan", "ss", "ssr", "hysteria", "hysteria2", "hy2", "hy", "tuic", "wireguard", "wg", "json", "custom", "socks", "socks5", "httpcustom", "napsternet":
 		return scheme
 	}
 	return ""
@@ -605,7 +605,7 @@ func Fingerprint(sample []byte, complete bool, kind, rawHash string) string {
 		if b, e := ssIdentity(string(value)); e == nil {
 			canonical = b
 		}
-	} else if strings.Contains(" vless trojan hysteria hysteria2 hy2 hy wireguard wg ", " "+kind+" ") {
+	} else if strings.Contains(" vless trojan hysteria hysteria2 hy2 hy tuic wireguard wg ", " "+kind+" ") {
 		if u, e := url.Parse(string(value)); e == nil && u.Scheme != "" && u.Host != "" {
 			u.Fragment = ""
 			u.RawFragment = ""

@@ -37,13 +37,15 @@ def main():
   with (work/'panel.log').open('w') as pl,(work/'worker.log').open('w') as wl:
    try:
     panel=subprocess.Popen([str(fixture),'-test.run=^TestSmartWorkerFixture$','-test.v'],env=dict(os.environ,CONFIG_SMART_FIXTURE_DIR=str(work),CONFIG_SMART_FIXTURE_SCOPE=scope),stdout=pl,stderr=pl)
-    for _ in range(150):
+    fixture_started=time.monotonic();last_ready_error=""
+    for _ in range(600):
      if panel.poll() is not None:raise RuntimeError('fixture exited; '+(work/'panel.log').read_text()[-2000:])
      try:
       ready=json.loads((work/'public.json').read_text());assert ready['scope']==scope
       origin=ready['origin'];json.loads(get(origin+api)[0]);break
-     except (OSError,json.JSONDecodeError):time.sleep(.1)
-    else:raise RuntimeError('fixture unavailable')
+     except (OSError,json.JSONDecodeError) as error:last_ready_error=type(error).__name__;time.sleep(.1)
+    else:raise RuntimeError("fixture unavailable: "+last_ready_error+"; "+(work/"panel.log").read_text()[-2000:])
+    receipt["fixture_ready_seconds"]=round(time.monotonic()-fixture_started,2)
     def launch():return subprocess.Popen([str(ROOT/'bin/config-probe-worker'),'-mode',mode,'-socket',str(work/'data/probe.sock'),'-helper',str(work/'smart-probe-one.py'),'-core',str(ROOT/'.local/xray-26.7.28/xray'),'-lock-file',str(work/'smart.lock')],stdout=wl,stderr=wl)
     worker=launch();killed=False;start=time.monotonic();last=-1;max_active=0
     while time.monotonic()-start<480:
@@ -87,6 +89,7 @@ def main():
      assert all(b'192.0.2.200' not in line for line in lines)
     receipt.update(passed=True,profiles=len(lines),members_per_profile=51 if args.ads else 50,sources=len(samples),max_active=max_active,sigkill_recovered=True,unique_head_round=True,inline=True,core='xray-26.7.28')
    finally:
+    (ROOT/(".local/"+scope+"-fixture-diagnostic.log")).write_text((work/"panel.log").read_text()[-8000:])
     for process in [worker,panel]:
      if process and process.poll() is None:
       process.terminate()

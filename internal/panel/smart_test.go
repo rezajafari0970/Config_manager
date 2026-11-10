@@ -238,7 +238,7 @@ func TestSmartPersistentConcurrentRoundsAndMigration(t *testing.T) {
 	defer other.Close()
 	var schema int
 	other.db.QueryRow("PRAGMA user_version").Scan(&schema)
-	if schema != 17 {
+	if schema != 18 {
 		t.Fatal(schema)
 	}
 	var wg sync.WaitGroup

@@ -18,6 +18,7 @@ type Execution struct {
 	PathsComplete bool     `json:"paths_complete"`
 }
 type Plan struct {
+	Driver     string      `json:"driver"`
 	Version    string      `json:"version"`
 	CoreSHA256 string      `json:"core_sha256"`
 	Code       string      `json:"code"`
@@ -29,7 +30,23 @@ type CoreDriver interface {
 }
 type CoreRegistry struct{ drivers driver.Registry[CoreDriver] }
 
-func NewCoreRegistry() *CoreRegistry { r := &CoreRegistry{}; r.Register(XrayDriver{}); return r }
+func NewCoreRegistry() *CoreRegistry {
+	r := &CoreRegistry{}
+	r.Register(XrayDriver{})
+	r.Register(NativeDriver{})
+	return r
+}
+func (r *CoreRegistry) Select(raw []byte) Plan {
+	p := r.Prepare("xray-26.7.28", raw)
+	if len(p.Variants) == 2 {
+		return p
+	}
+	n := r.Prepare(SingBoxID, raw)
+	if n.Code != "native_protocol_unsupported" {
+		return n
+	}
+	return p
+}
 func (r *CoreRegistry) Register(d CoreDriver) {
 	if d != nil {
 		r.drivers.Put(d.ID(), d)
@@ -46,7 +63,7 @@ type XrayDriver struct{}
 
 func (XrayDriver) ID() string { return "xray-26.7.28" }
 func (XrayDriver) Prepare(raw []byte) Plan {
-	out := Plan{Version: Version, CoreSHA256: probe.CoreSHA256, Code: "UNSUPPORTED", Variants: []Execution{}}
+	out := Plan{Version: Version, Driver: "xray", CoreSHA256: probe.CoreSHA256, Code: "UNSUPPORTED", Variants: []Execution{}}
 	p := probe.Prepare(raw)
 	for _, c := range p.Candidates {
 		if c.RequiresConnection {

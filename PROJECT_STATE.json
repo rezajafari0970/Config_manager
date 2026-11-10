@@ -1,7 +1,7 @@
 {
-  "phase": "P30 official multi-core compatibility and same-family Ads diagnostics",
+  "phase": "P31 scoped attributable Ads egress and independent Residential classification",
   "date": "2026-11-10",
-  "status": "deployed_verified_residential_proof_pending",
+  "status": "deployed_verified; live_egress_proof_and_specialist_classification_unconfigured",
   "repository": "rezajafari0970/Config_manager",
   "branch": "go/v2rayng-2.3.6",
   "legacy_main": "unchanged",
@@ -19,7 +19,7 @@
     "template": "@shenvpn common envelope, actual endpoint/auth/transport preserved",
     "output": "JSONL, one compact object per line; no array or wrapper",
     "bank": "removed including persistent samples/history/model/rules and routes",
-    "lifetime": "Fixed shared retention36000s from first receipt per generation, including residential; duplicate fetch/retest/settings increases never renew current age. Source removal does not shorten independent residential deadline. Evidence TTL600s remains separate.",
+    "lifetime": "Accepted Residential or Ads-difference records are age-exempt, including source removal and blob cleanup. Pending first assessments survive ordinary TTL until assessed. Unqualified assessed records retain ordinary panel-configurable10h; ordinary health cache10h remains separate from600s Ads evidence.",
     "export_gate": "exact pinned-core pass; semantic hypotheses additionally require fresh two-destination HTTPS",
     "connectivity": "separate from ordinary JSON export eligibility",
     "android": "not_run",
@@ -42,11 +42,12 @@
     "resource_recovery": "Atomic same-plaintext blob replacement, synchronized compiled registries, bounded validated-IP fallback and worker idle polling, scoped UI reads with fetch deadline, unlinked full-export spooling.",
     "smart_splash": "Source flag; closed shared SmartPipeline drivers with separate settings/jobs/cache/provenance/counters/rotation/status/token domains and csp worker. Splash identity/candidate ownership takes precedence over ordinary duplicates. No cross-pool filling; ordinary/source outputs unchanged.",
     "smart_ads": "One whole fresh Splash head plus ordinary main followers; independent repository/settings/jobs/cache/provenance/rounds/service. Main and bootstrap leastLoad unchanged; terminal Ads dialers chain through main. Missing Ads blocks publication; unsupported chains fail explicitly.",
-    "residential": "Separate health, attributed Ads egress and exact-IP class. Both raw/template and every required domain/family/transport/path must qualify. Unknown/Partial/Unsupported never enter full residential output.",
-    "residential_deletion": "First suspicion/expiry quarantines; spaced fresh credible failures with infrastructure controls authorize global revocation. External authenticated tombstones fence stale jobs/backups/manual aliases. No AI deletion authority.",
-    "residential_outputs": "Common eligible generation: JSONL @shenvpn, durable per-link single JSON, inline exact-original raw.txt with one LF between bodies. Legacy ZIP URL redirects. Empty full-scope set returns503, never an uncertain substitute.",
+    "residential": "Independent health, attributable Ads egress and exact-IP class. ADS_DIFFERENT is scoped repeated difference with stable paired independent controls; ACCEPTED is independently verified Residential across the entire configured matrix. Both raw and template qualify; equal control/Ads IP can be Residential.",
+    "residential_deletion": "First suspicion/expiry quarantines. Three spaced fresh owner-bound credible votes, prior accepted scope comparison and an early shared-failure circuit gate global revocation. External authenticated tombstones fence old jobs/backups/manual aliases. No AI authority.",
+    "residential_outputs": "Two explicitly labelled evidence datasets, each with same-generation JSONL/common, durable per-link next JSON and exact raw.txt. Old strict Residential links unchanged; new Ads-difference links do not claim Residential. Read-time epoch/policy/expiry/journal gate; empty503 and changed-generation409.",
     "raw_output": "All-source exact-original raw.txt; one LF between bodies. At serialized admission, captured members must remain eligible/unchanged; unrelated arrivals wait for next request. Invalidations503; old archive.zip redirects.",
-    "residential_cores": "Latest26.11.9 first; official pinned26.7.28 and26.5.9 bounded parallel fallback. Select one complete raw/template report. Ordinary/Smart target unchanged."
+    "residential_cores": "Official pinned Xray26.11.9 first,26.7.28/26.5.9 bounded parallel fallback. Native TUIC/Hysteria driver uses pinned sing-box1.14.4. One complete raw/template report wins; ordinary/Smart target unchanged.",
+    "native_format": "Native common output is sing-box JSON with @shenvpn outbound tag, not Xray-compatible JSON; unrecognized/ambiguous extensions and complex routes remain explicit unsupported."
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -868,57 +869,57 @@
               {
                 "name": "Raytunnel",
                 "stored": 1,
-                "label": "\u062e\u0631\u0648\u062c\u06cc\u200c\u0647\u0627\u06cc \u0634\u0646\u0627\u0633\u0627\u06cc\u06cc\u200c\u0634\u062f\u0647 \u0622\u0645\u0627\u062f\u0647\u200c\u0627\u0646\u062f"
+                "label": "خروجی‌های شناسایی‌شده آماده‌اند"
               },
               {
                 "name": "sub",
                 "stored": 0,
-                "label": "\u0645\u062a\u0648\u0642\u0641"
+                "label": "متوقف"
               },
               {
                 "name": "output",
                 "stored": 0,
-                "label": "\u0645\u062a\u0648\u0642\u0641"
+                "label": "متوقف"
               },
               {
                 "name": "Hot",
                 "stored": 0,
-                "label": "\u0645\u062a\u0648\u0642\u0641"
+                "label": "متوقف"
               },
               {
                 "name": "Afrak",
                 "stored": 20,
-                "label": "\u0628\u0631\u062e\u06cc \u0648\u0631\u0648\u062f\u06cc\u200c\u0647\u0627 \u0646\u06cc\u0627\u0632\u0645\u0646\u062f \u062a\u06a9\u0645\u06cc\u0644 \u06cc\u0627 \u0627\u0635\u0644\u0627\u062d\u200c\u0627\u0646\u062f"
+                "label": "برخی ورودی‌ها نیازمند تکمیل یا اصلاح‌اند"
               },
               {
                 "name": "Yak",
                 "stored": 20,
-                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
+                "label": "کانفیگ ذخیره شد"
               },
               {
                 "name": "Exir",
                 "stored": 0,
-                "label": "\u0645\u062a\u0648\u0642\u0641"
+                "label": "متوقف"
               },
               {
                 "name": "Agood",
                 "stored": 1,
-                "label": "\u0630\u062e\u06cc\u0631\u0647 \u0634\u062f\u061b \u062e\u0631\u0648\u062c\u06cc \u062f\u0631 \u062d\u0627\u0644 \u0628\u0631\u0631\u0633\u06cc"
+                "label": "ذخیره شد؛ خروجی در حال بررسی"
               },
               {
                 "name": "Agood",
                 "stored": 92,
-                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
+                "label": "کانفیگ ذخیره شد"
               },
               {
                 "name": "Mixo",
                 "stored": 30,
-                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
+                "label": "کانفیگ ذخیره شد"
               },
               {
                 "name": "Speedray",
                 "stored": 31,
-                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
+                "label": "کانفیگ ذخیره شد"
               }
             ]
           },
@@ -933,57 +934,57 @@
               {
                 "name": "Raytunnel",
                 "stored": 1,
-                "label": "\u062e\u0631\u0648\u062c\u06cc\u200c\u0647\u0627\u06cc \u0634\u0646\u0627\u0633\u0627\u06cc\u06cc\u200c\u0634\u062f\u0647 \u0622\u0645\u0627\u062f\u0647\u200c\u0627\u0646\u062f"
+                "label": "خروجی‌های شناسایی‌شده آماده‌اند"
               },
               {
                 "name": "sub",
                 "stored": 0,
-                "label": "\u0645\u062a\u0648\u0642\u0641"
+                "label": "متوقف"
               },
               {
                 "name": "output",
                 "stored": 0,
-                "label": "\u0645\u062a\u0648\u0642\u0641"
+                "label": "متوقف"
               },
               {
                 "name": "Hot",
                 "stored": 0,
-                "label": "\u0645\u062a\u0648\u0642\u0641"
+                "label": "متوقف"
               },
               {
                 "name": "Afrak",
                 "stored": 20,
-                "label": "\u0628\u0631\u062e\u06cc \u0648\u0631\u0648\u062f\u06cc\u200c\u0647\u0627 \u0646\u06cc\u0627\u0632\u0645\u0646\u062f \u062a\u06a9\u0645\u06cc\u0644 \u06cc\u0627 \u0627\u0635\u0644\u0627\u062d\u200c\u0627\u0646\u062f"
+                "label": "برخی ورودی‌ها نیازمند تکمیل یا اصلاح‌اند"
               },
               {
                 "name": "Yak",
                 "stored": 20,
-                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
+                "label": "کانفیگ ذخیره شد"
               },
               {
                 "name": "Exir",
                 "stored": 0,
-                "label": "\u0645\u062a\u0648\u0642\u0641"
+                "label": "متوقف"
               },
               {
                 "name": "Agood",
                 "stored": 1,
-                "label": "\u0630\u062e\u06cc\u0631\u0647 \u0634\u062f\u061b \u062e\u0631\u0648\u062c\u06cc \u062f\u0631 \u062d\u0627\u0644 \u0628\u0631\u0631\u0633\u06cc"
+                "label": "ذخیره شد؛ خروجی در حال بررسی"
               },
               {
                 "name": "Agood",
                 "stored": 92,
-                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
+                "label": "کانفیگ ذخیره شد"
               },
               {
                 "name": "Mixo",
                 "stored": 30,
-                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
+                "label": "کانفیگ ذخیره شد"
               },
               {
                 "name": "Speedray",
                 "stored": 31,
-                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
+                "label": "کانفیگ ذخیره شد"
               }
             ]
           }
@@ -2078,7 +2079,7 @@
         "cached_bytes_exact": true,
         "logs_off": true
       },
-      "migration": "passed35 existing table fingerprints14\u219215; previous-binary rollback/re-upgrade; actual deployment fingerprints preserved",
+      "migration": "passed35 existing table fingerprints14→15; previous-binary rollback/re-upgrade; actual deployment fingerprints preserved",
       "openai_review": "completed:gpt-6-astra; scoped architecture and chain review; private key/receipts",
       "android_carriers": "not_run",
       "whole_live_ads_chain": "not_run_no_fresh_Splash"
@@ -2384,10 +2385,221 @@
         "estimated_usd": 0.60781,
         "actual_billed_usd": null
       }
+    },
+    "p31": {
+      "status": "passed; live certification remains unknown",
+      "full_suite": "gofmt,module verify,vet,full race,build,Python and JS passed",
+      "full_suite_seconds": 548.29,
+      "native_protocol_cases": 6,
+      "native_protocols": [
+        "TUIC",
+        "Hysteria1",
+        "Hysteria2"
+      ],
+      "native_variants": [
+        "raw",
+        "template"
+      ],
+      "native_traffic": [
+        "TLS-valid TCP",
+        "UDP echo",
+        "failed-upstream blocks"
+      ],
+      "native_live_google_quic": false,
+      "residential_worker": {
+        "passed": true,
+        "total": 7,
+        "completed": 7,
+        "max_active": 2,
+        "sigkill_recovered": true,
+        "elapsed_s": 172.35,
+        "counts": {
+          "UNKNOWN": 6,
+          "UNSUPPORTED": 1
+        },
+        "metrics": {
+          "configs_per_minute_last_5m": 1.4,
+          "mean_cpu_ms": 411.48533333333336,
+          "p50_ms": 12240.139,
+          "p95_ms": 27221.166,
+          "peak_rss_bytes": 110587904,
+          "sample_count": 6,
+          "scope": "server-side assessment; not client throughput"
+        }
+      },
+      "ordinary_worker": {
+        "android": "not_run",
+        "live_samples": 2,
+        "passed": true,
+        "total": 8,
+        "completed": 8,
+        "core_passed": 7,
+        "connected": 2,
+        "jsonl_configs": 7,
+        "max_active": 3,
+        "sigkill_recovered": true,
+        "codes": {
+          "https_multi_site_verified": 2,
+          "hysteria1_unsupported_by_target_core": 1,
+          "nonpublic_endpoint_blocked": 5
+        }
+      },
+      "smart_worker_suites": {
+        "smart": {
+          "scope": "normal",
+          "android": "not_run",
+          "whole_profile_connection": "not_run",
+          "fixture_ready_seconds": 3.94,
+          "passed": true,
+          "profiles": 55,
+          "members_per_profile": 50,
+          "sources": 3,
+          "max_active": 2,
+          "sigkill_recovered": true,
+          "unique_head_round": true,
+          "inline": true,
+          "core": "xray-26.7.28"
+        },
+        "splash": {
+          "scope": "splash",
+          "android": "not_run",
+          "whole_profile_connection": "not_run",
+          "fixture_ready_seconds": 3.36,
+          "passed": true,
+          "profiles": 55,
+          "members_per_profile": 50,
+          "sources": 3,
+          "max_active": 2,
+          "sigkill_recovered": true,
+          "unique_head_round": true,
+          "inline": true,
+          "core": "xray-26.7.28"
+        },
+        "ads": {
+          "scope": "ads",
+          "android": "not_run",
+          "whole_profile_connection": "not_run",
+          "fixture_ready_seconds": 9.24,
+          "passed": true,
+          "profiles": 55,
+          "members_per_profile": 51,
+          "sources": 3,
+          "max_active": 2,
+          "sigkill_recovered": true,
+          "unique_head_round": true,
+          "inline": true,
+          "core": "xray-26.7.28"
+        }
+      },
+      "migration": {
+        "passed": true,
+        "schema": 18,
+        "sources": 32,
+        "sources_settings_preserved": true,
+        "idempotent_reopen": true,
+        "seconds": 1.62
+      },
+      "lifecycle": "30h simulated age/source removal/blob GC/first assessment/expiry/retest/confirmed route loss/manual tombstone/stale completion/restore replay passed",
+      "comparison": "three-wave pairing, rotating controls, cross-wave overlap, canonical IPv6, mapped IPv4 rejection, attribution/nonce/replay/path/family/transport and raw-template gates passed",
+      "deletion_review_regressions": "unbound negative authority, IPv6 equivalence and early shared-failure circuit/stalled worker passed",
+      "export": "two datasets; member/generation parity; cross-Store concurrent durable turns; reopen; per-link independence; expiry and revocation gates passed",
+      "browser": {
+        "synthetic": true,
+        "live": true,
+        "widths": [
+          390,
+          1440
+        ],
+        "six_links": true,
+        "page_errors": []
+      },
+      "live": {
+        "passed": true,
+        "at": 1794295455.9311907,
+        "schema": 18,
+        "settings": {
+          "retention_seconds": 36000,
+          "health_ttl_seconds": 36000
+        },
+        "sources": 32,
+        "missing_memberships": 0,
+        "eligible": 0,
+        "counts": {
+          "UNKNOWN": 4697
+        },
+        "progress": {
+          "healthy": 447,
+          "pending": 2844,
+          "tested": 1853
+        },
+        "total": 4697,
+        "metrics": {
+          "configs_per_minute_last_5m": 6.8,
+          "mean_cpu_ms": 415.77254614992256,
+          "p50_ms": 7848.593,
+          "p95_ms": 28876.269,
+          "peak_rss_bytes": 136183808,
+          "sample_count": 1961,
+          "scope": "server-side assessment; not client throughput"
+        },
+        "outputs": {
+          "residential:configs.jsonl": {
+            "status": 503,
+            "bytes": 60
+          },
+          "residential:next.json": {
+            "status": 503,
+            "bytes": 60
+          },
+          "residential:raw.txt": {
+            "status": 503,
+            "bytes": 60
+          },
+          "ads_different:configs.jsonl": {
+            "status": 503,
+            "bytes": 60
+          },
+          "ads_different:next.json": {
+            "status": 503,
+            "bytes": 60
+          },
+          "ads_different:raw.txt": {
+            "status": 503,
+            "bytes": 60
+          }
+        },
+        "raw_all_count": 680,
+        "raw_membership_retries": 1,
+        "egress_trust_configured": false,
+        "trust_configured": false,
+        "ads_different_eligible": 0,
+        "metric_scope_note": "Recent bounded history can include prior policy versions; queue tested count is historical assessment, not full P31 coverage or current health."
+      },
+      "deployment_seconds": 12.83,
+      "source_settings_preserved": true,
+      "api_review": {
+        "model": "gpt-6-astra",
+        "completed": 1,
+        "input_tokens": 9405,
+        "output_tokens": 3194,
+        "findings_fixed": 3,
+        "estimated_usd": 0.277255,
+        "actual_billed_usd": null,
+        "credentials_sent": false
+      },
+      "report": "docs/reports/P31-report-fa.md",
+      "not_run": [
+        "real Google QUIC",
+        "forced IPv6 complete matrix",
+        "exhaustive selectable balancer paths",
+        "Android/carriers",
+        "live ground-truth classification accuracy",
+        "30h continuous wall-clock soak"
+      ]
     }
   },
   "runtime": {
-    "database_schema": 17,
+    "database_schema": 18,
     "services": [
       "config-repair.service",
       "config-repair-prober.service",
@@ -2397,9 +2609,9 @@
       "config-repair-residential.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p30r2-be98ea10b165fe057a6f",
-    "panel_sha256": "be98ea10b165fe057a6f84a7cfeb4d52ef6ba93aec64e457d5205ca5cdca4970",
-    "worker_sha256": "905696e03dbbc706261d203febad43493ae5d9f7c98b8cf1bf5bb1ce56ea4c50",
+    "release": "/opt/config-repair/releases/p31-52c277108c077cd23581",
+    "panel_sha256": "52c277108c077cd23581b9b5e1a4d0ae12479dd53d8a96b56591c279d61a9196",
+    "worker_sha256": "32e91e8e4b0f9cef37d39a7fd4eb0820ad0cde0d4046ebf0453bb61e3794b30a",
     "template_version": "xray-26.7.28.template.v4",
     "retention_seconds": 36000,
     "fetch_concurrency": 16,
@@ -2408,9 +2620,9 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 36000,
-    "deployment_receipt": ".local/p30-deployed.json",
-    "publication_receipt": ".local/p30-published.json",
-    "sandbox_driver_sha256": "0cab02ff83a5d3b83816752e110dcae20a2f92d3bb3ce83b6fcc099bffa5d483",
+    "deployment_receipt": ".local/p31-deployed.json",
+    "publication_receipt": ".local/p31-published.json",
+    "sandbox_driver_sha256": "9b9cd066785d646b292976d1ca233e6e26fe1ac1fe86d2ec5b7d77ee04401cc8",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
     "smart_version": "xray-26.7.28.smart.v8",
@@ -2419,15 +2631,15 @@
     "adapter_sha256": "071e7e4e7d4787045470e242ee96d47b981cf6abb204adc37181ae2d369eb887",
     "smart_adapter_sha256": "315174552cdac75a509eb3fa45079dacda57e8e6d60eb966cb60f2ba5b3d0190",
     "smart_revision": 11,
-    "source_count_at_inspection": 29,
+    "source_count_at_inspection": 32,
     "splash_adapter_sha256": "03a6869f905713358d31e6fb997b841610b499a56d93d7875609a712f4bfd935",
     "splash_count": 1,
     "splash_revision": 5,
     "splash_enabled": true,
     "splash_sources_at_inspection": 3,
     "splash_concurrency": 2,
-    "source_parent_commit": "8bb4d27f44709f23f629ecadbe5549c2d2e0e06c",
-    "tested_runtime_manifest": ".local/p30-tested-runtime.json",
+    "source_parent_commit": "d1c23c0f4eddca48f8b50d3845a82301aa695de0",
+    "tested_runtime_manifest": ".local/p31-tested-runtime.json",
     "ads_adapter_sha256": "4a519c9f99c61b9b8c25d16a6350af83f8fb00b29808e1e275110e5918bdebec",
     "ads_version": "xray-26.7.28.smart-ads.v1",
     "geosite_sha256": "adf92de0cfc70e458b399f04c5f912bf42d115ed7e37281b30e2f1c68605e4e9",
@@ -2435,8 +2647,8 @@
     "ads_count": 50,
     "ads_revision": 1,
     "ads_enabled": true,
-    "residential_worker_sha256": "4962ec3471aee609974c0dfb7d621c9f7a7effe0cf83380a5dbfcffbef549271",
-    "residential_adapter_sha256": "df96bb963403213be32ef1064a25edf6a6aa361041fda5b8ed6341bf9cd2b09d",
+    "residential_worker_sha256": "da17611396725a5ca071678cb0b0314129a1c59302c49b4c9227e05537397811",
+    "residential_adapter_sha256": "29f8a944457e6f12b40ffcb04bb97fcd65fa5a4bfd2948fd4dc7f315e1d69518",
     "residential_intel_sha256": "975350a113fe1d151d067fa5cc51e2a71000e884b597ec6e94b4cd6e20728d5e",
     "residential_observer_sha256": "8b581d92a9d1c55384e866739102bf3cef333eea4bfd67c9d217720915bebd49",
     "residential_version": "shen.residential.v1",
@@ -2444,23 +2656,29 @@
     "residential_evidence_ttl_seconds": 600,
     "residential_retest_seconds": 300,
     "residential_concurrency": 2,
-    "residential_retention": "fixed shared10h per generation; evidence10min independent",
+    "residential_retention": "age-exempt after either accepted evidence class; evidence600s/retest300s independent",
     "residential_ledger": "/var/lib/shen-residential-revocations",
     "residential_trust_configured": false,
     "residential_eligible_at_snapshot": 0,
     "public_verification_receipt": ".local/p30-live-check.json",
-    "residential_matrix_sha256": "9dca1aa98eb9536290d8095b4afc82927bc8c313bdac150ae6607c8f59dee3c2",
-    "residential_cores_sha256": "dc6a57fa9e8ea9b8bbdd344db2ee50c990ff09300e91278be96ffef12e17be25"
+    "residential_matrix_sha256": "975bcfa7a19eaa1d1119096c2d958199a37a48a46747881e4939bf4f72eda464",
+    "residential_cores_sha256": "819a8046f6d7eaccbf9d1b8e1cc9b4179fb1305b1491d0c5469ed8bdf95f966c",
+    "egress_trust_configured": false,
+    "ads_different_eligible_at_snapshot": 0,
+    "route_comparison_version": "ads-route-paired.v1",
+    "native_core": "sing-box-1.14.4",
+    "native_core_sha256": "1264361b5f8868c8768f7555d3e77e20118bf503c41ac08bb290a0d99056aa3a",
+    "residential_native_sha256": "8fb3897c30cb95af1f23fd9fe8c169b1925148e88737e8bde8e7b6bfd693cf36"
   },
   "next": [
-    "Configure documented authorized egress-flow observer and independently sourced exact-IP specialist intelligence before live residential acceptance",
-    "Implement and verify forced IPv6, UDP/QUIC and exhaustive selectable-path probe drivers; keep incomplete scope out of full output",
-    "Measure real positive/negative residential accuracy with authorized ground truth and complete raw/template scope",
-    "Actual Android/Termux and carrier/TUN/media/throughput measurements require a connected device; still not_run",
-    "Standalone checksum-pinned installer/update/rollback remains a separate release task"
+    "Configure authorized verifiable Ads-flow evidence; no attribution from unrelated IP-control requests or undocumented diagnostic semantics",
+    "Configure independent specialist exact-IP network intelligence before verified Residential acceptance",
+    "Add validated forced IPv6, Google QUIC and exhaustive selectable-path plugins; unknown/partial remains unqualified for full scope",
+    "Measure live ground-truth false positives/negatives and P31-only sustained throughput; current queue is still processing",
+    "Actual Android/carrier testing requires a connected device; checksum-pinned standalone installer remains separate"
   ],
   "environment": "Use verified project-local Go1.27.1 toolchain/module/build caches; shared caches previously failed integrity checks and were not modified.",
-  "audit_checkpoint": "docs/checkpoints/P30-multi-core-20261110.md",
+  "audit_checkpoint": "docs/checkpoints/P31-ads-route-20261110.md",
   "smart_ads": {
     "status": "deployed_verified; waiting for fresh eligible Splash input",
     "schema": 15,

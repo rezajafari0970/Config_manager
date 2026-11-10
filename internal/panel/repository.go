@@ -244,7 +244,7 @@ func (s *Store) SaveSettings(ctx context.Context, v collect.Settings) error {
 	if _, e = tx.ExecContext(ctx, "UPDATE responses SET expires=min(expires,created+?)", v.RetentionSeconds*1000); e != nil {
 		return e
 	}
-	if _, e = tx.ExecContext(ctx, "UPDATE residential_records SET retain_until=min(retain_until,first_seen+?) WHERE state!='DELETED'", v.RetentionSeconds*1000); e != nil {
+	if _, e = tx.ExecContext(ctx, "UPDATE residential_records SET retain_until=min(retain_until,first_seen+?) WHERE state!='DELETED' AND ever_accepted=0", v.RetentionSeconds*1000); e != nil {
 		return e
 	}
 	if e = s.expireResidential(ctx, tx, time.Now().UnixMilli()); e != nil {

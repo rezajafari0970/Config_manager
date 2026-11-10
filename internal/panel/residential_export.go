@@ -44,7 +44,12 @@ func residentialSnapshot(ctx context.Context, q residentialQuery, scope string) 
 	if e := q.QueryRowContext(ctx, "SELECT policy_hash,trust_hash,journal_seq FROM residential_settings WHERE id=1").Scan(&v.PolicyHash, &v.TrustHash, &v.JournalSequence); e != nil {
 		return v, e
 	}
-	query := `SELECT hash,candidate_hash,kind,size,revision,epoch,tested,valid_until,retain_until FROM residential_eligible e`
+	view := "residential_eligible"
+	if strings.HasPrefix(scope, "ads:") {
+		view = "ads_different_eligible"
+		scope = strings.TrimPrefix(scope, "ads:")
+	}
+	query := `SELECT hash,candidate_hash,kind,size,revision,epoch,tested,valid_until,retain_until FROM ` + view + ` e`
 	args := []any{}
 	if scope != "all" {
 		query += ` WHERE EXISTS(SELECT 1 FROM residential_owners o WHERE o.hash=e.hash AND o.source=?)`
@@ -103,7 +108,12 @@ func (s *Store) residentialBytes(hash string, compact bool) ([]byte, error) {
 	return b, nil
 }
 func (s *Server) residentialURL(scope, format string) string {
-	return s.origin + "/residential-subscription/" + scope + "/" + s.store.digest("residential-export-v1", scope+":"+format) + "/" + format
+	path, externalScope := "/residential-subscription/", scope
+	if strings.HasPrefix(scope, "ads:") {
+		path = "/ads-different-subscription/"
+		externalScope = strings.TrimPrefix(scope, "ads:")
+	}
+	return s.origin + path + externalScope + "/" + s.store.digest("residential-export-v1", scope+":"+format) + "/" + format
 }
 
 type residentialModule struct{ s *Server }
@@ -127,10 +137,14 @@ func (m residentialModule) Register(mux *http.ServeMux) {
 	})
 	for _, format := range []string{"configs.jsonl", "next.json", "raw.txt"} {
 		mux.HandleFunc("GET /residential-subscription/{scope}/{token}/"+format, s.residentialExport)
+		mux.HandleFunc("GET /ads-different-subscription/{scope}/{token}/"+format, s.residentialExport)
 	}
 }
 func (s *Server) residentialExport(w http.ResponseWriter, r *http.Request) {
 	scope := r.PathValue("scope")
+	if strings.HasPrefix(r.URL.Path, "/ads-different-subscription/") {
+		scope = "ads:" + scope
+	}
 	format := r.URL.Path[strings.LastIndex(r.URL.Path, "/")+1:]
 	if !equal(r.PathValue("token"), s.store.digest("residential-export-v1", scope+":"+format)) {
 		http.NotFound(w, r)
@@ -146,6 +160,10 @@ func (s *Server) residentialExport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("X-Residential-Generation", snapshot.Generation)
+	w.Header().Set("X-Evidence-Class", "verified-residential-within-policy")
+	if strings.HasPrefix(scope, "ads:") {
+		w.Header().Set("X-Evidence-Class", "different-ads-egress; not-residential-classification")
+	}
 	w.Header().Set("X-Config-Count", strconv.Itoa(len(snapshot.Entries)))
 	w.Header().Set("X-Verification-Scope", "explicit-domains-and-protocols-only; observed-not-guaranteed")
 	if requested := r.URL.Query().Get("generation"); requested != "" && requested != snapshot.Generation {
@@ -154,7 +172,7 @@ func (s *Server) residentialExport(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(snapshot.Entries) == 0 {
 		w.Header().Set("Retry-After", "15")
-		http.Error(w, "no currently qualified residential configuration", 503)
+		http.Error(w, "no currently qualified configuration in this evidence class", 503)
 		return
 	}
 	if r.Method == http.MethodHead {
@@ -265,7 +283,7 @@ func (s *Server) residentialNext(w http.ResponseWriter, r *http.Request, scope s
 		}
 		if len(fresh.Entries) == 0 {
 			tx.Rollback()
-			http.Error(w, "no currently qualified residential configuration", 503)
+			http.Error(w, "no currently qualified configuration in this evidence class", 503)
 			return
 		}
 		if requested := r.URL.Query().Get("generation"); requested != "" && requested != fresh.Generation {
@@ -460,15 +478,15 @@ func (s *Server) residentialState(w http.ResponseWriter, r *http.Request) {
 			failure(w, e)
 			return
 		}
-		if state != "DELETED" && retainedUntil <= time.Now().UnixMilli() {
+		if !retained && tested > 0 && state != "DELETED" && retainedUntil <= time.Now().UnixMilli() {
 			state = "DELETED"
 			reason = "retention_expired"
 		}
-		if state == "ACCEPTED" && until <= time.Now().UnixMilli() {
+		if (state == "ACCEPTED" || state == "ADS_DIFFERENT") && until <= time.Now().UnixMilli() {
 			state = "QUARANTINED"
 			reason = "evidence_expired"
 		}
-		entries = append(entries, map[string]any{"hash": hash, "state": state, "reason": reason, "retained": retained, "tested": tested, "valid_until": until, "retain_until": retainedUntil, "next_run": next, "decision": json.RawMessage(decision)})
+		entries = append(entries, map[string]any{"hash": hash, "state": state, "reason": reason, "retained": retained, "tested": tested, "valid_until": until, "retain_until": retainedUntil, "retention_exempt": retained, "first_assessment_pending": tested == 0 && state != "DELETED", "next_run": next, "decision": json.RawMessage(decision)})
 	}
 	e = rows.Err()
 	rows.Close()
@@ -477,7 +495,7 @@ func (s *Server) residentialState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	counts := map[string]int{}
-	rows, e = s.store.reader().QueryContext(r.Context(), "SELECT CASE WHEN state!='DELETED' AND retain_until<=CAST(unixepoch('subsec')*1000 AS INTEGER) THEN 'DELETED' WHEN state='ACCEPTED' AND hash NOT IN (SELECT hash FROM residential_eligible) THEN 'QUARANTINED' ELSE state END AS visible,count(*) FROM residential_records r WHERE (?='all' OR EXISTS(SELECT 1 FROM residential_owners o WHERE o.hash=r.hash AND o.source=?)) GROUP BY visible", scope, scope)
+	rows, e = s.store.reader().QueryContext(r.Context(), "SELECT CASE WHEN ever_accepted=0 AND tested>0 AND state!='DELETED' AND retain_until<=CAST(unixepoch('subsec')*1000 AS INTEGER) THEN 'DELETED' WHEN state IN ('ACCEPTED','ADS_DIFFERENT') AND hash NOT IN (SELECT hash FROM residential_active) THEN 'QUARANTINED' ELSE state END AS visible,count(*) FROM residential_records r WHERE (?='all' OR EXISTS(SELECT 1 FROM residential_owners o WHERE o.hash=r.hash AND o.source=?)) GROUP BY visible", scope, scope)
 	if e != nil {
 		failure(w, e)
 		return
@@ -507,12 +525,21 @@ func (s *Server) residentialState(w http.ResponseWriter, r *http.Request) {
 	for _, format := range []string{"configs.jsonl", "next.json", "raw.txt"} {
 		links[format] = s.residentialURL(scope, format)
 	}
+	adsSnapshot, e := s.store.ResidentialSnapshot(r.Context(), "ads:"+scope)
+	if e != nil {
+		failure(w, e)
+		return
+	}
+	adsLinks := map[string]string{}
+	for _, format := range []string{"configs.jsonl", "next.json", "raw.txt"} {
+		adsLinks[format] = s.residentialURL("ads:"+scope, format)
+	}
 	metrics, e := s.store.residentialMetrics(r.Context())
 	if e != nil {
 		failure(w, e)
 		return
 	}
-	respond(w, 200, map[string]any{"offset": offset, "total": total, "progress": map[string]int{"tested": tested, "healthy": healthy, "pending": pending}, "metrics": metrics, "generation": snapshot.Generation, "eligible_count": len(snapshot.Entries), "policy": p, "trust_configured": len(tr.Capabilities) > 0 && len(tr.Providers) >= 2, "counts": counts, "entries": entries, "links": links, "worker": worker, "scope": scope, "now": time.Now().UnixMilli(), "note": "Evidence applies only to the explicit tested matrix, not all Google Ads or future sessions."})
+	respond(w, 200, map[string]any{"ads_different": map[string]any{"eligible_count": len(adsSnapshot.Entries), "generation": adsSnapshot.Generation, "links": adsLinks}, "egress_trust_configured": len(tr.Capabilities) > 0, "offset": offset, "total": total, "progress": map[string]int{"tested": tested, "healthy": healthy, "pending": pending}, "metrics": metrics, "generation": snapshot.Generation, "eligible_count": len(snapshot.Entries), "policy": p, "trust_configured": len(tr.Capabilities) > 0 && len(tr.Providers) >= 2, "counts": counts, "entries": entries, "links": links, "worker": worker, "scope": scope, "now": time.Now().UnixMilli(), "note": "Evidence applies only to the explicit tested matrix, not all Google Ads or future sessions."})
 }
 
 type probeStatus struct {

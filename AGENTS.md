@@ -1,3 +1,33 @@
+# Current P31 override — 2026-11-10
+
+The latest user restores age-independent retention for accepted records, replacing
+P29/P30 fixed-age treatment of those records only. Ordinary retention and health
+cache remain panel-configurable10h. Untested inputs stay queued until their first
+assessment, even after source/ordinary artifact expiry; manual deletion still wins.
+
+Separate ADS_DIFFERENT (repeated attributed scoped Ads difference) from ACCEPTED
+(independently verified Residential within the entire configured matrix). Never
+rename the first network class Residential. Each evidence category has its own
+JSONL / durable next JSON / exact raw.txt triplet and current eligibility gate.
+Canonical IP comparison, both raw/template, >=3 waves, two stable independent
+same-family/transport/path controls and valid flow attestation are mandatory for
+Ads difference. Rotation/overlap/unknown attribution remain unknown. Loss votes
+must be bound to the original record; shared failure latches before deletion.
+
+Schema18 fences old policy evidence and leases, preserves sources/settings and
+rotations. External authenticated deletion ledger must never rewind. Use a
+matching stopped-service DB/blob/key/binary backup; schema17 binary cannot open18.
+Read P31 checkpoint and actual deployment/publication receipts before claiming live.
+
+Official Xray matrix remains latest26.11.9 then26.7.28/26.5.9 parallel fallback.
+TUIC/Hysteria native driver uses checksum-pinned sing-box1.14.4 in the same strict
+sandbox. It mounts only four fixed glibc dependencies read-only; no host directory.
+Native common JSON is sing-box format with @shenvpn tag, not Xray import JSON.
+Unknown native extensions/complex routes remain UNSUPPORTED. No TLS weakening,
+credential edits, Direct fallback or protocol substitution. Ordinary/Smart target
+and their envelopes remain unchanged. Native synthetic traffic fixtures use crn;
+worker tests crt; production crr. Never cross-clean those namespaces.
+
 # Current P30 override — 2026-11-10
 
 The user explicitly authorizes official older Xray versions when the latest core

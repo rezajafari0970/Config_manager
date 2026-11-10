@@ -1,3 +1,63 @@
+# P31 — attributable Ads differences and native protocol drivers
+
+This section supersedes older fixed-age and single-category notes below.
+The health, Ads attribution, scoped route comparison and exact-IP network class
+are independent. The route-comparison contract is `ads-route-paired.v1`.
+
+`ADS_DIFFERENT` requires healthy core-validated raw and common variants, a single
+fully understood proxy path, at least three fresh waves for a listed Ads domain /
+IP family / transport, and valid administrator-trusted flow attestations. Every
+wave has successful Cloudflare and ipify controls on matching variant/path/family/
+transport. Their entire IP pool must remain one canonical IP; the Ads IP set must
+be disjoint. Any rotated controls, cross-wave overlap, replayed connection/nonce,
+missing paired coverage or unavailable attribution leaves that scope unknown.
+Canonical IPv6 spelling compares equal; mapped IPv4 cannot claim an IPv6 cell.
+This is an observed scoped difference, not proof that all future sessions or all
+Google Ads use a dedicated path. ASN/country diagnostics do not decide acceptance.
+
+`ACCEPTED` retains the strict Residential gate: a specialist and an independent
+source must agree on the exact fresh observed IP, and every configured matrix
+cell/path in raw and common form must qualify. Equal Ads/control IP is allowed.
+Network Mobile/Datacenter/Unknown remain separate from route differences.
+
+The Residential page presents two labelled datasets with three links each. Old
+`/residential-subscription/` links still mean verified Residential within policy;
+new `/ads-different-subscription/` links mean scoped different Ads egress only.
+Each dataset's JSONL, durable rotating single JSON and exact original raw.txt use
+one current membership/generation. Use `?generation=` to bind multiple requests;
+changed generations409, empty/unavailable eligibility503, no stale substitute.
+Raw bodies are byte-exact with one LF between members, not ZIP or a self-delimiting
+container. Native templates are sing-box JSON with @shenvpn outbound tag; Xray
+protocols keep the existing @shenvpn envelope. The formats are explicitly labelled.
+
+Accepted members in either category are exempt from ordinary age cleanup, source
+removal and blob GC. Evidence expiry still removes them from every active output.
+First-assessment jobs also remain queued beyond ordinary TTL until actually
+assessed; this does not grant publication or retain failed assessed inputs forever.
+Duplicate acquisition never grants fresh evidence. Confirmed loss needs three
+spaced owner-bound fresh votes; a shared failure opens the five-minute destructive
+circuit from the first correlated vote, including when another worker stalls.
+Route loss must cover every previously accepted differing scope; classification
+outages/Datacenter metadata alone cannot delete a route-difference member.
+Manual deletion remains global. Tombstones, record revisions, epochs and external
+authenticated ledger fence stale jobs/backups; already downloaded bytes remain
+outside server control.
+
+Core plugins: official Xray26.11.9 first;26.7.28 and26.5.9 bounded parallel fallback.
+One whole raw/template report wins. Native TUIC/Hysteria1 URI and simple native
+TUIC/Hysteria1/2 JSON use official sing-box1.14.4 (closed SHA manifest). No conversion
+between incompatible wire protocols. Native unknown extensions, chained/balanced
+routes and unsupported IPv6 execution are explicit; hostname bootstrap is marked
+incomplete. Its glibc loader and three libraries are mounted read-only individually
+inside nobody/bwrap/netns/cgroup isolation. No Direct or host-DNS allowance is added.
+
+Validation includes synthetic native TCP/UDP and upstream-failure fixtures, both
+output pools, concurrency/reopen, age/source/GC, nonce/IP canonicalization, stale
+completion, ambiguity/outage/circuit, schema18 replay and private production-clone
+migration. These are not live Residential evidence, real Google QUIC, Android or
+carrier tests. Without authorized egress evidence and specialist data, public
+certification stays empty rather than adopting candidate IPs.
+
 # P30 core compatibility and route-method correction
 
 Residential execution uses scripts/residential-matrix.py and the closed official

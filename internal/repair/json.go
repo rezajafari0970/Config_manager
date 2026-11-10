@@ -88,6 +88,11 @@ func checkValue(d *json.Decoder, depth int) error {
 	}
 	return nil
 }
+
+// ValidateJSON rejects duplicate keys, trailing documents and excessive depth
+// without making protocol-specific assumptions or changing the input bytes.
+func ValidateJSON(b []byte) error { return strict(b) }
+
 func strict(b []byte) error {
 	if len(b) > MaxBytes {
 		return errors.New("input_too_large")

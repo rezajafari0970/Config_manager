@@ -13,6 +13,7 @@ go build -trimpath -buildvcs=false -o bin/config-residential-worker ./cmd/config
 python3 scripts/live-probe-test.py
 python3 scripts/residential-probe-test.py
 python3 scripts/residential-matrix-test.py
+python3 scripts/residential-native-test.py
 python3 scripts/residential-intel-test.py
 
 node scripts/source-status-test.mjs

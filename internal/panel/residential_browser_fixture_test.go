@@ -25,9 +25,10 @@ func TestResidentialBrowserFixture(t *testing.T) {
 		t.Fatal(e)
 	}
 	defer store.Close()
-	resPolicy(t, store)
+	adsPolicy(t, store)
 	resSeed(t, store, 1)
 	resSeed(t, store, 2)
+	seedAds(t, store, 3)
 	// Explicit synthetic compatibility presentation; never a live core receipt.
 	attempts, _ := json.Marshal([]residential.CoreAttempt{{CoreID: "xray-26.5.9", Variants: []residential.Variant{{Name: "raw", Core: "passed", Health: "HEALTHY", Code: "fixture_only"}, {Name: "template", Core: "passed", Health: "HEALTHY", Code: "fixture_only"}}}})
 	if _, e = store.db.Exec("UPDATE residential_records SET decision=json_set(decision,'$.core_id','xray-26.5.9','$.compatibility',json(?))", string(attempts)); e != nil {

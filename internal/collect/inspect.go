@@ -103,7 +103,7 @@ func InspectConfig(raw []byte, complete bool, kind string) string {
 		}
 	}
 	switch kind {
-	case "vless", "trojan", "hysteria", "hysteria2", "hy2", "wireguard", "wg", "socks", "socks5":
+	case "vless", "trojan", "hysteria", "hysteria2", "hy2", "tuic", "wireguard", "wg", "socks", "socks5":
 		u, e := url.Parse(string(b))
 		if e != nil || u.Hostname() == "" {
 			return "invalid"
@@ -200,7 +200,7 @@ func (d basicInspector) Inspect(raw []byte, complete bool) string {
 }
 func NewInspectionRegistry() *InspectionRegistry {
 	r := &InspectionRegistry{}
-	for _, kind := range []string{"json", "vless", "vmess", "trojan", "ss", "hysteria", "hysteria2", "hy2", "wireguard", "wg", "socks", "socks5"} {
+	for _, kind := range []string{"json", "vless", "vmess", "trojan", "ss", "hysteria", "hysteria2", "hy2", "tuic", "wireguard", "wg", "socks", "socks5"} {
 		r.Register(basicInspector{kind})
 	}
 	return r

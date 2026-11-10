@@ -1,3 +1,19 @@
+# Current P31 decision — 2026-11-10
+
+A route difference and a Residential access network are distinct results.
+The user accepts the former under an explicit scoped label without inferring the
+latter from country/ASN/ISP. Keep separate public datasets and claims. Paired
+controls must be stable across >=3 waves; Ads must be disjoint from the complete
+control pool, with valid attributable observations in both raw and common form.
+Equivalent IPv6 representations must compare equal. Unbound negative reports
+cannot regain deletion authority. Correlated failures latch a cooldown immediately.
+
+The latest instruction restores unlimited age for accepted members while evidence
+remains short-lived. All new input hashes enter the fair queue; untested entries
+cannot silently expire before first assessment. Manual deletion, tombstone epochs,
+current evidence eligibility, unknown quarantine and source/settings independence
+remain intact. Optional native drivers cannot redefine the ordinary Xray envelope.
+
 # Current P30 decision — 2026-11-10
 
 Latest-core rejection must trigger bounded official-core compatibility testing,

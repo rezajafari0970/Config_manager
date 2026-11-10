@@ -4,6 +4,8 @@ package residential
 // owner. The ordinary/Smart target remains independently pinned.
 func CoreID(sha string) string {
 	switch sha {
+	case SingBoxSHA256:
+		return SingBoxID
 	case "e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d":
 		return "xray-26.11.9"
 	case "64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d":

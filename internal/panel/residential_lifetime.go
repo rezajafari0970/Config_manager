@@ -48,40 +48,27 @@ func (s *Store) migrateV17() error {
 
 func (s *Store) expireResidentialLifetime(ctx context.Context, tx *sql.Tx, now int64) error {
 	// Bound each cleanup transaction so one source cannot monopolize the writer.
-	rows, e := tx.QueryContext(ctx, "SELECT hash,ever_accepted FROM residential_records WHERE state!='DELETED' AND retain_until<=? ORDER BY retain_until,hash LIMIT 64", now)
+	rows, e := tx.QueryContext(ctx, "SELECT hash FROM residential_records WHERE ever_accepted=0 AND tested>0 AND state!='DELETED' AND retain_until<=? ORDER BY retain_until,hash LIMIT 64", now)
 	if e != nil {
 		return e
 	}
-	type item struct {
-		hash     string
-		accepted bool
-	}
-	var items []item
+	var hashes []string
 	for rows.Next() {
-		var v item
-		if e = rows.Scan(&v.hash, &v.accepted); e != nil {
+		var hash string
+		if e = rows.Scan(&hash); e != nil {
 			rows.Close()
 			return e
 		}
-		items = append(items, v)
+		hashes = append(hashes, hash)
 	}
 	e = rows.Err()
 	rows.Close()
 	if e != nil {
 		return e
 	}
-	for _, v := range items {
-		if v.accepted {
-			if e = s.revokeResidential(ctx, tx, v.hash, "retention_expired", false, now); e != nil {
-				return e
-			}
-			if _, e = tx.ExecContext(ctx, "UPDATE residential_records SET reason='retention_expired' WHERE hash=?", v.hash); e != nil {
-				return e
-			}
-		} else {
-			if _, e = tx.ExecContext(ctx, `UPDATE residential_records SET state='DELETED',reason='retention_expired',candidate_hash='',candidate_size=0,report='{}',decision='{}',revision=revision+1,epoch=epoch+1,token='',lease_until=0,valid_until=0 WHERE hash=?`, v.hash); e != nil {
-				return e
-			}
+	for _, hash := range hashes {
+		if _, e = tx.ExecContext(ctx, `UPDATE residential_records SET state='DELETED',reason='retention_expired',candidate_hash='',candidate_size=0,report='{}',decision='{}',revision=revision+1,epoch=epoch+1,token='',lease_until=0,valid_until=0 WHERE hash=? AND ever_accepted=0`, hash); e != nil {
+			return e
 		}
 	}
 	return nil

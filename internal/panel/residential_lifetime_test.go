@@ -2,14 +2,13 @@ package panel
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 )
 
-func TestResidentialFixedLifetimeAndHealthCacheAreIndependent(t *testing.T) {
+func TestResidentialAgeExemptionAndHealthCacheAreIndependent(t *testing.T) {
 	s := testStore(t)
 	ctx := context.Background()
 	resPolicy(t, s)
@@ -38,37 +37,47 @@ func TestResidentialFixedLifetimeAndHealthCacheAreIndependent(t *testing.T) {
 	if until-first != 36000000 {
 		t.Fatal("not a ten-hour lifetime", until-first)
 	}
-	// Expiry at read-time must win even before scheduled cleanup runs.
-	if _, e := s.db.Exec("UPDATE residential_records SET retain_until=? WHERE hash=?", time.Now().Add(-time.Second).UnixMilli(), j.Hash); e != nil {
+	// Accepted configuration age is independent of evidence freshness.
+	if _, e = s.db.Exec("UPDATE residential_records SET retain_until=1,first_seen=first_seen-108000000 WHERE hash=?", j.Hash); e != nil {
+		t.Fatal(e)
+	}
+	if e = s.Expire(ctx, time.Now()); e != nil {
 		t.Fatal(e)
 	}
 	for _, f := range []string{"configs.jsonl", "next.json", "raw.txt"} {
-		if w := resRequest(s, "all", f); w.Code != 503 {
+		if w := resRequest(s, "all", f); w.Code != 200 {
 			t.Fatal(f, w.Code)
 		}
 	}
-	if e := s.Expire(ctx, time.Now()); e != nil {
+	if used, e := s.Referenced(ctx, j.Hash); e != nil || !used {
+		t.Fatal("accepted original lost", used, e)
+	}
+	s.db.Exec("UPDATE residential_records SET valid_until=0 WHERE hash=?", j.Hash)
+	for _, f := range []string{"configs.jsonl", "next.json", "raw.txt"} {
+		if w := resRequest(s, "all", f); w.Code != 503 {
+			t.Fatal("expired evidence published", f, w.Code)
+		}
+	}
+	if e = s.Expire(ctx, time.Now()); e != nil {
 		t.Fatal(e)
 	}
 	var state string
 	s.db.QueryRow("SELECT state FROM residential_records WHERE hash=?", j.Hash).Scan(&state)
-	if state != "DELETED" {
-		t.Fatal(state)
+	if state != "QUARANTINED" {
+		t.Fatal("expired evidence deleted retained member", state)
 	}
-	if e := s.CompleteResidential(ctx, resCompletion(*j)); !errors.Is(e, ErrConflict) {
-		t.Fatal("stale completion after expiry", e)
+	s.db.Exec("UPDATE residential_records SET next_run=0 WHERE hash=?", j.Hash)
+	fresh, e := s.ClaimResidential(ctx)
+	if e != nil || fresh == nil {
+		t.Fatal("old retained record not retested", e)
 	}
-	if used, e := s.Referenced(ctx, j.Hash); e != nil || used {
-		t.Fatal("expired original retained", used, e)
-	}
-	// A later increase cannot resurrect the expired record or its old proof.
-	cfg.RetentionSeconds = 72000
-	if e := s.SaveSettings(ctx, cfg); e != nil {
+	if e = s.CompleteResidential(ctx, resCompletion(*fresh)); e != nil {
 		t.Fatal(e)
 	}
-	if w := resRequest(s, "all", "raw.txt"); w.Code != 503 {
-		t.Fatal("expired proof resurrected", w.Code)
+	if w := resRequest(s, "all", "raw.txt"); w.Code != 200 {
+		t.Fatal("fresh proof not restored", w.Code)
 	}
+
 }
 
 func TestResidentialLifetimeDoesNotRenewOnRetestOrSettingIncrease(t *testing.T) {
@@ -100,8 +109,8 @@ func TestResidentialLifetimeDoesNotRenewOnRetestOrSettingIncrease(t *testing.T) 
 	cfg.RetentionSeconds = 18000
 	s.SaveSettings(ctx, cfg)
 	s.db.QueryRow("SELECT retain_until FROM residential_records WHERE hash=?", j.Hash).Scan(&after)
-	if after != before-18000000 {
-		t.Fatal("shorter setting not applied")
+	if after != before {
+		t.Fatal("general setting changed exempt lifetime")
 	}
 }
 
@@ -115,5 +124,42 @@ func TestResidentialOldZIPLinkRedirectsToPrintedRaw(t *testing.T) {
 	}
 	if w.Header().Get("Content-Type") == "application/zip" {
 		t.Fatal("ZIP still delivered")
+	}
+}
+
+func TestResidentialFirstAssessmentCannotExpireUnexamined(t *testing.T) {
+	s := testStore(t)
+	resPolicy(t, s)
+	ctx := context.Background()
+	source, _ := addConversion(t, s, conversionSample)
+	s.db.Exec("UPDATE residential_records SET retain_until=1;UPDATE artifacts SET expires=1")
+	if e := s.Expire(ctx, time.Now()); e != nil {
+		t.Fatal(e)
+	}
+	if e := s.Delete(ctx, source, 1); e != nil {
+		t.Fatal(e)
+	}
+	if e := s.vault.Sweep(ctx, s.Referenced); e != nil {
+		t.Fatal(e)
+	}
+	j, e := s.ClaimResidential(ctx)
+	if e != nil || j == nil || len(j.Raw) == 0 {
+		t.Fatal("untested input discarded", e)
+	}
+	if e = s.RenewResidential(ctx, *j); e != nil {
+		t.Fatal(e)
+	}
+	c := resCompletion(*j)
+	c.Report.IPFacts = nil
+	if e = s.CompleteResidential(ctx, c); e != nil {
+		t.Fatal(e)
+	}
+	if e = s.Expire(ctx, time.Now()); e != nil {
+		t.Fatal(e)
+	}
+	var state string
+	s.db.QueryRow("SELECT state FROM residential_records WHERE hash=?", j.Hash).Scan(&state)
+	if state != "DELETED" {
+		t.Fatal("general TTL should apply after first unqualified assessment", state)
 	}
 }

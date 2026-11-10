@@ -49,7 +49,11 @@ func publicationStamp(ctx context.Context, q residentialQuery) (string, error) {
 	if e = q.QueryRowContext(ctx, "SELECT generation FROM residential_settings WHERE id=1").Scan(&generation); e != nil {
 		return "", e
 	}
-	return snapshot.Generation + ":" + strconv.FormatInt(generation, 10), nil
+	ads, e := residentialSnapshot(ctx, q, "ads:all")
+	if e != nil {
+		return "", e
+	}
+	return snapshot.Generation + ":" + ads.Generation + ":" + strconv.FormatInt(generation, 10), nil
 }
 func (s *Server) guardLegacyPublication(w http.ResponseWriter, r *http.Request, next http.Handler) {
 	before, e := publicationStamp(r.Context(), s.store.reader())

@@ -11,25 +11,27 @@ import (
 
 const Version = "shen.residential.v1"
 const DomainsVersion = "google-ads-explicit.2026-11-10.1"
+const RouteComparisonVersion = "ads-route-paired.v1"
 
 type Policy struct {
-	Version              string   `json:"version"`
-	DomainsVersion       string   `json:"domains_version"`
-	Domains              []string `json:"domains"`
-	Families             []int    `json:"families"`
-	Transports           []string `json:"transports"`
-	Repeats              int      `json:"repeats"`
-	EvidenceTTLSeconds   int      `json:"evidence_ttl_seconds"`
-	RetestSeconds        int      `json:"retest_seconds"`
-	IntelTTLSeconds      int      `json:"intel_ttl_seconds"`
-	ConfirmationSeconds  int      `json:"confirmation_seconds"`
-	ConfirmationAttempts int      `json:"confirmation_attempts"`
-	Concurrency          int      `json:"concurrency"`
-	TimeoutSeconds       int      `json:"timeout_seconds"`
+	RouteComparisonVersion string   `json:"route_comparison_version"`
+	Version                string   `json:"version"`
+	DomainsVersion         string   `json:"domains_version"`
+	Domains                []string `json:"domains"`
+	Families               []int    `json:"families"`
+	Transports             []string `json:"transports"`
+	Repeats                int      `json:"repeats"`
+	EvidenceTTLSeconds     int      `json:"evidence_ttl_seconds"`
+	RetestSeconds          int      `json:"retest_seconds"`
+	IntelTTLSeconds        int      `json:"intel_ttl_seconds"`
+	ConfirmationSeconds    int      `json:"confirmation_seconds"`
+	ConfirmationAttempts   int      `json:"confirmation_attempts"`
+	Concurrency            int      `json:"concurrency"`
+	TimeoutSeconds         int      `json:"timeout_seconds"`
 }
 
 func DefaultPolicy() Policy {
-	return Policy{Version: Version, DomainsVersion: DomainsVersion,
+	return Policy{Version: Version, DomainsVersion: DomainsVersion, RouteComparisonVersion: RouteComparisonVersion,
 		Domains:  []string{"pagead2.googlesyndication.com", "googleads.g.doubleclick.net", "pubads.g.doubleclick.net", "securepubads.g.doubleclick.net", "www.googleadservices.com", "adservice.google.com", "app-measurement.com", "www.googletagservices.com", "www.googletagmanager.com", "admob.com"},
 		Families: []int{4, 6}, Transports: []string{"tcp", "udp", "quic"}, Repeats: 3, EvidenceTTLSeconds: 600, RetestSeconds: 300, IntelTTLSeconds: 600, ConfirmationSeconds: 30, ConfirmationAttempts: 3, Concurrency: 2, TimeoutSeconds: 6}
 }
@@ -124,6 +126,7 @@ type Report struct {
 	PeakRSSBytes           int64         `json:"peak_rss_bytes"`
 }
 type Decision struct {
+	AdsRoute         RouteComparison   `json:"ads_route"`
 	CoreID           string            `json:"core_id,omitempty"`
 	Compatibility    []CoreAttempt     `json:"compatibility,omitempty"`
 	Diagnostics      []RouteDiagnostic `json:"diagnostics,omitempty"`

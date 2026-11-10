@@ -11,17 +11,17 @@ def get(url,prod=False):
 def main():
     if os.geteuid()!=0:raise RuntimeError('sandbox supervisor required')
     receipt={'android':'not_run','carriers':'not_run','live_residential_proof':False}
-    samples=[b'hysteria://synthetic@192.0.2.1:443',b'vless://00000000-0000-4000-8000-000000000001@192.0.2.2:443?security=tls&sni=example.com']
+    samples=[b'tuic://00000000-0000-4000-8000-000000000001:synthetic@192.0.2.1:443?sni=example.com',b'hysteria://synthetic@192.0.2.1:443',b'vless://00000000-0000-4000-8000-000000000001@192.0.2.2:443?security=tls&sni=example.com']
     records=json.loads(get('http://127.0.0.1:18191/api/conversions',True))['entries']
     seen=set()
     for item in sorted(records,key=lambda x:x.get('connection')!='passed'):
-        if len(samples)>=6:break
+        if len(samples)>=7:break
         try:
             raw=get('http://127.0.0.1:18191/output/raw/'+item['id'],True)
             digest=hashlib.sha256(raw).hexdigest()
             if digest not in seen and len(raw)<=2*1024*1024:samples.append(raw);seen.add(digest)
         except (OSError,KeyError):continue
-    receipt['live_samples']=len(samples)-2
+    receipt['live_samples']=len(samples)-3
     subprocess.run(['go','test','-c','-o',str(ROOT/'.local/p28-worker-fixture'),'./internal/panel'],cwd=ROOT,check=True)
     with tempfile.TemporaryDirectory(prefix='p28-worker-',dir=ROOT/'.local') as directory:
         work=pathlib.Path(directory);(work/'signing.json').write_text(json.dumps({'master_key':base64.b64encode(bytes([21])*32).decode()}));os.chmod(work/'signing.json',0o600);(work/'samples.json').write_text(json.dumps([base64.b64encode(x).decode() for x in samples]))
@@ -54,6 +54,8 @@ def main():
                 with sqlite3.connect(work/'data/panel.db') as db:
                     # Public structured observations only, never raw configs or URLs.
                     receipt['evidence']=[json.loads(x[0]) for x in db.execute("SELECT report FROM residential_records WHERE tested>0")]
+                    assert any(r.get('core_id')=='sing-box-1.14.4' for r in receipt['evidence'])
+                    receipt['native_core_selected']=True
             finally:
                 # Preserve bounded private failure diagnostics before temp cleanup.
                 for name in ['worker.log','panel.log']:

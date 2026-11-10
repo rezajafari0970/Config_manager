@@ -88,7 +88,7 @@ func Open(path string, key []byte) (*Store, error) {
 	if err = db.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
 		return nil, err
 	}
-	if version > 17 {
+	if version > 18 {
 		return nil, errors.New("database schema newer than application")
 	}
 	if version == 0 {
@@ -167,6 +167,9 @@ PRAGMA user_version=1;`)
 		return nil, err
 	}
 	if err = s.migrateV17(); err != nil {
+		return nil, err
+	}
+	if err = s.migrateV18(); err != nil {
 		return nil, err
 	}
 	s.residentialDBPath = path

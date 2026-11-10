@@ -24,7 +24,7 @@ func domain(s string) bool {
 }
 func (p Policy) Validate() error {
 	invalid := errors.New("invalid_residential_policy")
-	if p.Version != Version || !identifier(p.DomainsVersion) || len(p.Domains) < 1 || len(p.Domains) > 64 || p.Repeats < 2 || p.Repeats > 8 || p.Concurrency < 1 || p.Concurrency > 4 || p.TimeoutSeconds < 1 || p.TimeoutSeconds > 20 || p.RetestSeconds < 30 || p.RetestSeconds > 1800 || p.EvidenceTTLSeconds < p.RetestSeconds || p.EvidenceTTLSeconds > 3600 || p.IntelTTLSeconds < 30 || p.IntelTTLSeconds > 3600 || p.ConfirmationAttempts < 3 || p.ConfirmationAttempts > 8 || p.ConfirmationSeconds < 30 || p.ConfirmationSeconds > 600 {
+	if p.RouteComparisonVersion != "" && p.RouteComparisonVersion != RouteComparisonVersion || p.Version != Version || !identifier(p.DomainsVersion) || len(p.Domains) < 1 || len(p.Domains) > 64 || p.Repeats < 2 || p.Repeats > 8 || p.Concurrency < 1 || p.Concurrency > 4 || p.TimeoutSeconds < 1 || p.TimeoutSeconds > 20 || p.RetestSeconds < 30 || p.RetestSeconds > 1800 || p.EvidenceTTLSeconds < p.RetestSeconds || p.EvidenceTTLSeconds > 3600 || p.IntelTTLSeconds < 30 || p.IntelTTLSeconds > 3600 || p.ConfirmationAttempts < 3 || p.ConfirmationAttempts > 8 || p.ConfirmationSeconds < 30 || p.ConfirmationSeconds > 600 {
 		return invalid
 	}
 	seen := map[string]bool{}

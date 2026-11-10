@@ -1,3 +1,27 @@
+# Current P31 handoff — 2026-11-10
+
+The current implementation separates observed Ads routing from network type.
+ADS_DIFFERENT is scoped to repeated, attributable differences with stable paired
+independent controls in both raw/template. Residential still requires specialty
+exact-IP evidence plus independent confirmation and complete configured scope.
+Existing verified-Residential links retain their meaning; the new Ads-difference
+triplet appears beside them. Each triplet shares membership/generation, persistent
+per-link rotation and transactional revocation fencing.
+
+Accepted entries are age-exempt again under the latest user instruction. Pending
+first assessments survive ordinary TTL/source deletion; unqualified assessed
+records retain ordinary TTL. Evidence expires separately (600s, retest300s).
+Migration18 requeues/fences old policy evidence and preserves current controls.
+Read docs/checkpoints/P31-ads-route-20261110.md and docs/reports/P31-report-fa.md;
+PROJECT_STATE.json and .local/p31-deployed.json identify actual runtime status.
+
+New native TUIC/Hysteria driver uses pinned sing-box1.14.4. Both native variants
+have synthetic TLS-valid TCP/UDP round-trip and failed-upstream block tests.
+This is not Google QUIC, Android, carrier, live Residential or universal protocol
+coverage. Unknown extensions, forcedIPv6 and complex selectable paths stay
+explicitly incomplete. No authorized observer or specialist classification has
+been invented. Real queue coverage is not a claim that every queued test finished.
+
 # Current P30 handoff — 2026-11-10
 
 Nine user inputs were tested against three official checksum-verified Xray cores.

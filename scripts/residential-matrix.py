@@ -131,20 +131,22 @@ def main():
     request=read_request();payload=json.dumps(request).encode();begin=time.monotonic()
     def one(index):
         pin=PINS[index];core=pathlib.Path(args.core) if pin['id']=='xray-26.7.28' else pathlib.Path('/opt/config-repair')/('core-'+pin['id'][5:])/'xray'
+        if pin['id']=='sing-box-1.14.4':core=pathlib.Path('/opt/config-repair')/pin['id']/'sing-box'
         start=int(time.time()*1000)
         failure={'version':'shen.residential.v1','policy_hash':request['policy_hash'],'template_version':request['template_version'],
                  'core_id':pin['id'],'core_sha256':pin['sha256'],'worker':request['worker'],'infrastructure_epoch':request['infrastructure_epoch'],
                  'started':start,'finished':start,'infrastructure_ok':False,'variants':[],'observations':[],'controls':[],'ip_facts':[]}
         try:
-            rc,out=run_bounded([sys.executable,helper,'--core',str(core),'--core-id',pin['id'],'--slot',str(3*args.slot-2+index),'--run-id',args.run_id],payload,105)
+            rc,out=run_bounded([sys.executable,helper,'--core',str(core),'--core-id',pin['id'],'--slot',str(3*args.slot-2+(index if index<3 else 0)),'--run-id',args.run_id],payload,105)
             if rc:return failure
             result=json.loads(out)
             if result['core_sha256']!=pin['sha256'] or result['core_id']!=pin['id']:return failure
             return result
         except (OSError,ValueError,KeyError):return failure
         finally:failure['finished']=int(time.time()*1000)
-    reports=[one(0)]
-    if not healthy(reports[0]):
+    native=request.get('plan',{}).get('driver')=='sing-box'
+    reports=[one(3 if native else 0)]
+    if not native and not healthy(reports[0]):
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:reports+=list(pool.map(one,[1,2]))
     if STOP.is_set():raise SystemExit(143)
     result=select(reports)
