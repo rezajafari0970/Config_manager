@@ -3,6 +3,7 @@ package panel
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -51,6 +52,14 @@ func TestSmartSafeCacheSurvivesGrowthAndFailedReplacement(t *testing.T) {
 			got, e = s.smartBytes(ctx, old)
 			if e != nil || !bytes.Equal(got, original) {
 				t.Fatal("failed replacement destroyed cache", e)
+			}
+			app, _ := NewServer(s, "http://127.0.0.1:18191")
+			response := exportRequest(t, app.Handler(), "GET", app.origin+"/api/smart")
+			var summary struct {
+				Stats map[string]int `json:"stats"`
+			}
+			if json.Unmarshal(response.Body.Bytes(), &summary) != nil || summary.Stats["ready"]+summary.Stats["blocked"]+summary.Stats["warming"] != summary.Stats["total"] {
+				t.Fatal("overlapping readiness counts", response.Body.String())
 			}
 			replaced = true
 			break

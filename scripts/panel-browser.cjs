@@ -94,9 +94,17 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
   assert.equal((await state()).stats.configs,2);await noOverflow();await page.screenshot({path:dir+'/restored-source.png',fullPage:true});
  }
  if(phase==='2'){
+  const pendingState=await(await context.request.get(origin+'/api/smart-ads')).json();
+  const waiting=await context.newPage();waiting.on('pageerror',e=>errors.push(e.message));
+  const unavailable=await waiting.goto(pendingState.single_export_url);assert.equal(unavailable.status(),503);
+  assert.equal(await waiting.evaluate(()=>document.contentType),'text/html');
+  assert.ok((await waiting.locator('#status').innerText()).length>20);
+  assert.ok(await waiting.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await waiting.screenshot({path:dir+'/waiting-mobile.png',fullPage:true});
+  const machine=await context.request.get(pendingState.single_export_url,{headers:{Accept:'application/json'}});assert.equal(machine.status(),503);assert(machine.headers()['content-type'].startsWith('text/plain'));
   await page.goto(origin+'/input');await page.waitForSelector('[data-action=splash]');if(await page.locator('#import-panel').getAttribute('open')===null)await page.locator('#import-panel summary').click();await page.locator('#bulk-links').fill('https://example.com/Api/Splash/trun.php');await page.locator('#bulk-splash').check();await page.getByRole('button',{name:'افزودن لینک‌ها',exact:true}).click();
   const splashState=async()=>(await(await context.request.get(origin+'/api/smart-splash')).json());
-  await wait(async()=>(await splashState()).stats.ready===2);const src=(await state()).sources.find(s=>s.name==='Splash');assert(src.splash);
+  await wait(async()=>{const s=await splashState();return s.stats.ready===2&&s.entries.every(v=>v.count===2&&!v.refreshing)});const src=(await state()).sources.find(s=>s.name==='Splash');assert(src.splash);
   const row=page.locator('.source-row[data-id="'+src.id+'"]'),toggle=row.locator('[data-action=splash]');await wait(async()=>await toggle.getAttribute('aria-pressed')==='true');await noOverflow();
   await page.goto(origin+'/smart-splash');await wait(async()=>await page.locator('[data-smart-view]').count()===2);await noOverflow();
   const sp=await splashState();assert.equal(sp.settings.count,7);assert.equal((await(await context.request.get(origin+'/api/smart')).json()).stats.ready,2);
@@ -106,6 +114,8 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
   await page.locator('[data-smart-view]').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('#smart-list pre')].some(p=>!p.hidden));await page.screenshot({path:dir+'/splash-mobile.png',fullPage:true});
   const adsState=async()=>(await(await context.request.get(origin+'/api/smart-ads')).json());
   await wait(async()=>(await adsState()).stats.ready===2);
+  await waiting.locator('#retry').click();await waiting.waitForFunction(()=>document.contentType==='text/plain');
+  assert.equal(JSON.parse(await waiting.locator('body').innerText()).remarks,'@shenvpn-smart-ads');await waiting.close();
   for(const width of [390,1440]){
    await page.setViewportSize({width,height:900});await page.goto(origin+'/smart-ads');await wait(async()=>await page.locator('[data-smart-view]').count()===2);await noOverflow();
    const ad=await adsState();assert.equal(ad.settings.count,3);assert.equal(await page.locator('#smart-all-url').getAttribute('href'),ad.export_url);
@@ -116,7 +126,7 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
   }
   const ad=await adsState(),adsPage=await context.newPage(),adsDownloads=[];adsPage.on('download',d=>adsDownloads.push(d));
   const adsTurns=[];for(let i=0;i<3;i++){const r=await adsPage.goto(ad.single_export_url);assert.equal(r.status(),200);assert.equal(JSON.parse((await r.text()).trim()).remarks,'@shenvpn-smart-ads');adsTurns.push([r.headers()['x-export-cycle'],r.headers()['x-smart-profile-id']])}
-  assert.equal(adsDownloads.length,0);assert.equal(adsTurns[0][0],adsTurns[1][0]);assert.notEqual(adsTurns[0][1],adsTurns[1][1]);await adsPage.close();
+  assert.equal(adsDownloads.length,0);for(let i=0;i<adsTurns.length;i++)for(let k=i+1;k<adsTurns.length;k++)if(adsTurns[i][0]===adsTurns[k][0])assert.notEqual(adsTurns[i][1],adsTurns[k][1]);assert(Number(adsTurns[2][0])>Number(adsTurns[0][0]));await adsPage.close();
   await page.goto(origin+'/input');const button=page.locator('.source-row[data-id="'+src.id+'"] [data-action=splash]');await button.click();await wait(async()=>(await splashState()).stats.ready===0);await wait(async()=>(await(await context.request.get(origin+'/api/smart')).json()).stats.ready===4);
   await wait(async()=>await button.getAttribute('aria-pressed')==='false');await button.click();await wait(async()=>(await splashState()).stats.ready===2);await wait(async()=>(await(await context.request.get(origin+'/api/smart')).json()).stats.ready===2);
  }

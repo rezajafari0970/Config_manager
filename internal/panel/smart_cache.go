@@ -87,25 +87,25 @@ func publishSmartCache(ctx context.Context, tx smartTransaction, id string) erro
 // Called only for unreadable/invalid ciphertext or payload, never merely stale
 // ownership or a canceled request. A healthy concurrent replacement is fenced
 // by cache hash; a running builder retains its independent lease.
-func (s *SmartPipeline) retrySmartBlob(ctx context.Context, v SmartEntry) {
+func (s *SmartPipeline) retrySmartBlob(ctx context.Context, v SmartEntry) error {
 	if ctx.Err() != nil {
-		return
+		return ctx.Err()
 	}
 	tx, e := s.db.BeginTx(ctx, nil)
 	if e != nil {
-		return
+		return e
 	}
 	defer tx.Rollback()
 	res, e := tx.ExecContext(ctx, "DELETE FROM smart_cache WHERE id=? AND hash=?", v.ID, v.Hash)
 	if e != nil {
-		return
+		return e
 	}
 	n, e := res.RowsAffected()
 	if e != nil || n == 0 {
-		return
+		return e
 	}
 	if _, e = tx.ExecContext(ctx, "UPDATE smart_heads SET state='queued',next_run=0,code='smart_blob_unavailable' WHERE id=? AND token=''", v.ID); e != nil {
-		return
+		return e
 	}
-	_ = tx.Commit()
+	return tx.Commit()
 }

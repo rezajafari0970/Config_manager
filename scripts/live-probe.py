@@ -25,15 +25,30 @@ def classify(log, fallback):
     text = log.decode(errors='replace').lower() if isinstance(log, bytes) else log.lower()
     rules = [('feature "allowinsecure" has been removed','removed_allow_insecure'), ('without tls is prohibited','public_endpoint_requires_tls'), ('without tls or other encryption is prohibited','public_endpoint_requires_tls'), ('invalid uuid','invalid_uuid'),
         ('unknown config id','unsupported_protocol_or_transport'), ('unknown transport protocol','unsupported_transport'),
-        ('flow has been removed','removed_trojan_flow'), ('certificate signed by unknown authority','tls_untrusted_certificate'), ('certificate has expired','tls_expired_certificate'), ('certificate is valid for','tls_name_mismatch'), ('cannot validate certificate for','tls_name_mismatch'), ('certificate','tls_certificate_failure'),
-        ('reality','reality_handshake_or_settings'), ('failed to parse','core_parse_failure'),
+        ('flow has been removed','removed_trojan_flow'), ('reality: received real certificate','reality_authentication_rejected'), ('certificate signed by unknown authority','tls_untrusted_certificate'), ('certificate has expired','tls_expired_certificate'), ('certificate is valid for','tls_name_mismatch'), ('cannot validate certificate for','tls_name_mismatch'), ('failed to verify certificate','tls_certificate_failure'),
+        ('reality:','reality_handshake_or_settings'), ('failed to parse','core_parse_failure'),
         ('cannot unmarshal','core_schema_mismatch'), ('no such file','missing_runtime_asset'),
-        ('connection refused','endpoint_refused'), ('i/o timeout','connection_timeout'),
+        ('connection refused','endpoint_refused'), ('connection reset by peer','peer_reset_connection'), ('i/o timeout','connection_timeout'), ('operation timed out','connection_timeout'),
         ('network is unreachable','network_unreachable'), ('no such host','dns_failure'),
         ('authentication','authentication_failure'), ('eof','peer_closed_connection')]
     for needle, code in rules:
         if needle in text: return code
     return fallback
+
+def download_endpoints(stream, depth=0):
+    """Follow only native XHTTP download transports, with the core's extra precedence."""
+    if depth > 16: raise ValueError('transport_dependency_depth')
+    x=stream.get('xhttpSettings',stream.get('splithttpSettings',{}))
+    holder=x.get('extra',x) if isinstance(x,dict) else {}
+    if not isinstance(holder,dict): raise ValueError('invalid_download_settings')
+    download=holder.get('downloadSettings')
+    if download is None: return []
+    if not isinstance(download,dict): raise ValueError('invalid_download_settings')
+    # The pinned core dereferences an explicit download destination; no SNI/Host guessing.
+    host=download.get('address');port=download.get('port',0)
+    if not isinstance(host,str) or not host or not isinstance(port,int) or not 1<=port<=65535:
+        raise ValueError('invalid_download_endpoint')
+    return [(host,port)]+download_endpoints(download,depth+1)
 
 def endpoints(config):
     """Never infer dial targets by recursively trusting arbitrary address keys."""
@@ -42,6 +57,7 @@ def endpoints(config):
         protocol=ob.get('protocol');s=ob.get('settings',{})
         if protocol in {'freedom','blackhole','dns','loopback'}: continue
         if protocol not in ALLOWED_PROTOCOLS: raise ValueError('outbound_driver_pending')
+        result.extend(download_endpoints(ob.get('streamSettings',{})))
         if protocol=='wireguard':
             for peer in s.get('peers',[]):
                 host,sep,p=peer.get('endpoint','').rpartition(':')
@@ -59,13 +75,15 @@ def endpoints(config):
             servers=s.get('vnext',s.get('servers',[]))
             for server in servers: result.append((server['address'],int(server['port'])))
     if not result: raise ValueError('no_proxy_endpoint')
-    resolved={}
+    resolved={};answers={}
     for host,port in result:
         if not isinstance(host,str) or not 1<=port<=65535: raise ValueError('invalid_proxy_endpoint')
         # Resolver in a killable subprocess: a broken DNS lookup cannot stall the pool.
         helper='import socket,json,sys;print(json.dumps(sorted({x[4][0] for x in socket.getaddrinfo(sys.argv[1],None,socket.AF_UNSPEC,socket.SOCK_STREAM)})))'
-        try: ips=json.loads(cmd(['/usr/bin/python3','-c',helper,host],timeout=8).stdout)
-        except (subprocess.SubprocessError,json.JSONDecodeError): raise ValueError('endpoint_dns_failed')
+        if host not in answers:
+            try: answers[host]=json.loads(cmd(['/usr/bin/python3','-c',helper,host],timeout=8).stdout)
+            except (subprocess.SubprocessError,json.JSONDecodeError): raise ValueError('endpoint_dns_failed')
+        ips=answers[host]
         if not ips or any(not ipaddress.ip_address(ip).is_global or ipaddress.ip_address(ip).is_multicast or ipaddress.ip_address(ip).is_reserved for ip in ips): raise ValueError('nonpublic_endpoint_blocked')
         ipv4=[ip for ip in ips if ipaddress.ip_address(ip).version==4]
         # IPv6 remains blocked by the namespace inet policy. A mixed pool can
@@ -197,9 +215,9 @@ def test_candidate(box,candidate,timeout):
     try:
         config=json.loads(b);resolved=endpoints(config);runtime=runtime_config(config,resolved)
     except (ValueError,TypeError,KeyError) as e:
-        code=str(e);result['code']=code if code in {'outbound_driver_pending','wireguard_endpoint_invalid','no_proxy_endpoint','invalid_proxy_endpoint','endpoint_dns_failed','nonpublic_endpoint_blocked','ipv6_only_probe_pending','custom_dns_mapping_requires_review'} else 'probe_preparation_failed';return result
+        code=str(e);result['code']=code if code in {'outbound_driver_pending','wireguard_endpoint_invalid','no_proxy_endpoint','invalid_proxy_endpoint','endpoint_dns_failed','nonpublic_endpoint_blocked','ipv6_only_probe_pending','custom_dns_mapping_requires_review','invalid_download_settings','invalid_download_endpoint','transport_dependency_depth','port_hopping_invalid'} else 'probe_preparation_failed';return result
     box.policy(resolved);runtime_bytes=json.dumps(runtime,separators=(',',':')).encode();result['runtime_sha256']=digest(runtime_bytes)
-    p=box.launch(runtime_bytes);codes=[]
+    p=box.launch(runtime_bytes);codes=[];curl_errors=[]
     # Readiness waits are local and do not reject slow remote proxies with TCP ping.
     ready=False
     for _ in range(30):
@@ -210,8 +228,12 @@ def test_candidate(box,candidate,timeout):
     if ready:
         for url,expected in TESTS:
             args=[IP,'netns','exec',box.name,'/usr/bin/curl','--noproxy','','--proxy','socks5h://127.0.0.1:10808','--max-time',str(timeout),'--connect-timeout',str(timeout),'--max-filesize','65536','--silent','--show-error','--output','/dev/null','--write-out','%{http_code}',url]
-            try:r=subprocess.run(args,capture_output=True,timeout=timeout+2,env={'PATH':'/usr/bin:/usr/sbin'});passed=r.returncode==0 and r.stdout.strip()==str(expected).encode()
-            except subprocess.TimeoutExpired:passed=False
+            try:
+                r=subprocess.run(args,capture_output=True,timeout=timeout+2,env={'PATH':'/usr/bin:/usr/sbin'})
+                passed=r.returncode==0 and r.stdout.strip()==str(expected).encode()
+                if not passed: curl_errors.append(r.stderr[-4096:])
+            except subprocess.TimeoutExpired:
+                passed=False;curl_errors.append(b'operation timed out')
             codes.append(passed)
             if not passed and len(codes)==1:
                 # A second independent destination distinguishes endpoint-specific failures.
@@ -220,7 +242,7 @@ def test_candidate(box,candidate,timeout):
     log=box.logs();box.stop();result['endpoints_passed']=sum(codes)
     if codes and all(codes):result.update(connection='passed',code='https_multi_site_verified' if site_ok else 'https_proxy_verified_site_unavailable')
     elif any(codes):result.update(connection='partial',code='test_destination_partial')
-    else:result.update(connection='failed',code=classify(log,'proxy_request_failed' if ready else 'runtime_start_failed'))
+    else:result.update(connection='failed',code=classify(log,classify(b'\n'.join(curl_errors),'proxy_request_failed' if ready else 'runtime_start_failed')))
     return result
 
 if __name__=='__main__':

@@ -175,3 +175,11 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - Require full checks, all four worker recoveries, controlled chain/failed-exit/negative-bypass TCP/UDP/UDP443, browser/restart, additive migration/rollback, stopped-service backup, public export verification and exact source publication/readback.
 
 - Positive support-x25519mlkem768=true/1 is an explicit VLESS REALITY URI compatibility hint, not an Xray JSON field. Preserve native candidate/fingerprint/credentials and raw bytes; reject disable, malformed, duplicate and mismatched-security uses. Never use hint acceptance as connection proof.
+
+## P27 production recovery
+- Read docs/checkpoints/P27-production-recovery-20261110.md. Keep schema15/templates/target and all live sources/settings/rotations unchanged.
+- Advance HTTP validators only with an accepted generation; rejected bodies clear validators and use bounded unconditional recovery. Increased retention must never extend existing deadlines.
+- Repository drivers implement exact revision/token-fenced Abandon for known discarded claims. Smart committed handoff failures clean up only their own token; unknown/crashed outcomes keep lease recovery.
+- Cache cleanup errors propagate. Bound only failed blob/generation recovery, not successful cross-store turn competition. Full Smart spools revalidate exact cache provenance before successful headers; zero/revoked full output is503.
+- Shared availability is nonconsuming and scope-token protected. Browser-only waiting HTML must never replace successful JSON or leak into VPN clients' responses. Keep bounded polling and mobile/recovery regression.
+- Match actual error signatures, never incidental certificate vocabulary. XHTTP download endpoint allowlisting follows native extra precedence; public-only firewall/TLS/proof gates remain. Show connection diagnostics even for core-valid exportable rows.

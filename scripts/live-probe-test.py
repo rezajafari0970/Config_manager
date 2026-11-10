@@ -36,6 +36,27 @@ class ProbeTests(unittest.TestCase):
   self.assertEqual(p.classify('The feature "allowInsecure" has been removed','unknown'),'removed_allow_insecure')
   self.assertEqual(p.classify('trojan without TLS is prohibited','unknown'),'public_endpoint_requires_tls')
   self.assertEqual(p.classify('vless without TLS or other encryption is prohibited','unknown'),'public_endpoint_requires_tls')
+ def test_runtime_diagnosis_uses_specific_auth_error(self):
+  self.assertEqual(p.classify('REALITY: received real certificate (potential MITM or redirection)','unknown'),'reality_authentication_rejected')
+  self.assertEqual(p.classify('certificate loaded successfully','unknown'),'unknown')
+  self.assertEqual(p.classify('curl: (35) Recv failure: Connection reset by peer','unknown'),'peer_reset_connection')
+
+ def test_download_endpoint_allowlist_and_one_resolution_per_host(self):
+  class R:stdout=b'["1.1.1.1"]'
+  stream={'xhttpSettings':{'downloadSettings':{'address':'ignored.example','port':443},'extra':{'downloadSettings':{'address':'download.example','port':8443,'xhttpSettings':{'extra':{'downloadSettings':{'address':'download.example','port':8444}}}}}}}
+  cfg={'outbounds':[{'protocol':'vless','settings':{'address':'upload.example','port':443},'streamSettings':stream}]}
+  with patch.object(p,'cmd',return_value=R()) as run:
+   r=p.endpoints(cfg)
+   self.assertEqual(set(r),{'download.example','upload.example'})
+   self.assertEqual(set(r['download.example']['ports']),{'8443','8444'})
+   self.assertEqual(run.call_count,2)
+  cfg['outbounds'][0]['streamSettings']['xhttpSettings']['extra']['downloadSettings']['address']='127.0.0.1'
+  class Private:stdout=b'["127.0.0.1"]'
+  with patch.object(p,'cmd',return_value=Private()):
+   with self.assertRaisesRegex(ValueError,'nonpublic_endpoint_blocked'):p.endpoints(cfg)
+  with self.assertRaisesRegex(ValueError,'invalid_download_endpoint'):
+   p.download_endpoints({'xhttpSettings':{'downloadSettings':{'host':'not-a-dial-target'}}})
+
  def test_no_direct_success(self):
   c={'inbounds':[],'outbounds':[{'protocol':'freedom','settings':{},'tag':'direct'},{'protocol':'trojan','settings':{'address':'example.com','port':443,'password':'synthetic'}}],'routing':{'rules':[{'outboundTag':'direct','domain':['example.org']}]}}
   before=copy.deepcopy(c);r=p.runtime_config(c,{'example.com':{'ips':['1.1.1.1'],'port':443}})

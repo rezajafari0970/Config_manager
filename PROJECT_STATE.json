@@ -1,5 +1,5 @@
 {
-  "phase": "P26 independent Smart Ads and native REALITY hint compatibility; includes P25 inventory recovery",
+  "phase": "P27 production recovery, scoped Smart availability and probe diagnosis",
   "date": "2026-11-10",
   "status": "validated_and_deployed",
   "repository": "rezajafari0970/Config_manager",
@@ -24,7 +24,7 @@
     "connectivity": "separate from ordinary JSON export eligibility",
     "android": "not_run",
     "android_subscription_caveat": "Pinned Custom parser expects JSON array/single object; JSONL is not native batch subscription format",
-    "http_display": "Both export links use text/plain; charset=utf-8 and Content-Disposition: inline; all-config JSONL URL remains unchanged",
+    "http_display": "Ready JSON/JSONL remains text/plain inline. Explicit browser HTML requests to unavailable Smart single links render a responsive503 status page; machine requests remain plain503. Empty/revoked Smart full exports also return503. Status and HEAD never consume turns.",
     "single_output": "Each scope has its own persistent round shared by clients of that scope; new arrivals join next round; global URLs and existing position preserved",
     "source_output": "Source membership is filtered before identity ranking; each source has scoped full JSONL and single-config rotation, independent of every other source and global rotation",
     "mixed_input": "Extract plain URIs, full JSON/JSONL, standalone and embedded Base64 blocks, wrapped standard/URL-safe encodings; exact original response and decoded payload bytes remain immutable. URL path case is preserved.",
@@ -45,7 +45,7 @@
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
-    "python_regressions": 13,
+    "python_regressions": 15,
     "pinned_core_template_fixtures": 22,
     "template_fuzz_executions": 240370,
     "browser": "passed synthetic Input/Output/Smart/Smart Splash/Setting, mobile/desktop, restart, toggles, TTL and separate full/single links",
@@ -2077,6 +2077,61 @@
       "openai_review": "completed:gpt-6-astra; scoped architecture and chain review; private key/receipts",
       "android_carriers": "not_run",
       "whole_live_ads_chain": "not_run_no_fresh_Splash"
+    },
+    "p27": {
+      "full_check": "passed gofmt/modules/vet/race/build and Python/JS regressions",
+      "browser": "passed mobile/desktop/restart plus waiting503 auto-recovery to inline JSON",
+      "worker_recovery": "passed conversion and independent normal/Splash/Ads SIGKILL;55 profiles per Smart scope,50members normal/Splash and51Ads",
+      "traffic": "passed pinned-core synthetic routing TCP/UDP/UDP443 and negative controls",
+      "production": "five active enabled services;45stopped-state table fingerprints and source/settings preserved;public390/1440passed",
+      "openai_review": {
+        "model": "gpt-6-astra",
+        "reasoning": "high",
+        "status": "completed",
+        "source_only": true
+      },
+      "claim_benchmark": {
+        "samples": [
+          {
+            "trial": 0,
+            "kind": "before",
+            "mean_claim_ms": 25.537
+          },
+          {
+            "trial": 0,
+            "kind": "after",
+            "mean_claim_ms": 27.805
+          },
+          {
+            "trial": 1,
+            "kind": "before",
+            "mean_claim_ms": 33.812
+          },
+          {
+            "trial": 1,
+            "kind": "after",
+            "mean_claim_ms": 33.95
+          },
+          {
+            "trial": 2,
+            "kind": "before",
+            "mean_claim_ms": 32.668
+          },
+          {
+            "trial": 2,
+            "kind": "after",
+            "mean_claim_ms": 28.425
+          }
+        ],
+        "median": {
+          "before": 32.668,
+          "after": 28.425
+        },
+        "scope": "synthetic 464 heads, 50 members, 30 claims; shared production host; not network speed"
+      },
+      "live_splash_recheck": "two core-passed candidates failed actual REALITY authentication; no fabricated healthy proof",
+      "android": "not_run",
+      "live_ads_chain": "not_run_no_qualified_splash"
     }
   },
   "runtime": {
@@ -2089,8 +2144,8 @@
       "config-repair-ads.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p26-97af99d36ffae0ccc4c7-r2",
-    "panel_sha256": "97af99d36ffae0ccc4c7034cf5ea2a61eb5548065285dfcffbb2ce78022a0b31",
+    "release": "/opt/config-repair/releases/p27-d62d17e605752cd08c22",
+    "panel_sha256": "d62d17e605752cd08c22b408350dcec62fb334c8a328bbc6794a96708420f975",
     "worker_sha256": "905696e03dbbc706261d203febad43493ae5d9f7c98b8cf1bf5bb1ce56ea4c50",
     "template_version": "xray-26.7.28.template.v4",
     "retention_seconds": 7200,
@@ -2100,9 +2155,9 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/p26-r2-deployed.json",
-    "publication_receipt": ".local/p26-published.json",
-    "sandbox_driver_sha256": "6dbbf156621338b6d644b1f1101d5ac3013cbc571e010a7c75e3e88c1089d28d",
+    "deployment_receipt": ".local/p27-deployed.json",
+    "publication_receipt": ".local/p27-published.json",
+    "sandbox_driver_sha256": "7c0550563f7d385acdbbda9ae5867a5bbd11a9cf9a6451a12470a7a862d1e671",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
     "smart_version": "xray-26.7.28.smart.v8",
@@ -2118,8 +2173,8 @@
     "splash_enabled": true,
     "splash_sources_at_inspection": 3,
     "splash_concurrency": 2,
-    "source_parent_commit": "b977fbb7ea817105b2842ae2bb790485ddb9a9ae",
-    "tested_runtime_manifest": ".local/p26-tested-runtime.json",
+    "source_parent_commit": "2ed6349df53a0e31f9f186e06e038e2e3a490cdc",
+    "tested_runtime_manifest": ".local/p27-tested-runtime.json",
     "ads_adapter_sha256": "4a519c9f99c61b9b8c25d16a6350af83f8fb00b29808e1e275110e5918bdebec",
     "ads_version": "xray-26.7.28.smart-ads.v1",
     "geosite_sha256": "adf92de0cfc70e458b399f04c5f912bf42d115ed7e37281b30e2f1c68605e4e9",
@@ -2134,7 +2189,7 @@
     "Standalone checksum-pinned installer/update/rollback remains a separate release task"
   ],
   "environment": "Use verified project-local Go1.27.1 toolchain/module/build caches; shared caches previously failed integrity checks and were not modified.",
-  "audit_checkpoint": "docs/checkpoints/P26-smart-ads-20261110.md",
+  "audit_checkpoint": "docs/checkpoints/P27-production-recovery-20261110.md",
   "smart_ads": {
     "status": "deployed_verified; waiting for fresh eligible Splash input",
     "schema": 15,

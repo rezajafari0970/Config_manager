@@ -143,6 +143,11 @@ func (e *Engine) dispatch(ctx context.Context) {
 		e.mu.Lock()
 		if _, exists := e.active[job.ID]; exists {
 			e.mu.Unlock()
+			releaseCtx, stop := context.WithTimeout(context.Background(), 2*time.Second)
+			if err := e.repo.Abandon(releaseCtx, job); err != nil {
+				log.Print("collector discarded claim cleanup will recover by lease")
+			}
+			stop()
 			continue
 		}
 		timeout := settings.TimeoutSeconds

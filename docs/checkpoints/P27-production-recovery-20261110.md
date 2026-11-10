@@ -1,0 +1,32 @@
+# P27 — production recovery and truthful Smart availability
+
+Parent: P26 `2ed6349df53a0e31f9f186e06e038e2e3a490cdc`. Schema15, normal template v4, Smart v8, Ads v1 and pinned Xray26.7.28 remain unchanged. The user's project-wide production repair request includes the screenshot of the empty Smart Ads single-output response. No user source, schedule, classification, member count, rotation or credentials are reset.
+
+## Reproduced findings and changes
+
+- Two current Splash candidates passed the pinned core but failed both real HTTPS requests. Xray explicitly reported `REALITY: received real certificate`; curl reported connection reset. The old broad `certificate` matcher mislabeled this as a generic certificate failure. The new precise `reality_authentication_rejected` diagnosis keeps connectivity failed. Curl failures contribute bounded classification only; secrets/raw logs are never persisted as public diagnostics. Ordinary core-valid rows now show failed/site-unavailable diagnostics even when their JSON can be exported.
+- The probe omitted explicit XHTTP download endpoints from its egress allowlist. A bounded native transport walker follows downloadSettings with the pinned core's extra precedence, validates public addresses, preserves ports and resolves each hostname once. It never infers a dial address from SNI/Host or permits a private endpoint. Original configuration bytes and TLS checks remain intact.
+- A rejected/incomplete 2xx body could advance ETag/Last-Modified while retaining an older generation. Conditional validators now advance only with accepted data; rejected bodies clear validators and use the existing bounded recovery schedule. Prior memberships and their fixed TTL remain.
+- Increasing retention extended existing artifact/response/control deadlines. Existing deadlines now only shorten; a larger setting applies to new records.
+- Known undelivered collection claims now use the Repository.Abandon contract. Exact ID/revision/token fencing prevents cleanup from revoking a replacement. Smart similarly abandons its own committed claim on known payload-handoff failure. Unknown/crashed handoffs still recover by lease expiry.
+- Blob recovery returns its error. Single Smart delivery retries only confirmed stale/revoked generations, bounds repeated recovery, and propagates infrastructure failures promptly. Cross-store successful-delivery competition remains cancellable without incorrectly exhausting the corruption retry budget. Failed delivery never removes a turn.
+- Smart inventory reconciliation compares current head IDs and batches changed IDs through JSON SQL. Unchanged polls no longer rewrite the whole temporary ID inventory. Exact proof/source/revision/TTL checks still run for claim and completion; this is not a persistent eligibility cache.
+- Full Smart spools reauthorize every exact selected cache ID/hash immediately before successful headers. Revoked spools and empty full outputs return503 instead of publishing stale/empty successful output. An already-started network response cannot be recalled; this is authorization at publication time.
+- Readiness counts put usable cache first, so a failed replacement does not also count as an unavailable blocked profile. A common scoped availability driver describes missing inputs, failed health prerequisites, disabled workers and builds. Single-output HEAD/status are nonconsuming. Explicit browser HTML requests get a responsive Persian503 page with bounded, hidden-tab-aware automatic polling; successful output remains inline raw JSON. API/VPN clients retain plain503 and Retry-After15. The scope token is checked on status requests.
+
+## Validation and boundaries
+
+Regression coverage includes rejected-response validators, no retention extension, exact-token cleanup, draining collector handoff, forced cache-delete failure, lock release/turn preservation, expired full-spool rejection, mutually exclusive readiness counts, token isolation and machine/browser response negotiation. Existing lifecycle, raw preservation, scope separation, source quotas, dynamic1/2/5/7/10/15/50/100+ core matrices and rotations remain required.
+
+A private GPT-6 Astra Responses API review completed with high reasoning using the server-side key; it received source code and numeric status only. Its suggestions were checked against code and reproduced; the review itself is not test evidence. API receipts and sanitized live diagnosis stay under .local, outside Git.
+
+The local scheduling comparison used464 synthetic eligible heads,50members and30claims on the same shared server. Across three interleaved runs median mean claim time was32.668ms before and28.425ms after. Host contention and individual trial variation were visible; this is neither an Android throughput measurement nor a universal latency guarantee.
+
+Final acceptance/deployment/publication facts are recorded in PROJECT_STATE and private p27 receipts. No fresh successful Splash proof may be fabricated to fill Ads. Live whole-chain Ads, actual Android, carrier/TUN, media and real QUIC measurements require their own evidence.
+
+## Release and rollback
+
+No schema migration. Stop the five services and back up matching DB/blobs/key/release, verify all45table fingerprints and preserve source/setting controls, then atomically change the release symlink. Verify running binaries and shipped drivers separately from Git. On startup failure, stop new services, restore the previous feature-aware P26 symlink and restart; retain current data rather than overwriting later user changes. Older pre-Splash releases are not rollback targets.
+
+
+P27 final acceptance: all code/race/build checks and15probe regressions passed; mobile/desktop/restart and waiting-page recovery passed; four worker SIGKILL tests passed, including55Ads profiles with50main+1Ads members; synthetic TCP/UDP/UDP443 routing/negative controls passed. Deployment preserved45stopped-state table fingerprints and all source/settings controls. All five enabled services and exact running/installed binary/driver hashes verified; public390/1440 UI and output checked. Release /opt/config-repair/releases/p27-d62d17e605752cd08c22. Panel SHA256 d62d17e605752cd08c22b408350dcec62fb334c8a328bbc6794a96708420f975. Private p27-deployed/public/tested-runtime/published receipts identify runtime and source readback. At verification no fresh qualified Splash head was available; live Ads chain and Android/carrier performance remain untested.

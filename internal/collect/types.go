@@ -40,6 +40,7 @@ type Result struct {
 	ValidCount, InvalidCount, UnknownCount int
 }
 type Repository interface {
+	Abandon(context.Context, Job) error
 	Settings(context.Context) (Settings, error)
 	Claim(context.Context, time.Time, int, time.Duration) ([]Job, error)
 	Stage(context.Context, Job, Item) (bool, error)

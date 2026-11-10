@@ -169,7 +169,7 @@ func smartLedger(ctx context.Context, tx smartTransaction) (smart.Ledger, error)
 	}
 	return v, rows.Err()
 }
-func (s *SmartPipeline) ClaimSmart(ctx context.Context) (*probe.Job, error) {
+func (s *SmartPipeline) ClaimSmart(ctx context.Context) (job *probe.Job, err error) {
 	tx, e := s.db.BeginTx(ctx, nil)
 	if e != nil {
 		return nil, e
@@ -235,19 +235,25 @@ func (s *SmartPipeline) ClaimSmart(ctx context.Context) (*probe.Job, error) {
 		return v
 	}())
 	inventory := repair.Digest(inventoryBytes)
-	if _, e = tx.ExecContext(ctx, "CREATE TEMP TABLE IF NOT EXISTS smart_ids(id TEXT PRIMARY KEY);DELETE FROM smart_ids"); e != nil {
+	// Compare the current identity set in SQL. Unchanged polls do no inventory
+	// writes; changed sets use one bounded JSON batch rather than one call per ID.
+	currentIDs := make([]string, 0, len(ids))
+	for id := range ids {
+		currentIDs = append(currentIDs, id)
+	}
+	encodedIDs, _ := json.Marshal(currentIDs)
+	var changed bool
+	e = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT value FROM json_each(?) EXCEPT SELECT id FROM smart_heads) OR EXISTS(SELECT id FROM smart_heads EXCEPT SELECT value FROM json_each(?))`, string(encodedIDs), string(encodedIDs)).Scan(&changed)
+	if e != nil {
 		return nil, e
 	}
-	for id := range ids {
-		if _, e = tx.ExecContext(ctx, "INSERT INTO smart_ids VALUES(?)", id); e != nil {
+	if changed {
+		if _, e = tx.ExecContext(ctx, "DELETE FROM smart_heads WHERE id NOT IN(SELECT value FROM json_each(?))", string(encodedIDs)); e != nil {
 			return nil, e
 		}
-	}
-	if _, e = tx.ExecContext(ctx, "DELETE FROM smart_heads WHERE id NOT IN(SELECT id FROM smart_ids)"); e != nil {
-		return nil, e
-	}
-	if _, e = tx.ExecContext(ctx, "INSERT INTO smart_heads(id,created) SELECT id,? FROM smart_ids WHERE true ON CONFLICT(id) DO NOTHING", now); e != nil {
-		return nil, e
+		if _, e = tx.ExecContext(ctx, "INSERT INTO smart_heads(id,created) SELECT value,? FROM json_each(?) WHERE true ON CONFLICT(id) DO NOTHING", now, string(encodedIDs)); e != nil {
+			return nil, e
+		}
 	}
 	// Invalidated ownership/expiry/proof is hidden by the view immediately. Rebuild
 	// independently; a pending job never retains an obsolete completion token.
@@ -315,6 +321,13 @@ func (s *SmartPipeline) ClaimSmart(ctx context.Context) (*probe.Job, error) {
 	if e = tx.Commit(); e != nil {
 		return nil, e
 	}
+	defer func() {
+		if err != nil {
+			cleanup, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancel()
+			_ = s.abortSmart(cleanup, head, token, revision)
+		}
+	}()
 	j := &probe.Job{Hash: head, Token: token, Revision: revision, Kind: "smart", Settings: probe.Settings{Enabled: true, Concurrency: 2, TimeoutSeconds: 10}}
 	for i := range members {
 		members[i].Body, e = s.conversionBytes(Conversion{Available: true, CandidateHash: members[i].Hash})
@@ -448,18 +461,24 @@ func (s *SmartPipeline) smartBytes(ctx context.Context, v SmartEntry) ([]byte, e
 	}
 	body, e := s.vault.Open(v.Hash)
 	if e != nil {
-		s.retrySmartBlob(ctx, v)
-		return nil, e
+		if cleanup := s.retrySmartBlob(ctx, v); cleanup != nil {
+			return nil, cleanup
+		}
+		return nil, ErrNotFound
 	}
 	defer body.Close()
 	b, e := io.ReadAll(io.LimitReader(body, repair.MaxBytes+1))
 	if e != nil {
-		s.retrySmartBlob(ctx, v)
-		return nil, e
+		if cleanup := s.retrySmartBlob(ctx, v); cleanup != nil {
+			return nil, cleanup
+		}
+		return nil, ErrNotFound
 	}
 	if len(b) > repair.MaxBytes || repair.Digest(b) != v.Hash || !json.Valid(b) {
-		s.retrySmartBlob(ctx, v)
-		return nil, ErrInvalid
+		if cleanup := s.retrySmartBlob(ctx, v); cleanup != nil {
+			return nil, cleanup
+		}
+		return nil, ErrNotFound
 	}
 	var present bool
 	e = s.reader().QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM smart_ready WHERE id=? AND hash=?)", v.ID, v.Hash).Scan(&present)
@@ -477,6 +496,7 @@ func (s *SmartPipeline) smartNext(ctx context.Context) (*SmartEntry, []byte, int
 		return nil, nil, 0, e
 	}
 	defer unlock()
+	recoveries := 0
 	for {
 		if e = ctx.Err(); e != nil {
 			return nil, nil, 0, e
@@ -536,7 +556,14 @@ func (s *SmartPipeline) smartNext(ctx context.Context) (*SmartEntry, []byte, int
 		v.Available = true
 		b, e := s.smartBytes(ctx, v)
 		if e != nil {
-			continue
+			if errors.Is(e, ErrNotFound) {
+				recoveries++
+				if recoveries >= 8 {
+					return nil, nil, 0, errSmartRecoveryPending
+				}
+				continue
+			}
+			return nil, nil, 0, e
 		}
 		tx, e = s.db.BeginTx(ctx, nil)
 		if e != nil {
@@ -559,3 +586,23 @@ func (s *SmartPipeline) smartNext(ctx context.Context) (*SmartEntry, []byte, int
 
 // Store views make removals/disable/proof expiry visible immediately, even before
 // the next builder sweep. GC keeps only transient generated profiles.
+
+func (s *SmartPipeline) abortSmart(ctx context.Context, head, token string, revision int64) error {
+	_, e := s.db.ExecContext(ctx, `UPDATE smart_heads SET state='queued',token='',lease_until=0,next_run=0 WHERE id=? AND token=? AND revision=?`, head, token, revision)
+	return e
+}
+
+// Authorize the completed spool against current exact cache provenance, after
+// all blob I/O and before successful headers. No writer is held while streaming.
+func (s *SmartPipeline) validateSmartExport(ctx context.Context, entries []SmartEntry) (bool, error) {
+	refs := make([]map[string]string, 0, len(entries))
+	for _, v := range entries {
+		refs = append(refs, map[string]string{"id": v.ID, "hash": v.Hash})
+	}
+	data, _ := json.Marshal(refs)
+	var valid bool
+	e := s.reader().QueryRowContext(ctx, `WITH wanted AS MATERIALIZED(SELECT json_extract(value,'$.id') id,json_extract(value,'$.hash') hash FROM json_each(?)) SELECT NOT EXISTS(SELECT 1 FROM wanted w WHERE NOT EXISTS(SELECT 1 FROM smart_ready r WHERE r.id=w.id AND r.hash=w.hash))`, string(data)).Scan(&valid)
+	return valid, e
+}
+
+var errSmartRecoveryPending = errors.New("smart recovery pending")

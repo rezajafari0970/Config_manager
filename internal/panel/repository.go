@@ -232,16 +232,16 @@ func (s *Store) SaveSettings(ctx context.Context, v collect.Settings) error {
 	if _, e = tx.ExecContext(ctx, "DELETE FROM config_controls WHERE expires<=?", time.Now().UnixMilli()); e != nil {
 		return e
 	}
-	if _, e = tx.ExecContext(ctx, "UPDATE config_controls SET expires=created+?", v.RetentionSeconds*1000); e != nil {
+	if _, e = tx.ExecContext(ctx, "UPDATE config_controls SET expires=min(expires,created+?)", v.RetentionSeconds*1000); e != nil {
 		return e
 	}
 	if _, e = tx.ExecContext(ctx, "UPDATE settings SET retention_seconds=?,concurrency=?,timeout_seconds=? WHERE id=1", v.RetentionSeconds, v.Concurrency, v.TimeoutSeconds); e != nil {
 		return e
 	}
-	if _, e = tx.ExecContext(ctx, "UPDATE artifacts SET expires=created+?", v.RetentionSeconds*1000); e != nil {
+	if _, e = tx.ExecContext(ctx, "UPDATE artifacts SET expires=min(expires,created+?)", v.RetentionSeconds*1000); e != nil {
 		return e
 	}
-	if _, e = tx.ExecContext(ctx, "UPDATE responses SET expires=created+?", v.RetentionSeconds*1000); e != nil {
+	if _, e = tx.ExecContext(ctx, "UPDATE responses SET expires=min(expires,created+?)", v.RetentionSeconds*1000); e != nil {
 		return e
 	}
 	return tx.Commit()
@@ -485,11 +485,20 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 			return e
 		}
 	}
+	// Validators authorize only a generation that was actually accepted. A failed
+	// replacement must not turn the next request into a false unchanged success.
+	if result.HTTPStatus >= 200 && result.HTTPStatus < 300 && result.State != "updated" && result.State != "filtered" {
+		result.ETag = ""
+		result.Modified = ""
+		if _, e = tx.ExecContext(ctx, "UPDATE sources SET refresh_reason='incomplete_response' WHERE id=?", job.ID); e != nil {
+			return e
+		}
+	}
 	next, e = sourceRefreshDeadline(ctx, tx, job.ID, now, next)
 	if e != nil {
 		return e
 	}
-	_, e = tx.ExecContext(ctx, "UPDATE sources SET state=?,error_code=?,last_fetch=?,last_success=CASE WHEN ? THEN ? ELSE last_success END,http_status=?,duration_ms=?,fetch_count=fetch_count+1,duplicates=?,generation=?,error_streak=CASE WHEN ? THEN 0 ELSE error_streak+1 END,lease_token='',lease_until=0,next_run=?,etag=CASE WHEN ? THEN ? ELSE etag END,modified=CASE WHEN ? THEN ? ELSE modified END WHERE id=? AND revision=? AND lease_token=?", result.State, result.ErrorCode, stamp, success, stamp, result.HTTPStatus, result.DurationMS, duplicates, generation, success || result.State == "filtered", next.UnixNano(), result.HTTPStatus == 200 || result.ErrorCode == "cache_missing", result.ETag, result.HTTPStatus == 200 || result.ErrorCode == "cache_missing", result.Modified, job.ID, job.Revision, job.Token)
+	_, e = tx.ExecContext(ctx, "UPDATE sources SET state=?,error_code=?,last_fetch=?,last_success=CASE WHEN ? THEN ? ELSE last_success END,http_status=?,duration_ms=?,fetch_count=fetch_count+1,duplicates=?,generation=?,error_streak=CASE WHEN ? THEN 0 ELSE error_streak+1 END,lease_token='',lease_until=0,next_run=?,etag=CASE WHEN ? THEN ? ELSE etag END,modified=CASE WHEN ? THEN ? ELSE modified END WHERE id=? AND revision=? AND lease_token=?", result.State, result.ErrorCode, stamp, success, stamp, result.HTTPStatus, result.DurationMS, duplicates, generation, success || result.State == "filtered", next.UnixNano(), (result.HTTPStatus >= 200 && result.HTTPStatus < 300) || result.ErrorCode == "cache_missing", result.ETag, (result.HTTPStatus >= 200 && result.HTTPStatus < 300) || result.ErrorCode == "cache_missing", result.Modified, job.ID, job.Revision, job.Token)
 	if e != nil {
 		return e
 	}
@@ -682,4 +691,11 @@ func (s *Store) WalkOutputs(ctx context.Context, visit func(Artifact) error) err
 		}
 	}
 	return rows.Err()
+}
+
+// Abandon releases only a known undelivered claim. An old revision/token cannot
+// revoke a replacement worker or mutate retained source data.
+func (s *Store) Abandon(ctx context.Context, j collect.Job) error {
+	_, e := s.db.ExecContext(ctx, `UPDATE sources SET lease_token='',lease_until=0,state='queued',next_run=0 WHERE id=? AND revision=? AND lease_token=? AND enabled=1`, j.ID, j.Revision, j.Token)
+	return e
 }

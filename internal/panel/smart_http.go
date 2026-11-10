@@ -61,7 +61,7 @@ func (m smartModule) Register(mux *http.ServeMux) {
 		}
 		stats := map[string]int{}
 		var total, ready, blocked, sources, eligible int
-		e = p.reader().QueryRowContext(r.Context(), `SELECT (SELECT count(*) FROM smart_heads),(SELECT count(*) FROM smart_ready),(SELECT count(*) FROM smart_heads WHERE state='blocked'),(SELECT count(DISTINCT source) FROM smart_offers),(SELECT count(DISTINCT id) FROM smart_offers)`).Scan(&total, &ready, &blocked, &sources, &eligible)
+		e = p.reader().QueryRowContext(r.Context(), `SELECT (SELECT count(*) FROM smart_heads),(SELECT count(*) FROM smart_ready),(SELECT count(*) FROM smart_heads h WHERE state='blocked' AND NOT EXISTS(SELECT 1 FROM smart_ready r WHERE r.id=h.id)),(SELECT count(DISTINCT source) FROM smart_offers),(SELECT count(DISTINCT id) FROM smart_offers)`).Scan(&total, &ready, &blocked, &sources, &eligible)
 		if e != nil {
 			failure(w, e)
 			return
@@ -85,7 +85,12 @@ func (m smartModule) Register(mux *http.ServeMux) {
 		stats["warming"] = max(0, total-ready-blocked)
 		stats["sources"] = sources
 		stats["eligible"] = eligible
-		respond(w, 200, map[string]any{"entries": entries, "settings": settings, "worker": worker, "stats": stats, "export_url": s.pipelineURL(p, false), "single_export_url": s.pipelineURL(p, true), "version": p.version(), "android_import": "not_run"})
+		availability, e := p.availability(r.Context())
+		if e != nil {
+			failure(w, e)
+			return
+		}
+		respond(w, 200, map[string]any{"availability": availability, "entries": entries, "settings": settings, "worker": worker, "stats": stats, "export_url": s.pipelineURL(p, false), "single_export_url": s.pipelineURL(p, true), "version": p.version(), "android_import": "not_run"})
 	})
 	mux.HandleFunc("POST /api"+base+"/settings", func(w http.ResponseWriter, r *http.Request) {
 		var v SmartSettings
@@ -133,6 +138,7 @@ func (m smartModule) Register(mux *http.ServeMux) {
 		}
 		defer out.Close()
 		count := 0
+		var selected []SmartEntry
 		seen := map[string]bool{}
 		rand.Shuffle(len(rows), func(i, j int) { rows[i], rows[j] = rows[j], rows[i] })
 		for _, v := range rows {
@@ -157,6 +163,32 @@ func (m smartModule) Register(mux *http.ServeMux) {
 				return
 			}
 			count++
+			selected = append(selected, v)
+		}
+		valid, e := p.validateSmartExport(r.Context(), selected)
+		if e != nil {
+			failure(w, e)
+			return
+		}
+		if count == 0 || !valid {
+			smartHeaders(w)
+			status, e := p.availability(r.Context())
+			if e != nil {
+				failure(w, e)
+				return
+			}
+			if !valid {
+				status.Available = false
+				status.State = "inventory_changed"
+				status.Message = "اعتبار یکی از اعضا هنگام آماده‌سازی تغییر کرد؛ خروجی دوباره بررسی می‌شود."
+			}
+			// Full export tokens cannot be used with the single-status polling route.
+			w.Header().Set("X-Config-Count", "0")
+			w.Header().Set("X-Smart-State", status.State)
+			w.Header().Set("Retry-After", "15")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write([]byte(status.Message + "\n"))
+			return
 		}
 		if e = out.Rewind(); e != nil {
 			failure(w, e)
@@ -167,6 +199,18 @@ func (m smartModule) Register(mux *http.ServeMux) {
 		w.Header().Set("X-Content-SHA256", out.Hash())
 		_, _ = out.WriteTo(w)
 	})
+	mux.HandleFunc("GET "+base+"-subscription/{token}/status.json", func(w http.ResponseWriter, r *http.Request) {
+		if !equal(r.PathValue("token"), s.store.digest("subscription", tokenMode("smart-single-v1"))) {
+			http.NotFound(w, r)
+			return
+		}
+		v, e := p.availability(r.Context())
+		if e != nil {
+			failure(w, e)
+			return
+		}
+		respond(w, http.StatusOK, v)
+	})
 	mux.HandleFunc("GET "+base+"-subscription/{token}/next.json", func(w http.ResponseWriter, r *http.Request) {
 		if !equal(r.PathValue("token"), s.store.digest("subscription", tokenMode("smart-single-v1"))) {
 			http.NotFound(w, r)
@@ -174,6 +218,17 @@ func (m smartModule) Register(mux *http.ServeMux) {
 		}
 		smartHeaders(w)
 		if r.Method == http.MethodHead {
+			status, e := p.availability(r.Context())
+			if e != nil {
+				failure(w, e)
+				return
+			}
+			if !status.Available {
+				m.unavailable(w, r, status)
+			} else {
+				w.Header().Set("X-Config-Count", "1")
+				w.Header().Set("X-Smart-State", "ready")
+			}
 			return
 		}
 		if strings.Contains(strings.ToLower(r.Header.Get("Sec-Purpose")+" "+r.Header.Get("Purpose")), "prefetch") {
@@ -186,10 +241,12 @@ func (m smartModule) Register(mux *http.ServeMux) {
 			return
 		}
 		if v == nil {
-			w.Header().Set("X-Config-Count", "0")
-			w.Header().Set("Retry-After", "3")
-			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte("هنوز کانفیگ اسمارت آماده نیست؛ چند ثانیه دیگر دوباره تلاش کنید.\n"))
+			status, e := p.availability(r.Context())
+			if e != nil {
+				failure(w, e)
+				return
+			}
+			m.unavailable(w, r, status)
 			return
 		}
 		w.Header().Set("X-Config-Count", "1")

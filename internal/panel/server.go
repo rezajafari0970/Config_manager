@@ -71,6 +71,10 @@ func failure(w http.ResponseWriter, e error) {
 	status := 500
 	message := "عملیات انجام نشد؛ دوباره تلاش کنید."
 	switch {
+	case errors.Is(e, errSmartRecoveryPending):
+		status = 503
+		message = "بازیابی خروجی در حال انجام است؛ دوباره تلاش کنید."
+		w.Header().Set("Retry-After", "15")
 	case errors.Is(e, ErrInvalid):
 		status = 422
 		message = "لینک، بازهٔ درخواست و تایم‌اوت را بررسی کنید؛ نمونهٔ بازه: ۲ تا ۳."
@@ -98,7 +102,7 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	static, _ := fs.Sub(assets, "web")
 	files := http.StripPrefix("/assets/", http.FileServer(http.FS(static)))
-	for _, asset := range []string{"style.css", "app.js", "core.js", "poll.js", "settings-form.js", "input.js", "source-status.js", "output.js", "setting.js", "actions.js", "diagnostics.js", "smart.js", "repairs.js", "Vazirmatn.woff2"} {
+	for _, asset := range []string{"style.css", "waiting.css", "waiting.js", "app.js", "core.js", "poll.js", "settings-form.js", "input.js", "source-status.js", "output.js", "setting.js", "actions.js", "diagnostics.js", "smart.js", "repairs.js", "Vazirmatn.woff2"} {
 		mux.Handle("GET /assets/"+asset, files)
 	}
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
