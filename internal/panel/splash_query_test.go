@@ -8,14 +8,16 @@ import (
 
 func TestSplashQueryMigrationPreservesAdoptedPoolsAndCache(t *testing.T) {
 	s := testStore(t)
-	// Recreate the actual preceding DDL, then populate both adopted scopes.
+	// Seed source-owned conversions using the current ingestion contract before
+	// recreating the preceding pool DDL. Future ingestion cannot run against an
+	// intentionally downgraded schema fixture.
+	ctx := context.Background()
+	newExportSource(t, s, "Normal", sourceURI(1), sourceURI(2), sourceURI(3))
+	id, _ := newExportSource(t, s, "Splash", sourceURI(1), sourceURI(11), sourceURI(12))
 	dropSplashForMigration(t, s)
 	if e := s.migrateV12(); e != nil {
 		t.Fatal(e)
 	}
-	ctx := context.Background()
-	newExportSource(t, s, "Normal", sourceURI(1), sourceURI(2), sourceURI(3))
-	id, _ := newExportSource(t, s, "Splash", sourceURI(1), sourceURI(11), sourceURI(12))
 	markSplash(t, s, id, true)
 	pipelines := []*SmartPipeline{s.Smart(), s.SplashSmart()}
 	type snapshot struct {

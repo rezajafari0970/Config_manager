@@ -1,4 +1,4 @@
-# Working contract — P7 JSON template conversion
+# Working contract — current P28 residential evidence
 
 Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current checkpoint. Verify actual HEAD, origin, worktree and runtime receipts. The user's 2026-10-30 instruction supersedes the persistent P6 laboratory: remove the bank, collect from links, convert to the shared @shenvpn JSON envelope, and emit one compact JSON object per line.
 
@@ -183,3 +183,15 @@ Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current check
 - Cache cleanup errors propagate. Bound only failed blob/generation recovery, not successful cross-store turn competition. Full Smart spools revalidate exact cache provenance before successful headers; zero/revoked full output is503.
 - Shared availability is nonconsuming and scope-token protected. Browser-only waiting HTML must never replace successful JSON or leak into VPN clients' responses. Keep bounded polling and mobile/recovery regression.
 - Match actual error signatures, never incidental certificate vocabulary. XHTTP download endpoint allowlisting follows native extra precedence; public-only firewall/TLS/proof gates remain. Show connection diagnostics even for core-valid exportable rows.
+
+
+## P28 residential evidence — supersedes fixed TTL only for independently retained residential records
+- Read docs/RESIDENTIAL.md and docs/checkpoints/P28-residential-20261110.md. Schema16 is deployed; ordinary templatev4, Smartv8, Ads v1 and the pinned core target remain unchanged. Preserve existing sources/settings and other pipelines.
+- Treat health, proven Ads egress and exact-IP network class independently. No ASN/country difference, ISP name, non-hosting boolean, same-TLS candidate or model opinion can grant residential publication. Equal control/Ads IP is allowed with valid residential evidence. Unknown/unsupported/partial are not healthy-residential claims.
+- Every input membership enters the fair residential queue. Raw/template, domain, family, transport, path, wave and versions bind evidence. Owner rederives hashes/path coverage; capabilities and provider independence are administrator trust assertions, never supplied by the completion. Unverified or missing cells cannot qualify.
+- Accepted residential retention is independent of normal7200s TTL/source deletion/GC. Evidence expires separately and every output checks present eligibility. First suspicion quarantines all operational outputs; only spaced fresh credible negatives with healthy independent controls can delete. Shared failures trip the destructive-action circuit. Manual deletion remains explicit and identity-wide.
+- Authenticated append+fsync deletion ledger/high-water mark lives outside ordinary DB/blob backups. Startup replays/fences before listeners. Never roll the ledger back, downgrade to schema15, erase tombstones, or bypass them via restored backups/new labels/stale workers. Uncommitted torn tails are repairable only beyond the authenticated watermark.
+- JSONL, durable per-link next JSON and byte-exact raw ZIP share eligibility/generation and final admission fencing. No eligible member means503/no-store/no substitute. New initial UNKNOWN assessments must not invalidate unrelated ordinary exports. Already admitted/downloaded bytes cannot be recalled.
+- Root supervisor uses private Unix queue; crr production and crt test namespaces/addresses/locks are distinct. No Direct self-heal. Core, observer and intelligence drivers remain separate. Private collector keys and raw configs never enter model requests or public logs.
+- Current live proof limits are material: no authorized observer/specialist sources configured; no forced IPv6/UDP/QUIC or complete balanced-path driver. Keep default full-matrix publication closed. Do not call synthetic signed tests or TCP control success live residential proof, full Google Ads coverage or Android/carrier testing.
+- Update checkpoint/state/handoff, verify tested source manifest, publish/read back exact Git tree and independently verify running binary/driver hashes. Final source/publication receipts are separate from initial P28 and R2 deployment receipts.

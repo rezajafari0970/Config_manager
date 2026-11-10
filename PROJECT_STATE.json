@@ -1,7 +1,7 @@
 {
-  "phase": "P27 production recovery, scoped Smart availability and probe diagnosis",
+  "phase": "P28 residential Ads evidence, independent retention and guarded publication",
   "date": "2026-11-10",
-  "status": "validated_and_deployed",
+  "status": "deployed_guarded_live_evidence_pending",
   "repository": "rezajafari0970/Config_manager",
   "branch": "go/v2rayng-2.3.6",
   "legacy_main": "unchanged",
@@ -19,7 +19,7 @@
     "template": "@shenvpn common envelope, actual endpoint/auth/transport preserved",
     "output": "JSONL, one compact object per line; no array or wrapper",
     "bank": "removed including persistent samples/history/model/rules and routes",
-    "lifetime": "current enabled source membership and fixed retention",
+    "lifetime": "Ordinary memberships retain fixed age; independently accepted residential records survive age/source deletion, while their evidence expires separately.",
     "export_gate": "exact pinned-core pass; semantic hypotheses additionally require fresh two-destination HTTPS",
     "connectivity": "separate from ordinary JSON export eligibility",
     "android": "not_run",
@@ -41,7 +41,10 @@
     "smart_cache": "Schema13 validated cache and exact provenance are independent of pending replacements; capacity/source growth refreshes in background, while proof/ownership/settings/version/TTL revocation is immediate.",
     "resource_recovery": "Atomic same-plaintext blob replacement, synchronized compiled registries, bounded validated-IP fallback and worker idle polling, scoped UI reads with fetch deadline, unlinked full-export spooling.",
     "smart_splash": "Source flag; closed shared SmartPipeline drivers with separate settings/jobs/cache/provenance/counters/rotation/status/token domains and csp worker. Splash identity/candidate ownership takes precedence over ordinary duplicates. No cross-pool filling; ordinary/source outputs unchanged.",
-    "smart_ads": "One whole fresh Splash head plus ordinary main followers; independent repository/settings/jobs/cache/provenance/rounds/service. Main and bootstrap leastLoad unchanged; terminal Ads dialers chain through main. Missing Ads blocks publication; unsupported chains fail explicitly."
+    "smart_ads": "One whole fresh Splash head plus ordinary main followers; independent repository/settings/jobs/cache/provenance/rounds/service. Main and bootstrap leastLoad unchanged; terminal Ads dialers chain through main. Missing Ads blocks publication; unsupported chains fail explicitly.",
+    "residential": "Separate health, attributed Ads egress and exact-IP class. Both raw/template and every required domain/family/transport/path must qualify. Unknown/Partial/Unsupported never enter full residential output.",
+    "residential_deletion": "First suspicion/expiry quarantines; spaced fresh credible failures with infrastructure controls authorize global revocation. External authenticated tombstones fence stale jobs/backups/manual aliases. No AI deletion authority.",
+    "residential_outputs": "Common eligible generation: JSONL @shenvpn; durable per-link single JSON; exact-original raw ZIP. No eligible members yields503/no-store/no fallback."
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -2132,20 +2135,99 @@
       "live_splash_recheck": "two core-passed candidates failed actual REALITY authentication; no fabricated healthy proof",
       "android": "not_run",
       "live_ads_chain": "not_run_no_qualified_splash"
+    },
+    "p28": {
+      "checkpoint": "docs/checkpoints/P28-residential-20261110.md",
+      "full_check": "passed; full panel race526.322s plus Python/JS/vet/build/pinned traffic",
+      "post_query_refinement": "panel+policy passed13.203s; focused race29.103s and vet",
+      "final_r2": "Residential race passed31.707s; panel rebuilt",
+      "worker_integrations": "ordinary, Smart, Splash, Ads and Residential SIGKILL recovery passed in isolated resources",
+      "residential_worker": {
+        "inputs": 6,
+        "live_read_only_inputs": 4,
+        "synthetic_inputs": 2,
+        "states": {
+          "UNKNOWN": 5,
+          "UNSUPPORTED": 1
+        },
+        "eligible": 0,
+        "max_active": 2,
+        "recovery_seconds_approx": 128.82
+      },
+      "browser": "synthetic acceptance and read-only live production390/1440 passed; clipboard links; no page errors",
+      "live_snapshot": {
+        "at": 1794279573424,
+        "eligible_count": 0,
+        "trust_configured": false,
+        "metrics": {
+          "configs_per_minute_last_5m": 20.6,
+          "mean_cpu_ms": 129.16823936170212,
+          "p50_ms": 5212.612,
+          "p95_ms": 13346.418,
+          "peak_rss_bytes": 66899968,
+          "sample_count": 188,
+          "scope": "server-side assessment; not client throughput"
+        },
+        "counts": {
+          "sources": 29,
+          "records": 937,
+          "tested": 176,
+          "missing_memberships": 0
+        },
+        "routes": {
+          "/residential": {
+            "status": 200,
+            "elapsed_ms": 3.983
+          },
+          "/api/state?view=summary": {
+            "status": 200,
+            "elapsed_ms": 6.424
+          },
+          "/api/smart": {
+            "status": 200,
+            "elapsed_ms": 84.517
+          },
+          "/api/smart-splash": {
+            "status": 200,
+            "elapsed_ms": 27.693
+          },
+          "/api/smart-ads": {
+            "status": 200,
+            "elapsed_ms": 95.595
+          }
+        }
+      },
+      "api_review": {
+        "actual_model": "gpt-6-astra",
+        "completed_reviews": 2,
+        "incomplete_attempts": 1,
+        "tokens": 59788,
+        "estimated_cost_usd": 1.30336,
+        "billed_cost_usd": null,
+        "runtime_dependency": false
+      },
+      "limits": [
+        "No configured authorized egress observer or independent specialist exact-IP sources",
+        "No native forced IPv6, UDP/QUIC or exhaustive balanced-path probe driver",
+        "Live residential positive/negative classification accuracy not established",
+        "Android/APK/Iran-carrier tests not_run",
+        "Sampling is finite, not a permanent or100% guarantee"
+      ]
     }
   },
   "runtime": {
-    "database_schema": 15,
+    "database_schema": 16,
     "services": [
       "config-repair.service",
       "config-repair-prober.service",
       "config-repair-smart.service",
       "config-repair-splash.service",
-      "config-repair-ads.service"
+      "config-repair-ads.service",
+      "config-repair-residential.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p27-d62d17e605752cd08c22",
-    "panel_sha256": "d62d17e605752cd08c22b408350dcec62fb334c8a328bbc6794a96708420f975",
+    "release": "/opt/config-repair/releases/p28-d5c9dc60e5946dfd03fb-r2",
+    "panel_sha256": "d5c9dc60e5946dfd03fbf4c7e8d523c3c3d0a5c29a9b5dcbd107bec1dd96ffbf",
     "worker_sha256": "905696e03dbbc706261d203febad43493ae5d9f7c98b8cf1bf5bb1ce56ea4c50",
     "template_version": "xray-26.7.28.template.v4",
     "retention_seconds": 7200,
@@ -2155,15 +2237,15 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/p27-deployed.json",
-    "publication_receipt": ".local/p27-published.json",
-    "sandbox_driver_sha256": "7c0550563f7d385acdbbda9ae5867a5bbd11a9cf9a6451a12470a7a862d1e671",
+    "deployment_receipt": ".local/p28-r2-deployed.json",
+    "publication_receipt": ".local/p28-published.json",
+    "sandbox_driver_sha256": "0cab02ff83a5d3b83816752e110dcae20a2f92d3bb3ce83b6fcc099bffa5d483",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
     "smart_version": "xray-26.7.28.smart.v8",
     "smart_count": 50,
     "smart_concurrency": 2,
-    "adapter_sha256": "a8ada44cdc692a0774ccecd5cddd33d1ce2a263765a8f72b020dfd866a4fba02",
+    "adapter_sha256": "071e7e4e7d4787045470e242ee96d47b981cf6abb204adc37181ae2d369eb887",
     "smart_adapter_sha256": "315174552cdac75a509eb3fa45079dacda57e8e6d60eb966cb60f2ba5b3d0190",
     "smart_revision": 11,
     "source_count_at_inspection": 29,
@@ -2173,23 +2255,38 @@
     "splash_enabled": true,
     "splash_sources_at_inspection": 3,
     "splash_concurrency": 2,
-    "source_parent_commit": "2ed6349df53a0e31f9f186e06e038e2e3a490cdc",
-    "tested_runtime_manifest": ".local/p27-tested-runtime.json",
+    "source_parent_commit": "660cf470f62639bcf23cfd34d8f5667600150448",
+    "tested_runtime_manifest": ".local/p28-tested-runtime.json",
     "ads_adapter_sha256": "4a519c9f99c61b9b8c25d16a6350af83f8fb00b29808e1e275110e5918bdebec",
     "ads_version": "xray-26.7.28.smart-ads.v1",
     "geosite_sha256": "adf92de0cfc70e458b399f04c5f912bf42d115ed7e37281b30e2f1c68605e4e9",
     "smart_enabled": true,
     "ads_count": 50,
     "ads_revision": 1,
-    "ads_enabled": true
+    "ads_enabled": true,
+    "residential_worker_sha256": "9fb05a82fc8c2484a306b05f54419695b99b139dedf9425e930d5e4548ba9c01",
+    "residential_adapter_sha256": "777498958910aefde6c3ddfde53760594b05c1db3b2def18bcbdda5ebe2b1eed",
+    "residential_intel_sha256": "702d995e279a9cd5a37bc53d811c5132292c8876211d907faf29c2c3ffccf4b1",
+    "residential_observer_sha256": "8b581d92a9d1c55384e866739102bf3cef333eea4bfd67c9d217720915bebd49",
+    "residential_version": "shen.residential.v1",
+    "residential_domains_version": "google-ads-explicit.2026-11-10.1",
+    "residential_evidence_ttl_seconds": 600,
+    "residential_retest_seconds": 300,
+    "residential_concurrency": 2,
+    "residential_retention": "no age cap for accepted records; evidence remains expiring",
+    "residential_ledger": "/var/lib/shen-residential-revocations",
+    "residential_trust_configured": false,
+    "residential_eligible_at_snapshot": 0
   },
   "next": [
+    "Configure documented authorized egress-flow observer and independently sourced exact-IP specialist intelligence before live residential acceptance",
+    "Implement and verify forced IPv6, UDP/QUIC and exhaustive selectable-path probe drivers; keep incomplete scope out of full output",
+    "Measure real positive/negative residential accuracy with authorized ground truth and complete raw/template scope",
     "Actual Android/Termux and carrier/TUN/media/throughput measurements require a connected device; still not_run",
-    "Unsupported or missing upstream connection parameters require valid source data or separately evidenced adapters",
     "Standalone checksum-pinned installer/update/rollback remains a separate release task"
   ],
   "environment": "Use verified project-local Go1.27.1 toolchain/module/build caches; shared caches previously failed integrity checks and were not modified.",
-  "audit_checkpoint": "docs/checkpoints/P27-production-recovery-20261110.md",
+  "audit_checkpoint": "docs/checkpoints/P28-residential-20261110.md",
   "smart_ads": {
     "status": "deployed_verified; waiting for fresh eligible Splash input",
     "schema": 15,

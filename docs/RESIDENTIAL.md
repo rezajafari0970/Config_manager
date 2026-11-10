@@ -1,0 +1,171 @@
+# Residential Google Ads evidence — P28
+
+## Contract and current capability
+
+The evidence engine has three independent axes: connection health, observed Ads
+egress, and the observed IP's network class. An IP/ASN/country difference is not
+proof of residential access or dedicated Ads routing. Equal control/Ads egress
+does not disqualify a residential configuration. Decisions describe finite
+observations, never permanent behavior or all Google Ads.
+
+Default policy `shen.residential.v1` uses explicit domain-list revision
+`google-ads-explicit.2026-11-10.1`, ten domains, IPv4/IPv6, TCP/UDP/QUIC,
+three samples, ten-minute evidence lifetime and five-minute jittered recheck.
+Every matrix cell and selectable path must qualify in both the untouched raw
+configuration and common `@shenvpn` template. Policy, trust, template and raw
+changes invalidate dependent evidence. Current Xray target remains 26.7.28.
+
+**Current live limitations:** the built-in network driver screens TCP HTTPS,
+initially two domains, using two independent control services and repeated
+waves. No native IPv6-forced, UDP or QUIC proof driver is supplied. All unresolved
+multi-outbound/balancer/geosite/reverse paths remain incomplete. Other core
+drivers return `UNSUPPORTED`; reachability is not silently mapped to unhealthy.
+There is no configured authorized egress observer or specialist IP provider on
+the initial deployment. Consequently no live input may be asserted residential
+on the basis of this implementation's experimental diagnostic. Empty public
+outputs are the required safe result, not a fallback to ordinary Smart servers.
+
+## Evidence chain
+
+`internal/residential` contains versioned data contracts, policy, driver registry,
+path inventory, signed observation verification and exact-IP classification.
+`internal/panel/residential_*` owns leases, independent retention, tombstones,
+publication, management and metrics. `config-residential-worker` supervises
+bounded persistent worker slots; each assessment starts its own isolated core.
+The Python core, observation and intelligence adapters are separate modules.
+
+The experimental same-TLS method makes a TLS-verified safe `/robots.txt` request
+to the real Ads hostname and then tries a diagnostic on that same stream.
+It follows no redirect and creates no ad impression or click. A recognizable IP
+and reflected nonce do **not** authenticate diagnostic semantics or origin:
+`same-tls-candidate-v1` always remains `UNKNOWN`. The returned IP is labelled a
+candidate, not proven user egress. A control connection's IP never becomes an
+Ads IP. No traceroute, ping, DNS answer, certificate or destination IP is used
+as user-egress evidence.
+
+An optional authorized observer bridge accepts only
+`server-flow-ed25519-v1`. The signed payload binds the audience, exact raw and
+runtime hashes, policy, variant, domain, family, transport, selected path, time,
+wave, nonce, connection ID, observed IP and response hash. The Go owner verifies
+the signature against an operator-registered capability, its scope and expiry.
+The observer must actually correlate server-side routing/outbound/egress-flow
+evidence with the test. Merely returning a signed guess is not a valid method.
+An operator must document how that correlation is established before trusting
+the capability. The provided bridge does not create such access or telemetry.
+
+Exact-IP facts require two independent configured groups, including a specialist,
+with fresh explicit network classifications. Residential, Mobile, Datacenter
+and Unknown are separate. Conflicting classification, country or ASN yields
+Unknown. No ISP-name, non-hosting boolean, country or ASN allowlist exists.
+Facts include exact IP, country, ASN, provider, acquisition/expiry times and
+response digest. TLS provider responses are collected by the trusted supervisor;
+a domain-separated HMAC authenticates its facts at the owner boundary. This
+authenticates collection provenance, not the provider's inherent accuracy.
+The sandbox and API review model cannot access that key. Provider groups and
+specialist capabilities are operator trust assertions that need independent
+documentation, not self-reported labels from a remote response.
+
+## Configuring optional private adapters
+
+`SHEN_RESIDENTIAL_CONFIG` may name an administrator-controlled JSON file containing
+`policy` and `trust` matching the Go contracts. No public endpoint can register
+proof capabilities. Use the exact structs in `internal/residential/types.go`.
+Changing these values invalidates current proofs and in-flight jobs.
+
+`/etc/config-repair/residential-observer.json` is a private file with version
+`shen.residential.observer.v1`, an HTTPS `url` without URL credentials/query,
+and optional absolute `token_file`. The bridge sends only public test metadata,
+hashes and nonces, never raw configurations or credentials. It accepts only
+scope-identical, signed receipts. No redirects or environment proxy are used.
+
+`/etc/config-repair/residential-intel.json` has version
+`shen.residential.intel.v1` and a bounded `providers` list. Each provider uses
+`driver: https-json-v1`, a stable `id`, HTTPS `url` containing `{ip}`, documented
+`fields` for echoed `ip`, explicit `class`, `country`, `asn`, and a `classes` enum
+mapping to Residential/Mobile/Datacenter. An optional private `token_file` supplies
+an Authorization header. Mapping a non-hosting boolean to Residential is invalid.
+The default cache path is `/var/lib/config-repair-residential-intel/cache.json`.
+Use mode 0600 for private adapter files/tokens. Nothing is preconfigured with
+invented providers, keys, model-generated classifications or network facts.
+
+Intelligence caches are keyed by exact IP and provider/configuration digest,
+bounded and expiring, with per-provider concurrency, coalescing, limited retries
+and circuit breakers. Their reuse never replaces a new path observation.
+Core network namespaces admit only the selected proxy endpoints and loopback;
+no host DNS or Direct alternative is enabled for the tested configuration.
+Independent infrastructure controls deliberately run outside that tunnel and
+are labelled separately; their result cannot stand in for a failed tunnel.
+
+## Retention, quarantine and deletion
+
+Schema 16 creates residential raw-hash records and independent encrypted vault
+references without source/artifact foreign keys. All input memberships enter
+the queue, including Splash, ordinary sources and unsupported protocols. Original
+bytes remain immutable. Accepted originals and templates survive two-hour TTL,
+source deletion/disappearance, repeated fetching, and ordinary garbage collection.
+Unknown/partial inputs remain available for re-evaluation. Initial unknown audit
+history is limited to two results; previously accepted history to twenty.
+
+Evidence is finite even though accepted configuration retention has no age cap.
+Every export checks present eligibility; expired, suspect or uncertain formerly
+accepted configurations are quarantined across ordinary and Smart outputs.
+An IP-provider outage, conflicting data, a single timeout or shared infrastructure
+failure cannot authorize deletion. Three fresh spaced credible failures are
+required, with fresh independent infrastructure controls for connection failures.
+Rechecks prefer another local worker slot. Correlated failures across retained
+members trip a destructive-action circuit breaker while publication stays closed.
+
+Confirmed revocation removes operational memberships, derived results, dependent
+Smart caches/heads, source responses, queued turns and independent blob references.
+Encrypted unreferenced bytes are removed by the existing garbage collector.
+Audit/tombstone metadata remains to prevent resurrection. Manual deletion is
+permanent until an explicit future restore mechanism is implemented; re-fetching
+or a new label cannot bypass its identity tombstone. Automatic re-entry requires
+a new lease/epoch and genuinely post-revocation observations. Older completions
+cannot publish. Deleting a source alone does not delete retained residential data.
+
+The append-only authenticated deletion ledger and high-water mark must live
+**outside the ordinary DB/blob backup tree**. Append+fsync precedes DB commit;
+startup replays pending valid events. Missing/truncated committed history blocks
+publication. A partial uncommitted tail is repairable only beyond an intact
+authenticated watermark. Startup invalidation happens before public and private
+listeners; restored proofs must be observed again. Restore the DB/blob/key set
+without rolling back the external ledger. Do not downgrade to a schema-15 binary
+or restore an old runtime that does not enforce the ledger. P27 rejects schema16.
+Previously admitted responses and downloaded files cannot be recalled.
+
+## Outputs and UI
+
+`/residential` and `/api/residential` show actual eligibility count, independent
+axes, explicit scope, reasons, evidence history, worker state, measured latency,
+throughput and CPU/RAM metrics. They expose stable signed URLs for:
+
+| Format | Bytes and rotation |
+| --- | --- |
+| `configs.jsonl` | One compact common-template JSON per line; no array/wrapper |
+| `next.json` | One JSON per GET; durable independent round per link, shared by consumers |
+| `raw.zip` | Each original's exact bytes in a hash-named entry, plus a generation manifest |
+
+ZIP preserves arbitrary multiline/raw formats without inventing delimiters.
+All three derive from the same eligible snapshot and generation. Supply the
+`generation` query parameter to reject changes during a three-output comparison.
+No members yields HTTP503 and Retry-After, never stale or datacenter fallback.
+HEAD/prefetch do not consume turns. Allocation is unique within a round; delivery
+after disconnect is not exactly-once. New members join the next round.
+
+Encrypted blob reads and disk spooling happen outside DB write transactions;
+final admission atomically checks current membership, versions, validity and
+ledger. Legacy raw/response/JSONL/Smart paths have an additional common fence,
+including conditional 304 responses. Admission is the publication linearization
+point; the transaction is not held while a slow client receives bytes.
+
+## Validation and deployment
+
+Read `docs/checkpoints/P28-residential-20261110.md` for actual test receipts and
+limitations. Synthetic signed/provider fixtures are never live residential proof.
+`scripts/check.sh` includes race tests and driver/parser checks. The new
+`scripts/residential-worker-test.py` uses disjoint `crt` resources, bounded live
+read-only canaries and SIGKILL recovery; production uses `crr`. Do not run a
+production cleanup from a test. Core hash and source/runtime manifests remain
+pinned. AI reviews are offline, redacted source reviews with recorded model,
+tokens and estimated costs; the detector and exports require no OpenAI API.

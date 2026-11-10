@@ -23,14 +23,17 @@ import (
 )
 
 type Store struct {
-	db            *sql.DB
-	readDB        *sql.DB
-	aead          cipher.AEAD
-	key           []byte
-	vault         *blob.Vault
-	probeTurn     atomic.Uint64
-	rotationMu    sync.Mutex
-	rotationLocks map[string]*rotationLock
+	residentialDBPath  string
+	residentialJournal string
+	db                 *sql.DB
+	readDB             *sql.DB
+	aead               cipher.AEAD
+	key                []byte
+	vault              *blob.Vault
+	probeTurn          atomic.Uint64
+	residentialTurn    atomic.Uint64
+	rotationMu         sync.Mutex
+	rotationLocks      map[string]*rotationLock
 }
 
 func Open(path string, key []byte) (*Store, error) {
@@ -85,7 +88,7 @@ func Open(path string, key []byte) (*Store, error) {
 	if err = db.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
 		return nil, err
 	}
-	if version > 15 {
+	if version > 16 {
 		return nil, errors.New("database schema newer than application")
 	}
 	if version == 0 {
@@ -158,6 +161,13 @@ PRAGMA user_version=1;`)
 		return nil, err
 	}
 	if err = s.migrateV15(); err != nil {
+		return nil, err
+	}
+	if err = s.migrateV16(); err != nil {
+		return nil, err
+	}
+	s.residentialDBPath = path
+	if err = s.initResidentialJournal(context.Background(), path); err != nil {
 		return nil, err
 	}
 	// Reconcile transient children left by older connections with foreign keys

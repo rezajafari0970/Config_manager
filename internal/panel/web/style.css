@@ -28,3 +28,5 @@
 .splash-toggle{border:1px solid var(--line,#e5e5ee);border-radius:10px;padding:8px 10px;background:white;color:#646777;font:inherit;cursor:pointer;white-space:nowrap}.splash-toggle.active{background:#6559e8;color:white;border-color:#6559e8}.splash-choice{margin-block:12px}@media(max-width:600px){.source-row summary{flex-wrap:wrap}.splash-toggle{font-size:12px;margin-inline-start:auto}}
 
 .source-name .splash-toggle{display:block;margin-block-start:8px;margin-inline-start:0}
+
+#res-policy{overflow:auto;max-width:100%;font-size:12px}#res-generation{overflow-wrap:anywhere}#res-list .config-card{padding:18px;border:1px solid var(--line);border-radius:12px;margin:12px 0;overflow-wrap:anywhere}#res-list p{font-size:12px;line-height:1.8}

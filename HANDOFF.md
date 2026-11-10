@@ -1,3 +1,17 @@
+# Current handoff — P28 residential Google Ads
+
+Read AGENTS.md, docs/RESIDENTIAL.md, docs/checkpoints/P28-residential-20261110.md and PROJECT_STATE.json first. All later historical sections below are superseded where P28 says so.
+
+P28 is deployed with schema16 and six active/enabled services. Final release is /opt/config-repair/releases/p28-d5c9dc60e5946dfd03fb-r2. All29sources and existing settings were preserved. The residential queue covers every current input membership and has independent retained raw/template references, expiring evidence, fair bounded workers, quarantine, confirmed deletion, external authenticated tombstones and three common-generation exports at /residential. Full technical/test details and runtime hashes are in the checkpoint. Private receipts are in /root/projects/config-manager-production-p28/.local; final source publication/readback is p28-published.json. Canonical repository remains /root/projects/v2ray-config-repair, branch go/v2rayng-2.3.6; never touch legacy main.
+
+**Live evidence remains incomplete.** There is no configured authorized flow observer or specialist exact-IP provider. The native screen is TCP with two controls and repeated safe requests. Unverified same-TLS diagnostic candidates remain UNKNOWN. Forced IPv6, UDP/QUIC and complete multi-path drivers are not supplied. Default full coverage is closed: at the documented snapshot all three outputs correctly returned503/count0. Do not invent trust entries, narrow the policy silently, or relabel ASN differences as residential. Next work needs real authorized observer/provider access and separately verified transport/path drivers.
+
+The accepted-residential retention exception supersedes the old fixed-age rule only for its independent records. Evidence TTL600s and recheck300s are separate and configurable. /var/lib/shen-residential-revocations is outside the regular backup tree and must never be rolled back with the database. Schema15 rollback is invalid. Startup invalidates prior proofs before listeners; stale jobs/manual aliases cannot restore a tombstoned member. Private model reviews used gpt-6-astra; total estimated cost $1.30336, two usable reviews and one incomplete attempt. No runtime AI dependency.
+
+Final tests include full check/race/vet/build/pinned traffic, all five worker recoveries, lifecycle/retention/atomic export/journal regressions, synthetic mobile/desktop browser, and read-only public browser. R2 only fixes unnecessary generation invalidation from initial UNKNOWN results and has its own Residential race pass. No Android, Iran-carrier or live residential ground-truth accuracy claim.
+
+---
+
 # Handoff — current P21 RealPing and random delivery
 
 Read AGENTS.md, docs/PROJECT_BRAIN.md, PROJECT_STATE.json, docs/CONVERSION.md and docs/checkpoints/P21-realping-random-order-20261107.md. Verify actual HEAD/origin/status and private p21 receipts. Earlier checkpoint sections below are historical. The latest request applies tunneled DoH, independent IP bootstrap, burst15/3/5, keepalive45/15 and local metrics to all existing Smart outputs; preserve raw/non-Smart data and the bank-free lifecycle.
