@@ -21,7 +21,7 @@ type RouteDiagnostic struct {
 
 func controlGroup(domain string) string {
 	switch domain {
-	case "www.cloudflare.com":
+	case "www.cloudflare.com", "1.1.1.1":
 		return "cloudflare"
 	case "api.ipify.org", "api64.ipify.org":
 		return "ipify"

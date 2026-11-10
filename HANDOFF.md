@@ -1,3 +1,24 @@
+# Current P30 handoff — 2026-11-10
+
+Nine user inputs were tested against three official checksum-verified Xray cores.
+Only samples3/4 had healthy raw AND template connectivity (26.5.9). Plain VLESS
+is rejected by26.11.9;26.7.28 rejects their raw URI import but accepts the template.
+Samples1/2 fail REALITY authentication on all three; samples5–9 have no verified
+connection in these trials. The sample6 ALPN hypothesis also failed and was not
+adopted. No sample has proven Residential Ads egress. Metadata is not a classifier.
+
+P30 also permits unrelated raw-export arrivals while fencing invalidated captured members.
+P30 adds the adaptive multi-core driver, bounded cancellation/cleanup/parent
+lifeline, exact core provenance in evidence/UI, second-authority SAN checks,
+close-delimited response handling, transient-control retry, healthy-screen domain
+expansion and same-family IPv4 controls. Ordinary/Smart envelopes, source/settings,
+fixed10h lifetime,600s Ads evidence and schema17 are preserved.
+
+Final release/source identity is recorded in PROJECT_STATE.json and private
+.local/p30-deployed.json, p30-tested-runtime.json, p30-published.json. The external
+revocation journal must never be rolled back. Canonical branch remains
+ go/v2rayng-2.3.6; legacy main untouched. User raw samples/keys stay private.
+
 # Current handoff — P29 fixed lifetime and diagnostics
 
 P29 supersedes earlier P28 lifetime/raw-format notes. Read AGENTS.md,

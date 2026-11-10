@@ -1,7 +1,7 @@
 {
-  "phase": "P29 fixed10h lifetime, raw text and independent route diagnostics",
+  "phase": "P30 official multi-core compatibility and same-family Ads diagnostics",
   "date": "2026-11-10",
-  "status": "deployed_guarded_live_evidence_pending",
+  "status": "deployed_verified_residential_proof_pending",
   "repository": "rezajafari0970/Config_manager",
   "branch": "go/v2rayng-2.3.6",
   "legacy_main": "unchanged",
@@ -45,7 +45,8 @@
     "residential": "Separate health, attributed Ads egress and exact-IP class. Both raw/template and every required domain/family/transport/path must qualify. Unknown/Partial/Unsupported never enter full residential output.",
     "residential_deletion": "First suspicion/expiry quarantines; spaced fresh credible failures with infrastructure controls authorize global revocation. External authenticated tombstones fence stale jobs/backups/manual aliases. No AI deletion authority.",
     "residential_outputs": "Common eligible generation: JSONL @shenvpn, durable per-link single JSON, inline exact-original raw.txt with one LF between bodies. Legacy ZIP URL redirects. Empty full-scope set returns503, never an uncertain substitute.",
-    "raw_output": "All-source raw.txt prints unchanged original bodies with one LF between members, current membership rechecked before admission; old archive.zip redirects."
+    "raw_output": "All-source exact-original raw.txt; one LF between bodies. At serialized admission, captured members must remain eligible/unchanged; unrelated arrivals wait for next request. Invalidations503; old archive.zip redirects.",
+    "residential_cores": "Latest26.11.9 first; official pinned26.7.28 and26.5.9 bounded parallel fallback. Select one complete raw/template report. Ordinary/Smart target unchanged."
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -867,57 +868,57 @@
               {
                 "name": "Raytunnel",
                 "stored": 1,
-                "label": "خروجی‌های شناسایی‌شده آماده‌اند"
+                "label": "\u062e\u0631\u0648\u062c\u06cc\u200c\u0647\u0627\u06cc \u0634\u0646\u0627\u0633\u0627\u06cc\u06cc\u200c\u0634\u062f\u0647 \u0622\u0645\u0627\u062f\u0647\u200c\u0627\u0646\u062f"
               },
               {
                 "name": "sub",
                 "stored": 0,
-                "label": "متوقف"
+                "label": "\u0645\u062a\u0648\u0642\u0641"
               },
               {
                 "name": "output",
                 "stored": 0,
-                "label": "متوقف"
+                "label": "\u0645\u062a\u0648\u0642\u0641"
               },
               {
                 "name": "Hot",
                 "stored": 0,
-                "label": "متوقف"
+                "label": "\u0645\u062a\u0648\u0642\u0641"
               },
               {
                 "name": "Afrak",
                 "stored": 20,
-                "label": "برخی ورودی‌ها نیازمند تکمیل یا اصلاح‌اند"
+                "label": "\u0628\u0631\u062e\u06cc \u0648\u0631\u0648\u062f\u06cc\u200c\u0647\u0627 \u0646\u06cc\u0627\u0632\u0645\u0646\u062f \u062a\u06a9\u0645\u06cc\u0644 \u06cc\u0627 \u0627\u0635\u0644\u0627\u062d\u200c\u0627\u0646\u062f"
               },
               {
                 "name": "Yak",
                 "stored": 20,
-                "label": "کانفیگ ذخیره شد"
+                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
               },
               {
                 "name": "Exir",
                 "stored": 0,
-                "label": "متوقف"
+                "label": "\u0645\u062a\u0648\u0642\u0641"
               },
               {
                 "name": "Agood",
                 "stored": 1,
-                "label": "ذخیره شد؛ خروجی در حال بررسی"
+                "label": "\u0630\u062e\u06cc\u0631\u0647 \u0634\u062f\u061b \u062e\u0631\u0648\u062c\u06cc \u062f\u0631 \u062d\u0627\u0644 \u0628\u0631\u0631\u0633\u06cc"
               },
               {
                 "name": "Agood",
                 "stored": 92,
-                "label": "کانفیگ ذخیره شد"
+                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
               },
               {
                 "name": "Mixo",
                 "stored": 30,
-                "label": "کانفیگ ذخیره شد"
+                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
               },
               {
                 "name": "Speedray",
                 "stored": 31,
-                "label": "کانفیگ ذخیره شد"
+                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
               }
             ]
           },
@@ -932,57 +933,57 @@
               {
                 "name": "Raytunnel",
                 "stored": 1,
-                "label": "خروجی‌های شناسایی‌شده آماده‌اند"
+                "label": "\u062e\u0631\u0648\u062c\u06cc\u200c\u0647\u0627\u06cc \u0634\u0646\u0627\u0633\u0627\u06cc\u06cc\u200c\u0634\u062f\u0647 \u0622\u0645\u0627\u062f\u0647\u200c\u0627\u0646\u062f"
               },
               {
                 "name": "sub",
                 "stored": 0,
-                "label": "متوقف"
+                "label": "\u0645\u062a\u0648\u0642\u0641"
               },
               {
                 "name": "output",
                 "stored": 0,
-                "label": "متوقف"
+                "label": "\u0645\u062a\u0648\u0642\u0641"
               },
               {
                 "name": "Hot",
                 "stored": 0,
-                "label": "متوقف"
+                "label": "\u0645\u062a\u0648\u0642\u0641"
               },
               {
                 "name": "Afrak",
                 "stored": 20,
-                "label": "برخی ورودی‌ها نیازمند تکمیل یا اصلاح‌اند"
+                "label": "\u0628\u0631\u062e\u06cc \u0648\u0631\u0648\u062f\u06cc\u200c\u0647\u0627 \u0646\u06cc\u0627\u0632\u0645\u0646\u062f \u062a\u06a9\u0645\u06cc\u0644 \u06cc\u0627 \u0627\u0635\u0644\u0627\u062d\u200c\u0627\u0646\u062f"
               },
               {
                 "name": "Yak",
                 "stored": 20,
-                "label": "کانفیگ ذخیره شد"
+                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
               },
               {
                 "name": "Exir",
                 "stored": 0,
-                "label": "متوقف"
+                "label": "\u0645\u062a\u0648\u0642\u0641"
               },
               {
                 "name": "Agood",
                 "stored": 1,
-                "label": "ذخیره شد؛ خروجی در حال بررسی"
+                "label": "\u0630\u062e\u06cc\u0631\u0647 \u0634\u062f\u061b \u062e\u0631\u0648\u062c\u06cc \u062f\u0631 \u062d\u0627\u0644 \u0628\u0631\u0631\u0633\u06cc"
               },
               {
                 "name": "Agood",
                 "stored": 92,
-                "label": "کانفیگ ذخیره شد"
+                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
               },
               {
                 "name": "Mixo",
                 "stored": 30,
-                "label": "کانفیگ ذخیره شد"
+                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
               },
               {
                 "name": "Speedray",
                 "stored": 31,
-                "label": "کانفیگ ذخیره شد"
+                "label": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f"
               }
             ]
           }
@@ -2077,7 +2078,7 @@
         "cached_bytes_exact": true,
         "logs_off": true
       },
-      "migration": "passed35 existing table fingerprints14→15; previous-binary rollback/re-upgrade; actual deployment fingerprints preserved",
+      "migration": "passed35 existing table fingerprints14\u219215; previous-binary rollback/re-upgrade; actual deployment fingerprints preserved",
       "openai_review": "completed:gpt-6-astra; scoped architecture and chain review; private key/receipts",
       "android_carriers": "not_run",
       "whole_live_ads_chain": "not_run_no_fresh_Splash"
@@ -2304,6 +2305,85 @@
       "true_residential_accuracy": "not measured; no authorized ground truth",
       "android": "not_run",
       "ten_hour_wall_clock_soak": "not_run; deadline advancement acceptance passed"
+    },
+    "p30": {
+      "status": "passed; live Residential proof remains unknown",
+      "sample_count": 9,
+      "core_count": 3,
+      "matrix_cells": 27,
+      "both_variants_healthy_samples": [
+        3,
+        4
+      ],
+      "healthy_core": "26.5.9",
+      "residential_proven_samples": 0,
+      "full_scope_domains": 10,
+      "full_scope_observations_per_sample": 60,
+      "full_scope_controls_per_sample": 24,
+      "full_suite": "passed after total timeout10m to20m",
+      "final_race_vet": "passed",
+      "probe_unit_tests": 10,
+      "matrix_unit_tests": 11,
+      "raw_snapshot_regressions": "passed arrivals/disable/delete/expiry/representation",
+      "worker_sigkill_recovery": "passed isolated6jobs max2active",
+      "browser": "passed synthetic and live390/1440",
+      "live": {
+        "passed": true,
+        "at": 1794287951.2479944,
+        "schema": 17,
+        "settings": {
+          "retention_seconds": 36000,
+          "health_ttl_seconds": 36000
+        },
+        "sources": 29,
+        "missing_memberships": 0,
+        "eligible": 0,
+        "counts": {
+          "UNKNOWN": 3541,
+          "UNSUPPORTED": 54
+        },
+        "progress": {
+          "healthy": 198,
+          "pending": 2092,
+          "tested": 1503
+        },
+        "total": 3595,
+        "metrics": {
+          "configs_per_minute_last_5m": 6.8,
+          "mean_cpu_ms": 161.17701735579382,
+          "p50_ms": 5432.067,
+          "p95_ms": 14004.396,
+          "peak_rss_bytes": 135974912,
+          "sample_count": 1959,
+          "scope": "server-side assessment; not client throughput"
+        },
+        "outputs": {
+          "configs.jsonl": {
+            "status": 503,
+            "bytes": 49
+          },
+          "next.json": {
+            "status": 503,
+            "bytes": 49
+          },
+          "raw.txt": {
+            "status": 503,
+            "bytes": 49
+          }
+        },
+        "raw_all_count": 701,
+        "raw_membership_retries": 2
+      },
+      "report": "docs/reports/P30-report-fa.md",
+      "matrix": "docs/reports/P30-matrix.json",
+      "api_review": {
+        "model": "gpt-6-astra",
+        "completed": 1,
+        "incomplete": 1,
+        "findings_fixed": 4,
+        "estimated_usd": 0.60781,
+        "actual_billed_usd": null
+      }
     }
   },
   "runtime": {
@@ -2317,8 +2397,8 @@
       "config-repair-residential.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p29-2f64c060f235239d875f",
-    "panel_sha256": "2f64c060f235239d875f0898ed0ee6a5cee9224405f12676436e3a23aaa8fec8",
+    "release": "/opt/config-repair/releases/p30r2-be98ea10b165fe057a6f",
+    "panel_sha256": "be98ea10b165fe057a6f84a7cfeb4d52ef6ba93aec64e457d5205ca5cdca4970",
     "worker_sha256": "905696e03dbbc706261d203febad43493ae5d9f7c98b8cf1bf5bb1ce56ea4c50",
     "template_version": "xray-26.7.28.template.v4",
     "retention_seconds": 36000,
@@ -2328,8 +2408,8 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 36000,
-    "deployment_receipt": ".local/p29-deployed.json",
-    "publication_receipt": ".local/p29-published.json",
+    "deployment_receipt": ".local/p30-deployed.json",
+    "publication_receipt": ".local/p30-published.json",
     "sandbox_driver_sha256": "0cab02ff83a5d3b83816752e110dcae20a2f92d3bb3ce83b6fcc099bffa5d483",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
@@ -2346,8 +2426,8 @@
     "splash_enabled": true,
     "splash_sources_at_inspection": 3,
     "splash_concurrency": 2,
-    "source_parent_commit": "c4e0af88b929834fc9de8d889aa3444ee4c314ef",
-    "tested_runtime_manifest": ".local/p29-tested-runtime.json",
+    "source_parent_commit": "8bb4d27f44709f23f629ecadbe5549c2d2e0e06c",
+    "tested_runtime_manifest": ".local/p30-tested-runtime.json",
     "ads_adapter_sha256": "4a519c9f99c61b9b8c25d16a6350af83f8fb00b29808e1e275110e5918bdebec",
     "ads_version": "xray-26.7.28.smart-ads.v1",
     "geosite_sha256": "adf92de0cfc70e458b399f04c5f912bf42d115ed7e37281b30e2f1c68605e4e9",
@@ -2355,8 +2435,8 @@
     "ads_count": 50,
     "ads_revision": 1,
     "ads_enabled": true,
-    "residential_worker_sha256": "865b4019f27b92a2a62263c7ce7fcbb7001fc62d9505202975caec16a659e850",
-    "residential_adapter_sha256": "df236949e9bad6516af770cc4c9a8a83c431975dda60fc635cfce914f8d7e78b",
+    "residential_worker_sha256": "4962ec3471aee609974c0dfb7d621c9f7a7effe0cf83380a5dbfcffbef549271",
+    "residential_adapter_sha256": "df96bb963403213be32ef1064a25edf6a6aa361041fda5b8ed6341bf9cd2b09d",
     "residential_intel_sha256": "975350a113fe1d151d067fa5cc51e2a71000e884b597ec6e94b4cd6e20728d5e",
     "residential_observer_sha256": "8b581d92a9d1c55384e866739102bf3cef333eea4bfd67c9d217720915bebd49",
     "residential_version": "shen.residential.v1",
@@ -2368,7 +2448,9 @@
     "residential_ledger": "/var/lib/shen-residential-revocations",
     "residential_trust_configured": false,
     "residential_eligible_at_snapshot": 0,
-    "public_verification_receipt": ".local/p29-live-check.json"
+    "public_verification_receipt": ".local/p30-live-check.json",
+    "residential_matrix_sha256": "9dca1aa98eb9536290d8095b4afc82927bc8c313bdac150ae6607c8f59dee3c2",
+    "residential_cores_sha256": "dc6a57fa9e8ea9b8bbdd344db2ee50c990ff09300e91278be96ffef12e17be25"
   },
   "next": [
     "Configure documented authorized egress-flow observer and independently sourced exact-IP specialist intelligence before live residential acceptance",
@@ -2378,7 +2460,7 @@
     "Standalone checksum-pinned installer/update/rollback remains a separate release task"
   ],
   "environment": "Use verified project-local Go1.27.1 toolchain/module/build caches; shared caches previously failed integrity checks and were not modified.",
-  "audit_checkpoint": "docs/checkpoints/P29-lifetime-diagnostics-20261110.md",
+  "audit_checkpoint": "docs/checkpoints/P30-multi-core-20261110.md",
   "smart_ads": {
     "status": "deployed_verified; waiting for fresh eligible Splash input",
     "schema": 15,

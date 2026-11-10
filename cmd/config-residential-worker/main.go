@@ -61,7 +61,8 @@ func (b *boundedOutput) Write(p []byte) (int, error) {
 	}
 	return b.Buffer.Write(p)
 }
-func execute(ctx context.Context, c client, helper, core, workerID, epoch string, slot int, j residential.Job, factKey []byte) {
+func execute(ctx context.Context, c client, helper, core, workerID, epoch string, slot int, j residential.Job, factKey []byte) error {
+	var cleanupErr error
 	started := time.Now().UnixMilli()
 	plan := residential.NewCoreRegistry().Prepare("xray-26.7.28", j.Raw)
 	report := residential.Report{Version: residential.Version, PolicyHash: j.Policy.Digest(), TemplateVersion: convert.Version, CoreSHA256: probe.CoreSHA256, Worker: workerID, InfrastructureEpoch: epoch, Started: started, Finished: started, InfrastructureOK: true, Variants: []residential.Variant{}, Observations: []residential.Observation{}, Controls: []residential.Observation{}, IPFacts: []residential.IPFact{}}
@@ -103,6 +104,7 @@ func execute(ctx context.Context, c client, helper, core, workerID, epoch string
 		input, _ := json.Marshal(map[string]any{"plan": plan, "deep": j.Deep, "policy": j.Policy, "policy_hash": j.Policy.Digest(), "template_version": convert.Version, "worker": workerID, "infrastructure_epoch": epoch})
 		runID := residential.Digest([]byte(j.Token))[:6]
 		command := exec.CommandContext(jobCtx, "/usr/bin/python3", helper, "--core", core, "--slot", fmt.Sprint(slot), "--run-id", runID)
+		command.Env = append(os.Environ(), "SHEN_RESIDENTIAL_PARENT_PID="+fmt.Sprint(os.Getpid()))
 		command.Stdin = bytes.NewReader(input)
 		command.WaitDelay = 5 * time.Second
 		var output boundedOutput
@@ -120,8 +122,11 @@ func execute(ctx context.Context, c client, helper, core, workerID, epoch string
 		cleanup := exec.CommandContext(cleanCtx, "/usr/bin/python3", helper, "--cleanup-slot", fmt.Sprint(slot), "--cleanup-run", runID)
 		cleanup.Stdout = io.Discard
 		cleanup.Stderr = io.Discard
-		_ = cleanup.Run()
+		cleanupErr = cleanup.Run()
 		stop()
+		if cleanupErr != nil {
+			completion.Report.InfrastructureOK = false
+		}
 	}
 	for i := range completion.Report.IPFacts {
 		completion.Report.IPFacts[i].MAC = residential.IPFactMAC(completion.Report.IPFacts[i], factKey)
@@ -132,16 +137,17 @@ func execute(ctx context.Context, c client, helper, core, workerID, epoch string
 	if c.call(completeCtx, "/complete", completion, nil) != nil {
 		log.Print("residential completion deferred; lease recovery scheduled")
 	}
+	return cleanupErr
 }
 func run() error {
 	keyPath := flag.String("signing-config", "/etc/config-repair/panel.json", "private owner configuration")
 	socket := flag.String("socket", "/var/lib/config-repair/probe.sock", "private queue socket")
-	helper := flag.String("helper", "/opt/config-repair/current/scripts/residential-probe.py", "trusted driver")
+	helper := flag.String("helper", "/opt/config-repair/current/scripts/residential-matrix.py", "trusted compatibility driver")
 	core := flag.String("core", "/opt/config-repair/core-26.7.28/xray", "pinned core")
 	lockPath := flag.String("lock-file", "/run/config-repair-residential.lock", "supervisor lock")
 	slots := flag.Int("slots", 2, "bounded persistent worker slots")
 	flag.Parse()
-	if os.Geteuid() != 0 || *slots < 1 || *slots > 8 {
+	if os.Geteuid() != 0 || *slots < 1 || *slots > 2 {
 		return errors.New("invalid supervisor")
 	}
 	keyFile, e := os.Open(*keyPath)
@@ -171,6 +177,7 @@ func run() error {
 		return (&net.Dialer{}).DialContext(ctx, "unix", *socket)
 	}}, Timeout: 30 * time.Second}}
 	var active atomic.Int32
+	var cleanupFailed atomic.Bool
 	status := func(state, code string) {
 		sc, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
@@ -210,8 +217,14 @@ func run() error {
 					continue
 				}
 				active.Add(1)
-				execute(ctx, c, *helper, *core, fmt.Sprintf("local-slot-%d", slot), epoch, slot, *j, factKey)
+				err := execute(ctx, c, *helper, *core, fmt.Sprintf("local-slot-%d", slot), epoch, slot, *j, factKey)
 				active.Add(-1)
+				if err != nil {
+					cleanupFailed.Store(true)
+					status("blocked", "sandbox_cleanup_failed")
+					stop()
+					return
+				}
 				delay = 100 * time.Millisecond
 			}
 		}(slot)
@@ -223,6 +236,9 @@ func run() error {
 		select {
 		case <-ctx.Done():
 			wg.Wait()
+			if cleanupFailed.Load() {
+				return errors.New("sandbox_cleanup_failed")
+			}
 			return nil
 		case <-tick.C:
 			status("running", "")

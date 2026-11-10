@@ -2,6 +2,24 @@ package residential
 
 import "testing"
 
+func TestControlAliasesKeepProviderIndependenceAndNoFalseNegative(t *testing.T) {
+	if controlGroup("1.1.1.1") != controlGroup("www.cloudflare.com") || controlGroup("api.ipify.org") != controlGroup("api64.ipify.org") || controlGroup("1.1.1.1") == controlGroup("api.ipify.org") {
+		t.Fatal("incorrect control independence")
+	}
+	r, p, _, _ := qualifiedFixture()
+	for i := range r.Controls {
+		r.Controls[i].Outcome = "failed"
+		r.Controls[i].TLSVerified = false
+	}
+	if !repeatedControlFailure(r, "raw", p) {
+		t.Fatal("expected repeated failure")
+	}
+	r.Controls = append(r.Controls, Observation{Scope: Scope{Variant: "raw", Domain: "1.1.1.1"}, Wave: 1, Outcome: "passed"})
+	if repeatedControlFailure(r, "raw", p) {
+		t.Fatal("working family hidden by failed other family")
+	}
+}
+
 func TestRouteDiagnosticsAreNotClassification(t *testing.T) {
 	r, p, tr, now := qualifiedFixture()
 	for i := range r.Controls {

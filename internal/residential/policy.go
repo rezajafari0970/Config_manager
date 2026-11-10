@@ -81,6 +81,7 @@ func Network(ip string, facts []IPFact, p Policy, t Trust, now int64) (string, i
 // Matching control/Ads IPs do not disqualify an all-residential configuration.
 func Evaluate(r Report, p Policy, t Trust, now int64) Decision {
 	d := Decision{State: "UNKNOWN", Health: "UNKNOWN", Egress: "UNKNOWN", Network: "Unknown", Reason: "insufficient_evidence", Missing: []Scope{}, Diagnostics: RouteDiagnostics(r, p, t, now)}
+	d.CoreID, d.Compatibility = CoreID(r.CoreSHA256), r.Compatibility
 	if r.Version != Version || r.PolicyHash != p.Digest() || !recent(r.Finished, now, p.EvidenceTTLSeconds) || r.Started > r.Finished || r.Started <= 0 {
 		d.Reason = "stale_or_incompatible_report"
 		return d
@@ -121,11 +122,8 @@ func Evaluate(r Report, p Policy, t Trust, now int64) Decision {
 				if o.Variant != variant || o.Wave != wave || o.Outcome != "passed" || !o.TLSVerified || !o.OriginVerified || !recent(o.At, now, p.EvidenceTTLSeconds) {
 					continue
 				}
-				if o.Domain == "www.cloudflare.com" {
-					groups["cloudflare"] = true
-				}
-				if o.Domain == "api.ipify.org" || o.Domain == "api64.ipify.org" {
-					groups["ipify"] = true
+				if group := controlGroup(o.Domain); group != "" {
+					groups[group] = true
 				}
 			}
 			if len(groups) < 2 {
@@ -137,11 +135,8 @@ func Evaluate(r Report, p Policy, t Trust, now int64) Decision {
 		groups := map[string]bool{}
 		for _, o := range r.InfrastructureControls {
 			if o.Outcome == "passed" && o.TLSVerified && o.OriginVerified && recent(o.At, now, 60) {
-				if o.Domain == "www.cloudflare.com" {
-					groups["cloudflare"] = true
-				}
-				if o.Domain == "api.ipify.org" || o.Domain == "api64.ipify.org" {
-					groups["ipify"] = true
+				if group := controlGroup(o.Domain); group != "" {
+					groups[group] = true
 				}
 			}
 		}
@@ -310,7 +305,10 @@ func repeatedControlFailure(r Report, variant string, p Policy) bool {
 	for wave := 1; wave <= p.Repeats; wave++ {
 		domains := map[string]bool{}
 		for _, o := range r.Controls {
-			if o.Variant == variant && o.Wave == wave && o.Outcome == "failed" && !o.TLSVerified && (o.Domain == "www.cloudflare.com" || (o.Domain == "api.ipify.org" || o.Domain == "api64.ipify.org")) {
+			if o.Variant == variant && o.Wave == wave && o.Outcome == "passed" {
+				return false
+			}
+			if o.Variant == variant && o.Wave == wave && o.Outcome == "failed" && !o.TLSVerified && controlGroup(o.Domain) != "" {
 				domains[controlGroup(o.Domain)] = true
 			}
 		}

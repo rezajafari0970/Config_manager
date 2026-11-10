@@ -33,7 +33,7 @@ def main():
                     try:state=json.loads(get(ORIGIN+'/api/residential'));break
                     except OSError:time.sleep(.1)
                 else:raise RuntimeError('fixture not ready')
-                def launch():return subprocess.Popen([str(ROOT/'bin/config-residential-worker'),'-signing-config',str(work/'signing.json'),'-socket',str(work/'data/probe.sock'),'-helper',str(ROOT/'scripts/residential-probe.py'),'-core',os.environ['XRAY_TEST_BINARY'],'-lock-file',str(work/'worker.lock')],env=dict(os.environ,SHEN_RESIDENTIAL_TEST_PREFIX='crt'),stdout=wl,stderr=wl)
+                def launch():return subprocess.Popen([str(ROOT/'bin/config-residential-worker'),'-signing-config',str(work/'signing.json'),'-socket',str(work/'data/probe.sock'),'-helper',str(ROOT/'scripts/residential-matrix.py'),'-core',os.environ['XRAY_TEST_BINARY'],'-lock-file',str(work/'worker.lock')],env=dict(os.environ,SHEN_RESIDENTIAL_TEST_PREFIX='crt'),stdout=wl,stderr=wl)
                 start=time.monotonic();worker=launch();killed=False;maximum=0
                 while time.monotonic()-start<420:
                     with sqlite3.connect(work/'data/panel.db') as db:
@@ -55,6 +55,9 @@ def main():
                     # Public structured observations only, never raw configs or URLs.
                     receipt['evidence']=[json.loads(x[0]) for x in db.execute("SELECT report FROM residential_records WHERE tested>0")]
             finally:
+                # Preserve bounded private failure diagnostics before temp cleanup.
+                for name in ['worker.log','panel.log']:
+                    if (work/name).exists():(ROOT/'.local'/('p30-last-'+name)).write_bytes((work/name).read_bytes()[-65536:])
                 for p in (worker,panel):
                     if p and p.poll() is None:
                         p.terminate()

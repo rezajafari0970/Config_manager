@@ -112,16 +112,29 @@ func (s *Store) RenewResidential(ctx context.Context, j residential.Job) error {
 }
 
 func validateResidentialReport(r residential.Report) bool {
-	if r.Version != residential.Version || r.CoreSHA256 != probe.CoreSHA256 || r.TemplateVersion != convert.Version || !safeCode(r.Worker) || !safeCode(r.InfrastructureEpoch) || len(r.Variants) > 2 || len(r.Observations) > 4096 || len(r.Controls) > 128 || len(r.InfrastructureControls) > 8 || len(r.IPFacts) > 8192 {
+	coreID := residential.CoreID(r.CoreSHA256)
+	if r.Version != residential.Version || coreID == "" || r.CoreID != "" && r.CoreID != coreID || r.TemplateVersion != convert.Version || !safeCode(r.Worker) || !safeCode(r.InfrastructureEpoch) || len(r.Variants) > 2 || len(r.Compatibility) > 3 || len(r.Observations) > 4096 || len(r.Controls) > 128 || len(r.InfrastructureControls) > 8 || len(r.IPFacts) > 8192 {
 		return false
 	}
+	seen := map[string]bool{}
+	for _, a := range r.Compatibility {
+		if a.CoreID == "" || a.CoreID != residential.CoreID(a.CoreSHA256) || seen[a.CoreID] || len(a.Variants) > 2 || a.Finished < a.Started || a.ControlsPassed < 0 || a.ControlsPassed > 128 {
+			return false
+		}
+		seen[a.CoreID] = true
+		for _, v := range a.Variants {
+			if !safeCode(v.Name) || !safeCode(v.Core) || !safeCode(v.Health) || !safeCode(v.Code) {
+				return false
+			}
+		}
+	}
 	for _, o := range append(append([]residential.Observation{}, r.Observations...), append(r.Controls, r.InfrastructureControls...)...) {
-		for _, v := range []string{o.Variant, o.Domain, o.Path, o.Method, o.Outcome, o.Code, o.Transport} {
+		for _, v := range []string{o.Variant, o.Domain, o.Path, o.Method, o.Outcome, o.Code, o.Transport, o.Stage} {
 			if v != "" && !safeCode(v) {
 				return false
 			}
 		}
-		if len(o.IP) > 45 || len(o.Nonce) > 128 || len(o.ConnectionID) > 128 || len(o.Capability) > 128 || len(o.Attestation) > 128 || len(o.ConfigHash) > 64 || len(o.RuntimeHash) > 64 || len(o.PolicyHash) > 64 {
+		if len(o.IP) > 45 || len(o.Nonce) > 128 || len(o.ConnectionID) > 128 || len(o.Capability) > 128 || len(o.Attestation) > 128 || len(o.ConfigHash) > 64 || len(o.RuntimeHash) > 64 || len(o.PolicyHash) > 64 || len(o.TLSCertificateSHA256) > 64 || o.HTTPStatus < 0 || o.HTTPStatus > 599 || o.DiagnosticStatus < 0 || o.DiagnosticStatus > 599 || o.Attempts < 0 || o.Attempts > 2 {
 			return false
 		}
 	}

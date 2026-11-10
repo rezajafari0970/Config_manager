@@ -1,3 +1,38 @@
+# P30 core compatibility and route-method correction
+
+Residential execution uses scripts/residential-matrix.py and the closed official
+registry scripts/residential-cores.json. Latest26.11.9 runs first. An incomplete
+connection result triggers26.7.28 and26.5.9 in parallel, each in an independent
+namespace/slot. Maximum two jobs and four simultaneous fallback cores. The owner
+checks core hashes and all existing raw/template/revision/trust bindings; the
+UI shows actual selected version and per-version core/health/error results.
+Unsupported, unavailable, schema rejection and connection failure are distinct.
+A successful older core does not certify a newer client. Normal and Smart output
+validation retains its separate26.7.28 target.
+
+One complete report wins; no observations are borrowed across versions. Driver
+input is limited to8MiB, streamed stdout to4MiB, each attempt to105s, whole Go job
+to4min. A verified parent PID and pre-read watcher prevent orphan work. SIGTERM
+stops new attempts and reaps existing children; cleanup attempts every physical
+slot with bounded timeouts. Cleanup failure stops reuse and triggers restart.
+
+Screening starts with three Ads domains and two controls. A healthy first wave
+expands to the complete explicit domain list. A seen IPv4 Ads candidate triggers
+1.1.1.1/cdn-cgi/trace and api.ipify.org controls if two independent IPv4 controls
+are absent. These are still separate control connections, not Ads-IP evidence.
+Control failures get at most one fresh retry. Dual-stack controls, IPv4 controls,
+certificate/hash/status/stage and actual-core provenance are recorded separately.
+
+The second HTTP authority on the same TLS connection is checked against its SAN.
+This check does not establish the semantics of an undocumented diagnostic page.
+The IP from /sorry remains CANDIDATE_ONLY without verified origin/meaning and
+trusted correlated proof. A3xx response is never followed. Only /robots.txt and
+diagnostic/control paths are used; no ad impression or click is generated.
+
+These additions do not supply forcedIPv6, UDP/QUIC, exhaustive balancer-path,
+authorized server-flow or specialist IP-classification evidence. Partial scope
+and unknown class remain ineligible for full-scope Residential publication.
+
 # Residential Google Ads evidence — P29
 
 ## P29 lifetime and diagnostics update

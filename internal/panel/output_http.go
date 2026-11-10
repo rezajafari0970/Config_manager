@@ -1,6 +1,7 @@
 package panel
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"io"
@@ -70,8 +71,12 @@ func (s *Server) rawAll(w http.ResponseWriter, r *http.Request) {
 	}
 	defer index.Close()
 	before := sha256.New()
+	members := make(map[string]struct{})
 	encoder := json.NewEncoder(io.MultiWriter(index.file, before))
-	if e = s.store.WalkOutputs(r.Context(), func(a Artifact) error { return encoder.Encode(a) }); e != nil {
+	if e = s.store.WalkOutputs(r.Context(), func(a Artifact) error {
+		members[a.ID] = struct{}{}
+		return encoder.Encode(a)
+	}); e != nil {
 		failure(w, e)
 		return
 	}
@@ -143,13 +148,12 @@ func (s *Server) rawAll(w http.ResponseWriter, r *http.Request) {
 		failure(w, e)
 		return
 	}
-	after := sha256.New()
-	verify := json.NewEncoder(after)
-	if e = walkOutputs(r.Context(), tx, func(a Artifact) error { return verify.Encode(a) }); e != nil {
+	valid, e := rawSnapshotCurrent(r.Context(), tx, members, before.Sum(nil))
+	if e != nil {
 		failure(w, e)
 		return
 	}
-	if !equal(string(before.Sum(nil)), string(after.Sum(nil))) {
+	if !valid {
 		http.Error(w, "raw membership changed; retry", 503)
 		return
 	}
@@ -170,4 +174,20 @@ func (s *Server) rawAll(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodHead {
 		_, _ = output.WriteTo(w)
 	}
+}
+
+// New arrivals belong to the next request. Every captured member must still
+// have the same current representation and lifetime at serialized admission.
+func rawSnapshotCurrent(ctx context.Context, q residentialQuery, members map[string]struct{}, before []byte) (bool, error) {
+	after := sha256.New()
+	verify := json.NewEncoder(after)
+	if e := walkOutputs(ctx, q, func(a Artifact) error {
+		if _, ok := members[a.ID]; !ok {
+			return nil
+		}
+		return verify.Encode(a)
+	}); e != nil {
+		return false, e
+	}
+	return equal(string(before), string(after.Sum(nil))), nil
 }

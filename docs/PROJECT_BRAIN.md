@@ -1,3 +1,13 @@
+# Current P30 decision — 2026-11-10
+
+Latest-core rejection must trigger bounded official-core compatibility testing,
+not a fabricated repair or an unhealthy verdict. A whole raw/template result
+from one checksum-pinned core is selected. Two independent controls, repeated
+Ads samples, per-family comparisons, exact-IP metadata and separate trust/coverage
+requirements remain mandatory. Fullscope tests showed IPv6 candidates on most
+domains and IPv4 candidates on googleadservices for the same two working inputs;
+this difference alone is not a distinct residential route. See P30 report.
+
 # Current P29 decision — 2026-11-10
 
 The user explicitly changed the residential lifetime requirement from indefinite

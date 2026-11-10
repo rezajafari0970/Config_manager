@@ -50,29 +50,35 @@ func (s Scope) Key() string { b, _ := json.Marshal(s); return string(b) }
 // impression, request headers, unredacted logs or an arbitrary response body.
 type Observation struct {
 	Scope
-	At                  int64   `json:"at"`
-	Wave                int     `json:"wave"`
-	ConnectionID        string  `json:"connection_id"`
-	Nonce               string  `json:"nonce"`
-	IP                  string  `json:"ip"`
-	Method              string  `json:"method"`
-	Capability          string  `json:"capability"`
-	ConfigHash          string  `json:"config_hash"`
-	RuntimeHash         string  `json:"runtime_hash"`
-	PolicyHash          string  `json:"policy_hash"`
-	Attestation         string  `json:"attestation"`
-	TLSVerified         bool    `json:"tls_verified"`
-	OriginVerified      bool    `json:"origin_verified"`
-	MeaningVerified     bool    `json:"meaning_verified"`
-	NonceBound          bool    `json:"nonce_bound"`
-	SameConnection      bool    `json:"same_connection"`
-	Connections         int     `json:"connections"`
-	Redirects           int     `json:"redirects"`
-	ActualDomainRequest bool    `json:"actual_domain_request"`
-	ResponseSHA256      string  `json:"response_sha256"`
-	Outcome             string  `json:"outcome"`
-	Code                string  `json:"code"`
-	ElapsedMS           float64 `json:"elapsed_ms"`
+	Stage                    string  `json:"stage,omitempty"`
+	HTTPStatus               int     `json:"http_status,omitempty"`
+	DiagnosticStatus         int     `json:"diagnostic_status,omitempty"`
+	DiagnosticOriginVerified bool    `json:"diagnostic_origin_verified,omitempty"`
+	TLSCertificateSHA256     string  `json:"tls_certificate_sha256,omitempty"`
+	Attempts                 int     `json:"attempts,omitempty"`
+	At                       int64   `json:"at"`
+	Wave                     int     `json:"wave"`
+	ConnectionID             string  `json:"connection_id"`
+	Nonce                    string  `json:"nonce"`
+	IP                       string  `json:"ip"`
+	Method                   string  `json:"method"`
+	Capability               string  `json:"capability"`
+	ConfigHash               string  `json:"config_hash"`
+	RuntimeHash              string  `json:"runtime_hash"`
+	PolicyHash               string  `json:"policy_hash"`
+	Attestation              string  `json:"attestation"`
+	TLSVerified              bool    `json:"tls_verified"`
+	OriginVerified           bool    `json:"origin_verified"`
+	MeaningVerified          bool    `json:"meaning_verified"`
+	NonceBound               bool    `json:"nonce_bound"`
+	SameConnection           bool    `json:"same_connection"`
+	Connections              int     `json:"connections"`
+	Redirects                int     `json:"redirects"`
+	ActualDomainRequest      bool    `json:"actual_domain_request"`
+	ResponseSHA256           string  `json:"response_sha256"`
+	Outcome                  string  `json:"outcome"`
+	Code                     string  `json:"code"`
+	ElapsedMS                float64 `json:"elapsed_ms"`
 }
 type IPFact struct {
 	MAC            string `json:"mac"`
@@ -97,6 +103,8 @@ type Variant struct {
 	Code          string   `json:"code"`
 }
 type Report struct {
+	CoreID                 string        `json:"core_id,omitempty"`
+	Compatibility          []CoreAttempt `json:"compatibility,omitempty"`
 	Version                string        `json:"version"`
 	PolicyHash             string        `json:"policy_hash"`
 	TemplateVersion        string        `json:"template_version"`
@@ -116,6 +124,8 @@ type Report struct {
 	PeakRSSBytes           int64         `json:"peak_rss_bytes"`
 }
 type Decision struct {
+	CoreID           string            `json:"core_id,omitempty"`
+	Compatibility    []CoreAttempt     `json:"compatibility,omitempty"`
 	Diagnostics      []RouteDiagnostic `json:"diagnostics,omitempty"`
 	State            string            `json:"state"`
 	Health           string            `json:"health"`

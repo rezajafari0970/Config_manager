@@ -1,3 +1,23 @@
+# Current P30 override — 2026-11-10
+
+The user explicitly authorizes official older Xray versions when the latest core
+rejects an input or cannot connect. Residential analysis now uses the checksum
+pins in scripts/residential-cores.json (26.11.9, 26.7.28, 26.5.9), latest first and
+bounded parallel fallbacks. Ordinary/Smart targets and schema17 stay unchanged.
+Select one complete raw/template report from one core; never merge version proofs.
+Core rejection is not connection failure or a Residential/Datacenter decision.
+Do not rewrite credentials, weaken TLS, or silently apply the failed ALPN trial.
+Keep independent health, Ads attribution, exact-IP class and coverage gates.
+Healthy screening expands explicit Ads domains; observed IPv4 gets two IPv4
+controls when needed. Never compare IPv4 Ads with IPv6 controls as a split route.
+Same-TLS diagnostics verify the second authority separately; candidates without
+verified origin/meaning remain UNKNOWN. The authorized observer and specialist
+classification requirements remain; no test in P30 establishes Residential.
+Matrix stdin/stdout are bounded, parent identity is checked before reading work,
+cancellation reaps children, and all three physical slots are cleaned after a job.
+Failed cleanup stops slot reuse and restarts through the existing preflight.
+Read docs/checkpoints/P30-multi-core-20261110.md and the current private receipts.
+
 # Current P29 override — 2026-11-10
 
 Read docs/checkpoints/P29-lifetime-diagnostics-20261110.md and current receipts.

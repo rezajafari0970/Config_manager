@@ -1,0 +1,1506 @@
+{
+  "version": "p30-user-sample-matrix-v1",
+  "sample_count": 9,
+  "core_count": 3,
+  "cells": [
+    {
+      "sample": 1,
+      "core": "v26.11.9",
+      "started": "2026-11-10T04:42:09.447000+00:00",
+      "finished": "2026-11-10T04:42:27.746000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "reality_authentication_rejected"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "reality_authentication_rejected"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:connection_or_method_unavailable": 12
+      },
+      "wall_ms": 18299.863,
+      "cpu_ms": 591.802,
+      "peak_rss_bytes": 64487424,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 1,
+      "core": "v26.7.28",
+      "started": "2026-11-10T04:42:09.514000+00:00",
+      "finished": "2026-11-10T04:42:27.493000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "reality_authentication_rejected"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "reality_authentication_rejected"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:connection_or_method_unavailable": 12
+      },
+      "wall_ms": 17979.241,
+      "cpu_ms": 566.0880000000001,
+      "peak_rss_bytes": 66637824,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 1,
+      "core": "v26.5.9",
+      "started": "2026-11-10T04:42:09.448000+00:00",
+      "finished": "2026-11-10T04:42:27.543000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "reality_authentication_rejected"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "reality_authentication_rejected"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:connection_or_method_unavailable": 12
+      },
+      "wall_ms": 18095.063,
+      "cpu_ms": 560.529,
+      "peak_rss_bytes": 65695744,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 2,
+      "core": "v26.11.9",
+      "started": "2026-11-10T04:42:27.764000+00:00",
+      "finished": "2026-11-10T04:42:46.359000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "reality_authentication_rejected"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "reality_authentication_rejected"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:connection_or_method_unavailable": 12
+      },
+      "wall_ms": 18594.527,
+      "cpu_ms": 562.03,
+      "peak_rss_bytes": 64323584,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 2,
+      "core": "v26.7.28",
+      "started": "2026-11-10T04:42:27.931000+00:00",
+      "finished": "2026-11-10T04:42:46.544000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "reality_authentication_rejected"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "reality_authentication_rejected"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:connection_or_method_unavailable": 12
+      },
+      "wall_ms": 18612.648,
+      "cpu_ms": 567.901,
+      "peak_rss_bytes": 66736128,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 2,
+      "core": "v26.5.9",
+      "started": "2026-11-10T04:42:28.042000+00:00",
+      "finished": "2026-11-10T04:42:46.288000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "reality_authentication_rejected"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "reality_authentication_rejected"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:connection_or_method_unavailable": 12
+      },
+      "wall_ms": 18246.637,
+      "cpu_ms": 564.012,
+      "peak_rss_bytes": 65667072,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 3,
+      "core": "v26.11.9",
+      "started": "2026-11-10T04:45:34.061000+00:00",
+      "finished": "2026-11-10T04:45:36.757000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "failed",
+          "health": "UNKNOWN",
+          "code": "public_endpoint_requires_tls"
+        },
+        {
+          "name": "template",
+          "core": "failed",
+          "health": "UNKNOWN",
+          "code": "public_endpoint_requires_tls"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 0,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {},
+      "wall_ms": 2695.629,
+      "cpu_ms": 78.314,
+      "peak_rss_bytes": 64110592,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 3,
+      "core": "v26.7.28",
+      "started": "2026-11-10T04:45:33.357000+00:00",
+      "finished": "2026-11-10T04:45:44.362000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "failed",
+          "health": "UNKNOWN",
+          "code": "public_endpoint_requires_tls"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "HEALTHY",
+          "code": "screening_complete"
+        }
+      ],
+      "control_successes": 6,
+      "ads_observations": 12,
+      "ads_candidate_ips": [
+        "2400:6180:10:200::f73f:3000"
+      ],
+      "control_ips": [
+        "2400:6180:10:200::f73f:3000"
+      ],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {},
+      "wall_ms": 11005.703,
+      "cpu_ms": 207.592,
+      "peak_rss_bytes": 66293760,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 12,
+      "actual_ads_domain_requests": 12,
+      "ip_metadata": [
+        {
+          "ip": "2400:6180:10:200::f73f:3000",
+          "source": "metadata-ipinfo",
+          "at": 1794285422959,
+          "expires": 1794286022959,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "5ead504c9ff585b70a04be9639125054996da092e557cb54c0ee8d8a27a3774c"
+        },
+        {
+          "ip": "2400:6180:10:200::f73f:3000",
+          "source": "metadata-ipwhois",
+          "at": 1794285422853,
+          "expires": 1794286022853,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "ca36364e044375b63b3a947f0c40f47206eeb5fc95e7dbfe8de6d382023896b5"
+        }
+      ]
+    },
+    {
+      "sample": 3,
+      "core": "v26.5.9",
+      "started": "2026-11-10T04:45:33.386000+00:00",
+      "finished": "2026-11-10T04:45:51.699000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "HEALTHY",
+          "code": "screening_complete"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "HEALTHY",
+          "code": "screening_complete"
+        }
+      ],
+      "control_successes": 12,
+      "ads_observations": 24,
+      "ads_candidate_ips": [
+        "2400:6180:10:200::f73f:3000"
+      ],
+      "control_ips": [
+        "2400:6180:10:200::f73f:3000"
+      ],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {},
+      "wall_ms": 18313.108,
+      "cpu_ms": 308.642,
+      "peak_rss_bytes": 65634304,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 24,
+      "actual_ads_domain_requests": 24,
+      "ip_metadata": [
+        {
+          "ip": "2400:6180:10:200::f73f:3000",
+          "source": "metadata-ipinfo",
+          "at": 1794285422959,
+          "expires": 1794286022959,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "5ead504c9ff585b70a04be9639125054996da092e557cb54c0ee8d8a27a3774c"
+        },
+        {
+          "ip": "2400:6180:10:200::f73f:3000",
+          "source": "metadata-ipwhois",
+          "at": 1794285422853,
+          "expires": 1794286022853,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "ca36364e044375b63b3a947f0c40f47206eeb5fc95e7dbfe8de6d382023896b5"
+        }
+      ]
+    },
+    {
+      "sample": 4,
+      "core": "v26.11.9",
+      "started": "2026-11-10T04:45:37.627000+00:00",
+      "finished": "2026-11-10T04:45:39.990000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "failed",
+          "health": "UNKNOWN",
+          "code": "public_endpoint_requires_tls"
+        },
+        {
+          "name": "template",
+          "core": "failed",
+          "health": "UNKNOWN",
+          "code": "public_endpoint_requires_tls"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 0,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {},
+      "wall_ms": 2363.255,
+      "cpu_ms": 94.815,
+      "peak_rss_bytes": 64237568,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 4,
+      "core": "v26.7.28",
+      "started": "2026-11-10T04:45:40.280000+00:00",
+      "finished": "2026-11-10T04:45:50.573000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "failed",
+          "health": "UNKNOWN",
+          "code": "public_endpoint_requires_tls"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "HEALTHY",
+          "code": "screening_complete"
+        }
+      ],
+      "control_successes": 6,
+      "ads_observations": 12,
+      "ads_candidate_ips": [
+        "2400:6180:10:200::f73f:0"
+      ],
+      "control_ips": [
+        "2400:6180:10:200::f73f:0"
+      ],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {},
+      "wall_ms": 10292.608,
+      "cpu_ms": 209.636,
+      "peak_rss_bytes": 66535424,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 12,
+      "actual_ads_domain_requests": 12,
+      "ip_metadata": [
+        {
+          "ip": "2400:6180:10:200::f73f:0",
+          "source": "metadata-ipinfo",
+          "at": 1794285424838,
+          "expires": 1794286024838,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "145e74220f2723736848c9b81837e128dfbdce4313d2735f03b6e5adfbd7e870"
+        },
+        {
+          "ip": "2400:6180:10:200::f73f:0",
+          "source": "metadata-ipwhois",
+          "at": 1794285424725,
+          "expires": 1794286024725,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "a320a964a391e992a8c787792750028c772650039f1d0d94ab0a4ea881ce7594"
+        }
+      ]
+    },
+    {
+      "sample": 4,
+      "core": "v26.5.9",
+      "started": "2026-11-10T04:45:44.994000+00:00",
+      "finished": "2026-11-10T04:45:58.697000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "HEALTHY",
+          "code": "screening_complete"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "HEALTHY",
+          "code": "screening_complete"
+        }
+      ],
+      "control_successes": 12,
+      "ads_observations": 24,
+      "ads_candidate_ips": [
+        "2400:6180:10:200::f73f:0"
+      ],
+      "control_ips": [
+        "2400:6180:10:200::f73f:0"
+      ],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {},
+      "wall_ms": 13703.236,
+      "cpu_ms": 344.925,
+      "peak_rss_bytes": 65740800,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 24,
+      "actual_ads_domain_requests": 24,
+      "ip_metadata": [
+        {
+          "ip": "2400:6180:10:200::f73f:0",
+          "source": "metadata-ipinfo",
+          "at": 1794285424838,
+          "expires": 1794286024838,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "145e74220f2723736848c9b81837e128dfbdce4313d2735f03b6e5adfbd7e870"
+        },
+        {
+          "ip": "2400:6180:10:200::f73f:0",
+          "source": "metadata-ipwhois",
+          "at": 1794285424725,
+          "expires": 1794286024725,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "a320a964a391e992a8c787792750028c772650039f1d0d94ab0a4ea881ce7594"
+        }
+      ]
+    },
+    {
+      "sample": 5,
+      "core": "v26.11.9",
+      "started": "2026-11-10T04:42:55.271000+00:00",
+      "finished": "2026-11-10T04:42:56.077000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "failed",
+          "health": "UNKNOWN",
+          "code": "public_endpoint_requires_tls"
+        },
+        {
+          "name": "template",
+          "core": "failed",
+          "health": "UNKNOWN",
+          "code": "public_endpoint_requires_tls"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 0,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {},
+      "wall_ms": 805.756,
+      "cpu_ms": 41.804,
+      "peak_rss_bytes": 64483328,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 5,
+      "core": "v26.7.28",
+      "started": "2026-11-10T04:42:56.563000+00:00",
+      "finished": "2026-11-10T04:43:16.849000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "failed",
+          "health": "UNKNOWN",
+          "code": "public_endpoint_requires_tls"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 12,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:probe_timeout": 6
+      },
+      "wall_ms": 20286.227,
+      "cpu_ms": 84.162,
+      "peak_rss_bytes": 66596864,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 5,
+      "core": "v26.5.9",
+      "started": "2026-11-10T04:42:57.081000+00:00",
+      "finished": "2026-11-10T04:43:36.531000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:probe_timeout": 12
+      },
+      "wall_ms": 39449.678,
+      "cpu_ms": 116.43100000000001,
+      "peak_rss_bytes": 65556480,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 6,
+      "core": "v26.11.9",
+      "started": "2026-11-10T04:43:03.848000+00:00",
+      "finished": "2026-11-10T04:43:20.221000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:connection_or_method_unavailable": 12
+      },
+      "wall_ms": 16373.252,
+      "cpu_ms": 304.273,
+      "peak_rss_bytes": 64499712,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 6,
+      "core": "v26.7.28",
+      "started": "2026-11-10T04:43:17.030000+00:00",
+      "finished": "2026-11-10T04:43:32.996000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:connection_or_method_unavailable": 12
+      },
+      "wall_ms": 15966.184,
+      "cpu_ms": 302.24699999999996,
+      "peak_rss_bytes": 66650112,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 6,
+      "core": "v26.5.9",
+      "started": "2026-11-10T04:43:20.381000+00:00",
+      "finished": "2026-11-10T04:43:35.996000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:connection_or_method_unavailable": 12
+      },
+      "wall_ms": 15614.431,
+      "cpu_ms": 302.32800000000003,
+      "peak_rss_bytes": 65302528,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 7,
+      "core": "v26.11.9",
+      "started": "2026-11-10T04:43:33.285000+00:00",
+      "finished": "2026-11-10T04:43:34.745000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "failed",
+          "health": "UNKNOWN",
+          "code": "public_endpoint_requires_tls"
+        },
+        {
+          "name": "template",
+          "core": "failed",
+          "health": "UNKNOWN",
+          "code": "public_endpoint_requires_tls"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 0,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {},
+      "wall_ms": 1460.123,
+      "cpu_ms": 51.986000000000004,
+      "peak_rss_bytes": 64475136,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 7,
+      "core": "v26.7.28",
+      "started": "2026-11-10T04:43:35.074000+00:00",
+      "finished": "2026-11-10T04:43:55.572000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "failed",
+          "health": "UNKNOWN",
+          "code": "public_endpoint_requires_tls"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 12,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:probe_timeout": 6
+      },
+      "wall_ms": 20498.532,
+      "cpu_ms": 94.68900000000001,
+      "peak_rss_bytes": 66744320,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 7,
+      "core": "v26.5.9",
+      "started": "2026-11-10T04:43:36.150000+00:00",
+      "finished": "2026-11-10T04:44:16.800000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:probe_timeout": 12
+      },
+      "wall_ms": 40650.157,
+      "cpu_ms": 128.907,
+      "peak_rss_bytes": 65732608,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 8,
+      "core": "v26.11.9",
+      "started": "2026-11-10T04:43:37.186000+00:00",
+      "finished": "2026-11-10T04:43:52.518000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:connection_or_method_unavailable": 12
+      },
+      "wall_ms": 15331.901,
+      "cpu_ms": 150.50400000000002,
+      "peak_rss_bytes": 63979520,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 8,
+      "core": "v26.7.28",
+      "started": "2026-11-10T04:43:52.722000+00:00",
+      "finished": "2026-11-10T04:44:08.047000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:connection_or_method_unavailable": 12
+      },
+      "wall_ms": 15325.259,
+      "cpu_ms": 165.162,
+      "peak_rss_bytes": 66478080,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 8,
+      "core": "v26.5.9",
+      "started": "2026-11-10T04:43:55.824000+00:00",
+      "finished": "2026-11-10T04:44:11.935000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:connection_or_method_unavailable": 12
+      },
+      "wall_ms": 16111.415,
+      "cpu_ms": 154.006,
+      "peak_rss_bytes": 65671168,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 9,
+      "core": "v26.11.9",
+      "started": "2026-11-10T04:44:08.176000+00:00",
+      "finished": "2026-11-10T04:44:47.602000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:probe_timeout": 12
+      },
+      "wall_ms": 39425.755,
+      "cpu_ms": 131.771,
+      "peak_rss_bytes": 64417792,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 9,
+      "core": "v26.7.28",
+      "started": "2026-11-10T04:44:12.124000+00:00",
+      "finished": "2026-11-10T04:44:51.477000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:probe_timeout": 12
+      },
+      "wall_ms": 39353.138,
+      "cpu_ms": 131.31400000000002,
+      "peak_rss_bytes": 66625536,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    },
+    {
+      "sample": 9,
+      "core": "v26.5.9",
+      "started": "2026-11-10T04:44:16.994000+00:00",
+      "finished": "2026-11-10T04:44:56.818000+00:00",
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "UNHEALTHY",
+          "code": "controls_or_connection_unavailable"
+        }
+      ],
+      "control_successes": 0,
+      "ads_observations": 24,
+      "ads_candidate_ips": [],
+      "control_ips": [],
+      "diagnostic_authority_valid": 0,
+      "failure_stages": {
+        "tls:probe_timeout": 12
+      },
+      "wall_ms": 39824.242,
+      "cpu_ms": 127.143,
+      "peak_rss_bytes": 65544192,
+      "network_class": "Unknown",
+      "egress_attribution": "UNKNOWN",
+      "ads_tls_reachable": 0,
+      "actual_ads_domain_requests": 0,
+      "ip_metadata": []
+    }
+  ],
+  "p50_trial_ms": 17979.241,
+  "p95_trial_ms": 39449.678,
+  "max_trial_rss_bytes": 66744320,
+  "mean_trial_cpu_ms": 257.1486296296296,
+  "initial_complete_matrix_seconds": 162.89106965065002,
+  "notes": [
+    "Latest observation per cell; connected cells3/4 repeated after diagnostic SAN fix. Other cells did not reach TLS diagnostics.",
+    "No raw credentials or input URLs included.",
+    "Four Ads domains, three waves, TCP only; observed exit IPv6 is not forced-IPv6/QUIC coverage.",
+    "Final full_scope is automatic healthy-screen expansion with two independent IPv4 controls when an IPv4 candidate is observed. Same-family candidate/control IPs agree; this is not Residential proof."
+  ],
+  "full_scope": [
+    {
+      "sample": 3,
+      "automatic_expansion": true,
+      "core": "xray-26.5.9",
+      "started": 1794287085135,
+      "finished": 1794287116280,
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "HEALTHY",
+          "code": "screening_complete"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "HEALTHY",
+          "code": "screening_complete"
+        }
+      ],
+      "domain_results": {
+        "admob.com": {
+          "samples": 6,
+          "candidate_ips": [],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "adservice.google.com": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:3000"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 6,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "app-measurement.com": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:3000"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "googleads.g.doubleclick.net": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:3000"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "pagead2.googlesyndication.com": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:3000"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "pubads.g.doubleclick.net": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:3000"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "securepubads.g.doubleclick.net": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:3000"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "www.googleadservices.com": {
+          "samples": 6,
+          "candidate_ips": [
+            "170.64.224.33"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "www.googletagmanager.com": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:3000"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "www.googletagservices.com": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:3000"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        }
+      },
+      "control_results": {
+        "1.1.1.1": {
+          "samples": 6,
+          "ips": [
+            "170.64.224.33"
+          ],
+          "outcomes": {
+            "passed": 6
+          }
+        },
+        "api.ipify.org": {
+          "samples": 6,
+          "ips": [
+            "170.64.224.33"
+          ],
+          "outcomes": {
+            "passed": 6
+          }
+        },
+        "api64.ipify.org": {
+          "samples": 6,
+          "ips": [
+            "2400:6180:10:200::f73f:3000"
+          ],
+          "outcomes": {
+            "passed": 6
+          }
+        },
+        "www.cloudflare.com": {
+          "samples": 6,
+          "ips": [
+            "2400:6180:10:200::f73f:3000"
+          ],
+          "outcomes": {
+            "passed": 6
+          }
+        }
+      },
+      "ip_facts": [
+        {
+          "ip": "170.64.224.33",
+          "source": "metadata-ipinfo",
+          "at": 1794287101537,
+          "expires": 1794287701537,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "3a0831dc98b1b5b7a6fca6c9965606e1ca8f635b49307c0ab268e379f461d692"
+        },
+        {
+          "ip": "2400:6180:10:200::f73f:3000",
+          "source": "metadata-ipinfo",
+          "at": 1794287101537,
+          "expires": 1794287701537,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "5ead504c9ff585b70a04be9639125054996da092e557cb54c0ee8d8a27a3774c"
+        },
+        {
+          "ip": "170.64.224.33",
+          "source": "metadata-ipwhois",
+          "at": 1794287101432,
+          "expires": 1794287701432,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "8d58ddbcbadaf9efe6167264b265e66286dcf40ce9e39135466c7d468522d048"
+        },
+        {
+          "ip": "2400:6180:10:200::f73f:3000",
+          "source": "metadata-ipwhois",
+          "at": 1794287101435,
+          "expires": 1794287701435,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "ca36364e044375b63b3a947f0c40f47206eeb5fc95e7dbfe8de6d382023896b5"
+        }
+      ],
+      "wall_ms": 32530.45,
+      "cpu_ms": 455.35499999999996,
+      "peak_rss_bytes": 66854912,
+      "residential": "UNKNOWN"
+    },
+    {
+      "sample": 4,
+      "automatic_expansion": true,
+      "core": "xray-26.5.9",
+      "started": 1794287085269,
+      "finished": 1794287116095,
+      "variants": [
+        {
+          "name": "raw",
+          "core": "passed",
+          "health": "HEALTHY",
+          "code": "screening_complete"
+        },
+        {
+          "name": "template",
+          "core": "passed",
+          "health": "HEALTHY",
+          "code": "screening_complete"
+        }
+      ],
+      "domain_results": {
+        "admob.com": {
+          "samples": 6,
+          "candidate_ips": [],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "adservice.google.com": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:0"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 6,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "app-measurement.com": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:0"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "googleads.g.doubleclick.net": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:0"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "pagead2.googlesyndication.com": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:0"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "pubads.g.doubleclick.net": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:0"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "securepubads.g.doubleclick.net": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:0"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "www.googleadservices.com": {
+          "samples": 6,
+          "candidate_ips": [
+            "170.64.206.205"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "www.googletagmanager.com": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:0"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        },
+        "www.googletagservices.com": {
+          "samples": 6,
+          "candidate_ips": [
+            "2400:6180:10:200::f73f:0"
+          ],
+          "tls_verified": 6,
+          "second_authority_valid": 0,
+          "outcomes": {
+            "unknown": 6
+          }
+        }
+      },
+      "control_results": {
+        "1.1.1.1": {
+          "samples": 6,
+          "ips": [
+            "170.64.206.205"
+          ],
+          "outcomes": {
+            "passed": 6
+          }
+        },
+        "api.ipify.org": {
+          "samples": 6,
+          "ips": [
+            "170.64.206.205"
+          ],
+          "outcomes": {
+            "passed": 6
+          }
+        },
+        "api64.ipify.org": {
+          "samples": 6,
+          "ips": [
+            "2400:6180:10:200::f73f:0"
+          ],
+          "outcomes": {
+            "passed": 6
+          }
+        },
+        "www.cloudflare.com": {
+          "samples": 6,
+          "ips": [
+            "2400:6180:10:200::f73f:0"
+          ],
+          "outcomes": {
+            "passed": 6
+          }
+        }
+      },
+      "ip_facts": [
+        {
+          "ip": "170.64.206.205",
+          "source": "metadata-ipinfo",
+          "at": 1794286543942,
+          "expires": 1794287143942,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "05c2576ed584c54b707823121ef1621d0d4066f1e97b969e5b7bf7e01a6c3f95"
+        },
+        {
+          "ip": "2400:6180:10:200::f73f:0",
+          "source": "metadata-ipinfo",
+          "at": 1794286543945,
+          "expires": 1794287143945,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "145e74220f2723736848c9b81837e128dfbdce4313d2735f03b6e5adfbd7e870"
+        },
+        {
+          "ip": "170.64.206.205",
+          "source": "metadata-ipwhois",
+          "at": 1794286543852,
+          "expires": 1794287143852,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "03d883c6f4a1b9ba08d96c6009c47f66aeb3d818d60d9571f450fae5e00df566"
+        },
+        {
+          "ip": "2400:6180:10:200::f73f:0",
+          "source": "metadata-ipwhois",
+          "at": 1794286543841,
+          "expires": 1794287143841,
+          "class": "Unknown",
+          "country": "AU",
+          "asn": 14061,
+          "evidence_sha256": "a320a964a391e992a8c787792750028c772650039f1d0d94ab0a4ea881ce7594"
+        }
+      ],
+      "wall_ms": 32409.368,
+      "cpu_ms": 469.06399999999996,
+      "peak_rss_bytes": 66396160,
+      "residential": "UNKNOWN"
+    }
+  ]
+}
