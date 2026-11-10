@@ -1,7 +1,7 @@
 {
-  "phase": "P31 scoped attributable Ads egress and independent Residential classification",
+  "phase": "P32 current-client compatibility for ordinary and all Smart exports",
   "date": "2026-11-10",
-  "status": "deployed_verified; live_egress_proof_and_specialist_classification_unconfigured",
+  "status": "deployed_verified; incompatible originals retained, generated client exports require fresh dual-core acceptance",
   "repository": "rezajafari0970/Config_manager",
   "branch": "go/v2rayng-2.3.6",
   "legacy_main": "unchanged",
@@ -12,7 +12,12 @@
     "core_sha256": "64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d",
     "v2rayng_commit": "13138dddcab291ba3618cc54721ce4c7dd926be0",
     "xray_commit": "5ca6f4b7d4dc20a881d4330e498892697627ec0c",
-    "android_lib_commit": "d1d167b508457ebfd650c9e99bfca50c054c98df"
+    "android_lib_commit": "d1d167b508457ebfd650c9e99bfca50c054c98df",
+    "export_compatibility_core": {
+      "xray": "26.11.9",
+      "core_sha256": "e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d",
+      "scope": "mandatory exact-byte ordinary/Smart/Splash/Ads build in existing sandbox; network tests continue with pinned26.7.28"
+    }
   },
   "contract": {
     "input": "independent source fetch/extraction with immutable originals",
@@ -20,7 +25,7 @@
     "output": "JSONL, one compact object per line; no array or wrapper",
     "bank": "removed including persistent samples/history/model/rules and routes",
     "lifetime": "Accepted Residential or Ads-difference records are age-exempt, including source removal and blob cleanup. Pending first assessments survive ordinary TTL until assessed. Unqualified assessed records retain ordinary panel-configurable10h; ordinary health cache10h remains separate from600s Ads evidence.",
-    "export_gate": "exact pinned-core pass; semantic hypotheses additionally require fresh two-destination HTTPS",
+    "export_gate": "Fresh exact-byte build on pinned26.11.9 followed by existing26.7.28 validation; semantic hypotheses also require existing fresh two-destination HTTPS. Reject incompatible generated output without altering server/security; retain raw.",
     "connectivity": "separate from ordinary JSON export eligibility",
     "android": "not_run",
     "android_subscription_caveat": "Pinned Custom parser expects JSON array/single object; JSONL is not native batch subscription format",
@@ -32,7 +37,7 @@
     "traffic": "SOCKS UDP and tcp,udp routing; Vision/Mux UDP443 gates open. No unsolicited Mux: explicit VLESS xudp input maps to UDP-only manager; upstream UDP/QUIC support remains separate.",
     "uri_compatibility": "Narrow userinfo space escaping preserves decoded credentials; TLS cs maps exactly; explicit VLESS packetEncoding=xudp uses one UDP stream with TCP multiplexing disabled. Missing REALITY keys remain explicit failures.",
     "smart_output": "One canonical cached Smart profile per eligible head; full/single subscription GET randomizes proxy order, full also randomizes profile order; canonical individual API bytes remain stable. Raw and ordinary/source exports unchanged.",
-    "smart_envelope": "Smart v8 keeps P20 DNS/balancers/socket policy/burst/stats/metrics/logs-off; independent-IP real proxy first for Lib40 route-less RealPing, block retained as explicit leastLoad fallback after copied entries/helpers; all source values retained except existing namespace/socket policy.",
+    "smart_envelope": "Smart v9 keeps P20 DNS/balancers/socket policy/burst/stats/metrics/logs-off; independent-IP real proxy first for Lib40 route-less RealPing, block retained as explicit leastLoad fallback after copied entries/helpers; all source values retained except existing namespace/socket policy. P32 changes admission only, preserving the envelope.",
     "smart_admission": "Fresh source-owned https_multi_site_verified: two public HTTPS destinations plus TLS-valid Instagram homepage200/206. Ordinary core-valid output and base connection status unchanged. TTL-bounded; no persistent bank; not a claim about app media/carriers or every nested balanced outbound.",
     "smart_single": "Durable ready-only rounds, new rounds random, unfinished queue/cycle preserved; each GET returns order-only random rendition with independent IP first. HEAD/prefetch nonconsuming. Canonical profile identity and cache hash distinguished from returned body hash; no-ready503 retained.",
     "acquisition": "HTTP/extraction, current source ownership, core-valid output and connectivity are separate. Deletion-suppressed inputs are not ordinary duplicates or successful storage. Explicit source recovery clears only matching retained-response deletion controls, fences old jobs and requires fresh collection/validation.",
@@ -46,8 +51,9 @@
     "residential_deletion": "First suspicion/expiry quarantines. Three spaced fresh owner-bound credible votes, prior accepted scope comparison and an early shared-failure circuit gate global revocation. External authenticated tombstones fence old jobs/backups/manual aliases. No AI authority.",
     "residential_outputs": "Two explicitly labelled evidence datasets, each with same-generation JSONL/common, durable per-link next JSON and exact raw.txt. Old strict Residential links unchanged; new Ads-difference links do not claim Residential. Read-time epoch/policy/expiry/journal gate; empty503 and changed-generation409.",
     "raw_output": "All-source exact-original raw.txt; one LF between bodies. At serialized admission, captured members must remain eligible/unchanged; unrelated arrivals wait for next request. Invalidations503; old archive.zip redirects.",
-    "residential_cores": "Official pinned Xray26.11.9 first,26.7.28/26.5.9 bounded parallel fallback. Native TUIC/Hysteria driver uses pinned sing-box1.14.4. One complete raw/template report wins; ordinary/Smart target unchanged.",
-    "native_format": "Native common output is sing-box JSON with @shenvpn outbound tag, not Xray-compatible JSON; unrecognized/ambiguous extensions and complex routes remain explicit unsupported."
+    "residential_cores": "Official pinned Xray26.11.9 first,26.7.28/26.5.9 bounded parallel fallback remains an independent evidence investigation. Native TUIC/Hysteria uses pinned sing-box1.14.4; raw/native evidence exports are not a claim of latest-Xray compatibility.",
+    "native_format": "Native common output is sing-box JSON with @shenvpn outbound tag, not Xray-compatible JSON; unrecognized/ambiguous extensions and complex routes remain explicit unsupported.",
+    "client_core_failure": "VLESS without actual permitted encryption and Trojan without TLS have explicit bounded diagnostics. Inactive tlsSettings never count as enabled TLS. Failing any copied helper rejects the whole generated profile."
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -2596,10 +2602,230 @@
         "live ground-truth classification accuracy",
         "30h continuous wall-clock soak"
       ]
+    },
+    "client_compatibility": {
+      "passed": true,
+      "new_core_cases": 11,
+      "old_vnext_accepted": true,
+      "reported_user_config_reproduced": true,
+      "migration": "real private schema18 snapshot to19,33sources/settings preserved,reopened twice; old proofs and stale leases fenced",
+      "normal_worker": {
+        "android": "not_run",
+        "passed": true,
+        "total": 7,
+        "completed": 7,
+        "core_passed": 5,
+        "connected": 0,
+        "jsonl_configs": 5,
+        "max_active": 3,
+        "sigkill_recovered": true,
+        "codes": {
+          "client_vless_encryption_required": 1,
+          "hysteria1_unsupported_by_target_core": 1,
+          "nonpublic_endpoint_blocked": 5
+        }
+      },
+      "smart_worker": {
+        "scope": "normal",
+        "android": "not_run",
+        "whole_profile_connection": "not_run",
+        "fixture_ready_seconds": 27.83,
+        "passed": true,
+        "profiles": 55,
+        "members_per_profile": 50,
+        "sources": 3,
+        "max_active": 2,
+        "sigkill_recovered": true,
+        "unique_head_round": true,
+        "inline": true,
+        "core": "xray-26.7.28"
+      },
+      "splash_worker": {
+        "scope": "splash",
+        "android": "not_run",
+        "whole_profile_connection": "not_run",
+        "fixture_ready_seconds": 7.28,
+        "passed": true,
+        "profiles": 55,
+        "members_per_profile": 50,
+        "sources": 3,
+        "max_active": 2,
+        "sigkill_recovered": true,
+        "unique_head_round": true,
+        "inline": true,
+        "core": "xray-26.7.28"
+      },
+      "ads_worker": {
+        "scope": "ads",
+        "android": "not_run",
+        "whole_profile_connection": "not_run",
+        "fixture_ready_seconds": 10.59,
+        "passed": true,
+        "profiles": 55,
+        "members_per_profile": 51,
+        "sources": 3,
+        "max_active": 2,
+        "sigkill_recovered": true,
+        "unique_head_round": true,
+        "inline": true,
+        "core": "xray-26.7.28"
+      },
+      "race_full_suite": "passed",
+      "browser_fixture": "passed after synchronizing the fixture with automatic recovery navigation; initial scheduling timeout and navigation-race receipts retained",
+      "live_exports": {
+        "passed": true,
+        "at": 1794333588.9242687,
+        "android": "not_run",
+        "quic_handshake": "not_run",
+        "scopes": {
+          "/api/conversions": {
+            "version": "xray-26.7.28.template.v5",
+            "ready_entries": 6,
+            "stats": null,
+            "codes": {
+              "https_multi_site_verified": 36,
+              "proxy_request_failed": 18,
+              "reality_authentication_rejected": 17,
+              "unknown_vmess_field": 3,
+              "https_proxy_verified_site_unavailable": 5,
+              "client_vless_encryption_required": 10,
+              "peer_closed_connection": 4,
+              "missing_reality_public_key": 2,
+              "peer_reset_connection": 1,
+              "test_destination_partial": 1,
+              "endpoint_dns_failed": 1,
+              "": 1,
+              "ipv6_only_probe_pending": 1
+            },
+            "single_status": 200,
+            "exact_served_body_latest_core": "passed",
+            "sha256": "e3c6c8ebed3dbb8f851218337382b0669d34a035d7685ee98868a47cb34bc1ef",
+            "outbounds": 4
+          },
+          "/api/smart": {
+            "version": "xray-26.7.28.smart.v9",
+            "ready_entries": 10,
+            "stats": {
+              "blocked": 0,
+              "eligible": 11,
+              "ready": 10,
+              "sources": 6,
+              "total": 11,
+              "warming": 1
+            },
+            "codes": {
+              "smart_core_validated": 9,
+              "": 2
+            },
+            "single_status": 200,
+            "exact_served_body_latest_core": "passed",
+            "sha256": "f515a42a2d2112010bc982347777d07d6e750488bfd824467078c7977845dadd",
+            "outbounds": 37
+          },
+          "/api/smart-splash": {
+            "version": "xray-26.7.28.smart.v9",
+            "ready_entries": 0,
+            "stats": {
+              "blocked": 0,
+              "eligible": 0,
+              "ready": 0,
+              "sources": 0,
+              "total": 0,
+              "warming": 0
+            },
+            "codes": {},
+            "single_status": 503
+          },
+          "/api/smart-ads": {
+            "version": "xray-26.7.28.smart-ads.v2",
+            "ready_entries": 0,
+            "stats": {
+              "ads_eligible": 0,
+              "ads_sources": 0,
+              "blocked": 0,
+              "eligible": 0,
+              "main_eligible": 12,
+              "main_sources": 6,
+              "ready": 0,
+              "sources": 6,
+              "total": 0,
+              "warming": 0
+            },
+            "codes": {},
+            "single_status": 503
+          }
+        }
+      },
+      "live_browser": {
+        "passed": true,
+        "at": "2026-11-10T17:59:45.902Z",
+        "android_app": "not_run",
+        "tls_verification": "ignored_for_existing_panel_endpoint",
+        "pages": [
+          {
+            "width": 390,
+            "path": "/output",
+            "status": 200,
+            "overflow": false
+          },
+          {
+            "width": 390,
+            "path": "/smart",
+            "status": 200,
+            "overflow": false
+          },
+          {
+            "width": 390,
+            "path": "/smart-splash",
+            "status": 200,
+            "overflow": false
+          },
+          {
+            "width": 390,
+            "path": "/smart-ads",
+            "status": 200,
+            "overflow": false
+          },
+          {
+            "width": 1440,
+            "path": "/output",
+            "status": 200,
+            "overflow": false
+          },
+          {
+            "width": 1440,
+            "path": "/smart",
+            "status": 200,
+            "overflow": false
+          },
+          {
+            "width": 1440,
+            "path": "/smart-splash",
+            "status": 200,
+            "overflow": false
+          },
+          {
+            "width": 1440,
+            "path": "/smart-ads",
+            "status": 200,
+            "overflow": false
+          }
+        ]
+      },
+      "traffic": "controlled TCP/UDP UDP443, DNS/bootstrap/responsiveness/LibPing tests passed; no Android or carrier claim",
+      "toolchain": "official Go1.27.1 checksum verified isolated replacement; shared broken race syso not modified",
+      "receipts": [
+        ".local/p32-check-final.log",
+        ".local/p32-client-core.json",
+        ".local/p32-user-config.json",
+        ".local/p32-rehearsal.json",
+        ".local/p32-browser.log",
+        ".local/p32-traffic.log"
+      ]
     }
   },
   "runtime": {
-    "database_schema": 18,
+    "database_schema": 19,
     "services": [
       "config-repair.service",
       "config-repair-prober.service",
@@ -2609,10 +2835,10 @@
       "config-repair-residential.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p31-52c277108c077cd23581",
-    "panel_sha256": "52c277108c077cd23581b9b5e1a4d0ae12479dd53d8a96b56591c279d61a9196",
-    "worker_sha256": "32e91e8e4b0f9cef37d39a7fd4eb0820ad0cde0d4046ebf0453bb61e3794b30a",
-    "template_version": "xray-26.7.28.template.v4",
+    "release": "/opt/config-repair/releases/p32-13eb6c1be746afd39d13",
+    "panel_sha256": "13eb6c1be746afd39d13150040118414466119f06d393bea252b6b7a8e4b7282",
+    "worker_sha256": "3ee0ad5049db77df611d05fe0edaa8c534c224d8aa2af5d296d91a7534837001",
+    "template_version": "xray-26.7.28.template.v5",
     "retention_seconds": 36000,
     "fetch_concurrency": 16,
     "fetch_timeout_seconds": 30,
@@ -2620,34 +2846,34 @@
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
     "connection_ttl_seconds": 36000,
-    "deployment_receipt": ".local/p31-deployed.json",
-    "publication_receipt": ".local/p31-published.json",
+    "deployment_receipt": ".local/p32-deployed.json",
+    "publication_receipt": ".local/p32-published.json",
     "sandbox_driver_sha256": "9b9cd066785d646b292976d1ca233e6e26fe1ac1fe86d2ec5b7d77ee04401cc8",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
-    "smart_version": "xray-26.7.28.smart.v8",
+    "smart_version": "xray-26.7.28.smart.v9",
     "smart_count": 50,
     "smart_concurrency": 2,
-    "adapter_sha256": "071e7e4e7d4787045470e242ee96d47b981cf6abb204adc37181ae2d369eb887",
+    "adapter_sha256": "4e43755dadd9edf1b50697a195a372581487faddfdc0e908e28f6302a3fa7790",
     "smart_adapter_sha256": "315174552cdac75a509eb3fa45079dacda57e8e6d60eb966cb60f2ba5b3d0190",
     "smart_revision": 11,
-    "source_count_at_inspection": 32,
+    "source_count_at_inspection": 33,
     "splash_adapter_sha256": "03a6869f905713358d31e6fb997b841610b499a56d93d7875609a712f4bfd935",
     "splash_count": 1,
     "splash_revision": 5,
     "splash_enabled": true,
     "splash_sources_at_inspection": 3,
     "splash_concurrency": 2,
-    "source_parent_commit": "d1c23c0f4eddca48f8b50d3845a82301aa695de0",
-    "tested_runtime_manifest": ".local/p31-tested-runtime.json",
+    "source_parent_commit": "a0289f9b364a6289bcaae362cf1e0b8fa3e3d910",
+    "tested_runtime_manifest": ".local/p32-tested-runtime.json",
     "ads_adapter_sha256": "4a519c9f99c61b9b8c25d16a6350af83f8fb00b29808e1e275110e5918bdebec",
-    "ads_version": "xray-26.7.28.smart-ads.v1",
+    "ads_version": "xray-26.7.28.smart-ads.v2",
     "geosite_sha256": "adf92de0cfc70e458b399f04c5f912bf42d115ed7e37281b30e2f1c68605e4e9",
     "smart_enabled": true,
     "ads_count": 50,
     "ads_revision": 1,
     "ads_enabled": true,
-    "residential_worker_sha256": "da17611396725a5ca071678cb0b0314129a1c59302c49b4c9227e05537397811",
+    "residential_worker_sha256": "31a06d7c42750b35220e6c57e32ebccd8c58b592ea775fcde21c123437a7e379",
     "residential_adapter_sha256": "29f8a944457e6f12b40ffcb04bb97fcd65fa5a4bfd2948fd4dc7f315e1d69518",
     "residential_intel_sha256": "975350a113fe1d151d067fa5cc51e2a71000e884b597ec6e94b4cd6e20728d5e",
     "residential_observer_sha256": "8b581d92a9d1c55384e866739102bf3cef333eea4bfd67c9d217720915bebd49",
@@ -2660,7 +2886,7 @@
     "residential_ledger": "/var/lib/shen-residential-revocations",
     "residential_trust_configured": false,
     "residential_eligible_at_snapshot": 0,
-    "public_verification_receipt": ".local/p30-live-check.json",
+    "public_verification_receipt": ".local/p32-live-check.json",
     "residential_matrix_sha256": "975bcfa7a19eaa1d1119096c2d958199a37a48a46747881e4939bf4f72eda464",
     "residential_cores_sha256": "819a8046f6d7eaccbf9d1b8e1cc9b4179fb1305b1491d0c5469ed8bdf95f966c",
     "egress_trust_configured": false,
@@ -2671,18 +2897,19 @@
     "residential_native_sha256": "8fb3897c30cb95af1f23fd9fe8c169b1925148e88737e8bde8e7b6bfd693cf36"
   },
   "next": [
+    "Already downloaded incompatible profiles require subscription refresh/reimport. A plaintext public VLESS server needs a genuinely supported TLS/REALITY/VLESS Encryption deployment; never invent client security or DNS aliases to bypass the core restriction.",
     "Configure authorized verifiable Ads-flow evidence; no attribution from unrelated IP-control requests or undocumented diagnostic semantics",
     "Configure independent specialist exact-IP network intelligence before verified Residential acceptance",
     "Add validated forced IPv6, Google QUIC and exhaustive selectable-path plugins; unknown/partial remains unqualified for full scope",
     "Measure live ground-truth false positives/negatives and P31-only sustained throughput; current queue is still processing",
     "Actual Android/carrier testing requires a connected device; checksum-pinned standalone installer remains separate"
   ],
-  "environment": "Use verified project-local Go1.27.1 toolchain/module/build caches; shared caches previously failed integrity checks and were not modified.",
-  "audit_checkpoint": "docs/checkpoints/P31-ads-route-20261110.md",
+  "environment": "P32 used checksum-verified official Go1.27.1 at .local/toolchain/go; go mod verify passed. Shared broken race runtime was not modified. Retained initial toolchain failure and successful isolated receipts.",
+  "audit_checkpoint": "docs/checkpoints/P32-client-compatibility-20261110.md",
   "smart_ads": {
-    "status": "deployed_verified; waiting for fresh eligible Splash input",
+    "status": "deployed_verified; waiting for fresh eligible Splash input after P32 revalidation",
     "schema": 15,
-    "version": "xray-26.7.28.smart-ads.v1",
+    "version": "xray-26.7.28.smart-ads.v2",
     "path": "/smart-ads",
     "checkpoint": "docs/checkpoints/P26-smart-ads-20261110.md",
     "openai_review": "completed:gpt-6-astra; private receipts",

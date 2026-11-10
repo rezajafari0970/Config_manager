@@ -117,10 +117,8 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
   await page.locator('[data-smart-view]').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('#smart-list pre')].some(p=>!p.hidden));await page.screenshot({path:dir+'/splash-mobile.png',fullPage:true});
   const adsState=async()=>(await(await context.request.get(origin+'/api/smart-ads')).json());
   await wait(async()=>(await adsState()).stats.ready===2);
-  // The waiting page may already have recovered automatically before this step.
-  if(await waiting.evaluate(()=>document.contentType!=='text/plain')){
-   try{await waiting.locator('#retry').click({timeout:2000})}catch(error){if(await waiting.evaluate(()=>document.contentType!=='text/plain'))throw error}
-  }
+  // Automatic recovery can navigate while readiness is observed. Playwright's
+  // waitForFunction follows that navigation; a separate evaluate races its context.
   await waiting.waitForFunction(()=>document.contentType==='text/plain');
   assert.equal(JSON.parse(await waiting.locator('body').innerText()).remarks,'@shenvpn-smart-ads');await waiting.close();
   for(const width of [390,1440]){

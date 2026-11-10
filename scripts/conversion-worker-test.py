@@ -15,6 +15,7 @@ def main():
   key=base64.b64encode(bytes([1])*32).decode();pub=base64.b64encode(bytes([2])*32).decode()
   samples=[b'socks5://user:synthetic@192.0.2.1:1080',b'hysteria://synthetic@192.0.2.1:443',f'wireguard://{key}@192.0.2.1:51820?publickey={pub}&address=10.0.0.2%2F32'.encode(),b'hy2://synthetic@192.0.2.1:443?sni=example.com',b'vless://00000000-0000-4000-8000-000000000001@192.0.2.1:443?security=tls&sni=example.com']
   samples.append(('vless://00000000-0000-4000-8000-000000000002@192.0.2.1:443?security=reality&sni=example.com&fp=chrome&pbk='+base64.urlsafe_b64encode(bytes([2])*32).decode().rstrip('=')+'&sid=ab&support-x25519mlkem768=true').encode())
+  samples.append(b'vless://00000000-0000-4000-8000-000000000003@vpn.example.com:443?security=none&type=tcp&headerType=http&host=example.com')
   if args.live_canary:
    records=[]
    for page in range(100):
@@ -62,6 +63,7 @@ def main():
     else:raise RuntimeError('durable conversion queue did not finish')
     lines=get(state['export_url']).splitlines();configs=[json.loads(b) for b in lines]
     assert killed and max_active<=3 and any(r['code']=='hysteria1_unsupported_by_target_core' for r in rows)
+    assert any(r['code']=='client_vless_encryption_required' and not r['available'] and r['connection']=='not_run' for r in rows)
     assert len(lines)==len(set(lines)) and all(c['remarks']=='@shenvpn' and len(c['outbounds'])>=4 for c in configs)
     receipt.update(passed=True,total=len(rows),completed=completed,core_passed=sum(r['core']=='passed' for r in rows),connected=sum(r['connection']=='passed' for r in rows),jsonl_configs=len(lines),max_active=max_active,sigkill_recovered=True,codes={c:sum(r['code']==c for r in rows) for c in sorted({r['code'] for r in rows})})
    finally:

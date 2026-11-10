@@ -13,7 +13,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 )
 
-const Version = "xray-26.7.28.template.v4"
+const Version = "xray-26.7.28.template.v5"
 
 type M = map[string]any
 

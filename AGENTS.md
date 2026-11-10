@@ -1,3 +1,25 @@
+# Current P32 override — 2026-11-10
+
+Ordinary and every Smart export (normal, Splash, Ads) must pass both the original
+pinned core and checksum-pinned official Xray26.11.9, in the existing sandbox.
+The exact output bytes are checked before any connection test. Older-core success
+is not current-client acceptance. Never silently enable TLS, fake a private
+endpoint, rewrite credentials, remove a copied helper, or weaken verification.
+Public plaintext VLESS/Trojan remain stored raw with a specific client compatibility
+diagnostic; they are not labelled connection failures and cannot enter usable
+ordinary/Smart exports. Independent Residential multi-core investigation remains.
+
+Schema19 updates persisted admission-version views and fences old leases before
+listeners start. Ordinaryv5/Smartv9/Adsv2 change admission, not wire templates,
+leastLoad, UDP/QUIC, sources, TTLs, settings or rotation counters. Stale caches
+stay hidden until new validation. Schema18 binary cannot open19; fix forward or
+use a stopped-service matched recovery without rewinding the external journal.
+
+The BEGIN_ARRAY log on single-object import is the app's attempted array parse
+before single-object fallback, not the fatal core error. Keep individual JSON as
+an object and existing full JSONL contract. No Android/carrier test claim.
+Read docs/checkpoints/P32-client-compatibility-20261110.md and deployment receipts.
+
 # Current P31 override — 2026-11-10
 
 The latest user restores age-independent retention for accepted records, replacing

@@ -10,6 +10,7 @@ go build -trimpath -buildvcs=false -o bin/config-panel ./cmd/config-panel
 go build -trimpath -buildvcs=false -o bin/config-probe-plan ./cmd/config-probe-plan
 go build -trimpath -buildvcs=false -o bin/config-probe-worker ./cmd/config-probe-worker
 go build -trimpath -buildvcs=false -o bin/config-residential-worker ./cmd/config-residential-worker
+python3 scripts/client-compat-test.py
 python3 scripts/live-probe-test.py
 python3 scripts/residential-probe-test.py
 python3 scripts/residential-matrix-test.py
