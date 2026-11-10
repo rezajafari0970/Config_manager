@@ -1,7 +1,6 @@
 package panel
 
 import (
-	"archive/zip"
 	"bytes"
 	"context"
 	"database/sql"
@@ -26,6 +25,7 @@ type ResidentialEntry struct {
 	Epoch         int64  `json:"epoch"`
 	Tested        int64  `json:"tested"`
 	ValidUntil    int64  `json:"valid_until"`
+	RetainUntil   int64  `json:"retain_until"`
 }
 type ResidentialSnapshot struct {
 	Generation      string             `json:"generation"`
@@ -44,7 +44,7 @@ func residentialSnapshot(ctx context.Context, q residentialQuery, scope string) 
 	if e := q.QueryRowContext(ctx, "SELECT policy_hash,trust_hash,journal_seq FROM residential_settings WHERE id=1").Scan(&v.PolicyHash, &v.TrustHash, &v.JournalSequence); e != nil {
 		return v, e
 	}
-	query := `SELECT hash,candidate_hash,kind,size,revision,epoch,tested,valid_until FROM residential_eligible e`
+	query := `SELECT hash,candidate_hash,kind,size,revision,epoch,tested,valid_until,retain_until FROM residential_eligible e`
 	args := []any{}
 	if scope != "all" {
 		query += ` WHERE EXISTS(SELECT 1 FROM residential_owners o WHERE o.hash=e.hash AND o.source=?)`
@@ -57,7 +57,7 @@ func residentialSnapshot(ctx context.Context, q residentialQuery, scope string) 
 	defer rows.Close()
 	for rows.Next() {
 		var r ResidentialEntry
-		if e = rows.Scan(&r.Hash, &r.CandidateHash, &r.Kind, &r.Size, &r.Revision, &r.Epoch, &r.Tested, &r.ValidUntil); e != nil {
+		if e = rows.Scan(&r.Hash, &r.CandidateHash, &r.Kind, &r.Size, &r.Revision, &r.Epoch, &r.Tested, &r.ValidUntil, &r.RetainUntil); e != nil {
 			return v, e
 		}
 		v.Entries = append(v.Entries, r)
@@ -113,7 +113,19 @@ func (m residentialModule) Register(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/residential/manage", s.residentialManage)
 	mux.HandleFunc("GET /api/residential", s.residentialState)
 	mux.HandleFunc("GET /api/residential/evidence/{hash}", s.residentialEvidence)
-	for _, format := range []string{"configs.jsonl", "next.json", "raw.zip"} {
+	mux.HandleFunc("GET /residential-subscription/{scope}/{token}/raw.zip", func(w http.ResponseWriter, r *http.Request) {
+		if !equal(r.PathValue("token"), s.store.digest("residential-export-v1", r.PathValue("scope")+":raw.zip")) {
+			http.NotFound(w, r)
+			return
+		}
+		target := s.residentialURL(r.PathValue("scope"), "raw.txt")
+		if r.URL.RawQuery != "" {
+			target += "?" + r.URL.RawQuery
+		}
+		w.Header().Set("Cache-Control", "no-store")
+		http.Redirect(w, r, target, http.StatusPermanentRedirect)
+	})
+	for _, format := range []string{"configs.jsonl", "next.json", "raw.txt"} {
 		mux.HandleFunc("GET /residential-subscription/{scope}/{token}/"+format, s.residentialExport)
 	}
 }
@@ -163,45 +175,31 @@ func (s *Server) residentialExport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer spool.Close()
-	var archive *zip.Writer
-	if format == "raw.zip" {
-		archive = zip.NewWriter(spool.file)
-	}
-	for _, entry := range snapshot.Entries {
+	rawOutput := format == "raw.txt"
+	for i, entry := range snapshot.Entries {
 		hash := entry.CandidateHash
-		if archive != nil {
+		if rawOutput {
 			hash = entry.Hash
 		}
-		b, err := s.store.residentialBytes(hash, archive == nil)
+		b, err := s.store.residentialBytes(hash, !rawOutput)
 		if err != nil {
 			s.store.quarantineResidentialBlob(r.Context(), entry)
 			http.Error(w, "member requires revalidation", 503)
 			return
 		}
-		if archive == nil {
-			e = spool.Line(b)
-		} else {
-			var writer io.Writer
-			writer, e = archive.CreateHeader(&zip.FileHeader{Name: entry.Hash + ".raw", Method: zip.Store})
+		if rawOutput {
+			writer := io.MultiWriter(spool.file, spool.digest)
+			if i > 0 {
+				_, e = writer.Write([]byte{'\n'})
+			}
 			if e == nil {
 				_, e = writer.Write(b)
 			}
+		} else {
+			e = spool.Line(b)
 		}
 		if e != nil {
 			failure(w, e)
-			return
-		}
-	}
-	if archive != nil {
-		writer, err := archive.Create("manifest.json")
-		if err == nil {
-			err = json.NewEncoder(writer).Encode(snapshot)
-		}
-		if err == nil {
-			err = archive.Close()
-		}
-		if err != nil {
-			failure(w, err)
 			return
 		}
 	}
@@ -234,12 +232,11 @@ func (s *Server) residentialExport(w http.ResponseWriter, r *http.Request) {
 		failure(w, e)
 		return
 	}
-	if archive != nil {
-		w.Header().Set("Content-Type", "application/zip")
-		w.Header().Set("Content-Disposition", `attachment; filename="shenvpn-residential-raw.zip"`)
-	} else {
-		w.Header().Set("Content-Type", "application/x-ndjson; charset=utf-8")
-		w.Header().Set("X-Content-SHA256", spool.Hash())
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Disposition", "inline")
+	w.Header().Set("X-Content-SHA256", spool.Hash())
+	if rawOutput {
+		w.Header().Set("X-Raw-Framing", "original-bytes; one-LF-between-members")
 	}
 	_, _ = spool.WriteTo(w)
 }
@@ -441,7 +438,14 @@ func (s *Server) residentialState(w http.ResponseWriter, r *http.Request) {
 		failure(w, e)
 		return
 	}
-	rows, e := s.store.reader().QueryContext(r.Context(), `SELECT hash,state,reason,ever_accepted,tested,valid_until,next_run,decision FROM residential_records r WHERE (?='all' OR EXISTS(SELECT 1 FROM residential_owners o WHERE o.hash=r.hash AND o.source=?)) ORDER BY ever_accepted DESC,last_seen DESC,hash LIMIT 100`, scope, scope)
+	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+	if offset < 0 {
+		offset = 0
+	}
+	if offset > 1000000 {
+		offset = 1000000
+	}
+	rows, e := s.store.reader().QueryContext(r.Context(), `SELECT hash,state,reason,ever_accepted,tested,valid_until,retain_until,next_run,decision FROM residential_records r WHERE (?='all' OR EXISTS(SELECT 1 FROM residential_owners o WHERE o.hash=r.hash AND o.source=?)) ORDER BY ever_accepted DESC,first_seen DESC,hash LIMIT 100 OFFSET ?`, scope, scope, offset)
 	if e != nil {
 		failure(w, e)
 		return
@@ -450,17 +454,21 @@ func (s *Server) residentialState(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var hash, state, reason, decision string
 		var retained bool
-		var tested, until, next int64
-		if e = rows.Scan(&hash, &state, &reason, &retained, &tested, &until, &next, &decision); e != nil {
+		var tested, until, retainedUntil, next int64
+		if e = rows.Scan(&hash, &state, &reason, &retained, &tested, &until, &retainedUntil, &next, &decision); e != nil {
 			rows.Close()
 			failure(w, e)
 			return
+		}
+		if state != "DELETED" && retainedUntil <= time.Now().UnixMilli() {
+			state = "DELETED"
+			reason = "retention_expired"
 		}
 		if state == "ACCEPTED" && until <= time.Now().UnixMilli() {
 			state = "QUARANTINED"
 			reason = "evidence_expired"
 		}
-		entries = append(entries, map[string]any{"hash": hash, "state": state, "reason": reason, "retained": retained, "tested": tested, "valid_until": until, "next_run": next, "decision": json.RawMessage(decision)})
+		entries = append(entries, map[string]any{"hash": hash, "state": state, "reason": reason, "retained": retained, "tested": tested, "valid_until": until, "retain_until": retainedUntil, "next_run": next, "decision": json.RawMessage(decision)})
 	}
 	e = rows.Err()
 	rows.Close()
@@ -469,7 +477,7 @@ func (s *Server) residentialState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	counts := map[string]int{}
-	rows, e = s.store.reader().QueryContext(r.Context(), "SELECT CASE WHEN state='ACCEPTED' AND hash NOT IN (SELECT hash FROM residential_eligible) THEN 'QUARANTINED' ELSE state END AS visible,count(*) FROM residential_records GROUP BY visible")
+	rows, e = s.store.reader().QueryContext(r.Context(), "SELECT CASE WHEN state!='DELETED' AND retain_until<=CAST(unixepoch('subsec')*1000 AS INTEGER) THEN 'DELETED' WHEN state='ACCEPTED' AND hash NOT IN (SELECT hash FROM residential_eligible) THEN 'QUARANTINED' ELSE state END AS visible,count(*) FROM residential_records r WHERE (?='all' OR EXISTS(SELECT 1 FROM residential_owners o WHERE o.hash=r.hash AND o.source=?)) GROUP BY visible", scope, scope)
 	if e != nil {
 		failure(w, e)
 		return
@@ -485,13 +493,18 @@ func (s *Server) residentialState(w http.ResponseWriter, r *http.Request) {
 		counts[state] = n
 	}
 	rows.Close()
+	var total, tested, healthy, pending int
+	if e = s.store.reader().QueryRowContext(r.Context(), `SELECT count(*),coalesce(sum(tested>0),0),coalesce(sum(json_extract(decision,'$.health')='HEALTHY'),0),coalesce(sum(tested=0 AND state!='DELETED'),0) FROM residential_records r WHERE (?='all' OR EXISTS(SELECT 1 FROM residential_owners o WHERE o.hash=r.hash AND o.source=?))`, scope, scope).Scan(&total, &tested, &healthy, &pending); e != nil {
+		failure(w, e)
+		return
+	}
 	var worker probeStatus
 	_ = s.store.reader().QueryRowContext(r.Context(), "SELECT status,code,heartbeat,active FROM residential_worker WHERE id=1").Scan(&worker.Status, &worker.Code, &worker.Heartbeat, &worker.Active)
 	if time.Now().UnixMilli()-worker.Heartbeat > 30000 {
 		worker.Status = "offline"
 	}
 	links := map[string]string{}
-	for _, format := range []string{"configs.jsonl", "next.json", "raw.zip"} {
+	for _, format := range []string{"configs.jsonl", "next.json", "raw.txt"} {
 		links[format] = s.residentialURL(scope, format)
 	}
 	metrics, e := s.store.residentialMetrics(r.Context())
@@ -499,7 +512,7 @@ func (s *Server) residentialState(w http.ResponseWriter, r *http.Request) {
 		failure(w, e)
 		return
 	}
-	respond(w, 200, map[string]any{"metrics": metrics, "generation": snapshot.Generation, "eligible_count": len(snapshot.Entries), "policy": p, "trust_configured": len(tr.Capabilities) > 0 && len(tr.Providers) >= 2, "counts": counts, "entries": entries, "links": links, "worker": worker, "scope": scope, "now": time.Now().UnixMilli(), "note": "Evidence applies only to the explicit tested matrix, not all Google Ads or future sessions."})
+	respond(w, 200, map[string]any{"offset": offset, "total": total, "progress": map[string]int{"tested": tested, "healthy": healthy, "pending": pending}, "metrics": metrics, "generation": snapshot.Generation, "eligible_count": len(snapshot.Entries), "policy": p, "trust_configured": len(tr.Capabilities) > 0 && len(tr.Providers) >= 2, "counts": counts, "entries": entries, "links": links, "worker": worker, "scope": scope, "now": time.Now().UnixMilli(), "note": "Evidence applies only to the explicit tested matrix, not all Google Ads or future sessions."})
 }
 
 type probeStatus struct {

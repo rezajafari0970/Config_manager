@@ -5,11 +5,13 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/convert"
 	"github.com/rezajafari0970/Config_manager/internal/driver"
 	"github.com/rezajafari0970/Config_manager/internal/probe"
+	"github.com/rezajafari0970/Config_manager/internal/repair"
 	"strings"
 )
 
 type Execution struct {
 	Name          string   `json:"name"`
+	ImportRule    string   `json:"import_rule"`
 	SHA256        string   `json:"sha256"`
 	Config        []byte   `json:"config"`
 	Paths         []string `json:"paths"`
@@ -51,15 +53,21 @@ func (XrayDriver) Prepare(raw []byte) Plan {
 			continue
 		}
 		rawConfig := c.Config
-		// A JSON original is executed byte-for-byte, even if the conversion parser
-		// produced a formatting/structural repair for the separate template variant.
-		// Its own pinned-core pass and observations remain mandatory.
+		importRule := "uri-import"
 		if p.Kind == "json" {
-			if !json.Valid(raw) {
-				out.Code = "raw_json_invalid"
-				return out
-			}
 			rawConfig = raw
+			importRule = "original-json"
+			// Apply only the shared deterministic structural repairs already admitted
+			// by Prepare. Preserve the acquired bytes separately; never repair secrets,
+			// protocols, endpoint values or TLS verification to obtain a connection.
+			d := (repair.JSONDriver{}).Propose(raw)
+			for _, patch := range d.Patches {
+				if patch.RuleID != repair.RulesVersion+".custom-envelope" {
+					rawConfig = c.Config
+					importRule = repair.RulesVersion
+					break
+				}
+			}
 		}
 		common, e := convert.Apply(c.Config)
 		if e != nil {
@@ -71,7 +79,12 @@ func (XrayDriver) Prepare(raw []byte) Plan {
 			b    []byte
 		}{{"raw", rawConfig}, {"template", common}} {
 			paths, complete := executionPaths(v.b)
-			out.Variants = append(out.Variants, Execution{Name: v.name, SHA256: Digest(v.b), Config: v.b, Paths: paths, PathsComplete: complete})
+			out.Variants = append(out.Variants, Execution{Name: v.name, ImportRule: func() string {
+				if v.name == "raw" {
+					return importRule
+				}
+				return "common-template"
+			}(), SHA256: Digest(v.b), Config: v.b, Paths: paths, PathsComplete: complete})
 		}
 		out.Code = "prepared"
 		return out
@@ -113,6 +126,13 @@ func executionPaths(b []byte) ([]string, bool) {
 		complete = false
 	}
 	rules, _ := routing["rules"].([]any)
+	// Xray sends unmatched traffic to the first outbound, not to the only
+	// outbound counted as a proxy. A restrictive rule cannot fix a direct default.
+	defaultProxy := false
+	if len(obs) > 0 {
+		first, _ := obs[0].(map[string]any)
+		defaultProxy = first["tag"] == proxyTag && proxyTag != ""
+	}
 	for _, value := range rules {
 		rule, ok := value.(map[string]any)
 		if !ok {
@@ -120,6 +140,19 @@ func executionPaths(b []byte) ([]string, bool) {
 			continue
 		}
 		tag, _ := rule["outboundTag"].(string)
+		unconditional := tag == proxyTag && tag != ""
+		for key, value := range rule {
+			if key == "type" || key == "outboundTag" || key == "ruleTag" {
+				continue
+			}
+			if key == "network" && (value == "tcp,udp" || value == "udp,tcp") {
+				continue
+			}
+			unconditional = false
+		}
+		if unconditional {
+			defaultProxy = true
+		}
 		if rule["balancerTag"] != nil {
 			complete = false
 		}
@@ -135,6 +168,9 @@ func executionPaths(b []byte) ([]string, bool) {
 				}
 			}
 		}
+	}
+	if !defaultProxy {
+		complete = false
 	}
 	for _, key := range []string{"api", "reverse", "fakedns"} {
 		if m[key] != nil {

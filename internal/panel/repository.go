@@ -244,6 +244,12 @@ func (s *Store) SaveSettings(ctx context.Context, v collect.Settings) error {
 	if _, e = tx.ExecContext(ctx, "UPDATE responses SET expires=min(expires,created+?)", v.RetentionSeconds*1000); e != nil {
 		return e
 	}
+	if _, e = tx.ExecContext(ctx, "UPDATE residential_records SET retain_until=min(retain_until,first_seen+?) WHERE state!='DELETED'", v.RetentionSeconds*1000); e != nil {
+		return e
+	}
+	if e = s.expireResidential(ctx, tx, time.Now().UnixMilli()); e != nil {
+		return e
+	}
 	return tx.Commit()
 }
 func (s *Store) Recover(ctx context.Context) error {
@@ -704,7 +710,10 @@ func (s *Store) Stage(ctx context.Context, job collect.Job, item collect.Item) (
 }
 
 func (s *Store) WalkOutputs(ctx context.Context, visit func(Artifact) error) error {
-	rows, e := s.db.QueryContext(ctx, "SELECT a.id,m.raw_hash,m.kind,m.size,a.created,a.expires"+representativeJoin+"WHERE a.expires>?"+residentialOutputGate+" AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='disabled' AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)) ORDER BY a.created DESC,a.id", time.Now().UnixMilli())
+	return walkOutputs(ctx, s.read(ctx), visit)
+}
+func walkOutputs(ctx context.Context, q residentialQuery, visit func(Artifact) error) error {
+	rows, e := q.QueryContext(ctx, "SELECT a.id,m.raw_hash,m.kind,m.size,a.created,a.expires"+representativeJoin+"WHERE a.expires>?"+residentialOutputGate+" AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='disabled' AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)) ORDER BY a.created DESC,a.id", time.Now().UnixMilli())
 	if e != nil {
 		return e
 	}

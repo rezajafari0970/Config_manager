@@ -17,3 +17,36 @@ func TestOriginalJSONWhitespaceRemainsExactAndMultiPathPartial(t *testing.T) {
 		}
 	}
 }
+
+func TestRawImportUsesOnlyRecordedStructuralRepair(t *testing.T) {
+	raw := []byte(`{"outbounds":[{"tag":"p","protocol":"socks","settings":{"servers":[{"address":"192.0.2.1","port":1080}]}}],"inbounds":[],"routing":{},"stats":[]}`)
+	before := append([]byte{}, raw...)
+	p := NewCoreRegistry().Prepare("xray-26.7.28", raw)
+	if len(p.Variants) != 2 || p.Variants[0].ImportRule == "original-json" || !bytes.Contains(p.Variants[0].Config, []byte(`"stats":{}`)) {
+		t.Fatal("safe structural repair discarded", p.Code)
+	}
+	if !bytes.Equal(raw, before) {
+		t.Fatal("original changed")
+	}
+	invalid := bytes.Replace(raw, []byte(`"stats":[]`), []byte(`"stats":[1]`), 1)
+	if p = NewCoreRegistry().Prepare("xray-26.7.28", invalid); len(p.Variants) != 0 {
+		t.Fatal("ambiguous nonempty value repaired")
+	}
+}
+
+func TestDirectDefaultIsNotCompleteProxyCoverage(t *testing.T) {
+	for _, tc := range []struct {
+		rules    string
+		complete bool
+	}{
+		{`[]`, false},
+		{`[{"type":"field","network":"tcp","outboundTag":"proxy"}]`, false},
+		{`[{"type":"field","network":"tcp,udp","outboundTag":"proxy"}]`, true},
+	} {
+		raw := []byte(`{"outbounds":[{"tag":"direct","protocol":"freedom"},{"tag":"proxy","protocol":"vless"}],"routing":{"rules":` + tc.rules + `}}`)
+		_, complete := executionPaths(raw)
+		if complete != tc.complete {
+			t.Fatal(tc.rules, complete)
+		}
+	}
+}

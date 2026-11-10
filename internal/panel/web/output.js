@@ -1,6 +1,7 @@
 import {conversionCodes as codes} from './diagnostics.js';
 import {$,fa,esc,dateTime,countdown,toast,api,verifiedJSON,empty} from './core.js';
 export default function Output(ctx){
+ const rawURL=new URL('/output/raw.txt',location.origin).href;$('#raw-all-url').href=rawURL;$('#raw-all-url').textContent=rawURL;$('#copy-raw-all').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(rawURL);toast('لینک خام کپی شد')}catch{toast('کپی انجام نشد.')}});
  let page=0,busy=false,signature='',url='',singleURL='';
  const source=new URLSearchParams(location.search).get('source')||'',sourceQuery=source?'&source='+encodeURIComponent(source):'';
  $('#all-output').hidden=!source;

@@ -87,6 +87,7 @@ type IPFact struct {
 }
 type Variant struct {
 	Name          string   `json:"name"`
+	ImportRule    string   `json:"import_rule,omitempty"`
 	Hash          string   `json:"hash"`
 	RuntimeHash   string   `json:"runtime_hash"`
 	Core          string   `json:"core"`
@@ -115,18 +116,19 @@ type Report struct {
 	PeakRSSBytes           int64         `json:"peak_rss_bytes"`
 }
 type Decision struct {
-	State            string  `json:"state"`
-	Health           string  `json:"health"`
-	Egress           string  `json:"egress"`
-	Network          string  `json:"network"`
-	Reason           string  `json:"reason"`
-	Eligible         bool    `json:"eligible"`
-	CredibleNegative bool    `json:"credible_negative"`
-	ValidUntil       int64   `json:"valid_until"`
-	Covered          int     `json:"covered"`
-	Required         int     `json:"required"`
-	Missing          []Scope `json:"missing"`
-	RotationObserved bool    `json:"rotation_observed"`
+	Diagnostics      []RouteDiagnostic `json:"diagnostics,omitempty"`
+	State            string            `json:"state"`
+	Health           string            `json:"health"`
+	Egress           string            `json:"egress"`
+	Network          string            `json:"network"`
+	Reason           string            `json:"reason"`
+	Eligible         bool              `json:"eligible"`
+	CredibleNegative bool              `json:"credible_negative"`
+	ValidUntil       int64             `json:"valid_until"`
+	Covered          int               `json:"covered"`
+	Required         int               `json:"required"`
+	Missing          []Scope           `json:"missing"`
+	RotationObserved bool              `json:"rotation_observed"`
 }
 
 // Trust is installed by an administrator/compiled plugin, never copied from a

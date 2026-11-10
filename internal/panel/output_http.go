@@ -1,12 +1,10 @@
 package panel
 
 import (
-	"archive/zip"
+	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strconv"
 )
 
@@ -18,7 +16,10 @@ func (m outputModule) Register(mux *http.ServeMux) {
 	mux.HandleFunc("GET /output/repaired/{id}", s.repaired)
 	mux.HandleFunc("POST /api/configs/batch", s.configBatch)
 	mux.HandleFunc("GET /output/raw/{id}", s.raw)
-	mux.HandleFunc("GET /output/archive.zip", s.archive)
+	mux.HandleFunc("GET /output/raw.txt", s.rawAll)
+	mux.HandleFunc("GET /output/archive.zip", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/output/raw.txt", http.StatusPermanentRedirect)
+	})
 }
 func (s *Server) stream(w http.ResponseWriter, r *http.Request, hash string, size int64, filename string) {
 	body, e := s.store.vault.Open(hash)
@@ -59,53 +60,114 @@ func (s *Server) response(w http.ResponseWriter, r *http.Request) {
 	}
 	s.stream(w, r, ref.Hash, ref.Size, "original-response.txt")
 }
-func (s *Server) archive(w http.ResponseWriter, r *http.Request) {
-	snapshot, e := os.CreateTemp("", "config-output-index-")
+
+// rawAll prints immutable original bodies; no ZIP, wrapper or JSON rewriting.
+func (s *Server) rawAll(w http.ResponseWriter, r *http.Request) {
+	index, e := newExportSpool()
 	if e != nil {
 		failure(w, e)
 		return
 	}
-	defer os.Remove(snapshot.Name())
-	defer snapshot.Close()
-	encoder := json.NewEncoder(snapshot)
+	defer index.Close()
+	before := sha256.New()
+	encoder := json.NewEncoder(io.MultiWriter(index.file, before))
 	if e = s.store.WalkOutputs(r.Context(), func(a Artifact) error { return encoder.Encode(a) }); e != nil {
 		failure(w, e)
 		return
 	}
-	if _, e = snapshot.Seek(0, io.SeekStart); e != nil {
+	if e = index.Rewind(); e != nil {
 		failure(w, e)
 		return
 	}
-	decoder := json.NewDecoder(snapshot)
-	w.Header().Set("Content-Type", "application/zip")
-	w.Header().Set("Content-Disposition", `attachment; filename="configs-raw.zip"`)
-	archive := zip.NewWriter(w)
-	defer archive.Close()
+	output, e := newExportSpool()
+	if e != nil {
+		failure(w, e)
+		return
+	}
+	defer output.Close()
+	decoder := json.NewDecoder(index.file)
+	count := 0
+	var size int64
+	writer := io.MultiWriter(output.file, output.digest)
 	for {
 		var a Artifact
-		if e = decoder.Decode(&a); e == io.EOF {
+		e = decoder.Decode(&a)
+		if e == io.EOF {
 			break
-		} else if e != nil {
+		}
+		if e != nil {
+			failure(w, e)
 			return
 		}
 		if r.Context().Err() != nil {
 			return
 		}
-		body, e := s.store.vault.Open(a.Hash)
-		if e != nil {
-			continue
-		}
-		ext := "txt"
-		if a.Kind == "json" {
-			ext = "json"
-		}
-		entry, e := archive.Create(fmt.Sprintf("%s/%s.%s", a.Kind, a.ID, ext))
-		if e == nil {
-			_, e = io.Copy(entry, body)
-		}
-		body.Close()
-		if e != nil {
+		if size+a.Size+1 > 256<<20 {
+			http.Error(w, "raw output size limit", 503)
 			return
 		}
+		body, err := s.store.vault.Open(a.Hash)
+		if err != nil {
+			http.Error(w, "raw body unavailable; retry", 503)
+			return
+		}
+		if count > 0 {
+			if _, e = writer.Write([]byte{'\n'}); e != nil {
+				body.Close()
+				failure(w, e)
+				return
+			}
+			size++
+		}
+		n, err := io.Copy(writer, body)
+		body.Close()
+		if err != nil || n != a.Size {
+			http.Error(w, "raw body incomplete; retry", 503)
+			return
+		}
+		size += n
+		count++
+	}
+	if count == 0 {
+		http.Error(w, "no current raw configurations", 503)
+		return
+	}
+	// Vault I/O is complete before taking the serialized admission transaction.
+	tx, e := s.store.db.BeginTx(r.Context(), nil)
+	if e != nil {
+		failure(w, e)
+		return
+	}
+	defer tx.Rollback()
+	if _, e = tx.ExecContext(r.Context(), "UPDATE residential_settings SET generation=generation WHERE id=1"); e != nil {
+		failure(w, e)
+		return
+	}
+	after := sha256.New()
+	verify := json.NewEncoder(after)
+	if e = walkOutputs(r.Context(), tx, func(a Artifact) error { return verify.Encode(a) }); e != nil {
+		failure(w, e)
+		return
+	}
+	if !equal(string(before.Sum(nil)), string(after.Sum(nil))) {
+		http.Error(w, "raw membership changed; retry", 503)
+		return
+	}
+	if e = tx.Commit(); e != nil {
+		failure(w, e)
+		return
+	}
+	if e = output.Rewind(); e != nil {
+		failure(w, e)
+		return
+	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Disposition", "inline")
+	w.Header().Set("Content-Length", strconv.FormatInt(size, 10))
+	w.Header().Set("X-Content-SHA256", output.Hash())
+	w.Header().Set("X-Config-Count", strconv.Itoa(count))
+	w.Header().Set("X-Raw-Framing", "original-bytes; one-LF-between-members")
+	if r.Method != http.MethodHead {
+		_, _ = output.WriteTo(w)
 	}
 }

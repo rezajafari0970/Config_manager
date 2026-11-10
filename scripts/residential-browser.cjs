@@ -16,11 +16,14 @@ const fs=require('fs');
   await page.screenshot({path:dir+'/residential-'+width+'.png',fullPage:true});sizes.push(width);
  }
  const state=await(await page.request.get(origin+'/api/residential')).json();
+ if(!state.links['raw.txt']||state.links['raw.zip'])throw Error('raw format not migrated');
+ if(!state.progress||state.total!==2)throw Error('missing progress');
  if(state.eligible_count!==2)throw Error('fixture count mismatch');
  const generations=[];
  for(const [name,url] of Object.entries(state.links)){
   const response=await page.request.get(url+'?generation='+state.generation);
-  if(response.status()!==200)throw Error('export '+name);generations.push(response.headers()['x-residential-generation']);
+  if(response.status()!==200)throw Error('export '+name);
+  if(name==='raw.txt'&&(!response.headers()['content-type'].startsWith('text/plain')||response.headers()['content-disposition']!=='inline'))throw Error('raw not inline');generations.push(response.headers()['x-residential-generation']);
  }
  if(generations.some(x=>x!==state.generation))throw Error('generation mismatch');
  await page.locator('[data-copy="configs.jsonl"]').click();

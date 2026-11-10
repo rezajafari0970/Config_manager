@@ -17,7 +17,7 @@ PREFIX = os.environ.get('SHEN_RESIDENTIAL_TEST_PREFIX', 'crr')
 if PREFIX not in ('crr', 'crt'): raise RuntimeError('invalid resource prefix')
 adapter.PREFIX = PREFIX
 adapter.OWN = re.compile(r'^'+PREFIX+r'[0-9a-f]{6}20(?:0[0-8])$')
-CONTROLS = ['www.cloudflare.com', 'api.ipify.org']
+CONTROLS = ['www.cloudflare.com', 'api64.ipify.org']
 
 def now(): return int(time.time()*1000)
 
@@ -120,11 +120,14 @@ async def connection_probe(host,variant,wave,timeout,path):
     return row
 
 async def session(request):
-    policy=request['policy'];variants=request['variant'];sem=asyncio.Semaphore(4);rows=[]
-    # Screening uses two domains; full scope remains explicitly incomplete.
+    policy=request['policy'];variants=request['variant'];sem=asyncio.Semaphore(6);rows=[]
+    # Screening uses up to three explicitly configured DoubleClick domains; full scope remains explicitly incomplete.
     # Without verified egress and specialist IP intel, expanding all destinations
     # cannot qualify the record and only wastes bandwidth.
-    domains=policy['domains'] if request.get('deep') else policy['domains'][:2]
+    priority=['googleads.g.doubleclick.net','pubads.g.doubleclick.net','securepubads.g.doubleclick.net']
+    screening=[h for h in priority if h in policy['domains']]
+    screening=(screening+[h for h in policy['domains'] if h not in screening])[:3]
+    domains=policy['domains'] if request.get('deep') else screening
     for wave in range(1,policy['repeats']+1):
         async def run(host):
             async with sem:return await connection_probe(host,variants['name'],wave,policy['timeout_seconds'],variants['paths'][0])
@@ -142,7 +145,7 @@ def strict_policy(box,resolved):
     box.net([lab.NFT,'-f','-'],input=rules.encode())
 
 def variant_test(box,v,policy,deep=False):
-    result={'name':v['name'],'hash':v['sha256'],'runtime_hash':'','core':'not_run','health':'UNKNOWN','paths':v['paths'],'paths_complete':v['paths_complete'],'code':'not_run'}
+    result={'name':v['name'],'import_rule':v.get('import_rule','original-json'),'hash':v['sha256'],'runtime_hash':'','core':'not_run','health':'UNKNOWN','paths':v['paths'],'paths_complete':v['paths_complete'],'code':'not_run'}
     data=base64.b64decode(v['config'],validate=True)
     if len(data)>2*1024*1024 or lab.digest(data)!=v['sha256']:raise ValueError('invalid_candidate')
     strict_policy(box,{})
@@ -214,7 +217,10 @@ def main():
     try:registry=intel.load('/etc/config-repair/residential-intel.json')
     except Exception:registry=intel.Registry([])
     candidates=[r['ip'] for r in report['observations']+report['controls'] if r.get('ip')]
-    try:report['ip_facts']=asyncio.run(registry.collect(candidates))
+    async def collect_intel():
+        specialist,metadata=await asyncio.gather(registry.collect(candidates),intel.metadata_registry().collect(candidates))
+        return specialist+metadata
+    try:report['ip_facts']=asyncio.run(collect_intel())
     except Exception:report['ip_facts']=[]
     report['finished']=now()
     async def infrastructure():

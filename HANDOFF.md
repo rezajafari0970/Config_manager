@@ -1,3 +1,39 @@
+# Current handoff — P29 fixed lifetime and diagnostics
+
+P29 supersedes earlier P28 lifetime/raw-format notes. Read AGENTS.md,
+docs/RESIDENTIAL.md, PROJECT_STATE.json and the P29 checkpoint. Schema17 is live;
+all29sources and other settings preserved. Shared retention and ordinary health
+cache are36,000s each, panel-configurable; Ads evidence600s/retest300s independent.
+Existing generations and old health proofs are not retroactively renewed.
+
+Release: /opt/config-repair/releases/p29-2f64c060f235239d875f. All six services active/enabled and
+actual executable hashes verified. Public mobile/desktop checks passed. Raw ZIP
+has been replaced by inline raw.txt in both residential and all-source outputs.
+The direct all-source raw link is /output/raw.txt; it makes no health/residential
+claim. Residential links remain at /residential with actual eligibility counts.
+
+Diagnostics expose same-connection candidate IPs, repeated same-family control
+comparisons, rotation and independently corroborated ASN/country metadata. These
+never grant residential acceptance or deletion. Raw structural imports are
+recorded; immutable originals preserved. Direct-first fallback coverage corrected.
+
+Current live residential proof is still incomplete: no authorized flow observer
+or specialist+independent classifier configured, and no complete forcedIPv6,
+UDP/QUIC/balancer-path method. All three full-scope outputs currently503/count0.
+This is not evidence that no residential config exists. The queue continues for
+every input; at04:14:55UTC it held2622records,1070assessed/1552awaiting first test.
+Do not call this all-config completion or claim ground-truth accuracy.
+
+All final checks, five worker recoveries, schema migration, concurrency/expiry/
+raw bytes and browser/restart passed; no actual Android/carrier or10h wall-clock
+soak. P29 API review:gpt-6-astra completed, estimated$0.163855; one finding fixed.
+Private receipts: /root/projects/config-manager-production-p29/.local. Source
+publication/readback:p29-published.json. Keep canonical branch and legacy main.
+The external revocation journal must never roll back; schema16 runtime cannot
+open schema17. Preserve matching backup and fix forward on migration problems.
+
+---
+
 # Current handoff — P28 residential Google Ads
 
 Read AGENTS.md, docs/RESIDENTIAL.md, docs/checkpoints/P28-residential-20261110.md and PROJECT_STATE.json first. All later historical sections below are superseded where P28 says so.

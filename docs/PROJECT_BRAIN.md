@@ -1,3 +1,15 @@
+# Current P29 decision — 2026-11-10
+
+The user explicitly changed the residential lifetime requirement from indefinite
+to10h shared fixed retention and ordinary health cache10h, panel-configurable.
+This supersedes older P28 notes. Ads observation expiry remains10min; no cached
+health result or IP metadata replaces a fresh route measurement. Raw ZIP becomes
+inline exact raw text. Country/ASN differences are useful diagnostic observations,
+not sufficient evidence for Residential or for dedicated routing. P29 adds
+per-domain diagnostics, metadata-only plugins, structural import normalization,
+visible progress/pagination and default-outbound path correction. See P29 checkpoint
+for tests, deployment identity and live proof limitations.
+
 # Project Brain — P24
 
 Current user instruction (2026-10-30) replaces the persistent repair laboratory with a shared JSON conversion flow. Read PROJECT_STATE.json, HANDOFF.md, docs/CONVERSION.md and the P21 checkpoint. Earlier checkpoints describe history only.

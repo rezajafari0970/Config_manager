@@ -1,4 +1,33 @@
-# Residential Google Ads evidence — P28
+# Residential Google Ads evidence — P29
+
+## P29 lifetime and diagnostics update
+
+The latest user instruction supersedes P28's unlimited retention: residential
+records now have a fixed `retain_until`, based on first receipt and the shared
+panel retention setting (production target 36,000 seconds). Re-fetch, successful
+retest and increasing retention cannot extend an existing generation. Shortening
+retention shortens its deadline. The ordinary health cache is separately set to
+36,000 seconds. Ads evidence remains limited to 600 seconds and is rechecked at
+300-second jittered intervals. Read-time expiry never waits for cleanup.
+
+The raw output is `raw.txt`, `text/plain`, inline: each acquired original body is
+unchanged, with one LF between records. It is not a self-delimiting serialization
+for arbitrary multiline inputs. The old authenticated raw ZIP URL redirects to
+the new stable text URL. JSONL and single JSON formats retain their contracts.
+
+The diagnostic summary is independent of acceptance: repeated same-connection
+candidate IPs are labelled CANDIDATE_ONLY unless the trusted method verifies them.
+Comparisons require both independent controls in the same wave, family, transport
+and raw/template variant. Equal IPs do not reject an all-residential configuration.
+Different IPs, ASN or geography never grant publication. Fresh IPinfo and IPWhois
+metadata are collected with exact-IP checks, bounded HTTPS requests, HTTP/1.1 ALPN,
+TTL cache and rate-limit backoff. These metadata-only plugins always return Unknown
+network class and cannot substitute for configured specialist classification.
+
+The dashboard shows tested/pending counts, per-domain samples, rotation and
+corroborated country/ASN differences, with pagination instead of hiding all but
+100 records. Evidence records retain publisher/time/digest. No AI call runs per
+connection, classifies an ASN or authorizes deletion.
 
 ## Contract and current capability
 
@@ -11,12 +40,12 @@ observations, never permanent behavior or all Google Ads.
 Default policy `shen.residential.v1` uses explicit domain-list revision
 `google-ads-explicit.2026-11-10.1`, ten domains, IPv4/IPv6, TCP/UDP/QUIC,
 three samples, ten-minute evidence lifetime and five-minute jittered recheck.
-Every matrix cell and selectable path must qualify in both the untouched raw
-configuration and common `@shenvpn` template. Policy, trust, template and raw
+Every matrix cell and selectable path must qualify in both the raw import (with recorded deterministic structural repairs only)
+and common `@shenvpn` template. Policy, trust, template and raw
 changes invalidate dependent evidence. Current Xray target remains 26.7.28.
 
 **Current live limitations:** the built-in network driver screens TCP HTTPS,
-initially two domains, using two independent control services and repeated
+initially three explicitly configured DoubleClick domains, using two independent control services and repeated
 waves. No native IPv6-forced, UDP or QUIC proof driver is supplied. All unresolved
 multi-outbound/balancer/geosite/reverse paths remain incomplete. Other core
 drivers return `UNSUPPORTED`; reachability is not silently mapped to unhealthy.
@@ -101,12 +130,13 @@ are labelled separately; their result cannot stand in for a failed tunnel.
 Schema 16 creates residential raw-hash records and independent encrypted vault
 references without source/artifact foreign keys. All input memberships enter
 the queue, including Splash, ordinary sources and unsupported protocols. Original
-bytes remain immutable. Accepted originals and templates survive two-hour TTL,
-source deletion/disappearance, repeated fetching, and ordinary garbage collection.
+bytes remain immutable. Accepted originals and templates survive ordinary source
+deletion/disappearance and garbage collection until their fixed shared retention
+deadline. Duplicate fetching does not extend it.
 Unknown/partial inputs remain available for re-evaluation. Initial unknown audit
 history is limited to two results; previously accepted history to twenty.
 
-Evidence is finite even though accepted configuration retention has no age cap.
+Evidence has a shorter independent lifetime than the fixed configuration deadline.
 Every export checks present eligibility; expired, suspect or uncertain formerly
 accepted configurations are quarantined across ordinary and Smart outputs.
 An IP-provider outage, conflicting data, a single timeout or shared infrastructure
@@ -122,7 +152,7 @@ Audit/tombstone metadata remains to prevent resurrection. Manual deletion is
 permanent until an explicit future restore mechanism is implemented; re-fetching
 or a new label cannot bypass its identity tombstone. Automatic re-entry requires
 a new lease/epoch and genuinely post-revocation observations. Older completions
-cannot publish. Deleting a source alone does not delete retained residential data.
+cannot publish. Deleting a source alone does not delete retained residential data before its deadline.
 
 The append-only authenticated deletion ledger and high-water mark must live
 **outside the ordinary DB/blob backup tree**. Append+fsync precedes DB commit;
@@ -131,7 +161,7 @@ publication. A partial uncommitted tail is repairable only beyond an intact
 authenticated watermark. Startup invalidation happens before public and private
 listeners; restored proofs must be observed again. Restore the DB/blob/key set
 without rolling back the external ledger. Do not downgrade to a schema-15 binary
-or restore an old runtime that does not enforce the ledger. P27 rejects schema16.
+or restore an old runtime that does not enforce the ledger. P28 rejects schema17.
 Previously admitted responses and downloaded files cannot be recalled.
 
 ## Outputs and UI
@@ -144,9 +174,9 @@ throughput and CPU/RAM metrics. They expose stable signed URLs for:
 | --- | --- |
 | `configs.jsonl` | One compact common-template JSON per line; no array/wrapper |
 | `next.json` | One JSON per GET; durable independent round per link, shared by consumers |
-| `raw.zip` | Each original's exact bytes in a hash-named entry, plus a generation manifest |
+| `raw.txt` | Exact original bodies, one LF separator; inline plain text |
 
-ZIP preserves arbitrary multiline/raw formats without inventing delimiters.
+raw.txt preserves each original body; one LF separates members, so arbitrary multiline input is not self-delimiting.
 All three derive from the same eligible snapshot and generation. Supply the
 `generation` query parameter to reject changes during a three-output comparison.
 No members yields HTTP503 and Retry-After, never stale or datacenter fallback.

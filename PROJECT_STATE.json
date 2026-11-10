@@ -1,5 +1,5 @@
 {
-  "phase": "P28 residential Ads evidence, independent retention and guarded publication",
+  "phase": "P29 fixed10h lifetime, raw text and independent route diagnostics",
   "date": "2026-11-10",
   "status": "deployed_guarded_live_evidence_pending",
   "repository": "rezajafari0970/Config_manager",
@@ -19,7 +19,7 @@
     "template": "@shenvpn common envelope, actual endpoint/auth/transport preserved",
     "output": "JSONL, one compact object per line; no array or wrapper",
     "bank": "removed including persistent samples/history/model/rules and routes",
-    "lifetime": "Ordinary memberships retain fixed age; independently accepted residential records survive age/source deletion, while their evidence expires separately.",
+    "lifetime": "Fixed shared retention36000s from first receipt per generation, including residential; duplicate fetch/retest/settings increases never renew current age. Source removal does not shorten independent residential deadline. Evidence TTL600s remains separate.",
     "export_gate": "exact pinned-core pass; semantic hypotheses additionally require fresh two-destination HTTPS",
     "connectivity": "separate from ordinary JSON export eligibility",
     "android": "not_run",
@@ -44,7 +44,8 @@
     "smart_ads": "One whole fresh Splash head plus ordinary main followers; independent repository/settings/jobs/cache/provenance/rounds/service. Main and bootstrap leastLoad unchanged; terminal Ads dialers chain through main. Missing Ads blocks publication; unsupported chains fail explicitly.",
     "residential": "Separate health, attributed Ads egress and exact-IP class. Both raw/template and every required domain/family/transport/path must qualify. Unknown/Partial/Unsupported never enter full residential output.",
     "residential_deletion": "First suspicion/expiry quarantines; spaced fresh credible failures with infrastructure controls authorize global revocation. External authenticated tombstones fence stale jobs/backups/manual aliases. No AI deletion authority.",
-    "residential_outputs": "Common eligible generation: JSONL @shenvpn; durable per-link single JSON; exact-original raw ZIP. No eligible members yields503/no-store/no fallback."
+    "residential_outputs": "Common eligible generation: JSONL @shenvpn, durable per-link single JSON, inline exact-original raw.txt with one LF between bodies. Legacy ZIP URL redirects. Empty full-scope set returns503, never an uncertain substitute.",
+    "raw_output": "All-source raw.txt prints unchanged original bodies with one LF between members, current membership rechecked before admission; old archive.zip redirects."
   },
   "validation": {
     "gofmt_modules_vet_race_build": "passed",
@@ -2213,10 +2214,100 @@
         "Android/APK/Iran-carrier tests not_run",
         "Sampling is finite, not a permanent or100% guarantee"
       ]
+    },
+    "p29": {
+      "full_check": "passed",
+      "final_changed_paths_race": "passed96.349s",
+      "migration16_to17": "passed idempotent, original age and source preserved",
+      "all_five_worker_recoveries": "passed",
+      "browser": "mobile390/desktop1440, raw inline,10h controls, restart, no errors passed",
+      "live_browser": {
+        "passed": true,
+        "widths": [
+          390,
+          1440
+        ],
+        "pages": [
+          "residential",
+          "setting",
+          "output"
+        ],
+        "retention_hours": 10,
+        "health_cache_hours": 10,
+        "read_only": true,
+        "page_errors": []
+      },
+      "ai_review": {
+        "model": "gpt-6-astra",
+        "status": "completed",
+        "usage": {
+          "input_tokens": 8981,
+          "input_tokens_details": {
+            "cache_write_tokens": 8978,
+            "cached_tokens": 0
+          },
+          "output_tokens": 1032,
+          "output_tokens_details": {
+            "reasoning_tokens": 864
+          },
+          "total_tokens": 10013
+        },
+        "estimated_cost_usd": 0.163855,
+        "actual_billed_cost_usd": null
+      },
+      "live_snapshot": {
+        "passed": true,
+        "at": 1794284095.4166343,
+        "schema": 17,
+        "settings": {
+          "retention_seconds": 36000,
+          "health_ttl_seconds": 36000
+        },
+        "sources": 29,
+        "missing_memberships": 0,
+        "eligible": 0,
+        "counts": {
+          "UNKNOWN": 2590,
+          "UNSUPPORTED": 32
+        },
+        "progress": {
+          "healthy": 122,
+          "pending": 1552,
+          "tested": 1070
+        },
+        "total": 2622,
+        "metrics": {
+          "configs_per_minute_last_5m": 19,
+          "mean_cpu_ms": 135.8272604350383,
+          "p50_ms": 5115.371,
+          "p95_ms": 13455.018,
+          "peak_rss_bytes": 66924544,
+          "sample_count": 1701,
+          "scope": "server-side assessment; not client throughput"
+        },
+        "outputs": {
+          "configs.jsonl": {
+            "status": 503,
+            "bytes": 49
+          },
+          "next.json": {
+            "status": 503,
+            "bytes": 49
+          },
+          "raw.txt": {
+            "status": 503,
+            "bytes": 49
+          }
+        },
+        "raw_all_count": 721
+      },
+      "true_residential_accuracy": "not measured; no authorized ground truth",
+      "android": "not_run",
+      "ten_hour_wall_clock_soak": "not_run; deadline advancement acceptance passed"
     }
   },
   "runtime": {
-    "database_schema": 16,
+    "database_schema": 17,
     "services": [
       "config-repair.service",
       "config-repair-prober.service",
@@ -2226,19 +2317,19 @@
       "config-repair-residential.service"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p28-d5c9dc60e5946dfd03fb-r2",
-    "panel_sha256": "d5c9dc60e5946dfd03fbf4c7e8d523c3c3d0a5c29a9b5dcbd107bec1dd96ffbf",
+    "release": "/opt/config-repair/releases/p29-2f64c060f235239d875f",
+    "panel_sha256": "2f64c060f235239d875f0898ed0ee6a5cee9224405f12676436e3a23aaa8fec8",
     "worker_sha256": "905696e03dbbc706261d203febad43493ae5d9f7c98b8cf1bf5bb1ce56ea4c50",
     "template_version": "xray-26.7.28.template.v4",
-    "retention_seconds": 7200,
+    "retention_seconds": 36000,
     "fetch_concurrency": 16,
     "fetch_timeout_seconds": 30,
     "conversion_concurrency": 6,
     "connection_timeout_seconds": 10,
     "retest_seconds": 900,
-    "connection_ttl_seconds": 1800,
-    "deployment_receipt": ".local/p28-r2-deployed.json",
-    "publication_receipt": ".local/p28-published.json",
+    "connection_ttl_seconds": 36000,
+    "deployment_receipt": ".local/p29-deployed.json",
+    "publication_receipt": ".local/p29-published.json",
     "sandbox_driver_sha256": "0cab02ff83a5d3b83816752e110dcae20a2f92d3bb3ce83b6fcc099bffa5d483",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.7.28.probe-plan.v3",
@@ -2255,8 +2346,8 @@
     "splash_enabled": true,
     "splash_sources_at_inspection": 3,
     "splash_concurrency": 2,
-    "source_parent_commit": "660cf470f62639bcf23cfd34d8f5667600150448",
-    "tested_runtime_manifest": ".local/p28-tested-runtime.json",
+    "source_parent_commit": "c4e0af88b929834fc9de8d889aa3444ee4c314ef",
+    "tested_runtime_manifest": ".local/p29-tested-runtime.json",
     "ads_adapter_sha256": "4a519c9f99c61b9b8c25d16a6350af83f8fb00b29808e1e275110e5918bdebec",
     "ads_version": "xray-26.7.28.smart-ads.v1",
     "geosite_sha256": "adf92de0cfc70e458b399f04c5f912bf42d115ed7e37281b30e2f1c68605e4e9",
@@ -2264,19 +2355,20 @@
     "ads_count": 50,
     "ads_revision": 1,
     "ads_enabled": true,
-    "residential_worker_sha256": "9fb05a82fc8c2484a306b05f54419695b99b139dedf9425e930d5e4548ba9c01",
-    "residential_adapter_sha256": "777498958910aefde6c3ddfde53760594b05c1db3b2def18bcbdda5ebe2b1eed",
-    "residential_intel_sha256": "702d995e279a9cd5a37bc53d811c5132292c8876211d907faf29c2c3ffccf4b1",
+    "residential_worker_sha256": "865b4019f27b92a2a62263c7ce7fcbb7001fc62d9505202975caec16a659e850",
+    "residential_adapter_sha256": "df236949e9bad6516af770cc4c9a8a83c431975dda60fc635cfce914f8d7e78b",
+    "residential_intel_sha256": "975350a113fe1d151d067fa5cc51e2a71000e884b597ec6e94b4cd6e20728d5e",
     "residential_observer_sha256": "8b581d92a9d1c55384e866739102bf3cef333eea4bfd67c9d217720915bebd49",
     "residential_version": "shen.residential.v1",
     "residential_domains_version": "google-ads-explicit.2026-11-10.1",
     "residential_evidence_ttl_seconds": 600,
     "residential_retest_seconds": 300,
     "residential_concurrency": 2,
-    "residential_retention": "no age cap for accepted records; evidence remains expiring",
+    "residential_retention": "fixed shared10h per generation; evidence10min independent",
     "residential_ledger": "/var/lib/shen-residential-revocations",
     "residential_trust_configured": false,
-    "residential_eligible_at_snapshot": 0
+    "residential_eligible_at_snapshot": 0,
+    "public_verification_receipt": ".local/p29-live-check.json"
   },
   "next": [
     "Configure documented authorized egress-flow observer and independently sourced exact-IP specialist intelligence before live residential acceptance",
@@ -2286,7 +2378,7 @@
     "Standalone checksum-pinned installer/update/rollback remains a separate release task"
   ],
   "environment": "Use verified project-local Go1.27.1 toolchain/module/build caches; shared caches previously failed integrity checks and were not modified.",
-  "audit_checkpoint": "docs/checkpoints/P28-residential-20261110.md",
+  "audit_checkpoint": "docs/checkpoints/P29-lifetime-diagnostics-20261110.md",
   "smart_ads": {
     "status": "deployed_verified; waiting for fresh eligible Splash input",
     "schema": 15,

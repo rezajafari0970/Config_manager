@@ -64,7 +64,7 @@ func (s *Store) claimResidentialFor(ctx context.Context, worker string) (*reside
 	j := &residential.Job{Policy: p, TrustHash: t.Digest()}
 	var size int64
 	priority := s.residentialTurn.Add(1)%4 != 0
-	e = tx.QueryRowContext(ctx, `SELECT hash,kind,size,revision,epoch,ever_accepted FROM residential_records r WHERE state!='DELETED' AND paused=0 AND (token='' OR lease_until<=?) AND next_run<=? AND (?='' OR negative_worker!=? OR negative_last<?) ORDER BY CASE WHEN ever_accepted=1 AND ? THEN 0 ELSE 1 END,coalesce((SELECT min(coalesce(f.last_claim,0)) FROM residential_owners o LEFT JOIN residential_source_fairness f ON f.source=o.source WHERE o.hash=r.hash),0),next_run,first_seen,hash LIMIT 1`, now, now, worker, worker, now-120000, priority).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Epoch, &j.Deep)
+	e = tx.QueryRowContext(ctx, `SELECT hash,kind,size,revision,epoch,ever_accepted FROM residential_records r WHERE state!='DELETED' AND retain_until>CAST(unixepoch('subsec')*1000 AS INTEGER) AND paused=0 AND (token='' OR lease_until<=?) AND next_run<=? AND (?='' OR negative_worker!=? OR negative_last<?) ORDER BY CASE WHEN ever_accepted=1 AND ? THEN 0 ELSE 1 END,coalesce((SELECT min(coalesce(f.last_claim,0)) FROM residential_owners o LEFT JOIN residential_source_fairness f ON f.source=o.source WHERE o.hash=r.hash),0),next_run,first_seen,hash LIMIT 1`, now, now, worker, worker, now-120000, priority).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Epoch, &j.Deep)
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, tx.Commit()
 	}
@@ -100,7 +100,7 @@ func (s *Store) claimResidentialFor(ctx context.Context, worker string) (*reside
 }
 func (s *Store) RenewResidential(ctx context.Context, j residential.Job) error {
 	now := time.Now().UnixMilli()
-	r, e := s.db.ExecContext(ctx, `UPDATE residential_records SET lease_until=? WHERE hash=? AND revision=? AND epoch=? AND token=? AND lease_until>? AND state!='DELETED' AND EXISTS(SELECT 1 FROM residential_settings WHERE enabled=1 AND policy_hash=? AND trust_hash=?)`, now+120000, j.Hash, j.Revision, j.Epoch, j.Token, now, j.Policy.Digest(), j.TrustHash)
+	r, e := s.db.ExecContext(ctx, `UPDATE residential_records SET lease_until=? WHERE hash=? AND revision=? AND epoch=? AND token=? AND lease_until>? AND state!='DELETED' AND retain_until>CAST(unixepoch('subsec')*1000 AS INTEGER) AND EXISTS(SELECT 1 FROM residential_settings WHERE enabled=1 AND policy_hash=? AND trust_hash=?)`, now+120000, j.Hash, j.Revision, j.Epoch, j.Token, now, j.Policy.Digest(), j.TrustHash)
 	if e != nil {
 		return e
 	}
@@ -155,6 +155,7 @@ func (s *Store) CompleteResidential(ctx context.Context, c residential.Completio
 				matched = true
 				v.PathsComplete = v.PathsComplete && expected.PathsComplete && slices.Equal(v.Paths, expected.Paths)
 				v.Paths = expected.Paths
+				v.ImportRule = expected.ImportRule
 				break
 			}
 		}
@@ -185,9 +186,11 @@ func (s *Store) CompleteResidential(ctx context.Context, c residential.Completio
 				continue
 			}
 			rawMatch, templateMatch := false, false
-			expectedRaw := v.SHA256
-			if plan.Kind == "json" && json.Valid(raw) {
-				expectedRaw = repair.Digest(raw)
+			expectedRaw := ""
+			for _, execution := range expectedPlan.Variants {
+				if execution.Name == "raw" {
+					expectedRaw = execution.SHA256
+				}
 			}
 			for _, variant := range c.Report.Variants {
 				if variant.Name == "raw" && variant.Hash == expectedRaw {
@@ -233,7 +236,7 @@ func (s *Store) CompleteResidential(ctx context.Context, c residential.Completio
 	var count int
 	var first, last int64
 	var worker, epoch string
-	e = tx.QueryRowContext(ctx, `SELECT ever_accepted,claimed_at,negative_count,negative_first,negative_last,negative_worker,negative_epoch FROM residential_records WHERE hash=? AND revision=? AND epoch=? AND token=? AND lease_until>? AND state!='DELETED'`, c.Hash, c.Revision, c.Epoch, c.Token, now).Scan(&accepted, &claimed, &count, &first, &last, &worker, &epoch)
+	e = tx.QueryRowContext(ctx, `SELECT ever_accepted,claimed_at,negative_count,negative_first,negative_last,negative_worker,negative_epoch FROM residential_records WHERE hash=? AND revision=? AND epoch=? AND token=? AND lease_until>? AND state!='DELETED' AND retain_until>CAST(unixepoch('subsec')*1000 AS INTEGER)`, c.Hash, c.Revision, c.Epoch, c.Token, now).Scan(&accepted, &claimed, &count, &first, &last, &worker, &epoch)
 	if errors.Is(e, sql.ErrNoRows) {
 		return ErrConflict
 	}
@@ -350,6 +353,9 @@ func (s *Store) CompleteResidential(ctx context.Context, c residential.Completio
 
 // Expiry is a publication gate even when workers and scheduled cleanup are down.
 func (s *Store) expireResidential(ctx context.Context, tx *sql.Tx, now int64) error {
+	if e := s.expireResidentialLifetime(ctx, tx, now); e != nil {
+		return e
+	}
 	r, e := tx.ExecContext(ctx, `UPDATE residential_records SET state='QUARANTINED',reason='evidence_expired',next_run=min(next_run,?),valid_until=0 WHERE ever_accepted=1 AND state='ACCEPTED' AND valid_until<=?`, now, now)
 	if e != nil {
 		return e

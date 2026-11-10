@@ -1,9 +1,43 @@
 package panel
 
 import (
+	"context"
 	"strings"
 	"testing"
 )
+
+func TestResidentialV16MigrationPreservesAgeAndSources(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	resPolicy(t, s)
+	source, j, _ := resSeed(t, s, 1)
+	var first int64
+	s.db.QueryRow("SELECT first_seen FROM residential_records WHERE hash=?", j.Hash).Scan(&first)
+	// Recreate the actual preceding schema without the P29 field/index.
+	var view string
+	s.db.QueryRow("SELECT sql FROM sqlite_master WHERE name='residential_eligible'").Scan(&view)
+	view = strings.Replace(view, " AND r.retain_until>CAST(unixepoch('subsec')*1000 AS INTEGER)", "", 1)
+	if _, e := s.db.Exec("DROP TRIGGER residential_ingest;DROP VIEW residential_eligible;" + view + ";DROP INDEX residential_lifetime;ALTER TABLE residential_records DROP COLUMN retain_until;CREATE TRIGGER residential_ingest AFTER INSERT ON memberships BEGIN SELECT 1;END;UPDATE settings SET retention_seconds=36000 WHERE id=1;PRAGMA user_version=16;"); e != nil {
+		t.Fatal(e)
+	}
+	if e := s.migrateV17(); e != nil {
+		t.Fatal(e)
+	}
+	if e := s.migrateV17(); e != nil {
+		t.Fatal("non-idempotent", e)
+	}
+	var until, after int64
+	if e := s.db.QueryRow("SELECT first_seen,retain_until FROM residential_records WHERE hash=?", j.Hash).Scan(&after, &until); e != nil {
+		t.Fatal(e)
+	}
+	if after != first || until != first+36000000 {
+		t.Fatal("migration renewed age", after, until)
+	}
+	var sources int
+	if e := s.db.QueryRowContext(ctx, "SELECT count(*) FROM sources WHERE id=?", source).Scan(&sources); e != nil || sources != 1 {
+		t.Fatal("source lost", e)
+	}
+}
 
 // Legacy fixtures must actually remove the additive schema, rather than merely
 // lower user_version while leaving a future module's tables and trigger behind.

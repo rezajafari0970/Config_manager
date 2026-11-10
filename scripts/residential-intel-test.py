@@ -12,6 +12,17 @@ class Driver:
         return dict(ip=ip,source='fixture',at=now,expires=now+10000,**{'class':'Unknown'})
 
 class Tests(unittest.IsolatedAsyncioTestCase):
+    async def test_provider_rate_limit_backoff(self):
+        class Limited:
+            async def lookup(self,ip):raise intel.ProviderBackoff(7200)
+        registry=intel.Registry([]);registry.register('limited',Limited())
+        self.assertIsNone(await registry.lookup('limited','8.8.8.8'))
+        self.assertGreater(registry.breakers['limited'],int(time.time()*1000)+7000000)
+    async def test_public_metadata_cannot_classify(self):
+        with tempfile.TemporaryDirectory() as directory:
+            registry=intel.metadata_registry(str(pathlib.Path(directory)/'cache.json'))
+            self.assertEqual(len(registry.drivers),2)
+            for driver in registry.drivers.values():self.assertEqual(driver.config['classes'],{})
     async def test_exact_ip_coalescing_and_ttl(self):
         registry=intel.Registry([]);driver=Driver();registry.register('fixture',driver)
         await asyncio.gather(*(registry.lookup('fixture','8.8.8.8') for _ in range(20)))

@@ -80,7 +80,7 @@ func Network(ip string, facts []IPFact, p Policy, t Trust, now int64) (string, i
 // Evaluate grants only the explicitly enumerated matrix; never all Google Ads.
 // Matching control/Ads IPs do not disqualify an all-residential configuration.
 func Evaluate(r Report, p Policy, t Trust, now int64) Decision {
-	d := Decision{State: "UNKNOWN", Health: "UNKNOWN", Egress: "UNKNOWN", Network: "Unknown", Reason: "insufficient_evidence", Missing: []Scope{}}
+	d := Decision{State: "UNKNOWN", Health: "UNKNOWN", Egress: "UNKNOWN", Network: "Unknown", Reason: "insufficient_evidence", Missing: []Scope{}, Diagnostics: RouteDiagnostics(r, p, t, now)}
 	if r.Version != Version || r.PolicyHash != p.Digest() || !recent(r.Finished, now, p.EvidenceTTLSeconds) || r.Started > r.Finished || r.Started <= 0 {
 		d.Reason = "stale_or_incompatible_report"
 		return d
@@ -124,7 +124,7 @@ func Evaluate(r Report, p Policy, t Trust, now int64) Decision {
 				if o.Domain == "www.cloudflare.com" {
 					groups["cloudflare"] = true
 				}
-				if o.Domain == "api.ipify.org" {
+				if o.Domain == "api.ipify.org" || o.Domain == "api64.ipify.org" {
 					groups["ipify"] = true
 				}
 			}
@@ -140,7 +140,7 @@ func Evaluate(r Report, p Policy, t Trust, now int64) Decision {
 				if o.Domain == "www.cloudflare.com" {
 					groups["cloudflare"] = true
 				}
-				if o.Domain == "api.ipify.org" {
+				if o.Domain == "api.ipify.org" || o.Domain == "api64.ipify.org" {
 					groups["ipify"] = true
 				}
 			}
@@ -310,8 +310,8 @@ func repeatedControlFailure(r Report, variant string, p Policy) bool {
 	for wave := 1; wave <= p.Repeats; wave++ {
 		domains := map[string]bool{}
 		for _, o := range r.Controls {
-			if o.Variant == variant && o.Wave == wave && o.Outcome == "failed" && !o.TLSVerified && (o.Domain == "www.cloudflare.com" || o.Domain == "api.ipify.org") {
-				domains[o.Domain] = true
+			if o.Variant == variant && o.Wave == wave && o.Outcome == "failed" && !o.TLSVerified && (o.Domain == "www.cloudflare.com" || (o.Domain == "api.ipify.org" || o.Domain == "api64.ipify.org")) {
+				domains[controlGroup(o.Domain)] = true
 			}
 		}
 		if len(domains) != 2 {

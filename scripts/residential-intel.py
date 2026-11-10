@@ -5,7 +5,7 @@ No built-in ASN/country/provider-to-Residential table. Provider configuration is
 private, administrator-owned JSON. A positive classification is supplied only by
 an explicitly configured specialist schema, never absence of a hosting flag.
 """
-import asyncio, fcntl, os, tempfile, hashlib, ipaddress, json, pathlib, ssl, time, urllib.parse, urllib.request
+import asyncio, fcntl, os, tempfile, hashlib, ipaddress, json, pathlib, ssl, time, urllib.parse, urllib.request, urllib.error
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self,*args,**kwargs): return None
@@ -15,6 +15,9 @@ def field(value,path):
         if not isinstance(value,dict):return None
         value=value.get(part)
     return value
+
+class ProviderBackoff(Exception):
+    def __init__(self,seconds):self.seconds=min(86400,max(60,seconds))
 
 class JSONDriver:
     """HTTPS JSON contract: echoed exact IP, explicit class, country and ASN.
@@ -26,7 +29,7 @@ class JSONDriver:
     async def lookup(self,ip):
         c=self.config;parsed=ipaddress.ip_address(ip)
         if not parsed.is_global:raise ValueError('nonpublic_ip')
-        url=c['url'].replace('{ip}',urllib.parse.quote(str(parsed),safe=''))
+        url=c['url'].replace('{ip}',urllib.parse.quote(str(parsed),safe=':'))
         u=urllib.parse.urlsplit(url)
         if u.scheme!='https' or not u.hostname or u.username or u.password or '{ip}' not in c['url']:raise ValueError('invalid_provider_url')
         def request():
@@ -36,10 +39,17 @@ class JSONDriver:
                 path=pathlib.Path(c['token_file']);info=path.stat()
                 if not path.is_absolute() or info.st_mode&0o077:raise ValueError('private_provider_token_required')
                 headers['Authorization']='Bearer '+path.read_text().strip()
-            opener=urllib.request.build_opener(urllib.request.ProxyHandler({}),urllib.request.HTTPSHandler(context=ssl.create_default_context()),NoRedirect())
-            with opener.open(urllib.request.Request(url,headers=headers),timeout=min(10,c.get('timeout',3))) as response:
-                if response.status!=200:raise ValueError('provider_status')
-                raw=response.read(65537)
+            tls=ssl.create_default_context();tls.set_alpn_protocols(['http/1.1'])
+            opener=urllib.request.build_opener(urllib.request.ProxyHandler({}),urllib.request.HTTPSHandler(context=tls),NoRedirect())
+            try:
+                with opener.open(urllib.request.Request(url,headers=headers),timeout=min(10,c.get('timeout',3))) as response:
+                    if response.status!=200:raise ValueError('provider_status')
+                    raw=response.read(65537)
+            except urllib.error.HTTPError as exc:
+                if exc.code==429:
+                    retry=exc.headers.get('Retry-After','3600')
+                    raise ProviderBackoff(int(retry) if retry.isdigit() else 3600) from None
+                raise
             if len(raw)>65536:raise ValueError('provider_response_limit')
             data=json.loads(raw);fields=c['fields'];echo=field(data,fields['ip'])
             if ipaddress.ip_address(echo)!=parsed:raise ValueError('provider_ip_mismatch')
@@ -77,9 +87,10 @@ class Registry:
                 if len(self.cache)>4096:
                     for old in sorted(self.cache,key=lambda k:self.cache[k]['expires'])[:1024]:del self.cache[old]
                 return fact
-            except Exception:
+            except Exception as exc:
+                if isinstance(exc,ProviderBackoff):self.breakers[source]=int(time.time()*1000)+exc.seconds*1000
                 self.failures[source]=self.failures.get(source,0)+1
-                if self.failures[source]>=3:self.breakers[source]=int(time.time()*1000)+60000
+                if self.failures[source]>=3:self.breakers[source]=max(self.breakers.get(source,0),int(time.time()*1000)+60000)
                 return None
         task=asyncio.create_task(run());self.inflight[key]=task
         try:return await task
@@ -130,3 +141,18 @@ def load(path):
     data=json.loads(path.read_text())
     if data.get('version')!='shen.residential.intel.v1' or len(data.get('providers',[]))>8:raise ValueError('provider_contract_version')
     registry=Registry(data['providers']);registry.persisted(data.get('cache_file','/var/lib/config-repair-residential-intel/cache.json'),hashlib.sha256(json.dumps(data,sort_keys=True).encode()).hexdigest());return registry
+
+
+def metadata_registry(cache_path='/var/lib/config-repair-residential-intel/metadata.json'):
+    """Public exact-IP ASN/country metadata only: NEVER network classification.
+
+    Two publishers are retained separately; disagreement is displayed as Unknown.
+    These drivers cannot grant Residential even when absent from the private registry.
+    """
+    configs=[
+        {'id':'metadata-ipinfo','driver':'https-json-v1','url':'https://ipinfo.io/{ip}/json','fields':{'ip':'ip','country':'country','asn':'org'},'classes':{},'ttl_seconds':600,'timeout':2},
+        {'id':'metadata-ipwhois','driver':'https-json-v1','url':'https://ipwho.is/{ip}','fields':{'ip':'ip','country':'country_code','asn':'connection.asn'},'classes':{},'ttl_seconds':600,'timeout':2},
+    ]
+    registry=Registry(configs)
+    registry.persisted(cache_path,hashlib.sha256(json.dumps(configs,sort_keys=True).encode()).hexdigest())
+    return registry

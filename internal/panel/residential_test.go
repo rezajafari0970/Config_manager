@@ -1,7 +1,6 @@
 package panel
 
 import (
-	"archive/zip"
 	"bytes"
 	"context"
 	"crypto/ed25519"
@@ -9,10 +8,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"testing"
@@ -100,9 +99,14 @@ func resRequest(s *Store, scope, format string) *httptest.ResponseRecorder {
 func TestResidentialRetentionTTLSourceDeletionAndGC(t *testing.T) {
 	s := testStore(t)
 	resPolicy(t, s)
+	settings, _ := s.Settings(context.Background())
+	settings.RetentionSeconds = 36000
+	if e := s.SaveSettings(context.Background(), settings); e != nil {
+		t.Fatal(e)
+	}
 	source, j, result := resSeed(t, s, 1)
 	ctx := context.Background()
-	if _, e := s.db.Exec("UPDATE artifacts SET created=created-10800000,expires=expires-10800000; UPDATE residential_records SET first_seen=first_seen-10800000"); e != nil {
+	if _, e := s.db.Exec("UPDATE artifacts SET created=created-10800000,expires=expires-10800000; UPDATE residential_records SET first_seen=first_seen-10800000,retain_until=retain_until-10800000"); e != nil {
 		t.Fatal(e)
 	}
 	if e := s.Expire(ctx, time.Now()); e != nil {
@@ -119,7 +123,7 @@ func TestResidentialRetentionTTLSourceDeletionAndGC(t *testing.T) {
 			t.Fatalf("retention %s %v %v", hash, used, e)
 		}
 	}
-	for _, format := range []string{"configs.jsonl", "next.json", "raw.zip"} {
+	for _, format := range []string{"configs.jsonl", "next.json", "raw.txt"} {
 		w := resRequest(s, "all", format)
 		if w.Code != 200 {
 			t.Fatal(format, w.Code, w.Body.String())
@@ -128,7 +132,7 @@ func TestResidentialRetentionTTLSourceDeletionAndGC(t *testing.T) {
 	if _, e := s.db.Exec("UPDATE residential_records SET valid_until=0"); e != nil {
 		t.Fatal(e)
 	}
-	for _, format := range []string{"configs.jsonl", "next.json", "raw.zip"} {
+	for _, format := range []string{"configs.jsonl", "next.json", "raw.txt"} {
 		w := resRequest(s, "all", format)
 		if w.Code != 503 {
 			t.Fatal("expired publication", format, w.Code)
@@ -147,7 +151,7 @@ func TestResidentialExportParityExactRawAndConcurrentRounds(t *testing.T) {
 		expected[job.Hash] = job.Raw
 	}
 	a := resRequest(s, "all", "configs.jsonl")
-	b := resRequest(s, "all", "raw.zip")
+	b := resRequest(s, "all", "raw.txt")
 	if a.Code != 200 || b.Code != 200 || a.Header().Get("X-Residential-Generation") != b.Header().Get("X-Residential-Generation") {
 		t.Fatal(a.Code, a.Body.String(), b.Code, b.Body.String())
 	}
@@ -160,29 +164,23 @@ func TestResidentialExportParityExactRawAndConcurrentRounds(t *testing.T) {
 			t.Fatal("jsonl envelope")
 		}
 	}
-	archive, e := zip.NewReader(bytes.NewReader(b.Body.Bytes()), int64(b.Body.Len()))
-	if e != nil {
-		t.Fatal(e)
+	keys := make([]string, 0, len(expected))
+	for hash := range expected {
+		keys = append(keys, hash)
 	}
-	count := 0
-	for _, f := range archive.File {
-		if f.Name == "manifest.json" {
-			continue
+	sort.Strings(keys)
+	var rawExpected bytes.Buffer
+	for i, hash := range keys {
+		if i > 0 {
+			rawExpected.WriteByte('\n')
 		}
-		body, e := f.Open()
-		if e != nil {
-			t.Fatal(e)
-		}
-		data, _ := io.ReadAll(body)
-		body.Close()
-		hash := strings.TrimSuffix(f.Name, ".raw")
-		if !bytes.Equal(data, expected[hash]) {
-			t.Fatal("raw bytes changed")
-		}
-		count++
+		rawExpected.Write(expected[hash])
 	}
-	if count != 4 {
-		t.Fatal("raw parity")
+	if !bytes.Equal(b.Body.Bytes(), rawExpected.Bytes()) {
+		t.Fatal("raw bytes or ordering changed")
+	}
+	if b.Header().Get("Content-Disposition") != "inline" || !strings.HasPrefix(b.Header().Get("Content-Type"), "text/plain") {
+		t.Fatal("raw did not print inline")
 	}
 	other, e := Open(filepath.Join(filepath.Dir(s.vault.Directory()), "panel.db"), s.key)
 	if e != nil {

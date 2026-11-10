@@ -63,7 +63,7 @@ func TestResidentialFreshNegativeConfirmationAndSharedCircuit(t *testing.T) {
 			if state != want {
 				t.Fatalf("%s expected %s", state, want)
 			}
-			for _, format := range []string{"configs.jsonl", "next.json", "raw.zip"} {
+			for _, format := range []string{"configs.jsonl", "next.json", "raw.txt"} {
 				w := resRequest(s, "all", format)
 				if mode != "shared" && w.Code != 503 {
 					t.Fatal(format, w.Code)

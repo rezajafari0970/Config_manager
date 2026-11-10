@@ -1,3 +1,18 @@
+# Current P29 override — 2026-11-10
+
+Read docs/checkpoints/P29-lifetime-diagnostics-20261110.md and current receipts.
+The latest user instruction replaces P28 unlimited residential age with fixed
+shared retention, production10h; ordinary health cache10h is independent of
+Ads evidence10min/retest5min. Never renew current generations on duplicate fetch,
+retest or a settings increase. Source disappearance cannot bypass the independent
+record before its deadline. Claim, completion and every export enforce expiry.
+Raw ZIP is replaced by inline raw.txt preserving each original body, with one LF
+between bodies; old authenticated ZIP URLs redirect. Never synthesize proof from
+IP/ASN/country differences; show candidate route observations separately.
+Deterministic structural repairs are recorded by import rule, raw bytes preserved.
+Direct-first/default fallthrough must not be certified as a complete proxy path.
+Schema17 needs matching stopped-service backup; revocation ledger cannot rewind.
+
 # Working contract — current P28 residential evidence
 
 Read docs/PROJECT_BRAIN.md, PROJECT_STATE.json, HANDOFF.md and the current checkpoint. Verify actual HEAD, origin, worktree and runtime receipts. The user's 2026-10-30 instruction supersedes the persistent P6 laboratory: remove the bank, collect from links, convert to the shared @shenvpn JSON envelope, and emit one compact JSON object per line.

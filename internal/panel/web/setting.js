@@ -3,6 +3,7 @@ import {$,fa,digit} from './core.js';
 import {bindSettings} from './settings-form.js';
 export default function Setting(ctx){
  const number=id=>{const n=Number(digit($('#'+id).value));if(!Number.isSafeInteger(n)||n<1)throw new Error('مقادیر باید عدد صحیح مثبت باشند.');return n};
+ const hoursToSeconds=id=>{const n=Number(digit($('#'+id).value))*3600;if(!Number.isSafeInteger(n)||n<1)throw new Error('مدت معتبر برحسب ساعت وارد کنید.');return n};
  const tasks=[];
  for(const prefix of ['smart','smart-splash','smart-ads'])tasks.push(bindSettings({
   form:$('#'+prefix+'-settings'),path:'/api/'+prefix+'/settings',
@@ -11,8 +12,8 @@ export default function Setting(ctx){
  }));
  const fields=['concurrency','timeout_seconds','retest_seconds','health_ttl_seconds'];
  tasks.push(bindSettings({form:$('#probe-settings'),path:'/api/conversion/settings',
-  read:()=>Object.fromEntries([['enabled',$('#probe-enabled').checked],...fields.map(k=>[k,number('probe-'+k)])]),
-  write:s=>{$('#probe-enabled').checked=s.enabled;for(const k of fields)$('#probe-'+k).value=s[k]},
+  read:()=>Object.fromEntries([['enabled',$('#probe-enabled').checked],...fields.map(k=>[k,k==='health_ttl_seconds'?hoursToSeconds('probe-'+k):number('probe-'+k)])]),
+  write:s=>{$('#probe-enabled').checked=s.enabled;for(const k of fields)$('#probe-'+k).value=k==='health_ttl_seconds'?s[k]/3600:s[k]},
   onData:s=>{$('#probe-status').textContent=s.worker.status==='running'?'تبدیل خودکار فعال است':'در انتظار آماده‌شدن سرویس تبدیل'}
  }));
  tasks.push(bindSettings({form:$('#settings-form'),path:'/api/settings',

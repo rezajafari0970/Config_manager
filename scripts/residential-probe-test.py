@@ -1,9 +1,21 @@
 #!/usr/bin/env python3
 import asyncio, importlib.util, pathlib, unittest
+from unittest.mock import patch
 spec=importlib.util.spec_from_file_location('res',pathlib.Path(__file__).with_name('residential-probe.py'))
 res=importlib.util.module_from_spec(spec);spec.loader.exec_module(res)
 
 class Tests(unittest.IsolatedAsyncioTestCase):
+ async def test_parallel_screening_covers_three_domains_and_two_controls(self):
+  active=maximum=0
+  async def fake(host,variant,wave,timeout,path):
+   nonlocal active,maximum
+   active+=1;maximum=max(maximum,active);await asyncio.sleep(.001);active-=1
+   return {'domain':host,'tls_verified':True,'wave':wave}
+  request={'policy':{'domains':['pagead2.googlesyndication.com','googleads.g.doubleclick.net','pubads.g.doubleclick.net','securepubads.g.doubleclick.net'],'repeats':3,'timeout_seconds':1},'variant':{'name':'raw','paths':['single']}}
+  with patch.object(res,'connection_probe',fake):result=await res.session(request)
+  self.assertEqual(len(result['observations']),9);self.assertEqual(len(result['controls']),6)
+  self.assertEqual({x['domain'] for x in result['observations']},{'googleads.g.doubleclick.net','pubads.g.doubleclick.net','securepubads.g.doubleclick.net'})
+  self.assertEqual(maximum,5)
  async def read(self,data):
   r=asyncio.StreamReader(limit=32769);r.feed_data(data);r.feed_eof();return await res.response(r)
  async def test_exact_framing_for_same_stream(self):
