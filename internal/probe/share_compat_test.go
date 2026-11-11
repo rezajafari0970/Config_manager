@@ -38,10 +38,10 @@ func TestVMessShareCompatibilityPreservesWireAndRaw(t *testing.T) {
 }
 func TestVMessTLSAliasUsesStrictCandidateAndRejectsConflicts(t *testing.T) {
 	p := Prepare(shareFixture(M{"tls": "tls", "skip-cert-verify": true}))
-	if p.Code != "prepared" || len(p.Candidates) != 2 {
+	if p.Code != "prepared" || len(p.Candidates) != 1 {
 		t.Fatal(p.Code, len(p.Candidates))
 	}
-	c := p.Candidates[1]
+	c := p.Candidates[0]
 	if !c.RequiresConnection || !strings.Contains(c.Rule, "strict-tls-hypothesis") || !strings.Contains(c.Rule, shareCompatibilityVersion+".tls-verification-alias") || bytes.Contains(c.Config, []byte(`"allowInsecure":true`)) {
 		t.Fatal("insecure candidate bypass")
 	}

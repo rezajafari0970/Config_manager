@@ -1,3 +1,23 @@
+# P42: strict TLS and safe disk reclamation — 2026-11-11
+
+Activated p42-aa3602141aca9cc15b1b, schema25. Normalv9 / Smartv13 / Adsv6;
+probev7 / client-compatv4. Read docs/reports/P42-report-fa.md and P42-validation.json.
+Only strict TLS candidates are generated; immutable raw inputs remain unchanged.
+Preserve server fields and pins, including XHTTP download streams. Never restore
+allowInsecure=true to generated candidates to work around an invalid certificate.
+All ten former VMess TCP TLS bypass candidates build on both pinned cores after
+repair; individual connection proof remains mandatory. Full release/race/migration
+checks and six canonical executable comparisons passed. Source controls survive.
+
+Do not run pre25 binaries against this database. Deployment holds the common lock
+and keeps a matching stopped DB/blob/key/release recovery set. Current and previous
+verified offhost DigitalOcean recovery generations and quarantined DB evidence
+were retained. Old logs/caches/backups were removed only after activity/reference
+checks. Never sweep active worktrees or install caches blindly. Preserve concurrent
+P41 work in its isolated branch; integrate this schema/version change before deploy.
+Two pre-existing Bad message files in an old DO repair worktree were not touched.
+No Android/carrier, all-provider-transaction or whole-disk-integrity claim.
+
 # P40: conservative shared repairs and multi-core audit — 2026-11-11
 
 Activated p40-36c40d9853bcde96cbe2, schema24. Normalv8 / Smartv12 / Adsv5;

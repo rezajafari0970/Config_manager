@@ -1,7 +1,7 @@
 {
-  "phase": "P40",
+  "phase": "P42",
   "date": "2026-11-11",
-  "status": "deployed verified; conservative repairs active; independent live requalification continues",
+  "status": "deployed verified; strict TLS enforced; safe disk cleanup completed; independent requalification continues",
   "repository": "rezajafari0970/Config_manager",
   "branch": "go/v2rayng-2.3.6",
   "legacy_main": "unchanged",
@@ -37,7 +37,7 @@
     "traffic": "SOCKS UDP and tcp,udp routing; Vision/Mux UDP443 gates open. No unsolicited Mux: explicit VLESS xudp input maps to UDP-only manager; upstream UDP/QUIC support remains separate.",
     "uri_compatibility": "Narrow userinfo space escaping preserves decoded credentials; TLS cs maps exactly; explicit VLESS packetEncoding=xudp uses one UDP stream with TCP multiplexing disabled. Missing REALITY keys remain explicit failures.",
     "smart_output": "Each profile remains byte-identical to the verified cached candidate; group ordering and durable head rotation remain separate",
-    "smart_envelope": "v12 shared outbound-only fixed redirect and endpoint literal normalization; v5 Ads preserves owned terminal chains",
+    "smart_envelope": "v13 shared outbound-only fixed redirect, endpoint normalization and strict TLS; v6 Ads preserves owned terminal chains",
     "smart_admission": "Fresh verified ordinary members plus Instagram admission; final composed profile also requires whole-profile real connection proof",
     "smart_single": "Ready-only durable profile rounds; no post-validation outbound permutation",
     "acquisition": "Bounded full-body fetch with clean EOF, independent120s processing and30s completion, optional batches32 with immutable raw/candidate pins, atomic nonempty generations, preserved previous inventory on errors until fixed TTL; distinguish network/processing/truncation diagnostics. http.v2 retries one fresh HTTP/1.0 representation only after successful chunked unexpected EOF; partial spool discarded; original deadline/TLS/public-IP/redirect protections retained.",
@@ -50,29 +50,23 @@
     "raw_output": "All-source exact-original raw.txt; one LF between bodies. At serialized admission, captured members must remain eligible/unchanged; unrelated arrivals wait for next request. Invalidations503; old archive.zip redirects.",
     "native_format": "Native common output is sing-box JSON with @shenvpn outbound tag, not Xray-compatible JSON; unrecognized/ambiguous extensions and complex routes remain explicit unsupported.",
     "client_core_failure": "VLESS without actual permitted encryption and Trojan without TLS have explicit bounded diagnostics. Inactive tlsSettings never count as enabled TLS. Failing any copied helper rejects the whole generated profile.",
-    "compatibility_driver": "client-compat.2026-11-11.v3; endpoint-ipv6-literal.v1; legacy-vless-stream-redirect.v2; NO ADDED ENCRYPTION",
+    "compatibility_driver": "client-compat.2026-11-11.v4; strict-tls-verification.v1; endpoint-ipv6-literal.v1; legacy-vless-stream-redirect.v2; NO ADDED ENCRYPTION",
     "socket_dns": "ForceIPv4 and corresponding forced family strategies; DNS queryStrategy UseIPv4; no system fallback; XHTTP download covered",
     "family_qualification": "All691 distinct final candidates on four pinned cores;32 ordinary and17 Smart network representatives on target and bundled. Every output still requires own proof.",
-    "share_parser": "probe.v6 / share-compat.v2; fragment+percent decode, explicit cipher alias, exact empty placeholders, port spelling, bounded REALITY metadata; no guessed server fields",
-    "source_admission": "source-cardinality.v1; eligible inventory>=16 and >=75% drop: defer two observations, schedule unconditional no-cache revalidation15s, accept third independent observation. Min gap2s, inactivity reset120s; exact raw retained except private manual tombstones; no TTL/health extension; one common direct/staged transaction."
+    "share_parser": "probe.v7 / share-compat.v2; fragment+percent decode, explicit cipher alias, exact empty placeholders, port spelling, bounded REALITY metadata; no guessed server fields",
+    "source_admission": "source-cardinality.v1; eligible inventory>=16 and >=75% drop: defer two observations, schedule unconditional no-cache revalidation15s, accept third independent observation. Min gap2s, inactivity reset120s; exact raw retained except private manual tombstones; no TTL/health extension; one common direct/staged transaction.",
+    "strict_tls": "strict-tls-verification.v1; generated outbound TLS and XHTTP download allowInsecure is false; raw preserved; changed candidates require fresh connection proof"
   },
   "validation": {
     "status": "passed_with_documented_limits",
-    "report": "docs/reports/P40-validation.json",
-    "checks": {
-      "release_suite": "passed",
-      "final_delta_race": "passed",
-      "schema23_to24_rehearsal": "passed",
-      "mobile_desktop_fixture": "passed",
-      "byte_stability": "zero changed previously prepared candidates",
-      "client_source_contract": "v2rayNG2.3.6 and2.3.15 relevant importer/custom-transform function bodies identical",
-      "android_apk": "not_run",
-      "carriers": "not_run"
-    },
-    "android": "not_run"
+    "report": "docs/reports/P42-validation.json",
+    "release_suite": "passed",
+    "schema24_to25_rehearsal": "passed",
+    "android": "not_run",
+    "carriers": "not_run"
   },
   "runtime": {
-    "database_schema": 24,
+    "database_schema": 25,
     "services": [
       "config-repair",
       "config-repair-prober",
@@ -82,10 +76,10 @@
       "config-repair-egress"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p40-36c40d9853bcde96cbe2",
-    "panel_sha256": "36c40d9853bcde96cbe2f1fda3152a54fe08d8219290a9b0a206e8bde2237a46",
-    "worker_sha256": "612bceafd2391b67de2232339ccec733318a93101df1280d6738a562b6da5223",
-    "template_version": "xray-26.11.9.template.v8",
+    "release": "/opt/config-repair/releases/p42-aa3602141aca9cc15b1b",
+    "panel_sha256": "aa3602141aca9cc15b1b9e53a639717844c6caa4f1db370f6f391d92012bf5d8",
+    "worker_sha256": "1ab50c77670a285c2eaecba45b12338d682f1f92111da29f0a296ca4f797a8fb",
+    "template_version": "xray-26.11.9.template.v9",
     "retention_seconds": 36000,
     "fetch_concurrency": 16,
     "fetch_timeout_seconds": 30,
@@ -94,11 +88,11 @@
     "retest_seconds": 900,
     "connection_ttl_seconds": 36000,
     "deployment_receipt": ".local/deployment.json",
-    "publication_receipt": ".local/p40-published.json",
+    "publication_receipt": ".local/p42-published.json",
     "sandbox_driver_sha256": "65fc6d977c38e9589440a8d30acb8fe8557d7b5e5dac6a5da282128bff226b32",
     "structural_version": "xray-26.7.28.structural.v3",
-    "probe_version": "xray-26.11.9.probe-plan.v6",
-    "smart_version": "xray-26.11.9.smart.v12",
+    "probe_version": "xray-26.11.9.probe-plan.v7",
+    "smart_version": "xray-26.11.9.smart.v13",
     "smart_count": 50,
     "smart_concurrency": 2,
     "adapter_sha256": "41c16626106837d715b0418bc8f113d81dbed57b3370097fe2290b45eb77714f",
@@ -111,10 +105,10 @@
     "splash_enabled": true,
     "splash_sources_at_inspection": 3,
     "splash_concurrency": 2,
-    "source_parent_commit": "15a8b7d",
+    "source_parent_commit": "860c91d6189fc7200b18a209581113bb8e2c81e1",
     "tested_runtime_manifest": ".local/final-source-manifest.json",
     "ads_adapter_sha256": "1d205f54e7030cdd242d2872cfddba34ee4aaffd6b1927a2721e64211908f857",
-    "ads_version": "xray-26.11.9.smart-ads.v5",
+    "ads_version": "xray-26.11.9.smart-ads.v6",
     "geosite_sha256": "adf92de0cfc70e458b399f04c5f912bf42d115ed7e37281b30e2f1c68605e4e9",
     "smart_enabled": true,
     "ads_count": 50,
@@ -124,15 +118,15 @@
     "native_core": "sing-box-1.14.4",
     "native_core_sha256": "1264361b5f8868c8768f7555d3e77e20118bf503c41ac08bb290a0d99056aa3a",
     "acquisition_verification_receipt": ".local/p36-live-browser.json",
-    "fresh_heartbeat_receipt": ".local/p36-deployed-r2.json",
+    "fresh_heartbeat_receipt": ".local/health-final.json",
     "processing_timeout_seconds": 120,
     "completion_timeout_seconds": 30,
     "stage_batch_limit": 32,
-    "compiler_sha256": "760be55c03b9875af3d606cab538a9ba430d469f376fcda0db37b23ecabe43fb",
+    "compiler_sha256": "d091b5a8d3a98ab28c8e22dc9f5c362d6938289baf79b61e4fa38ce839ffd7da",
     "running_binary_verification_receipt": ".local/deployment.json",
     "acquisition_and_export_workers_active": true,
     "canonical_rebuild_matches": true,
-    "egress_worker_sha256": "dc2a136c48df66c3921874ee2f907738f0293b939a91fd37333437862adf7e46"
+    "egress_worker_sha256": "a05f8567a55cef8aa874cb3db04a7be38023276b86458fbc0ad9c30429e627e3"
   },
   "next": [
     "Observe background requalification of current rotating sources; never transfer representative success to other endpoints",
@@ -1047,6 +1041,166 @@
       "Representative success does not qualify other endpoints",
       "Splash/Ads initially warming and503; after own requalification all four exact served canaries passed",
       "OpenAI API was not needed or called in P40"
+    ]
+  },
+  "validation_p42": {
+    "phase": "P42",
+    "recorded": 1794379048,
+    "strict_tls": {
+      "driver": "strict-tls-verification.v1",
+      "original_candidates": 10,
+      "family": "vmess+tcp+tls",
+      "latest_core": "26.11.9",
+      "bundled_core": "26.10.31",
+      "both_core_builds_passed": 10,
+      "insecure_generated_candidates": 0,
+      "raw_preserved": true,
+      "raw_records_are_not_healthy_exports": true,
+      "fresh_connection_required": true,
+      "nested_xhttp_download_covered": true
+    },
+    "release_checks": "passed",
+    "panel_race_seconds": 551.303,
+    "migration_rehearsal": {
+      "from": 24,
+      "to": 25,
+      "sources": 33,
+      "memberships": 837,
+      "raw_inputs": 2503,
+      "preserved": true
+    },
+    "deployment": {
+      "release": "/opt/config-repair/releases/p42-aa3602141aca9cc15b1b",
+      "schema": 25,
+      "sources": 33,
+      "source_controls_and_settings_preserved": true,
+      "matched_recovery_backup": true,
+      "six_tested_executables_active": true,
+      "canonical_rebuild_identical": true
+    },
+    "runtime_canaries": {
+      "conversions": {
+        "version": "xray-26.11.9.template.v9",
+        "array": {
+          "status": 200,
+          "kind": "list",
+          "items": 19,
+          "sha256": "5f2b6b29df36f6f4c677fbe69bcb03076b44d89a800c245918b9e3a3c3798bb7"
+        },
+        "tls_bypass_count": 0,
+        "single_sha256": "91f9a5305ffb45895c2d219ea355628ec68fc901da33e091a19076bb7543963f",
+        "build": {
+          "26.11.9": {
+            "core": "passed"
+          },
+          "26.10.31": {
+            "core": "passed"
+          }
+        },
+        "runtime": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "91f9a5305ffb45895c2d219ea355628ec68fc901da33e091a19076bb7543963f",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed"
+          }
+        }
+      },
+      "smart": {
+        "version": "xray-26.11.9.smart.v13",
+        "array": {
+          "status": 200,
+          "kind": "list",
+          "items": 13,
+          "sha256": "a1c2cabfdf01652e44923b73d01b55bfa5077753b76ace7a428e51dd67d8ced8"
+        },
+        "tls_bypass_count": 0,
+        "single_sha256": "e04eaa870ea906319f6ca37a4a51c3fbdc191a9eef743ac2f02b30b6db9a0ce7",
+        "build": {
+          "26.11.9": {
+            "core": "passed"
+          },
+          "26.10.31": {
+            "core": "passed"
+          }
+        },
+        "runtime": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "e04eaa870ea906319f6ca37a4a51c3fbdc191a9eef743ac2f02b30b6db9a0ce7",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed"
+          }
+        }
+      },
+      "smart-splash": {
+        "version": "xray-26.11.9.smart.v13",
+        "unavailable": {
+          "status": 503,
+          "body": "هنوز ورودی با تأیید معتبر اتصال عمومی و اینستاگرام موجود نیست. بررسی مجدد خودکار انجام می‌شود؛ زمان آماده‌شدن قطعی نیست.\n"
+        }
+      },
+      "smart-ads": {
+        "version": "xray-26.11.9.smart-ads.v6",
+        "unavailable": {
+          "status": 503,
+          "body": "اسپلش ادزِ واجد شرایط سلامت موجود نیست؛ قبولی ساختار هسته به‌تنهایی کافی نیست. نتیجهٔ اتصال هر ورودی در صفحهٔ خروجی مشخص است.\n"
+        }
+      }
+    },
+    "cleanup": {
+      "initial_free_bytes": 2789937152,
+      "observed_reclaimed_across_three_phases_bytes": 27249025024,
+      "free_bytes_at_report": 29181976576,
+      "obsolete_config_backup_directories_removed": 45,
+      "cleanup_deleted_items": 230,
+      "retained": [
+        "current databases, keys and raw vaults",
+        "P42 fresh matched recovery plus retained P39/P40 recovery pairs",
+        "three latest primary DigitalOcean snapshots and two daily snapshots",
+        "current and previous verified offhost backup generations",
+        "active source worktrees, including concurrent P41 work",
+        "DigitalOcean quarantined original recovery evidence and databases",
+        "installed Snap packages and active caches"
+      ],
+      "preexisting_read_errors": {
+        "count": 2,
+        "scope": "old DigitalOcean repair worktree",
+        "action": "left unchanged; no online filesystem repair"
+      }
+    },
+    "post_cleanup_health": {
+      "config_services": "active",
+      "panel_http": 200,
+      "digital_ocean_ready_http": 200,
+      "digital_ocean_all_five_checks": true,
+      "four_lxc_services": "active"
+    },
+    "limits": [
+      "Build acceptance is not endpoint connectivity. Every production export requires independent final-byte proof.",
+      "Invalid or expired remote certificates are not bypassed or relabelled healthy.",
+      "APK, Android and Iranian carriers not run in this phase.",
+      "Source originals may retain allowInsecure=true as immutable evidence.",
+      "Initial Smart/Splash/Ads HTTP503 while requalification was pending was retained as an honest unavailable state.",
+      "No whole-disk integrity or every external provider transaction claim."
     ]
   }
 }

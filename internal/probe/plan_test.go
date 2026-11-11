@@ -88,10 +88,10 @@ func TestUnknownVMessFieldsAreNotLost(t *testing.T) {
 }
 func TestRemovedInsecureGetsStricterCandidateOnly(t *testing.T) {
 	p := Prepare([]byte("trojan://synthetic@example.com:443?security=tls&allowInsecure=1"))
-	if len(p.Candidates) != 2 || !p.Candidates[1].RequiresConnection {
+	if len(p.Candidates) != 1 || !p.Candidates[0].RequiresConnection {
 		t.Fatal("missing strict TLS alternative")
 	}
-	if !bytes.Contains(p.Candidates[0].Config, []byte(`"allowInsecure":true`)) || !bytes.Contains(p.Candidates[1].Config, []byte(`"allowInsecure":false`)) {
+	if bytes.Contains(p.Candidates[0].Config, []byte(`"allowInsecure":true`)) || !bytes.Contains(p.Candidates[0].Config, []byte(`"allowInsecure":false`)) {
 		t.Fatal("original or candidate policy wrong")
 	}
 }
@@ -168,7 +168,7 @@ func TestVMessCertificateAliasAndDisplayMetadata(t *testing.T) {
 	}
 	base["skip-cert-verify"] = true
 	p = check("prepared")
-	if !bytes.Contains(p.Candidates[0].Config, []byte(`"allowInsecure":true`)) || len(p.Candidates) < 2 || !p.Candidates[1].RequiresConnection {
+	if bytes.Contains(p.Candidates[0].Config, []byte(`"allowInsecure":true`)) || len(p.Candidates) != 1 || !p.Candidates[0].RequiresConnection {
 		t.Fatal("verification policy silently changed")
 	}
 	base["insecure"] = false

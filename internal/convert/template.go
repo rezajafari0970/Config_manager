@@ -14,7 +14,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 )
 
-const Version = "xray-26.11.9.template.v8"
+const Version = "xray-26.11.9.template.v9"
 
 type M = map[string]any
 

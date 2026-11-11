@@ -20,7 +20,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/target"
 )
 
-const Version = "xray-26.11.9.probe-plan.v6"
+const Version = "xray-26.11.9.probe-plan.v7"
 
 type M = map[string]any
 type Candidate struct {
@@ -171,34 +171,21 @@ func candidate(m M, rule string, connection bool) Candidate {
 	return Candidate{rule, repair.Digest(b), b, connection}
 }
 
-// The pinned core removed allowInsecure=true. Try strict certificate validation,
-// never invent a certificate pin or turn verification off. Publish only after
-// a real connection; an expired/mismatched remote certificate remains unresolved.
+// Keep bypass flags only in immutable raw storage. Every generated candidate
+// uses verified TLS and must earn fresh connection proof.
 func verifiedTLSAlternatives(in []Candidate) []Candidate {
-	out := append([]Candidate(nil), in...)
+	out := make([]Candidate, 0, len(in))
+	seen := map[string]bool{}
 	for _, c := range in {
 		var m M
 		d := json.NewDecoder(bytes.NewReader(c.Config))
 		d.UseNumber()
-		if d.Decode(&m) != nil {
-			continue
+		if d.Decode(&m) == nil && len(compat.EnforceStrictTLS(m)) > 0 {
+			c = candidate(m, c.Rule+"."+compat.StrictTLSDriver+".strict-tls-hypothesis", true)
 		}
-		obs, _ := m["outbounds"].([]any)
-		changed := false
-		for _, v := range obs {
-			ob, ok := v.(map[string]any)
-			if !ok {
-				continue
-			}
-			s, _ := ob["streamSettings"].(map[string]any)
-			tls, _ := s["tlsSettings"].(map[string]any)
-			if tls["allowInsecure"] == true {
-				tls["allowInsecure"] = false
-				changed = true
-			}
-		}
-		if changed {
-			out = append(out, candidate(m, c.Rule+"."+Version+".strict-tls-hypothesis", true))
+		if !seen[c.SHA256] {
+			out = append(out, c)
+			seen[c.SHA256] = true
 		}
 	}
 	return out

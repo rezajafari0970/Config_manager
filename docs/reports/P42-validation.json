@@ -1,0 +1,160 @@
+{
+  "phase": "P42",
+  "recorded": 1794379048,
+  "strict_tls": {
+    "driver": "strict-tls-verification.v1",
+    "original_candidates": 10,
+    "family": "vmess+tcp+tls",
+    "latest_core": "26.11.9",
+    "bundled_core": "26.10.31",
+    "both_core_builds_passed": 10,
+    "insecure_generated_candidates": 0,
+    "raw_preserved": true,
+    "raw_records_are_not_healthy_exports": true,
+    "fresh_connection_required": true,
+    "nested_xhttp_download_covered": true
+  },
+  "release_checks": "passed",
+  "panel_race_seconds": 551.303,
+  "migration_rehearsal": {
+    "from": 24,
+    "to": 25,
+    "sources": 33,
+    "memberships": 837,
+    "raw_inputs": 2503,
+    "preserved": true
+  },
+  "deployment": {
+    "release": "/opt/config-repair/releases/p42-aa3602141aca9cc15b1b",
+    "schema": 25,
+    "sources": 33,
+    "source_controls_and_settings_preserved": true,
+    "matched_recovery_backup": true,
+    "six_tested_executables_active": true,
+    "canonical_rebuild_identical": true
+  },
+  "runtime_canaries": {
+    "conversions": {
+      "version": "xray-26.11.9.template.v9",
+      "array": {
+        "status": 200,
+        "kind": "list",
+        "items": 19,
+        "sha256": "5f2b6b29df36f6f4c677fbe69bcb03076b44d89a800c245918b9e3a3c3798bb7"
+      },
+      "tls_bypass_count": 0,
+      "single_sha256": "91f9a5305ffb45895c2d219ea355628ec68fc901da33e091a19076bb7543963f",
+      "build": {
+        "26.11.9": {
+          "core": "passed"
+        },
+        "26.10.31": {
+          "core": "passed"
+        }
+      },
+      "runtime": {
+        "core": "passed",
+        "connection": "passed",
+        "code": "https_multi_site_verified",
+        "runtime_sha256": "91f9a5305ffb45895c2d219ea355628ec68fc901da33e091a19076bb7543963f",
+        "endpoints_passed": 2,
+        "evidence": {
+          "https": "passed",
+          "http3": "passed",
+          "android": "not_run",
+          "dns_tcp": "passed",
+          "doh_cloudflare": "passed",
+          "doh_google": "passed",
+          "dns_udp": "passed",
+          "quic_vn": "passed"
+        }
+      }
+    },
+    "smart": {
+      "version": "xray-26.11.9.smart.v13",
+      "array": {
+        "status": 200,
+        "kind": "list",
+        "items": 13,
+        "sha256": "a1c2cabfdf01652e44923b73d01b55bfa5077753b76ace7a428e51dd67d8ced8"
+      },
+      "tls_bypass_count": 0,
+      "single_sha256": "e04eaa870ea906319f6ca37a4a51c3fbdc191a9eef743ac2f02b30b6db9a0ce7",
+      "build": {
+        "26.11.9": {
+          "core": "passed"
+        },
+        "26.10.31": {
+          "core": "passed"
+        }
+      },
+      "runtime": {
+        "core": "passed",
+        "connection": "passed",
+        "code": "https_multi_site_verified",
+        "runtime_sha256": "e04eaa870ea906319f6ca37a4a51c3fbdc191a9eef743ac2f02b30b6db9a0ce7",
+        "endpoints_passed": 2,
+        "evidence": {
+          "https": "passed",
+          "http3": "passed",
+          "android": "not_run",
+          "dns_tcp": "passed",
+          "doh_cloudflare": "passed",
+          "doh_google": "passed",
+          "dns_udp": "passed",
+          "quic_vn": "passed"
+        }
+      }
+    },
+    "smart-splash": {
+      "version": "xray-26.11.9.smart.v13",
+      "unavailable": {
+        "status": 503,
+        "body": "هنوز ورودی با تأیید معتبر اتصال عمومی و اینستاگرام موجود نیست. بررسی مجدد خودکار انجام می‌شود؛ زمان آماده‌شدن قطعی نیست.\n"
+      }
+    },
+    "smart-ads": {
+      "version": "xray-26.11.9.smart-ads.v6",
+      "unavailable": {
+        "status": 503,
+        "body": "اسپلش ادزِ واجد شرایط سلامت موجود نیست؛ قبولی ساختار هسته به‌تنهایی کافی نیست. نتیجهٔ اتصال هر ورودی در صفحهٔ خروجی مشخص است.\n"
+      }
+    }
+  },
+  "cleanup": {
+    "initial_free_bytes": 2789937152,
+    "observed_reclaimed_across_three_phases_bytes": 27249025024,
+    "free_bytes_at_report": 29181976576,
+    "obsolete_config_backup_directories_removed": 45,
+    "cleanup_deleted_items": 230,
+    "retained": [
+      "current databases, keys and raw vaults",
+      "P42 fresh matched recovery plus retained P39/P40 recovery pairs",
+      "three latest primary DigitalOcean snapshots and two daily snapshots",
+      "current and previous verified offhost backup generations",
+      "active source worktrees, including concurrent P41 work",
+      "DigitalOcean quarantined original recovery evidence and databases",
+      "installed Snap packages and active caches"
+    ],
+    "preexisting_read_errors": {
+      "count": 2,
+      "scope": "old DigitalOcean repair worktree",
+      "action": "left unchanged; no online filesystem repair"
+    }
+  },
+  "post_cleanup_health": {
+    "config_services": "active",
+    "panel_http": 200,
+    "digital_ocean_ready_http": 200,
+    "digital_ocean_all_five_checks": true,
+    "four_lxc_services": "active"
+  },
+  "limits": [
+    "Build acceptance is not endpoint connectivity. Every production export requires independent final-byte proof.",
+    "Invalid or expired remote certificates are not bypassed or relabelled healthy.",
+    "APK, Android and Iranian carriers not run in this phase.",
+    "Source originals may retain allowInsecure=true as immutable evidence.",
+    "Initial Smart/Splash/Ads HTTP503 while requalification was pending was retained as an honest unavailable state.",
+    "No whole-disk integrity or every external provider transaction claim."
+  ]
+}

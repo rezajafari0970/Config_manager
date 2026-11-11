@@ -10,7 +10,7 @@ import (
 // Logical restores only a recognized, exclusively owned fixed-destination
 // adapter. This lets normal, Smart and Ads compose the same original graph.
 func Logical(root M) ([]Change, error) {
-	normalized := NormalizeEndpointLiterals(root)
+	normalized := append(NormalizeEndpointLiterals(root), EnforceStrictTLS(root)...)
 	changes, err := logicalRedirect(root)
 	changes = append(normalized, changes...)
 	if err != nil {
@@ -171,7 +171,7 @@ func Wrap(root M) ([]Change, error) {
 	if err := ValidateCapabilities(root); err != nil {
 		return nil, err
 	}
-	normalizedChanges := NormalizeEndpointLiterals(root)
+	normalizedChanges := append(NormalizeEndpointLiterals(root), EnforceStrictTLS(root)...)
 	_, err := Logical(root)
 	if err != nil {
 		return nil, err
