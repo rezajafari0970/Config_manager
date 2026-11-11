@@ -1,3 +1,30 @@
+# Current P37 residential assessment deployment — 2026-11-11
+
+Installed release: p37-939e1eb750913ba8a2bb, on the deployed P36 code base95d579f,
+schema21. Read docs/checkpoints/P37-residential-coverage-20261111.md and
+ docs/reports/P37-residential-report-fa.md; private p37-* receipts separate source,
+full tests, runtime hashes and production verification.
+
+First assessments precede unqualified retries; accepted revalidation priority
+remains. Unsupported reports use their independent Residential plan identity.
+Framed 3xx Ads replies can retain the same TLS stream without following Location;
+second-authority/semantics failures remain candidate-only and never Residential.
+The Go publication core26.11.9 was already admitted; do NOT repeat the corrected
+initial claim that its identity caused current HTTP400 failures.
+
+Full isolated Go1.27.1 race/vet/build and Python/JS checks passed. Worker SIGKILL
+recovery completed7/7 inputs (4live,3synthetic), max2 active,190.38s; all uncertain
+exports503. Mobile390/desktop1440 browser tests passed. The initial Stockholm
+canary currently timed out (60Ads samples,0candidates,0passed controls), so no MO
+or residential claim is refreshed. Android/carrier tests were not run.
+
+All33 sources preserved; all707 distinct current acquired raws had Residential
+records at the activation snapshot. Queue9679 /9411 awaiting assessment: not all
+inputs have been assessed. Trusted egress observer and specialist providers are
+absent; verified Residential and ADS_DIFFERENT both0. Unknown is not Datacenter.
+Keep strict publication/retention/tombstone contracts; never rewind the external
+revocation journal. No schema migration or trust override was performed.
+
 # Current P35 deployment — shared outbound-only templates
 
 P35 is installed and verified: release p35-57a1e4adb432b7dcca5c, schema21,

@@ -18,7 +18,7 @@ type HTTPDriver struct {
 	Dial     func(context.Context, string, string) (net.Conn, error)
 }
 
-func (HTTPDriver) Name() string { return "http.v1" }
+func (HTTPDriver) Name() string { return "http.v2" }
 func PublicIP(ip netip.Addr) bool {
 	ip = ip.Unmap()
 	if !ip.IsGlobalUnicast() || ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.Zone() != "" {
@@ -46,6 +46,9 @@ func ValidateURL(raw string) error {
 	return nil
 }
 func (d HTTPDriver) Fetch(ctx context.Context, job Job) (Response, error) {
+	return d.fetch(ctx, job, false)
+}
+func (d HTTPDriver) fetch(ctx context.Context, job Job, legacy bool) (Response, error) {
 	if err := ValidateURL(job.URL); err != nil {
 		return Response{}, err
 	}
@@ -68,7 +71,11 @@ func (d HTTPDriver) Fetch(ctx context.Context, job Job) (Response, error) {
 		}
 		return dialPublic(ctx, network, port, ips, dial, 250*time.Millisecond, 3*time.Second)
 	}}
-	client := &http.Client{Transport: transport, CheckRedirect: func(req *http.Request, via []*http.Request) error {
+	var roundTripper http.RoundTripper = transport
+	if legacy {
+		roundTripper = http10Transport{dial: transport.DialContext}
+	}
+	client := &http.Client{Transport: roundTripper, CheckRedirect: func(req *http.Request, via []*http.Request) error {
 		if len(via) >= 20 {
 			return errors.New("redirect_loop")
 		}
@@ -105,7 +112,7 @@ func (d HTTPDriver) Fetch(ctx context.Context, job Job) (Response, error) {
 		transport.CloseIdleConnections()
 		return Response{}, err
 	}
-	return Response{Body: &transportBody{ioReadCloser: response.Body, closeIdle: transport.CloseIdleConnections}, Status: response.StatusCode, ETag: response.Header.Get("ETag"), Modified: response.Header.Get("Last-Modified")}, nil
+	return Response{Body: &transportBody{ioReadCloser: response.Body, closeIdle: transport.CloseIdleConnections}, Status: response.StatusCode, ETag: response.Header.Get("ETag"), Modified: response.Header.Get("Last-Modified"), Chunked: len(response.TransferEncoding) == 1 && response.TransferEncoding[0] == "chunked"}, nil
 }
 
 type transportBody struct {

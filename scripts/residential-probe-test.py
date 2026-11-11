@@ -5,6 +5,37 @@ spec=importlib.util.spec_from_file_location('res',pathlib.Path(__file__).with_na
 res=importlib.util.module_from_spec(spec);spec.loader.exec_module(res)
 
 class Tests(unittest.IsolatedAsyncioTestCase):
+ async def test_redirect_response_can_be_diagnosed_without_following_or_promoting_it(self):
+  token='a'*32
+  first=b'HTTP/1.1 301 Moved Permanently\r\nLocation: https://unrelated.example.invalid/\r\nContent-Length: 0\r\n\r\n'
+  body=('IP address: 8.8.8.8<br>shen_probe='+token).encode()
+  second=b'HTTP/1.1 429 Too Many Requests\r\nContent-Length: '+str(len(body)).encode()+b'\r\n\r\n'+body
+  reader=asyncio.StreamReader();reader.feed_data(b'\x05\x00\x05\x00\x00\x01'+b'\x00'*6+first+second);reader.feed_eof()
+  class TLS:
+   def getpeercert(self,binary_form=False):
+    return b'synthetic-cert' if binary_form else {'subjectAltName':[('DNS','*.doubleclick.net')]}
+  class Writer:
+   def __init__(self):self.sent=[]
+   def write(self,data):self.sent.append(data)
+   async def drain(self):pass
+   async def start_tls(self,*args,**kwargs):pass
+   def get_extra_info(self,*args):return TLS()
+   def close(self):pass
+   async def wait_closed(self):pass
+  writer=Writer()
+  with patch.object(res.asyncio,'open_connection',return_value=(reader,writer)) as connect,patch.object(res.uuid,'uuid4') as nonce:
+   nonce.return_value.hex=token
+   row=await res.connection_probe('googleads.g.doubleclick.net','raw',1,1,'single')
+  self.assertEqual(connect.call_count,1)
+  wire=b''.join(writer.sent)
+  self.assertEqual(wire.count(b'GET '),2)
+  self.assertNotIn(b'unrelated.example.invalid',wire)
+  self.assertEqual(row['http_status'],301)
+  self.assertEqual(row['ip'],'8.8.8.8')
+  self.assertTrue(row['same_connection']);self.assertTrue(row['nonce_bound'])
+  self.assertFalse(row['diagnostic_origin_verified']);self.assertFalse(row['meaning_verified'])
+  self.assertEqual(row['outcome'],'unknown')
+  self.assertEqual(row['code'],'diagnostic_origin_unverified')
  def test_supervisor_baseline_does_not_follow_publication_core(self):
   import json
   pins=json.loads(pathlib.Path(__file__).with_name('residential-cores.json').read_text())['cores']

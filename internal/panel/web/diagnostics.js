@@ -24,3 +24,53 @@ cipher_suites_require_tls:'پارامتر cs فقط برای اتصال TLS قا
 invalid_uri:'ساختار لینک مبهم یا نامعتبر است؛ اصلاح بدون حدس ممکن نشد',
 reality_handshake_or_settings:'تنظیمات یا مذاکرهٔ REALITY پذیرفته نشد؛ اطلاعات سرور باید بررسی شود',
 probe_infrastructure_error:'زیرساخت بررسی موقتاً در دسترس نیست'};
+
+// One closed diagnostic policy for Input and Output. Diagnostic severity never
+// grants export eligibility; server-side exact-byte evidence remains authoritative.
+Object.assign(conversionCodes,{
+ unknown_vmess_field:'فیلد ناشناختهٔ VMess بررسی نشده است؛ نسخهٔ خام حفظ شده و گزینهٔ مؤثر حدسی حذف نمی‌شود.',
+ vmess_extension_requires_driver:'این افزونهٔ فعال VMess هنوز نگاشت تأییدشده ندارد؛ مقدار خالی با گزینهٔ فعال یکسان نیست.',
+ invalid_vmess_metadata:'فیلد توضیحی VMess باید متن باشد؛ ساختار ورودی نیازمند اصلاح است.',
+ invalid_tls_verification_flag:'مقدار گزینهٔ بررسی گواهی معتبر نیست.',
+ conflicting_tls_verification:'گزینه‌های بررسی گواهی با هم تعارض دارند؛ TLS بدون بررسی گواهی فعال نمی‌شود.',
+ invalid_share_metadata:'فیلد توضیحی اشتراک نامعتبر است.',
+ concatenated_config_uri:'چند لینک داخل فیلد انتقال به هم چسبیده‌اند؛ منبع باید لینک‌های جدا و کامل بدهد.',
+ wireguard_extension_unsupported:'افزونهٔ این WireGuard در درایور فعلی نگاشت تأییدشده ندارد؛ کلیدها و گزینه‌های اصلی حفظ شده‌اند.',
+ conflicting_finalmask:'دو مقدار متفاوت برای FinalMask داده شده است؛ انتخاب حدسی انجام نمی‌شود.',
+ legacy_vless_transport_requires_driver:'ترکیب انتقال این VLESS قدیمی به درایور سازگاری جدا نیاز دارد؛ رمزنگاری ساختگی اضافه نمی‌شود.',
+ transport_driver_pending:'نوع انتقال در درایور فعلی پشتیبانی نشده است؛ نسخهٔ خام نگهداری می‌شود.',
+ outbound_driver_pending:'درایور اجرای این خروجی در محیط آزمون موجود نیست.',
+ protocol_driver_pending:'پروتکل ورودی هنوز درایور تبدیل تأییدشده ندارد.',
+ ipv6_only_probe_pending:'سرور فقط IPv6 دارد؛ محیط آزمون فعلی مسیر IPv6 ندارد. این نتیجه خرابی کانفیگ را ثابت نمی‌کند.',
+ endpoint_dns_failed:'نام میزبان سرور در محیط آزمون resolve نشد؛ آزمون با زمان‌بندی محدود تکرار می‌شود.',
+ dns_failure:'پاسخ DNS در مسیر آزمون دریافت نشد؛ دریافت لینک با این خطای اتصال متفاوت است.',
+ tls_name_mismatch:'نام مورد انتظار TLS با گواهی ارائه‌شده تطابق ندارد؛ SNI یا گواهی سمت سرور باید اصلاح شود. بررسی گواهی خاموش نمی‌شود.',
+ tls_untrusted_certificate:'زنجیرهٔ گواهی TLS مورد اعتماد نیست؛ گواهی معتبر یا پین تأییدشدهٔ منبع لازم است.',
+ tls_expired_certificate:'گواهی TLS منقضی شده است؛ اصلاح گواهی سمت سرور لازم است.',
+ peer_closed_connection:'طرف مقابل اتصال را بست؛ این خطا به‌تنهایی نشانهٔ خراب‌بودن قالب نیست.',
+ endpoint_refused:'سرور اتصال به پورت مشخص‌شده را نپذیرفت.',
+ network_unreachable:'محیط آزمون به شبکهٔ مقصد مسیر ندارد؛ وضعیت خود سرور نامشخص است.',
+ proxy_request_failed:'درخواست از تونل پاسخ معتبر نگرفت؛ آزمون خودکار تکرار می‌شود.',
+ test_destination_partial:'فقط بخشی از مقصدهای آزمون موفق بود؛ سلامت کامل هنوز تأیید نشده است.',
+ transport_verification_incomplete:'بخشی از آزمون‌ها موفق بوده، اما تأیید DNS یا UDP/QUIC کامل نیست؛ جزئیات آزمون را ببینید.',
+ candidate_blob_unavailable:'فایل خروجی در دسترس نیست؛ بازسازی و اعتبارسنجی تازه لازم است.',
+ probe_preparation_failed:'آماده‌سازی محیط آزمون کامل نشد؛ این نتیجه ردشدن اتصال سرور نیست.',
+ removed_allow_insecure:'گزینهٔ قدیمی غیرفعال‌کردن بررسی گواهی در هستهٔ هدف حذف شده است؛ فقط آزمون با گواهی معتبر قابل انتشار است.'
+});
+const diagnosticCategories={
+ environment:new Set(['ipv6_only_probe_pending','client_core_asset_missing','client_core_infrastructure_error','probe_infrastructure_error','probe_preparation_failed','candidate_blob_unavailable','network_unreachable']),
+ capability:new Set(['unknown_vmess_field','vmess_extension_requires_driver','unknown_query_parameter','wireguard_extension_unsupported','legacy_vless_transport_requires_driver','transport_driver_pending','outbound_driver_pending','protocol_driver_pending','hysteria1_unsupported_by_target_core','unsupported_packet_encoding']),
+ network:new Set(['https_proxy_verified_site_unavailable','endpoint_dns_failed','dns_failure','peer_closed_connection','peer_reset_connection','endpoint_refused','connection_timeout','proxy_request_failed','test_destination_partial','transport_verification_incomplete','client_core_validation_timeout']),
+ server:new Set(['missing_reality_public_key','invalid_reality_public_key','invalid_reality_short_id','reality_authentication_rejected','reality_handshake_or_settings','tls_name_mismatch','tls_untrusted_certificate','tls_expired_certificate','tls_certificate_failure','removed_allow_insecure'])
+};
+export function conversionDetail(code) {
+ const category=Object.keys(diagnosticCategories).find(k=>diagnosticCategories[k].has(code))||'input';
+ const labels={environment:'محدودیت محیط آزمون',capability:'نیازمند درایور سازگار',network:'آزمون اتصال',server:'مشخصات یا پاسخ سرور',input:'ساختار ورودی'};
+ return {category,label:labels[category],tone:category==='network'||category==='environment'?'wait':'bad',message:conversionCodes[code]||'نتیجهٔ این مورد نیازمند بررسی است؛ کد فنی در جزئیات آمده است.'};
+}
+export function evidenceRows(evidence) {
+ const names={target_core:'هستهٔ هدف',bundled_core:'هستهٔ همراه برنامه',app_import_contract:'ساختار Import',https:'HTTPS با گواهی معتبر',dns_tcp:'DNS روی TCP',dns_udp:'DNS روی UDP',doh_cloudflare:'DoH کلادفلر',doh_google:'DoH گوگل',quic_vn:'پاسخ QUIC روی UDP/443',http3:'انتقال HTTP/3',android:'اجرای واقعی Android'};
+ const states={passed:'موفق',failed:'ناموفق',partial:'ناقص',not_run:'اجرا نشده',unsupported:'پشتیبانی نمی‌شود',infrastructure_error:'خطای محیط آزمون'};
+ const checks=evidence?.checks||{};
+ return Object.entries(names).map(([key,label])=>({key,label,status:states[checks[key]??evidence?.[key]]||'نامشخص'}));
+}

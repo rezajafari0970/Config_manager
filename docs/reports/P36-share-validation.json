@@ -1,0 +1,466 @@
+{
+  "at": 1794364845.9961202,
+  "tested": 13,
+  "prepared": 13,
+  "built": 13,
+  "connected": 10,
+  "android": "not_run",
+  "runtime_core": "26.10.31",
+  "build_cores": [
+    "26.10.31",
+    "26.11.9"
+  ],
+  "records": [
+    {
+      "previous_code": "unknown_vmess_field",
+      "prepare": "prepared",
+      "connection": "passed",
+      "code": "https_multi_site_verified",
+      "builds": [
+        {
+          "sha256": "c661f5525311640e6e4088b4818e6d4078e6c619ade347e6c2a2e68f27eee9fb",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.tls-verification-alias.tls-verification-strict-conflict",
+          "cores": {
+            "core-26.10.31": {
+              "core": "passed"
+            },
+            "core-26.11.9": {
+              "core": "passed"
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "https": "passed",
+        "http3": "passed",
+        "android": "not_run",
+        "dns_tcp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "dns_udp": "passed",
+        "quic_vn": "passed"
+      }
+    },
+    {
+      "previous_code": "unknown_vmess_field",
+      "prepare": "prepared",
+      "connection": "passed",
+      "code": "https_multi_site_verified",
+      "builds": [
+        {
+          "sha256": "a5e906fc70268c1414cd0ff5841d32e488d5ec8f6dd2daa316fcf452f045738c",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.tls-verification-alias",
+          "cores": {
+            "core-26.10.31": {
+              "core": "passed"
+            },
+            "core-26.11.9": {
+              "core": "passed"
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "https": "passed",
+        "http3": "passed",
+        "android": "not_run",
+        "dns_tcp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "dns_udp": "passed",
+        "quic_vn": "passed"
+      }
+    },
+    {
+      "previous_code": "unknown_vmess_field",
+      "prepare": "prepared",
+      "connection": "passed",
+      "code": "https_multi_site_verified",
+      "builds": [
+        {
+          "sha256": "f8c9f5b517f5f77198c99f937a5587194337d7a02658b450d7a8587097df6cd9",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.tls-verification-alias",
+          "cores": {
+            "core-26.10.31": {
+              "core": "failed",
+              "connection": "not_run",
+              "code": "client_core_incompatible",
+              "runtime_sha256": "",
+              "endpoints_passed": 0
+            },
+            "core-26.11.9": {
+              "core": "failed",
+              "connection": "not_run",
+              "code": "client_core_incompatible",
+              "runtime_sha256": "",
+              "endpoints_passed": 0
+            }
+          }
+        },
+        {
+          "sha256": "47ffd8111d29ccdccea05158081fce4d5c196a13407a8cde8e28dec943926e8f",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.tls-verification-alias.xray-26.11.9.probe-plan.v5.strict-tls-hypothesis",
+          "cores": {
+            "core-26.10.31": {
+              "core": "passed"
+            },
+            "core-26.11.9": {
+              "core": "passed"
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "https": "passed",
+        "http3": "passed",
+        "android": "not_run",
+        "dns_tcp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "dns_udp": "passed",
+        "quic_vn": "passed"
+      }
+    },
+    {
+      "previous_code": "unknown_vmess_field",
+      "prepare": "prepared",
+      "connection": "passed",
+      "code": "https_multi_site_verified",
+      "builds": [
+        {
+          "sha256": "f9974dbbbebd3af4797303484306d1680386f73036203768d9a79724e2f5d537",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.tls-verification-alias",
+          "cores": {
+            "core-26.10.31": {
+              "core": "failed",
+              "connection": "not_run",
+              "code": "client_core_incompatible",
+              "runtime_sha256": "",
+              "endpoints_passed": 0
+            },
+            "core-26.11.9": {
+              "core": "failed",
+              "connection": "not_run",
+              "code": "client_core_incompatible",
+              "runtime_sha256": "",
+              "endpoints_passed": 0
+            }
+          }
+        },
+        {
+          "sha256": "304ce0f4e833591230edf396a89e7bf7fce8c0a59ec87e11cbcc4004bceb4f6a",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.tls-verification-alias.xray-26.11.9.probe-plan.v5.strict-tls-hypothesis",
+          "cores": {
+            "core-26.10.31": {
+              "core": "passed"
+            },
+            "core-26.11.9": {
+              "core": "passed"
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "https": "passed",
+        "http3": "passed",
+        "android": "not_run",
+        "dns_tcp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "dns_udp": "passed",
+        "quic_vn": "passed"
+      }
+    },
+    {
+      "previous_code": "unknown_vmess_field",
+      "prepare": "prepared",
+      "connection": "passed",
+      "code": "https_multi_site_verified",
+      "builds": [
+        {
+          "sha256": "6e36c31c08ab1b1c060093069780b6b51b141f8947550de7801c428ea253997d",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.tls-verification-alias.tls-verification-strict-conflict",
+          "cores": {
+            "core-26.10.31": {
+              "core": "passed"
+            },
+            "core-26.11.9": {
+              "core": "passed"
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "https": "passed",
+        "http3": "passed",
+        "android": "not_run",
+        "dns_tcp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "dns_udp": "passed",
+        "quic_vn": "passed"
+      }
+    },
+    {
+      "previous_code": "unknown_vmess_field",
+      "prepare": "prepared",
+      "connection": "not_run",
+      "code": "ipv6_only_probe_pending",
+      "builds": [
+        {
+          "sha256": "caf2b27050aa569138bb6b3c04af472518d06c627bf338cda8cc882e4a0a2879",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.empty-placeholders",
+          "cores": {
+            "core-26.10.31": {
+              "core": "passed"
+            },
+            "core-26.11.9": {
+              "core": "passed"
+            }
+          }
+        }
+      ],
+      "evidence": {}
+    },
+    {
+      "previous_code": "unknown_vmess_field",
+      "prepare": "prepared",
+      "connection": "passed",
+      "code": "https_multi_site_verified",
+      "builds": [
+        {
+          "sha256": "5cc5f931bb66282f638bfdb0565d8f99a9b6244e37235612786aa36a4851691c",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.metadata.tls-verification-alias",
+          "cores": {
+            "core-26.10.31": {
+              "core": "passed"
+            },
+            "core-26.11.9": {
+              "core": "passed"
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "https": "passed",
+        "http3": "passed",
+        "android": "not_run",
+        "dns_tcp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "dns_udp": "passed",
+        "quic_vn": "passed"
+      }
+    },
+    {
+      "previous_code": "unknown_vmess_field",
+      "prepare": "prepared",
+      "connection": "passed",
+      "code": "https_multi_site_verified",
+      "builds": [
+        {
+          "sha256": "3f9e924477fe7d1f15222871468d2a985c2423bea7d507d8fc694da145be60be",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.tls-verification-alias",
+          "cores": {
+            "core-26.10.31": {
+              "core": "failed",
+              "connection": "not_run",
+              "code": "client_core_incompatible",
+              "runtime_sha256": "",
+              "endpoints_passed": 0
+            },
+            "core-26.11.9": {
+              "core": "failed",
+              "connection": "not_run",
+              "code": "client_core_incompatible",
+              "runtime_sha256": "",
+              "endpoints_passed": 0
+            }
+          }
+        },
+        {
+          "sha256": "04806aa7386250970f194ab75f005b875b637e7dc1ffa722e5f800d5547e697d",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.tls-verification-alias.xray-26.11.9.probe-plan.v5.strict-tls-hypothesis",
+          "cores": {
+            "core-26.10.31": {
+              "core": "passed"
+            },
+            "core-26.11.9": {
+              "core": "passed"
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "https": "passed",
+        "http3": "passed",
+        "android": "not_run",
+        "dns_tcp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "dns_udp": "passed",
+        "quic_vn": "passed"
+      }
+    },
+    {
+      "previous_code": "unknown_vmess_field",
+      "prepare": "prepared",
+      "connection": "passed",
+      "code": "https_multi_site_verified",
+      "builds": [
+        {
+          "sha256": "b2ae5dec8c6e2e7413574fe3db900dca33ddabc5cde9ccc7fc8818fa598dbedd",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.tls-verification-alias",
+          "cores": {
+            "core-26.10.31": {
+              "core": "failed",
+              "connection": "not_run",
+              "code": "client_core_incompatible",
+              "runtime_sha256": "",
+              "endpoints_passed": 0
+            },
+            "core-26.11.9": {
+              "core": "failed",
+              "connection": "not_run",
+              "code": "client_core_incompatible",
+              "runtime_sha256": "",
+              "endpoints_passed": 0
+            }
+          }
+        },
+        {
+          "sha256": "b94576bf33a25f3bc626d2b7e63c69481d5c544dad65c47224ff4642d9493e27",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.tls-verification-alias.xray-26.11.9.probe-plan.v5.strict-tls-hypothesis",
+          "cores": {
+            "core-26.10.31": {
+              "core": "passed"
+            },
+            "core-26.11.9": {
+              "core": "passed"
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "https": "passed",
+        "http3": "passed",
+        "android": "not_run",
+        "dns_tcp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "dns_udp": "passed",
+        "quic_vn": "passed"
+      }
+    },
+    {
+      "previous_code": "unknown_query_parameter",
+      "prepare": "prepared",
+      "connection": "failed",
+      "code": "proxy_request_failed",
+      "builds": [
+        {
+          "sha256": "80ad7df994e3558ae8b63d9e564a6a4dde993de5bfc2015e30aed7bedcad5693",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.subscription-metadata",
+          "cores": {
+            "core-26.10.31": {
+              "core": "passed"
+            },
+            "core-26.11.9": {
+              "core": "passed"
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "https": "failed",
+        "http3": "not_run",
+        "android": "not_run"
+      }
+    },
+    {
+      "previous_code": "unknown_vmess_field",
+      "prepare": "prepared",
+      "connection": "passed",
+      "code": "https_multi_site_verified",
+      "builds": [
+        {
+          "sha256": "d79bce09267e94e385ca054d172229806ac31047d3c382b62345fcd9d8a2637f",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.metadata.tls-verification-alias",
+          "cores": {
+            "core-26.10.31": {
+              "core": "passed"
+            },
+            "core-26.11.9": {
+              "core": "passed"
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "https": "passed",
+        "http3": "passed",
+        "android": "not_run",
+        "dns_tcp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "dns_udp": "passed",
+        "quic_vn": "passed"
+      }
+    },
+    {
+      "previous_code": "unknown_vmess_field",
+      "prepare": "prepared",
+      "connection": "passed",
+      "code": "https_multi_site_verified",
+      "builds": [
+        {
+          "sha256": "a1266ab59aba9588b9ee754a6759d97b1a618e27592c129e97813d6264c12c98",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.metadata.tls-verification-alias",
+          "cores": {
+            "core-26.10.31": {
+              "core": "passed"
+            },
+            "core-26.11.9": {
+              "core": "passed"
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "https": "passed",
+        "http3": "passed",
+        "android": "not_run",
+        "dns_tcp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "dns_udp": "passed",
+        "quic_vn": "passed"
+      }
+    },
+    {
+      "previous_code": "unknown_query_parameter",
+      "prepare": "prepared",
+      "connection": "failed",
+      "code": "peer_closed_connection",
+      "builds": [
+        {
+          "sha256": "6b41fd14c9edfa05875acfc57f553ae00b91cdeb306012851545dbd1a097e234",
+          "rule": "xray-26.11.9.template.v6.xray-26.11.9.probe-plan.v5.uri-json.share-compat.v1.subscription-metadata",
+          "cores": {
+            "core-26.10.31": {
+              "core": "passed"
+            },
+            "core-26.11.9": {
+              "core": "passed"
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "https": "failed",
+        "http3": "not_run",
+        "android": "not_run"
+      }
+    }
+  ]
+}

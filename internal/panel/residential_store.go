@@ -63,7 +63,7 @@ func (s *Store) claimResidentialFor(ctx context.Context, worker string) (*reside
 	j := &residential.Job{Policy: p, TrustHash: t.Digest()}
 	var size int64
 	priority := s.residentialTurn.Add(1)%4 != 0
-	e = tx.QueryRowContext(ctx, `SELECT hash,kind,size,revision,epoch,ever_accepted FROM residential_records r WHERE state!='DELETED' AND (ever_accepted=1 OR tested=0 OR retain_until>CAST(unixepoch('subsec')*1000 AS INTEGER)) AND paused=0 AND (token='' OR lease_until<=?) AND next_run<=? AND (?='' OR negative_worker!=? OR negative_last<?) ORDER BY CASE WHEN ever_accepted=1 AND ? THEN 0 ELSE 1 END,coalesce((SELECT min(coalesce(f.last_claim,0)) FROM residential_owners o LEFT JOIN residential_source_fairness f ON f.source=o.source WHERE o.hash=r.hash),0),next_run,first_seen,hash LIMIT 1`, now, now, worker, worker, now-120000, priority).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Epoch, &j.Deep)
+	e = tx.QueryRowContext(ctx, `SELECT hash,kind,size,revision,epoch,ever_accepted FROM residential_records r WHERE state!='DELETED' AND (ever_accepted=1 OR tested=0 OR retain_until>CAST(unixepoch('subsec')*1000 AS INTEGER)) AND paused=0 AND (token='' OR lease_until<=?) AND next_run<=? AND (?='' OR negative_worker!=? OR negative_last<?) ORDER BY CASE WHEN ever_accepted=1 AND ? THEN 0 ELSE 1 END,CASE WHEN tested=0 THEN 0 ELSE 1 END,coalesce((SELECT min(coalesce(f.last_claim,0)) FROM residential_owners o LEFT JOIN residential_source_fairness f ON f.source=o.source WHERE o.hash=r.hash),0),next_run,first_seen,hash LIMIT 1`, now, now, worker, worker, now-120000, priority).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Epoch, &j.Deep)
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, tx.Commit()
 	}

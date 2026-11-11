@@ -3,10 +3,12 @@ package panel
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/rezajafari0970/Config_manager/internal/collect"
 	"github.com/rezajafari0970/Config_manager/internal/convert"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -55,12 +57,18 @@ func TestBrowserFixtureServer(t *testing.T) {
 	if dir == "" {
 		t.Skip("browser harness not requested")
 	}
+	listener, e := net.Listen("tcp", "127.0.0.1:0")
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer listener.Close()
+	origin := "http://" + listener.Addr().String()
 	store, e := Open(filepath.Join(dir, "data", "panel.db"), bytes.Repeat([]byte{17}, 32))
 	if e != nil {
 		t.Fatal(e)
 	}
 	defer store.Close()
-	app, e := NewServer(store, "http://127.0.0.1:18192")
+	app, e := NewServer(store, origin)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -125,9 +133,13 @@ func TestBrowserFixtureServer(t *testing.T) {
 		}
 	}()
 
-	server := &http.Server{Addr: "127.0.0.1:18192", Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second}
+	server := &http.Server{Addr: listener.Addr().String(), Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second}
 	httpDone := make(chan error, 1)
-	go func() { httpDone <- server.ListenAndServe() }()
+	go func() { httpDone <- server.Serve(listener) }()
+	ready, _ := json.Marshal(map[string]any{"origin": origin, "pid": os.Getpid()})
+	if e := os.WriteFile(filepath.Join(dir, "ready.json"), ready, 0600); e != nil {
+		t.Fatal(e)
+	}
 	select {
 	case <-ctx.Done():
 	case e := <-httpDone:

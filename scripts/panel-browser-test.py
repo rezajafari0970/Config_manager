@@ -17,16 +17,20 @@ ENV = dict(os.environ, PANEL_TEST_DIR=str(WORK), CONFIG_PANEL_BROWSER_FIXTURE_DI
 RECEIPTS = []
 for phase in ('1', '2'):
     with (WORK / ('server-' + phase + '.log')).open('w') as log:
+        (WORK/'ready.json').unlink(missing_ok=True)
         process = subprocess.Popen([str(WORK / 'fixture-server'), '-test.run=^TestBrowserFixtureServer$', '-test.v'], env=ENV, stdout=log, stderr=log)
         try:
             for _ in range(100):
                 if process.poll() is not None:
                     raise RuntimeError('fixture exited before readiness')
                 try:
-                    with urllib.request.urlopen('http://127.0.0.1:18192/healthz', timeout=1) as response:
+                    ready=json.loads((WORK/'ready.json').read_text())
+                    assert ready['pid']==process.pid,'foreign fixture readiness'
+                    ENV['PANEL_TEST_ORIGIN']=ready['origin']
+                    with urllib.request.urlopen(ready['origin']+'/healthz', timeout=1) as response:
                         if response.status == 200:
                             break
-                except OSError:
+                except (OSError,json.JSONDecodeError):
                     time.sleep(.1)
             else:
                 raise RuntimeError('fixture not ready')

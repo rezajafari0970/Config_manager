@@ -1,3 +1,12 @@
+# P37 — assessment coverage and diagnostic continuity
+
+Never-assessed entries precede unqualified retries, preserving accepted revalidation
+priority and source fairness. Unsupported receipts use the independent plan core
+identity. A framed3xx reply does not force abandonment of the existing TLS socket;
+Location is never followed. Missing diagnostic authority/semantics stays unknown.
+No policy, trust, protocol coverage or Residential admission requirement was relaxed.
+See the P37 checkpoint for live counts and explicit unavailable proof capabilities.
+
 # P31 — attributable Ads differences and native protocol drivers
 
 This section supersedes older fixed-age and single-category notes below.

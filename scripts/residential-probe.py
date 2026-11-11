@@ -136,7 +136,10 @@ async def connection_probe(host,variant,wave,timeout,path):
                 return row
             status,headers,body=await get(host,'/robots.txt',True)
             row.update(actual_domain_request=True,http_status=status,response_sha256=hashlib.sha256(body).hexdigest(),code='ads_tls_reachable_egress_unknown')
-            if 300<=status<400 or headers.get('connection','').lower()=='close':return row
+            # A redirect response does not require following it. Once its body
+            # is completely framed, the same open stream can still be measured.
+            # Do not reconnect, follow Location, or promote this to attestation.
+            if headers.get('connection','').lower()=='close':return row
             row['stage']='diagnostic'
             # Authenticate the diagnostic authority on the SAME TLS peer too.
             # This does not establish an undocumented response's IP semantics.
@@ -148,7 +151,7 @@ async def connection_probe(host,variant,wave,timeout,path):
             hits=re.findall(rb'IP address:\s*([^<\s]+)',body)
             if len(hits)==1 and ('shen_probe='+token).encode() in body:
                 ip=ipaddress.ip_address(hits[0].decode())
-                if ip.is_global:row.update(ip=str(ip),family=ip.version,nonce_bound=True,same_connection=True,response_sha256=hashlib.sha256(body).hexdigest(),code='diagnostic_semantics_unverified')
+                if ip.is_global:row.update(ip=str(ip),family=ip.version,nonce_bound=True,same_connection=True,response_sha256=hashlib.sha256(body).hexdigest(),code='diagnostic_semantics_unverified' if row['diagnostic_origin_verified'] else 'diagnostic_origin_unverified')
     except Exception as exc:
         # Exception text can include host credentials or response bodies.
         allowed={'socks_greeting','socks_connect','socks_address','control_http_status','control_origin','control_ip_invalid','persistent_framing_unsupported','ambiguous_response_framing','response_body_limit','duplicate_response_header','response_headers_limit','chunk_framing','interim_response_unsupported'}

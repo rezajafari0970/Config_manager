@@ -65,7 +65,11 @@ func execute(ctx context.Context, c client, helper, core, workerID, epoch string
 	var cleanupErr error
 	started := time.Now().UnixMilli()
 	plan := residential.NewCoreRegistry().Select(j.Raw)
-	report := residential.Report{Version: residential.Version, PolicyHash: j.Policy.Digest(), TemplateVersion: convert.Version, CoreSHA256: probe.CoreSHA256, Worker: workerID, InfrastructureEpoch: epoch, Started: started, Finished: started, InfrastructureOK: true, Variants: []residential.Variant{}, Observations: []residential.Observation{}, Controls: []residential.Observation{}, IPFacts: []residential.IPFact{}}
+	coreSHA := plan.CoreSHA256
+	if residential.CoreID(coreSHA) == "" {
+		coreSHA = residential.CompatibilityCoreSHA256
+	}
+	report := residential.Report{Version: residential.Version, PolicyHash: j.Policy.Digest(), TemplateVersion: convert.Version, CoreSHA256: coreSHA, CoreID: residential.CoreID(coreSHA), Worker: workerID, InfrastructureEpoch: epoch, Started: started, Finished: started, InfrastructureOK: true, Variants: []residential.Variant{}, Observations: []residential.Observation{}, Controls: []residential.Observation{}, IPFacts: []residential.IPFact{}}
 	completion := residential.Completion{Hash: j.Hash, Token: j.Token, Revision: j.Revision, Epoch: j.Epoch, TrustHash: j.TrustHash, Report: report}
 	if residential.Digest(j.Raw) != j.Hash || j.Issue != "" {
 		plan.Variants = nil

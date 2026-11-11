@@ -1,6 +1,7 @@
 package probe
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
@@ -62,7 +63,7 @@ func wireguardURI(u *url.URL) (M, error) {
 		if len(v) != 1 {
 			return nil, errors.New("ambiguous_query_parameter")
 		}
-		if !strings.Contains(" address publickey presharedkey mtu reserved keepalive allowedips ", " "+k+" ") {
+		if !shareFieldAllowed(k, " address publickey presharedkey mtu reserved keepalive allowedips dns fm finalmask finalMask ") {
 			return nil, errors.New("wireguard_extension_unsupported")
 		}
 	}
@@ -71,7 +72,38 @@ func wireguardURI(u *url.URL) (M, error) {
 		key += ":" + p
 	}
 	peer := map[string]string{"publickey": q.Get("publickey"), "presharedkey": q.Get("presharedkey"), "endpoint": net.JoinHostPort(u.Hostname(), strconv.Itoa(n)), "persistentkeepalive": q.Get("keepalive"), "allowedips": q.Get("allowedips")}
-	return wireguard(map[string]string{"privatekey": key, "address": q.Get("address"), "mtu": q.Get("mtu"), "reserved": q.Get("reserved")}, []map[string]string{peer})
+	out, e := wireguard(map[string]string{"privatekey": key, "address": q.Get("address"), "mtu": q.Get("mtu"), "reserved": q.Get("reserved"), "dns": q.Get("dns")}, []map[string]string{peer})
+	if e != nil {
+		return nil, e
+	}
+	var mask M
+	var canonical []byte
+	maskSeen := false
+	for _, name := range []string{"fm", "finalmask", "finalMask"} {
+		if values, ok := q[name]; ok {
+			var parsed M
+			if values[0] != "" {
+				parsed, e = strictObject([]byte(values[0]))
+				if e != nil {
+					return nil, errors.New("invalid_finalmask")
+				}
+			}
+			encoded, _ := json.Marshal(parsed)
+			if maskSeen && !bytes.Equal(canonical, encoded) {
+				return nil, errors.New("conflicting_finalmask")
+			}
+			mask = parsed
+			canonical = encoded
+			maskSeen = true
+		}
+	}
+	if mask != nil {
+		out["streamSettings"] = M{"network": "raw", "finalmask": mask}
+	}
+	if q.Get("dns") != "" || mask != nil {
+		out["__input_rule"] = shareCompatibilityVersion + ".wireguard-dns-finalmask"
+	}
+	return out, nil
 }
 func wireguardINI(raw string) (M, error) {
 	iface := map[string]string{}
@@ -109,7 +141,7 @@ func wireguardINI(raw string) (M, error) {
 }
 func wireguard(iface map[string]string, peers []map[string]string) (M, error) {
 	for k := range iface {
-		if !strings.Contains(" privatekey address mtu reserved dns ", " "+k+" ") {
+		if !shareFieldAllowed(k, " privatekey address mtu reserved dns ") {
 			return nil, errors.New("wireguard_extension_unsupported")
 		}
 	}
@@ -153,7 +185,7 @@ func wireguard(iface map[string]string, peers []map[string]string) (M, error) {
 	}
 	for _, p := range peers {
 		for k := range p {
-			if !strings.Contains(" publickey presharedkey endpoint persistentkeepalive allowedips ", " "+k+" ") {
+			if !shareFieldAllowed(k, " publickey presharedkey endpoint persistentkeepalive allowedips ") {
 				return nil, errors.New("wireguard_extension_unsupported")
 			}
 		}

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -18,7 +19,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/target"
 )
 
-const Version = "xray-26.11.9.probe-plan.v4"
+const Version = "xray-26.11.9.probe-plan.v5"
 
 type M = map[string]any
 type Candidate struct {
@@ -133,12 +134,18 @@ func Prepare(raw []byte) (p Plan) {
 		p.Code = err.Error()
 		return
 	}
+	if rule, ok := ob["__input_rule"].(string); ok {
+		uriRule += "." + rule
+		delete(ob, "__input_rule")
+	}
 	root := M{"remarks": label(raw, p.Kind), "log": M{"loglevel": "warning"}, "inbounds": []any{M{"tag": "socks", "listen": "127.0.0.1", "port": 10808, "protocol": "socks", "settings": M{"auth": "noauth", "udp": true}}}, "outbounds": []any{ob}, "routing": M{}}
 	if dns, ok := ob["__dns"]; ok {
 		root["dns"] = dns
 		delete(ob, "__dns")
 	}
-	p.Candidates = append(p.Candidates, candidate(root, uriRule, false))
+	requires, _ := ob["__require_connection"].(bool)
+	delete(ob, "__require_connection")
+	p.Candidates = append(p.Candidates, candidate(root, uriRule, requires))
 	// This is only a hypothesis, never a repair approval. A verified end-to-end
 	// connection with certificate verification must gate its recommendation.
 	stream, _ := ob["streamSettings"].(M)
@@ -186,7 +193,7 @@ func verifiedTLSAlternatives(in []Candidate) []Candidate {
 			}
 		}
 		if changed {
-			out = append(out, candidate(m, Version+".strict-tls-hypothesis", true))
+			out = append(out, candidate(m, c.Rule+"."+Version+".strict-tls-hypothesis", true))
 		}
 	}
 	return out
@@ -284,6 +291,10 @@ func uri(u *url.URL) (M, error) {
 				return nil, errors.New("invalid_utf8")
 			}
 		}
+	}
+	annotations, e := stripShareAnnotations(q)
+	if e != nil {
+		return nil, e
 	}
 	allowed := strings.Fields("type security encryption flow headerType host path sni fp alpn allowInsecure insecure allowinsecure pbk sid spx pqv ech vcn pcs serviceName authority mode extra xhttpMode xhttpExtra fm obfs obfs-password pinSHA256 mport x_padding_bytes cs packetEncoding support-x25519mlkem768")
 	for k, values := range q {
@@ -386,6 +397,9 @@ func uri(u *url.URL) (M, error) {
 		}
 	}
 	outbound := M{"tag": "proxy", "protocol": protocol, "settings": settings, "streamSettings": stream}
+	if len(annotations) > 0 {
+		outbound["__input_rule"] = shareCompatibilityVersion + ".subscription-metadata"
+	}
 	if q.Get("packetEncoding") == "xudp" {
 		outbound["mux"] = M{"enabled": true, "concurrency": -1, "xudpConcurrency": 1, "xudpProxyUDP443": "allow"}
 	}
@@ -394,6 +408,9 @@ func uri(u *url.URL) (M, error) {
 
 func transport(q url.Values, server string) (M, error) {
 	network := def(q.Get("type"), "tcp")
+	if strings.Contains(network, "://") {
+		return nil, errors.New("concatenated_config_uri")
+	}
 	if _, exists := q["x_padding_bytes"]; exists && network != "xhttp" {
 		return nil, errors.New("xhttp_parameter_on_other_transport")
 	}
@@ -532,8 +549,12 @@ func vmess(s string) (M, error) {
 	if e != nil {
 		return nil, e
 	}
+	rules, e := normalizeVMessShare(m)
+	if e != nil {
+		return nil, e
+	}
 	for k := range m {
-		if !strings.Contains(" v ps add port id aid scy net type host path tls sni fp alpn insecure vcn pcs skip-cert-verify name test_name ", " "+k+" ") {
+		if !shareFieldAllowed(k, " v ps add port id aid scy net type host path tls sni fp alpn insecure vcn pcs ") {
 			return nil, errors.New("unknown_vmess_field")
 		}
 	}
@@ -551,30 +572,6 @@ func vmess(s string) (M, error) {
 	for from, to := range map[string]string{"net": "type", "type": "headerType", "host": "host", "path": "path", "tls": "security", "sni": "sni", "fp": "fp", "alpn": "alpn", "insecure": "insecure", "vcn": "vcn", "pcs": "pcs"} {
 		q.Set(to, str(m, from))
 	}
-	// Known subscription spelling; do not silently discard certificate policy.
-	if raw, exists := m["skip-cert-verify"]; exists {
-		normalize := func(v any) (string, bool) {
-			switch fmt.Sprint(v) {
-			case "false", "0":
-				return "false", true
-			case "true", "1":
-				return "true", true
-			default:
-				return "", false
-			}
-		}
-		v, ok := normalize(raw)
-		if !ok {
-			return nil, errors.New("invalid_vmess_certificate_policy")
-		}
-		if original, exists := m["insecure"]; exists {
-			other, valid := normalize(original)
-			if !valid || other != v {
-				return nil, errors.New("ambiguous_vmess_certificate_policy")
-			}
-		}
-		q.Set("insecure", v)
-	}
 	if q.Get("type") == "grpc" {
 		q.Set("mode", str(m, "type"))
 		q.Set("serviceName", str(m, "path"))
@@ -584,7 +581,15 @@ func vmess(s string) (M, error) {
 	if e != nil {
 		return nil, e
 	}
-	return M{"tag": "proxy", "protocol": "vmess", "settings": M{"address": str(m, "add"), "port": n, "id": str(m, "id"), "security": def(str(m, "scy"), "auto")}, "streamSettings": stream}, nil
+	out := M{"tag": "proxy", "protocol": "vmess", "settings": M{"address": str(m, "add"), "port": n, "id": str(m, "id"), "security": def(str(m, "scy"), "auto")}, "streamSettings": stream}
+	if slicesContain(rules, "tls-verification-strict-conflict") {
+		out["__require_connection"] = true
+	}
+	if len(rules) > 0 {
+		sort.Strings(rules)
+		out["__input_rule"] = shareCompatibilityVersion + "." + strings.Join(rules, ".")
+	}
+	return out, nil
 }
 
 // Explicit compatibility spelling seen in XHTTP subscription links. Map only

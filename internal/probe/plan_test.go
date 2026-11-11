@@ -172,8 +172,11 @@ func TestVMessCertificateAliasAndDisplayMetadata(t *testing.T) {
 		t.Fatal("verification policy silently changed")
 	}
 	base["insecure"] = false
-	check("ambiguous_vmess_certificate_policy")
+	p = check("prepared")
+	if len(p.Candidates) != 1 || !p.Candidates[0].RequiresConnection || !bytes.Contains(p.Candidates[0].Config, []byte(`"allowInsecure":false`)) {
+		t.Fatal("conflicting flags must retain strict verification and require fresh proof")
+	}
 	delete(base, "insecure")
 	base["skip-cert-verify"] = "maybe"
-	check("invalid_vmess_certificate_policy")
+	check("invalid_tls_verification_flag")
 }

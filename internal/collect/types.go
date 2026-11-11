@@ -67,11 +67,20 @@ type Response struct {
 	Body           io.ReadCloser
 	Status         int
 	ETag, Modified string
+	Chunked        bool
+	RecoveryRule   string
 }
 type FetchDriver interface {
 	Name() string
 	Fetch(context.Context, Job) (Response, error)
 }
+
+// BodyRecoveryDriver can retry a failed representation once, inside the original
+// fetch deadline. The engine discards all partial bytes before retrying.
+type BodyRecoveryDriver interface {
+	RecoverBody(context.Context, Job, Response, error) (Response, error)
+}
+
 type Emitter func(context.Context, io.Reader, string) error
 type FormatDriver interface {
 	Name() string

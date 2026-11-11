@@ -10,7 +10,8 @@ const fs=require('fs');
  for(const width of [390,1440]){
   await page.setViewportSize({width,height:900});await page.goto(origin+'/residential');
   await page.waitForFunction(()=>document.querySelector('#res-list .config-card'));
-  if(await page.locator('#res-links a').count()!==6)throw Error('missing links');
+  // Each pool now exposes JSON array, JSONL, rotating JSON and raw text.
+  if(await page.locator('#res-links a').count()!==8)throw Error('missing links');
   const core=page.locator('#res-list details').filter({has:page.locator('summary',{hasText:'سازگاری هسته'})}).first();
   await core.locator('summary').click();
   if(!(await core.innerText()).includes('xray-26.5.9')||!(await core.innerText()).includes('HEALTHY'))throw Error('compatibility diagnostics missing');

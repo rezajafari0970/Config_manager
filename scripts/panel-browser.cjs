@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('assert/strict');const {chromium}=require(process.env.PLAYWRIGHT_MODULE);
-const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=process.argv[2];
+const dir=process.env.PANEL_TEST_DIR,origin=process.env.PANEL_TEST_ORIGIN||'http://127.0.0.1:18192',phase=process.argv[2];
 (async()=>{const browser=await chromium.launch({executablePath:process.env.CHROME_PATH,headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});try{
  const context=await browser.newContext({viewport:{width:390,height:844}}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  console.error('browser phase '+phase+' started');
@@ -61,6 +61,7 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
 
  console.error('browser checkpoint: normal exports passed');
  await require('./panel-ui-isolation.cjs')(context,origin);
+ await require('./panel-diagnostics-test.cjs')(context,origin);
  console.error('browser checkpoint: ui isolation passed');
  // Smart exports have a durable independent head round and stay inline.
  await page.goto(origin+'/smart');await wait(async()=>{const x=await(await context.request.get(origin+'/api/smart')).json();return x.stats.ready===2});

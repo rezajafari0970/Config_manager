@@ -25,3 +25,24 @@ assert.match(sourceStatus({...base,stored_count:6})[0],/قبلی/);
 assert.match(sourceStatus({...base,state:'queued',refresh_reason:'retention'})[0],/دریافت تازه/);
 assert.match(sourceStatus({...base,config_count:2,disabled_count:2})[0],/متوقف/);
 console.log('Receipt dedup, unknown legacy measurements, expiry and disabled inventory passed');
+
+const diagnosticSource=await readFile(new URL('../internal/panel/web/diagnostics.js',import.meta.url),'utf8');
+const {conversionCodes,conversionDetail,evidenceRows}=await import('data:text/javascript;base64,'+Buffer.from(diagnosticSource).toString('base64'));
+for(const code of ['ipv6_only_probe_pending','endpoint_dns_failed','tls_name_mismatch','peer_closed_connection','proxy_request_failed','test_destination_partial','transport_verification_incomplete','unknown_vmess_field','wireguard_extension_unsupported','legacy_vless_transport_requires_driver','transport_driver_pending','concatenated_config_uri']){
+ assert.ok(conversionCodes[code],code);assert.notEqual(conversionDetail(code).message,code);
+}
+assert.equal(conversionDetail('ipv6_only_probe_pending').category,'environment');
+assert.equal(conversionDetail('unknown_vmess_field').category,'capability');
+assert.equal(conversionDetail('tls_name_mismatch').category,'server');
+assert.equal(conversionDetail('transport_verification_incomplete').category,'network');
+assert.equal(conversionDetail('unknown-future-code').category,'input');
+const rows=evidenceRows({checks:{https:'passed',quic_vn:'failed',dns_udp:'unsupported',android:'not_run'}});
+assert.equal(rows.find(r=>r.key==='https').status,'موفق');
+assert.equal(rows.find(r=>r.key==='quic_vn').status,'ناموفق');
+assert.equal(rows.find(r=>r.key==='dns_udp').status,'پشتیبانی نمی‌شود');
+assert.equal(rows.find(r=>r.key==='android').status,'اجرا نشده');
+assert.equal(rows.find(r=>r.key==='http3').status,'نامشخص');
+assert.equal(evidenceRows({checks:{https:'unexpected'}}).find(r=>r.key==='https').status,'نامشخص');
+console.log('Shared diagnostic classification and independent transport evidence passed');
+
+assert.equal(conversionDetail('https_proxy_verified_site_unavailable').category,'network');

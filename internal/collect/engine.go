@@ -219,6 +219,33 @@ func (e *Engine) runJobWithBudgets(parent context.Context, job Job, fetchTimeout
 	}
 	defer spool.Close()
 	_, err = io.Copy(spool, &contextReader{ctx, response.Body})
+	if err != nil && errors.Is(err, io.ErrUnexpectedEOF) && response.Chunked && response.Status >= 200 && response.Status < 300 && ctx.Err() == nil {
+		if recovery, ok := e.fetch.(BodyRecoveryDriver); ok {
+			_ = response.Body.Close()
+			// No bytes from the failed attempt can enter storage or parsing.
+			if resetErr := spool.Truncate(0); resetErr != nil {
+				result.ErrorCode = "storage_error"
+				return
+			}
+			if _, resetErr := spool.Seek(0, io.SeekStart); resetErr != nil {
+				result.ErrorCode = "storage_error"
+				return
+			}
+			response, err = recovery.RecoverBody(ctx, job, response, err)
+			if err == nil {
+				defer response.Body.Close()
+				result.HTTPStatus, result.ETag, result.Modified = response.Status, response.ETag, response.Modified
+				if response.Status == 304 {
+					result.ErrorCode = "incomplete_body"
+					return
+				}
+				_, err = io.Copy(spool, &contextReader{ctx, response.Body})
+				if err == nil {
+					log.Printf("collector body recovery driver=%s rule=%s", e.fetch.Name(), response.RecoveryRule)
+				}
+			}
+		}
+	}
 	if err != nil {
 		result.ErrorCode = phaseError(phase, err)
 		return
