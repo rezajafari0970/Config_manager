@@ -12,7 +12,7 @@ import (
 
 type M = map[string]any
 
-const Version = "client-compat.2026-11-11.v2"
+const Version = "client-compat.2026-11-11.v3"
 const RelayDriver = "legacy-vless-stream-redirect.v2"
 
 type Change struct {

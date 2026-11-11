@@ -28,6 +28,16 @@ probe_infrastructure_error:'زیرساخت بررسی موقتاً در دستر
 // One closed diagnostic policy for Input and Output. Diagnostic severity never
 // grants export eligibility; server-side exact-byte evidence remains authoritative.
 Object.assign(conversionCodes,{
+ invalid_base64:'بدنهٔ لینک پس از جداسازی نام و بررسی encoding قابل Decode نیست؛ دادهٔ اصلی ناقص یا نامعتبر است. این ردشدن توسط هسته نیست.',
+ invalid_port:'پورت موجود نیست یا خارج از بازهٔ ۱ تا ۶۵۵۳۵ است؛ شمارهٔ پورت سرور حدس زده نمی‌شود.',
+ incomplete_transport_parameter:'لینک در پارامتر انتقال قطع شده است؛ نسخهٔ کامل منبع لازم است و اطلاعات حذف‌شده حدس زده نمی‌شود.',
+ invalid_vmess_payload_escape:'کدگذاری درصدی بدنهٔ VMess ناقص است؛ متن خام حفظ شده است.',
+ invalid_reality_version_annotation:'توضیح نسخهٔ REALITY قالب شناخته‌شده ندارد؛ گزینهٔ شبکه حدسی حذف نمی‌شود.',
+ conflicting_vmess_cipher:'دو مقدار متفاوت برای رمزنگاری داخلی VMess داده شده است؛ انتخاب خودکار انجام نمی‌شود.',
+ invalid_vmess_cipher_alias:'فیلد معادل رمزنگاری VMess مقدار معتبر ندارد.',
+ unsupported_vmess_cipher_alias:'رمزنگاری داخلی VMess نگاشت شناخته‌شده ندارد؛ به none تنزل داده نمی‌شود.',
+ relay_invalid_destination:'مقصد برای واسط ثابت معتبر نیست؛ کروشهٔ IPv6 معتبر خودکار اصلاح می‌شود، اما آدرس ناقص حدس زده نمی‌شود.',
+
  unknown_vmess_field:'فیلد ناشناختهٔ VMess بررسی نشده است؛ نسخهٔ خام حفظ شده و گزینهٔ مؤثر حدسی حذف نمی‌شود.',
  vmess_extension_requires_driver:'این افزونهٔ فعال VMess هنوز نگاشت تأییدشده ندارد؛ مقدار خالی با گزینهٔ فعال یکسان نیست.',
  invalid_vmess_metadata:'فیلد توضیحی VMess باید متن باشد؛ ساختار ورودی نیازمند اصلاح است.',

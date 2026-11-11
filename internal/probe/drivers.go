@@ -229,7 +229,7 @@ func label(raw []byte, kind string) string {
 		return u.Fragment
 	}
 	if kind == "vmess" {
-		b, e := decode(strings.TrimPrefix(strings.TrimSpace(string(raw)), "vmess://"))
+		b, _, e := vmessPayload(strings.TrimSpace(string(raw))[len("vmess://"):])
 		if e == nil {
 			var m M
 			if json.Unmarshal(b, &m) == nil {

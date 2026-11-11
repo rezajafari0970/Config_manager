@@ -15,11 +15,12 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/rezajafari0970/Config_manager/internal/compat"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 	"github.com/rezajafari0970/Config_manager/internal/target"
 )
 
-const Version = "xray-26.11.9.probe-plan.v5"
+const Version = "xray-26.11.9.probe-plan.v6"
 
 type M = map[string]any
 type Candidate struct {
@@ -72,6 +73,10 @@ func Prepare(raw []byte) (p Plan) {
 		if len(d.Candidate) > 0 {
 			b = d.Candidate
 			rule = repair.RulesVersion
+		}
+		if m, err := strictObject(b); err == nil && len(compat.NormalizeEndpointLiterals(m)) > 0 {
+			b, _ = json.Marshal(m)
+			rule += "." + compat.EndpointLiteralDriver
 		}
 		p.Candidates = append(p.Candidates, Candidate{Rule: rule, SHA256: repair.Digest(b), Config: bytes.Clone(b)})
 		p.Code = "prepared"
@@ -219,7 +224,7 @@ func def(s, f string) string {
 	return s
 }
 func port(s string) (int, error) {
-	n, e := strconv.Atoi(s)
+	n, e := strconv.Atoi(sharePortText(s))
 	if e != nil || n < 1 || n > 65535 {
 		return 0, errors.New("invalid_port")
 	}
@@ -306,6 +311,9 @@ func uri(u *url.URL) (M, error) {
 			}
 		}
 		if !known {
+			if k == "ty" && len(values) == 1 && values[0] == "" {
+				return nil, errors.New("incomplete_transport_parameter")
+			}
 			return nil, errors.New("unknown_query_parameter")
 		}
 		if len(values) != 1 {
@@ -541,7 +549,7 @@ func transport(q url.Values, server string) (M, error) {
 }
 
 func vmess(s string) (M, error) {
-	b, e := decode(s)
+	b, payloadRules, e := vmessPayload(s)
 	if e != nil {
 		return nil, e
 	}
@@ -553,6 +561,7 @@ func vmess(s string) (M, error) {
 	if e != nil {
 		return nil, e
 	}
+	rules = append(rules, payloadRules...)
 	for k := range m {
 		if !shareFieldAllowed(k, " v ps add port id aid scy net type host path tls sni fp alpn insecure vcn pcs ") {
 			return nil, errors.New("unknown_vmess_field")

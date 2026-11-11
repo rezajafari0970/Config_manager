@@ -1,0 +1,396 @@
+{
+  "phase": "P40",
+  "date": "2026-11-11",
+  "timezone": "Asia/Tehran",
+  "summary": {
+    "inputs": 742,
+    "current_inputs": 732,
+    "unique_candidates": 691,
+    "stages": {
+      "core_passed": 721,
+      "preparation_blocked": 21
+    },
+    "repaired_prior": 6,
+    "network_samples": 32
+  },
+  "previously_blocked_now_prepared": 12,
+  "preparation_codes": {
+    "missing_reality_public_key": 19,
+    "invalid_port": 1,
+    "incomplete_transport_parameter": 1
+  },
+  "target_core_final_input_rejections": 0,
+  "initial_candidate_rejections": {
+    "vmess+tcp+tls/removed_allow_insecure": 10
+  },
+  "input_core_matrix": {
+    "26.11.9": {
+      "passed": 721,
+      "not_run": 21
+    },
+    "26.10.31": {
+      "passed": 721,
+      "not_run": 21
+    },
+    "26.7.28": {
+      "passed": 721,
+      "not_run": 21
+    },
+    "26.5.9": {
+      "passed": 712,
+      "not_run": 21,
+      "failed": 9
+    }
+  },
+  "candidate_core_matrix": {
+    "26.11.9": {
+      "passed": 681,
+      "failed": 10
+    },
+    "26.10.31": {
+      "passed": 681,
+      "failed": 10
+    },
+    "26.7.28": {
+      "passed": 681,
+      "failed": 10
+    },
+    "26.5.9": {
+      "passed": 672,
+      "failed": 19
+    }
+  },
+  "core_pins": {
+    "26.11.9": "e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d",
+    "26.10.31": "cc4b84d3069569f297a61f04b914f2bb37e9d202fd7b84cb50def1fc30fd40e1",
+    "26.7.28": "64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d",
+    "26.5.9": "b2c525e082cf2fef460499c88838d355f0b9bfb5a00bdb3eaa99b6af63825006"
+  },
+  "families": {
+    "vless+tcp+tls": 17,
+    "vless+tcp-http+none": 365,
+    "vless+tcp+reality": 211,
+    "shadowsocks+tcp+none": 39,
+    "vless+tcp+none": 10,
+    "vmess+ws+none": 8,
+    "vless+ws+tls": 34,
+    "vless+grpc+reality": 12,
+    "vmess+tcp+none": 6,
+    "vless+xhttp+reality": 8,
+    "vless+tcp-http+reality": 2,
+    "trojan+tcp+tls": 2,
+    "vmess+tcp+tls": 13,
+    "vless+xhttp+tls": 10,
+    "vless+ws+none": 2,
+    "vmess+unparsed": 1,
+    "vless+grpc+tls": 1,
+    "vmess+ws+tls": 1
+  },
+  "network": {
+    "26.11.9": {
+      "failed": 10,
+      "passed": 16,
+      "partial": 4,
+      "not_run": 2
+    },
+    "26.10.31": {
+      "failed": 10,
+      "partial": 6,
+      "passed": 14,
+      "not_run": 2
+    }
+  },
+  "smart": {
+    "26.11.9": {
+      "passed": 10,
+      "partial": 2,
+      "not_run": 1,
+      "failed": 4
+    },
+    "26.10.31": {
+      "passed": 9,
+      "partial": 2,
+      "not_run": 1,
+      "failed": 5
+    }
+  },
+  "checks": {
+    "release_suite": "passed",
+    "final_delta_race": "passed",
+    "schema23_to24_rehearsal": "passed",
+    "mobile_desktop_fixture": "passed",
+    "byte_stability": "zero changed previously prepared candidates",
+    "client_source_contract": "v2rayNG2.3.6 and2.3.15 relevant importer/custom-transform function bodies identical",
+    "android_apk": "not_run",
+    "carriers": "not_run"
+  },
+  "runtime": {
+    "release": "/opt/config-repair/releases/p40-36c40d9853bcde96cbe2",
+    "schema": 24,
+    "sources": 33,
+    "services": "all six active; executable hashes verified",
+    "canary": {
+      "started": 1794375551,
+      "scopes": {
+        "conversions": {
+          "version": "xray-26.11.9.template.v8",
+          "worker": {
+            "status": "running",
+            "code": "",
+            "version": "xray-26.11.9.template.v8",
+            "active": 6,
+            "heartbeat": 1794375549792
+          },
+          "stats": null,
+          "array": {
+            "status": 200,
+            "kind": "list",
+            "items": 123,
+            "sha256": "16c575f38b0224ab2eaecd9311be9568d1d2de521fd088b7db24424784bb4979"
+          },
+          "single_sha256": "9fb56e4ea1e23e2cde440ae3a91dc48207b39c8318959ebb58412d32b9809f7e",
+          "build": {
+            "26.11.9": {
+              "core": "passed"
+            },
+            "26.10.31": {
+              "core": "passed"
+            }
+          },
+          "runtime": {
+            "core": "passed",
+            "connection": "passed",
+            "code": "https_multi_site_verified",
+            "runtime_sha256": "9fb56e4ea1e23e2cde440ae3a91dc48207b39c8318959ebb58412d32b9809f7e",
+            "endpoints_passed": 2,
+            "evidence": {
+              "https": "passed",
+              "http3": "passed",
+              "android": "not_run",
+              "dns_tcp": "passed",
+              "doh_cloudflare": "passed",
+              "doh_google": "passed",
+              "dns_udp": "passed",
+              "quic_vn": "passed"
+            }
+          }
+        },
+        "smart": {
+          "version": "xray-26.11.9.smart.v12",
+          "worker": {
+            "status": "running",
+            "code": "",
+            "version": "xray-26.11.9.smart.v12",
+            "active": 2,
+            "heartbeat": 1794375560080
+          },
+          "stats": {
+            "blocked": 0,
+            "eligible": 115,
+            "ready": 38,
+            "sources": 13,
+            "total": 114,
+            "warming": 76
+          },
+          "array": {
+            "status": 200,
+            "kind": "list",
+            "items": 38,
+            "sha256": "f53696186b2600dfd9b3d08c540bafe9607c0aed426ee516cfa695d71ea8165f"
+          },
+          "single_sha256": "f002ad1547700e59fa611b5662f03b1d89bae6b0b337d2d8f219fea499ac1a18",
+          "build": {
+            "26.11.9": {
+              "core": "passed"
+            },
+            "26.10.31": {
+              "core": "passed"
+            }
+          },
+          "runtime": {
+            "core": "passed",
+            "connection": "passed",
+            "code": "https_multi_site_verified",
+            "runtime_sha256": "f002ad1547700e59fa611b5662f03b1d89bae6b0b337d2d8f219fea499ac1a18",
+            "endpoints_passed": 2,
+            "evidence": {
+              "https": "passed",
+              "http3": "passed",
+              "android": "not_run",
+              "dns_tcp": "passed",
+              "doh_cloudflare": "passed",
+              "doh_google": "passed",
+              "dns_udp": "passed",
+              "quic_vn": "passed"
+            }
+          }
+        },
+        "smart-splash": {
+          "version": "xray-26.11.9.smart.v12",
+          "worker": {
+            "status": "running",
+            "code": "",
+            "version": "xray-26.11.9.smart.v12",
+            "active": 0,
+            "heartbeat": 1794376015096
+          },
+          "stats": {
+            "blocked": 0,
+            "eligible": 2,
+            "ready": 2,
+            "sources": 2,
+            "total": 2,
+            "warming": 0
+          },
+          "array": {
+            "status": 200,
+            "kind": "list",
+            "items": 2,
+            "sha256": "dd5e4e69b9f304fb097cd63c881c7d703d9cebc2ff33d6f551a31faebcfa61c9"
+          },
+          "single_sha256": "6553adb5272941be12b75ef027b055be96305e3bfd9d0a867950578a85673796",
+          "build": {
+            "26.11.9": {
+              "core": "passed"
+            },
+            "26.10.31": {
+              "core": "passed"
+            }
+          },
+          "runtime": {
+            "core": "passed",
+            "connection": "passed",
+            "code": "https_multi_site_verified",
+            "runtime_sha256": "6553adb5272941be12b75ef027b055be96305e3bfd9d0a867950578a85673796",
+            "endpoints_passed": 2,
+            "evidence": {
+              "https": "passed",
+              "http3": "passed",
+              "android": "not_run",
+              "dns_tcp": "passed",
+              "doh_cloudflare": "passed",
+              "doh_google": "passed",
+              "dns_udp": "passed",
+              "quic_vn": "passed"
+            }
+          }
+        },
+        "smart-ads": {
+          "version": "xray-26.11.9.smart-ads.v5",
+          "worker": {
+            "status": "running",
+            "code": "",
+            "version": "xray-26.11.9.smart-ads.v5",
+            "active": 0,
+            "heartbeat": 1794376015114
+          },
+          "stats": {
+            "ads_eligible": 2,
+            "ads_sources": 2,
+            "blocked": 0,
+            "eligible": 2,
+            "main_eligible": 199,
+            "main_sources": 13,
+            "ready": 2,
+            "sources": 15,
+            "total": 2,
+            "warming": 0
+          },
+          "array": {
+            "status": 200,
+            "kind": "list",
+            "items": 2,
+            "sha256": "f9ac21dbe2fb463db58e48816c0c4c1eefaa9ded9827a08645bd8fbe16683812"
+          },
+          "single_sha256": "63a05de64ddf6837a8545e7e5e0ae091ab3e0ecf16837b54d1f3df1863dfc8db",
+          "build": {
+            "26.11.9": {
+              "core": "passed"
+            },
+            "26.10.31": {
+              "core": "passed"
+            }
+          },
+          "runtime": {
+            "core": "passed",
+            "connection": "passed",
+            "code": "https_multi_site_verified",
+            "runtime_sha256": "63a05de64ddf6837a8545e7e5e0ae091ab3e0ecf16837b54d1f3df1863dfc8db",
+            "endpoints_passed": 2,
+            "evidence": {
+              "https": "passed",
+              "http3": "passed",
+              "android": "not_run",
+              "dns_tcp": "passed",
+              "doh_cloudflare": "passed",
+              "doh_google": "passed",
+              "dns_udp": "passed",
+              "quic_vn": "passed"
+            }
+          }
+        }
+      },
+      "android": "not_run",
+      "carriers": "not_run",
+      "finished": 1794376029,
+      "initial_unavailable": {
+        "smart-splash": {
+          "version": "xray-26.11.9.smart.v12",
+          "worker": {
+            "status": "running",
+            "code": "",
+            "version": "xray-26.11.9.smart.v12",
+            "active": 0,
+            "heartbeat": 1794375565098
+          },
+          "stats": {
+            "blocked": 0,
+            "eligible": 0,
+            "ready": 0,
+            "sources": 0,
+            "total": 0,
+            "warming": 0
+          },
+          "unavailable": {
+            "status": 503,
+            "body": "هنوز ورودی با تأیید معتبر اتصال عمومی و اینستاگرام موجود نیست. بررسی مجدد خودکار انجام می‌شود؛ زمان آماده‌شدن قطعی نیست.\n"
+          }
+        },
+        "smart-ads": {
+          "version": "xray-26.11.9.smart-ads.v5",
+          "worker": {
+            "status": "running",
+            "code": "",
+            "version": "xray-26.11.9.smart-ads.v5",
+            "active": 0,
+            "heartbeat": 1794375565115
+          },
+          "stats": {
+            "ads_eligible": 0,
+            "ads_sources": 0,
+            "blocked": 0,
+            "eligible": 0,
+            "main_eligible": 117,
+            "main_sources": 13,
+            "ready": 0,
+            "sources": 13,
+            "total": 0,
+            "warming": 0
+          },
+          "unavailable": {
+            "status": 503,
+            "body": "اسپلش ادزِ واجد شرایط سلامت موجود نیست؛ قبولی ساختار هسته به‌تنهایی کافی نیست. نتیجهٔ اتصال هر ورودی در صفحهٔ خروجی مشخص است.\n"
+          }
+        }
+      },
+      "recheck_started": 1794376016
+    }
+  },
+  "limitations": [
+    "Linux isolated runtime only; no Android APK or Iranian-carrier execution",
+    "IPv6-only samples pending because audit namespace is IPv4-only",
+    "Representative success does not qualify other endpoints",
+    "Splash/Ads initially warming and503; after own requalification all four exact served canaries passed",
+    "OpenAI API was not needed or called in P40"
+  ]
+}

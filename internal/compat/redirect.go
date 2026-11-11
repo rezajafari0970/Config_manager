@@ -10,7 +10,9 @@ import (
 // Logical restores only a recognized, exclusively owned fixed-destination
 // adapter. This lets normal, Smart and Ads compose the same original graph.
 func Logical(root M) ([]Change, error) {
+	normalized := NormalizeEndpointLiterals(root)
 	changes, err := logicalRedirect(root)
+	changes = append(normalized, changes...)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +171,9 @@ func Wrap(root M) ([]Change, error) {
 	if err := ValidateCapabilities(root); err != nil {
 		return nil, err
 	}
-	if _, err := Logical(root); err != nil {
+	normalizedChanges := NormalizeEndpointLiterals(root)
+	_, err := Logical(root)
+	if err != nil {
 		return nil, err
 	}
 	obs, _ := root["outbounds"].([]any)
@@ -182,7 +186,7 @@ func Wrap(root M) ([]Change, error) {
 		tag, _ := ob["tag"].(string)
 		used[tag] = true
 	}
-	changes := []Change{}
+	changes := append([]Change{}, normalizedChanges...)
 	legs := []any{}
 	for _, v := range obs {
 		ob := v.(M)
@@ -203,10 +207,10 @@ func Wrap(root M) ([]Change, error) {
 		if _, _, err := destination(ep.host); err != nil {
 			return nil, err
 		}
-		if len(changes) >= 256 {
+		if len(legs) >= 256 {
 			return nil, errors.New("relay_limit_exceeded")
 		}
-		base := "compat-transport-" + strconv.Itoa(len(changes)+1)
+		base := "compat-transport-" + strconv.Itoa(len(legs)+1)
 		tag := base
 		for n := 1; used[tag]; n++ {
 			tag = base + "-" + strconv.Itoa(n)

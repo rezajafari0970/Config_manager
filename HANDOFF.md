@@ -1,3 +1,36 @@
+# P40: conservative shared repairs and multi-core audit — 2026-11-11
+
+Activated p40-36c40d9853bcde96cbe2, schema24. Normalv8 / Smartv12 / Adsv5;
+probe v6 / share-compat v2 / client-compat v3. All six services run the tested
+executables. Preserve the P39 egress replacement and all source-admission controls.
+Do not run pre24 binaries against this database. Deployment must hold the existing
+lock and retain a matching stopped DB/blob/key/binary backup. Never force-push.
+
+Read docs/reports/P40-report-fa.md, P40-validation.json and the P40 checkpoint.
+The immutable snapshot covers732 current inputs from33 sources plus10 historical
+or user examples.721 inputs have accepted candidates on26.11.9/26.10.31/26.7.28;
+21 remain preparation-blocked (19 missing REALITY key, one missing port, one bare ty).
+Twelve previously blocked inputs are repaired, including six of the prior17.
+There are zero FINAL input core rejections in this snapshot; ten ORIGINAL VMess TLS
+candidate variants are rejected for allowInsecure, with strict alternatives accepted.
+This is not a claim that721 endpoints connect.32 ordinary and17 Smart representatives
+were network-tested; each production output still requires its own exact-byte proof.
+
+Source-derived v2rayNG2.3.6/2.3.15 Import/Custom transformations were checked.
+Actual Android APK and Iranian carriers were not run. IPv6-only runtime tests are
+pending because the isolated lab is IPv4-only; do not mark those servers broken.
+All four active normal/Smart/Splash/Ads exact-byte canaries passed both cores
+and real bundled HTTPS/DoH/DNS TCP+UDP/QUIC VN/HTTP3. Splash/Ads initially
+returned503 during requalification and then independently became ready. Preserve
+that honest gate; do not publish stale or core-only profiles.
+
+Repairs preserve exact raw data and server meaning: fragment/percent VMess decode,
+explicit cipher alias, exact empty placeholders, numeric port spelling, bounded
+REALITY metadata and complete IPv6 literal brackets. Missing data is never guessed.
+Unknown active extensions stay explicit. Legacy plaintext compatibility adds NO
+encryption. Version changes fence prior proofs and schedule independent revalidation.
+Private snapshots, endpoint/credential reports and receipts remain in .local.
+
 # P39: independent Ads egress replacement — 2026-11-11
 
 Activated p39-ebd1c323ba6e0e2d4879, schema23. Full release checks passed,

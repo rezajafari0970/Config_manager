@@ -1,4 +1,4 @@
-# P35 client compatibility contract
+# P40 client compatibility contract
 
 Target: official v2rayNG **2.3.15**, Lib40, bundled Xray **26.10.31**.
 The additional forward-compatibility gate uses official Xray **26.11.9**.
@@ -17,11 +17,11 @@ source-derived Android Custom Config transformations, and runs those final bytes
 on **26.10.31** in the existing isolated sandbox. Publication requires exact
 candidate/runtime SHA equality and fresh HTTPS/DNS/UDP evidence where supported.
 No successful build alone is a healthy output; an old-core pass cannot qualify.
-Independent residential diagnosis retains its own checksum-pinned historical
-supervisor baseline; publication upgrades cannot silently retarget that preflight.
-Positive/negative live self-tests and a regression test cover this separation.
+The independent P39 egress pipeline retains its own evidence gates and reconciles
+convert.Version changes without deleting source records. Never restore the retired
+Residential implementation or substitute ordinary health for Ads egress proof.
 
-Schema21 records current raw/candidate/runtime hashes, target and driver versions,
+Schema24 records current raw/candidate/runtime hashes, target and driver versions,
 changes, attempts and transport checks separately. Receipts are bounded metadata,
 not a new historical sample bank. Originals remain immutable. Migration updates
 persisted admission predicates, fences old leases and caches, and schedules new
@@ -162,3 +162,22 @@ Lib40 discards DNS/routing. The firewall denies that bootstrap; the native test
 is blocked even when the exact full profile passed. No direct-DNS exception was
 added. This is not an observed Android APK failure or proof of universal DNS
 behavior on devices. IP endpoints and full-profile tunnel DNS tests are separate.
+
+
+## P40 parser repairs and audit
+
+The versioned share-compat.v2 decoder strips only the URI fragment before Base64,
+supports percent-encoded payload bytes without changing '+', recognizes explicit
+VMess security/scy aliases with conflict checks, and accepts known exact-empty
+placeholder strings. Empty strings do not authorize dropping populated extensions.
+Numeric port spelling preserves digits and normalizes Persian/Arabic forms; missing
+ports are not inferred. Bounded realityVersion metadata never substitutes for a key.
+endpoint-ipv6-literal.v1 unwraps complete IPv6 literals in protocol address fields
+while preserving Host/SNI, credentials, ports and exact raw storage.
+
+Read P40-validation.json for the finite all-input four-core audit and bounded real
+network representatives. Original variant rejection and final input rejection are
+separate: strict TLS alternatives still require valid certificate connection proof.
+The audit itself cannot mark a production config healthy. Schema24 fences stale
+leases and final-byte evidence in normal/Smart/Splash/Ads; future inputs take the
+same common preparation path. Actual Android APK/carrier execution remains not_run.
