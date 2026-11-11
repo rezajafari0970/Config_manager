@@ -152,7 +152,7 @@ func execute(ctx context.Context, c client, helper, core string, slot int, j pro
 func run() error {
 	socket := flag.String("socket", "/var/lib/config-repair/probe.sock", "protected Unix queue socket")
 	helper := flag.String("helper", "/opt/config-repair/current/scripts/probe-one.py", "trusted sandbox driver")
-	core := flag.String("core", "/opt/config-repair/core-26.7.28/xray", "pinned core")
+	core := flag.String("core", "/opt/config-repair/core-26.11.9/xray", "pinned core")
 	lockPath := flag.String("lock-file", "/run/config-repair-prober.lock", "supervisor instance lock")
 	mode := flag.String("mode", "conversion", "independent conversion or smart queue")
 	flag.Parse()

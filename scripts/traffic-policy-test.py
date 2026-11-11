@@ -66,7 +66,7 @@ def exercise():
 def main():
     if os.geteuid()!=0:raise SystemExit('root required for closed network fixture')
     request=json.load(sys.stdin);core=pathlib.Path(request['core']).resolve()
-    assert hashlib.sha256(core.read_bytes()).hexdigest()=='64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d'
+    assert hashlib.sha256(core.read_bytes()).hexdigest() in {'64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d','cc4b84d3069569f297a61f04b914f2bb37e9d202fd7b84cb50def1fc30fd40e1','e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d'}
     spec=importlib.util.spec_from_file_location('traffic_sandbox',HERE/'live-probe.py')
     lab=importlib.util.module_from_spec(spec);spec.loader.exec_module(lab)
     with tempfile.TemporaryDirectory(prefix='synthetic-traffic-') as directory:

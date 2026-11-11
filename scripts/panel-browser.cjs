@@ -3,6 +3,7 @@ const assert=require('assert/strict');const {chromium}=require(process.env.PLAYW
 const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=process.argv[2];
 (async()=>{const browser=await chromium.launch({executablePath:process.env.CHROME_PATH,headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});try{
  const context=await browser.newContext({viewport:{width:390,height:844}}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ console.error('browser phase '+phase+' started');
  const state=async()=>(await context.request.get(origin+'/api/state')).json();
  const wait=async fn=>{for(let n=0;n<150;n++){if(await fn())return;await new Promise(r=>setTimeout(r,100))}throw new Error('condition timed out')};
  const noOverflow=async()=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'horizontal overflow');
@@ -14,10 +15,10 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
  }else{const s=await state();assert.equal(s.stats.sources,3);assert.equal(s.settings.timeout_seconds,19);await page.goto(origin+'/output')}
  await page.waitForFunction(()=>document.querySelectorAll('#output-list [data-view]').length===2);assert.equal(await page.locator('#bank-list').count(),0);await noOverflow();
  const c=await(await context.request.get(origin+'/api/conversions')).json();assert.equal(c.entries.length,2);assert.ok(c.entries.every(x=>x.core==='passed'&&x.connection==='passed'));
- const response=await context.request.get(c.export_url);assert.equal(response.status(),200);assert.equal(response.headers()['content-type'],'text/plain; charset=utf-8');assert.equal(response.headers()['content-disposition'],'inline');const lines=(await response.text()).trim().split('\n');assert.equal(lines.length,2);for(const line of lines){const j=JSON.parse(line);assert.equal(j.remarks,'@shenvpn');assert.equal(j.inbounds[0].tag,'socks');assert.equal(j.outbounds.length,4)}
+ const response=await context.request.get(c.export_url);assert.equal(response.status(),200);assert.equal(response.headers()['content-type'],'application/json; charset=utf-8');assert.equal(response.headers()['content-disposition'],'inline');const lines=JSON.parse(await response.text()).map(x=>JSON.stringify(x));assert.equal(lines.length,2);for(const line of lines){const j=JSON.parse(line);assert.equal(j.remarks,'@shenvpn');assert.equal(j.inbounds[0].tag,'socks');const relays=j.inbounds.filter(x=>x.protocol==='dokodemo-door'&&x.tag.startsWith('compat-relay-'));assert.equal(j.outbounds.length,4+relays.length);for(const relay of relays){assert.equal(relay.listen,'127.0.0.1');assert.equal(relay.settings.network,'tcp');assert.equal(j.routing.rules.filter(r=>r.inboundTag?.includes(relay.tag)).length,2)}}
  // Navigate like a user: an API GET alone cannot detect forced downloads.
  const exportPage=await context.newPage(),downloads=[];exportPage.on('download',d=>downloads.push(d));
- const inlineResponse=await exportPage.goto(c.export_url,{waitUntil:'domcontentloaded'});assert.equal(inlineResponse.status(),200);assert.equal(await exportPage.evaluate(()=>document.contentType),'text/plain');assert.equal(await exportPage.locator('body').innerText(),await response.text());assert.equal(downloads.length,0);await exportPage.close();
+ const inlineResponse=await exportPage.goto(c.export_url,{waitUntil:'domcontentloaded'});assert.equal(inlineResponse.status(),200);assert.equal(await exportPage.evaluate(()=>document.contentType),'application/json');assert.equal(await exportPage.locator('body').innerText(),await response.text());assert.equal(downloads.length,0);await exportPage.close();
  const rawPage=await context.newPage(),rawDownloads=[];rawPage.on('download',d=>rawDownloads.push(d));
  assert.equal(await page.locator('#raw-all-url').getAttribute('href'),origin+'/output/raw.txt');
  const rawResponse=await rawPage.goto(origin+'/output/raw.txt');assert.equal(rawResponse.status(),200);assert.equal(rawResponse.headers()['content-disposition'],'inline');assert.equal(rawResponse.headers()['x-config-count'],'2');assert.equal(await rawPage.locator('body').innerText(),(await rawResponse.text()).replace(/\r\n/g,'\n').replace(/\r/g,'\n'));assert.equal(rawDownloads.length,0);await rawPage.close();
@@ -38,7 +39,7 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
  // Separate source exports: Verde owns two configs, Rosa one shared config.
  const sourceList=await(await context.request.get(origin+'/api/export/sources')).json();
  assert.equal(sourceList.sources.length,3);const verde=sourceList.sources.find(s=>s.name==='Verde'),rosa=sourceList.sources.find(s=>s.name==='Rosa'),broken=sourceList.sources.find(s=>s.name==='Broken');
- const own=async source=>(await(await context.request.get(source.export_url)).text()).trim().split('\n').filter(Boolean);
+ const own=async source=>JSON.parse(await(await context.request.get(source.export_url)).text()).map(x=>JSON.stringify(x));
  const vl=await own(verde),rl=await own(rosa);assert.equal(vl.length,2);assert.equal(rl.length,1);assert.ok(vl.includes(rl[0]));assert.deepEqual(await own(broken),[]);
  await page.locator('#export-sources summary').click();await page.waitForFunction(()=>document.querySelectorAll('[data-source-panel]').length===3);
  await page.locator('#export-source-search').fill('Rosa');await page.waitForFunction(()=>document.querySelectorAll('#export-source-list article').length===1);
@@ -56,7 +57,9 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
  await page.locator('[data-view]').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('pre')].some(p=>!p.hidden&&p.textContent.startsWith('{')));await noOverflow();await page.screenshot({path:dir+'/output-mobile.png',fullPage:true});
  await page.setViewportSize({width:1440,height:1000});await noOverflow();await page.screenshot({path:dir+'/output-desktop.png',fullPage:true});
 
+ console.error('browser checkpoint: normal exports passed');
  await require('./panel-ui-isolation.cjs')(context,origin);
+ console.error('browser checkpoint: ui isolation passed');
  // Smart exports have a durable independent head round and stay inline.
  await page.goto(origin+'/smart');await wait(async()=>{const x=await(await context.request.get(origin+'/api/smart')).json();return x.stats.ready===2});
  assert((await page.locator('.output-panel').innerText()).includes('leastLoad'));assert(!(await page.locator('.output-panel').innerText()).includes('leastPing'));
@@ -64,13 +67,13 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
  await wait(async()=>await page.locator('#smart-all-url').getAttribute('href')===smart.export_url);
  assert.equal(await page.locator('#smart-all-url').getAttribute('href'),smart.export_url);
  const smartPage=await context.newPage(),smartDownloads=[];smartPage.on('download',d=>smartDownloads.push(d));
- const allSmart=await smartPage.goto(smart.export_url);assert.equal(allSmart.headers()['content-disposition'],'inline');assert.equal(await smartPage.evaluate(()=>document.contentType),'text/plain');
- const smartLines=(await allSmart.text()).trim().split('\n');assert.equal(smartLines.length,2);assert.equal(new Set(smartLines).size,2);
+ const allSmart=await smartPage.goto(smart.export_url);assert.equal(allSmart.headers()['content-disposition'],'inline');assert.equal(await smartPage.evaluate(()=>document.contentType),'application/json');
+ const smartLines=JSON.parse(await allSmart.text()).map(x=>JSON.stringify(x));assert.equal(smartLines.length,2);assert.equal(new Set(smartLines).size,2);
  for(const line of smartLines){
   const j=JSON.parse(line);assert.equal(j.remarks,'@shenvpn-smart-parallel-v6b');assert.deepEqual(Object.keys(j),['remarks','log','dns','inbounds','outbounds','routing','burstObservatory','policy','stats','metrics']);assert.deepEqual(j.log,{loglevel:'none',access:'none',error:'none',dnsLog:false});assert(j.routing.balancers[1].selector.includes(j.outbounds[0].tag));assert(j.outbounds.some(x=>x.tag==='block'&&x.protocol==='blackhole'));assert.equal(j.dns.servers.length,4);
   assert.deepEqual(j.dns.servers.map(d=>d.address),['https://8.8.8.8/dns-query','https://1.1.1.1/dns-query','https://1.1.1.1/dns-query','https://8.8.8.8/dns-query']);for(const d of j.dns.servers){assert.equal(d.timeoutMs,2500)}
   for(const d of j.dns.servers.slice(0,2)){assert.equal(d.skipFallback,true);assert.equal(d.tag,'dns-bootstrap');assert.deepEqual(d.domains,['full:vpn.example'])}
-  assert.equal(j.routing.balancers.length,2);assert.equal(j.routing.rules.length,4);assert.equal(j.routing.balancers[0].fallbackTag,'block');assert.equal(j.routing.balancers[1].selector.length,1);
+  assert.equal(j.routing.balancers.length,2);assert.equal(j.routing.rules.length,4+2*j.inbounds.filter(x=>x.tag.startsWith('compat-relay-')).length);assert.equal(j.routing.balancers[0].fallbackTag,'block');assert.equal(j.routing.balancers[1].selector.length,1);
   const bootstrap=j.outbounds.find(x=>x.tag===j.routing.balancers[1].selector[0]);assert.equal(bootstrap.settings.address||bootstrap.settings.vnext[0].address,'192.0.2.1');assert.equal(j.outbounds.filter(x=>x.tag.startsWith('proxy-')).length,2);assert.equal(j.inbounds[0].settings.udp,true);assert.equal(j.metrics.listen,'127.0.0.1:11111');
  }
 
@@ -96,6 +99,7 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
   await wait(async()=>(await(await context.request.get(origin+'/api/conversions')).json()).entries.length===2);
   assert.equal((await state()).stats.configs,2);await noOverflow();await page.screenshot({path:dir+'/restored-source.png',fullPage:true});
  }
+ console.error('browser checkpoint: normal smart passed');
  if(phase==='2'){
   const pendingState=await(await context.request.get(origin+'/api/smart-ads')).json();
   const waiting=await context.newPage();waiting.on('pageerror',e=>errors.push(e.message));
@@ -111,7 +115,7 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
   const row=page.locator('.source-row[data-id="'+src.id+'"]'),toggle=row.locator('[data-action=splash]');await wait(async()=>await toggle.getAttribute('aria-pressed')==='true');await noOverflow();
   await page.goto(origin+'/smart-splash');await wait(async()=>await page.locator('[data-smart-view]').count()===2);await noOverflow();
   const sp=await splashState();assert.equal(sp.settings.count,7);assert.equal((await(await context.request.get(origin+'/api/smart')).json()).stats.ready,2);
-  const all=(await(await context.request.get(sp.export_url)).text()).trim().split('\n');assert.equal(all.length,2);
+  const all=JSON.parse(await(await context.request.get(sp.export_url)).text()).map(x=>JSON.stringify(x));assert.equal(all.length,2);
   for(const l of all){const j=JSON.parse(l);assert.equal(j.outbounds.filter(o=>o.tag.startsWith('proxy-')).length,2);assert(!l.includes('vpn.example'));assert(l.includes('192.0.2.71')&&l.includes('192.0.2.72'))}
   const one=await context.newPage();const downloads=[];one.on('download',d=>downloads.push(d));const oneResponse=await one.goto(sp.single_export_url);assert.equal(oneResponse.status(),200);assert.equal((await oneResponse.text()).trim().split('\n').length,1);assert.equal(downloads.length,0);await one.close();
   await page.locator('[data-smart-view]').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('#smart-list pre')].some(p=>!p.hidden));await page.screenshot({path:dir+'/splash-mobile.png',fullPage:true});
@@ -124,7 +128,7 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
   for(const width of [390,1440]){
    await page.setViewportSize({width,height:900});await page.goto(origin+'/smart-ads');await wait(async()=>await page.locator('[data-smart-view]').count()===2);await noOverflow();
    const ad=await adsState();assert.equal(ad.settings.count,3);assert.equal(await page.locator('#smart-all-url').getAttribute('href'),ad.export_url);
-   const lines=(await(await context.request.get(ad.export_url)).text()).trim().split('\n');assert.equal(lines.length,2);
+   const lines=JSON.parse(await(await context.request.get(ad.export_url)).text()).map(x=>JSON.stringify(x));assert.equal(lines.length,2);
    for(const l of lines){const j=JSON.parse(l);assert.equal(j.remarks,'@shenvpn-smart-ads');assert.equal(j.outbounds.filter(x=>x.tag==='ads-01').length,1);assert(j.outbounds.find(x=>x.tag==='ads-01').streamSettings.sockopt.dialerProxy==='main-chain-dispatch')}
    await page.locator('[data-smart-view]').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('#smart-list pre')].some(p=>!p.hidden));
    await page.screenshot({path:dir+'/smart-ads-'+width+'.png',fullPage:true});
@@ -135,11 +139,12 @@ const dir=process.env.PANEL_TEST_DIR,origin='http://127.0.0.1:18192',phase=proce
   await page.goto(origin+'/input');const button=page.locator('.source-row[data-id="'+src.id+'"] [data-action=splash]');await button.click();await wait(async()=>(await splashState()).stats.ready===0);await wait(async()=>(await(await context.request.get(origin+'/api/smart')).json()).stats.ready===4);
   await wait(async()=>await button.getAttribute('aria-pressed')==='false');await button.click();await wait(async()=>(await splashState()).stats.ready===2);await wait(async()=>(await(await context.request.get(origin+'/api/smart')).json()).stats.ready===2);
  }
+ console.error('browser checkpoint: ads and splash passed');
  await page.goto(origin+'/setting');await page.waitForFunction(()=>document.querySelector('#probe-concurrency').value!=='');await page.setViewportSize({width:390,height:844});await noOverflow();
  if(phase==='1'){await page.waitForFunction(()=>document.querySelector('#smart-ads-member-count').value!=='');await page.locator('#smart-ads-member-count').fill('۳');await page.locator('#smart-ads-settings button').click();await wait(async()=>(await(await context.request.get(origin+'/api/smart-ads')).json()).settings.count===3)}
  if(phase==='1'){await page.waitForFunction(()=>document.querySelector('#smart-splash-member-count').value!=='');await page.locator('#smart-splash-member-count').fill('۷');await page.locator('#smart-splash-settings button').click();await wait(async()=>(await(await context.request.get(origin+'/api/smart-splash')).json()).settings.count===7)}
  if(phase==='1'){await page.locator('#smart-member-count').fill('۵۰');await page.locator('#smart-settings button').click();await wait(async()=>(await(await context.request.get(origin+'/api/smart')).json()).settings.count===50);await wait(async()=>(await(await context.request.get(origin+'/api/smart')).json()).stats.ready===2)}
  if(phase==='1'){await page.locator('#retention-hours').fill('۱۰');await page.locator('#request-timeout').fill('۱۹');await page.getByRole('button',{name:'ذخیرهٔ تنظیمات',exact:true}).click();await wait(async()=>(await state()).settings.timeout_seconds===19);assert.equal((await state()).settings.retention_seconds,36000);await page.locator('#probe-health_ttl_seconds').fill('۱۰');await page.locator('#probe-concurrency').fill('3');await page.locator('#probe-settings button').click();await wait(async()=>(await(await context.request.get(origin+'/api/conversions')).json()).settings.concurrency===3)}
- else{assert.equal(c.settings.concurrency,3);assert.equal(c.settings.health_ttl_seconds,36000);assert.equal(await page.locator('#probe-health_ttl_seconds').inputValue(),'10');const retainedBefore=(await state()).stats.configs;require('fs').writeFileSync(dir+'/upstream-offline','fixture');await page.locator('#retention-hours').fill('۰٫۰۰۲۵');await page.getByRole('button',{name:'ذخیرهٔ تنظیمات',exact:true}).click();await wait(async()=>(await state()).stats.configs===0);const converted=await(await context.request.get(origin+'/api/conversions')).json();assert.equal(converted.entries.length,0);assert.equal(await(await context.request.get(converted.export_url)).text(),'');const emptySingle=await context.request.get(converted.single_export_url);assert.equal(emptySingle.status(),204);assert.equal(await emptySingle.text(),'');require('fs').unlinkSync(dir+'/upstream-offline');await wait(async()=>(await state()).stats.configs===retainedBefore);await wait(async()=>(await(await context.request.get(origin+'/api/conversions')).json()).entries.filter(x=>x.available).length===retainedBefore)}
+ else{assert.equal(c.settings.concurrency,3);assert.equal(c.settings.health_ttl_seconds,36000);assert.equal(await page.locator('#probe-health_ttl_seconds').inputValue(),'10');const retainedBefore=(await state()).stats.configs;require('fs').writeFileSync(dir+'/upstream-offline','fixture');await page.locator('#retention-hours').fill('۰٫۰۰۲۵');await page.getByRole('button',{name:'ذخیرهٔ تنظیمات',exact:true}).click();await wait(async()=>(await state()).stats.configs===0);const converted=await(await context.request.get(origin+'/api/conversions')).json();assert.equal(converted.entries.length,0);assert.deepEqual(JSON.parse(await(await context.request.get(converted.export_url)).text()),[]);const emptySingle=await context.request.get(converted.single_export_url);assert.equal(emptySingle.status(),204);assert.equal(await emptySingle.text(),'');require('fs').unlinkSync(dir+'/upstream-offline');await wait(async()=>(await state()).stats.configs===retainedBefore);await wait(async()=>(await(await context.request.get(origin+'/api/conversions')).json()).entries.filter(x=>x.available).length===retainedBefore)}
  await page.screenshot({path:dir+'/setting-mobile.png',fullPage:true});assert.deepEqual(errors,[]);console.log(JSON.stringify({phase,passed:true,browser:await browser.version(),scope:'synthetic UI only; core matrix is separate'}));
 }finally{await browser.close()}})().catch(e=>{console.error(e);process.exit(1)});

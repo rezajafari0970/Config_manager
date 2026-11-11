@@ -13,9 +13,9 @@ type Profile struct {
 
 func Pinned() Profile {
 	return Profile{
-		ID:     "v2rayng-2.3.6-lib40-xray-26.7.28",
-		Client: "v2rayNG", ClientVersion: "2.3.6", LibraryVersion: "40", CoreVersion: "26.7.28",
-		ClientCommit: "13138dddcab291ba3618cc54721ce4c7dd926be0",
-		CoreCommit:   "5ca6f4b7d4dc20a881d4330e498892697627ec0c",
+		ID:     "v2rayng-2.3.15-lib40-xray-26.10.31-and-26.11.9",
+		Client: "v2rayNG", ClientVersion: "2.3.15", LibraryVersion: "40", CoreVersion: "26.10.31",
+		ClientCommit: "57907cf354d9769200ed4717b4430d605abe0952",
+		CoreCommit:   "a4a3dff5b20c",
 	}
 }

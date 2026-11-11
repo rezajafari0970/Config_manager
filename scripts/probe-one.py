@@ -5,11 +5,13 @@ import argparse, threading, time, signal, base64, contextlib, importlib.util, js
 HERE=pathlib.Path(__file__).resolve().parent
 spec=importlib.util.spec_from_file_location('probe_sandbox',HERE/'live-probe.py')
 lab=importlib.util.module_from_spec(spec);spec.loader.exec_module(lab)
-CORE_SHA='64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d'
+spec=importlib.util.spec_from_file_location("app_contract",HERE/"app-import-contract.py")
+app=importlib.util.module_from_spec(spec);spec.loader.exec_module(app)
+CORE_SHA='e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d'
 # Client exports must also build on the current official core. Older-core
 # connectivity (including legacy VLESS vnext) is not current-client acceptance.
-CLIENT_CORE_SHA='e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d'
-CLIENT_CORE='/opt/config-repair/core-26.11.9/xray'
+CLIENT_CORE_SHA='cc4b84d3069569f297a61f04b914f2bb37e9d202fd7b84cb50def1fc30fd40e1'
+CLIENT_CORE='/opt/config-repair/core-26.10.31/xray'
 PREFIX='crw'
 OWN=re.compile(r'^'+PREFIX+r'[0-9a-f]{6}20(?:0[0-8])$')
 
@@ -52,6 +54,16 @@ def validate_client(box, data, core):
     finally:
         box.stop()
         box.core = previous
+
+def run_target(box,candidate,timeout,core):
+    previous=box.core
+    try:
+        box.core=pathlib.Path(core).resolve()
+        result=lab.test_candidate(box,candidate,timeout)
+        result.setdefault('evidence',{})['runtime_core']='xray_26_10_31'
+        return result
+    finally:
+        box.stop();box.core=previous
 
 def cleanup(slot=None,runid=None):
     names=set()
@@ -127,10 +139,17 @@ def main(core_only=False):
     try:
         with lab.Sandbox(args.core,runid,8192+args.slot,prefix=PREFIX) as box:
             for candidate in plan['candidates']:
+                client_failure={'code':'not_run'}
                 try:
                     data=base64.b64decode(candidate['config'],validate=True)
                     if len(data)>2*1024*1024 or lab.digest(data)!=candidate['sha256']:raise ValueError('invalid candidate')
                     client_failure=validate_client(box,data,args.client_core)
+                    if client_failure is None:
+                        for variant in app.variants(data):
+                            client_failure=validate_client(box,variant,args.client_core)
+                            if client_failure is not None:
+                                client_failure["code"]="app_transform_core_rejected"
+                                break
                     if client_failure is not None:
                         r=client_failure
                     elif core_only:
@@ -139,8 +158,19 @@ def main(core_only=False):
                         passed=process.returncode==0
                         r={'core':'passed' if passed else 'failed','connection':'not_run','code':'smart_core_validated' if passed else 'smart_core_rejected','runtime_sha256':lab.digest(data),'endpoints_passed':0}
                         box.stop()
-                    else:r=lab.test_candidate(box,candidate,timeout)
+                    else:
+                        # Both official cores must build the exact output. Real traffic
+                        # runs on the core actually bundled with the target Android app.
+                        latest_failure=validate_client(box,data,args.core)
+                        if latest_failure is not None:
+                            r=latest_failure
+                        else:
+                            r=run_target(box,candidate,timeout,args.client_core)
                 except Exception:r={'core':'blocked','connection':'not_run','code':'probe_infrastructure_error','runtime_sha256':'','endpoints_passed':0}
+                r.setdefault('evidence',{})['bundled_core']='passed' if client_failure is None else 'failed'
+                r['evidence']['target_core']=r['core']
+                r['evidence']['app_import_contract']='passed' if client_failure is None else 'failed'
+                r['evidence']['android']='not_run'
                 r.update(sha256=candidate['sha256'],rule=candidate['rule']);rows.append(r)
                 eligible=r['core']=='passed' and (not candidate.get('requires_connection') or r['connection']=='passed')
                 score=(eligible,rank[r['connection']],r['core']=='passed')

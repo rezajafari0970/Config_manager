@@ -1,3 +1,18 @@
+# Current P33 user authorization — 2026-11-11
+
+The latest user authorizes a tested loopback relay only for legacy plaintext VLESS
+TCP/RAW with optional HTTP header. This is explicitly labelled NO TLS compatibility,
+not added encryption. Build on current official client/core source, preserve actual
+endpoint/credentials and exact raw bytes. Keep bounded endpoint-only relay routes,
+loopback listeners, deny fallback, unique tags/ports and lifecycle tests in Smart.
+This replaces conflicting P32 prohibitions for this driver only. Require actual
+final-output core and connection evidence; core-only ordinary publication is no
+longer sufficient. Preserve JSONL as an export and add client-native array subscriptions.
+The current no-unintended-egress requirement supersedes inherited UseIPv4 socket
+fallback: generated socket policy is ForceIPv4, while DNS queryStrategy remains
+UseIPv4. Preserve exact final bytes; P21 post-validation proxy shuffle is disabled.
+Read docs/checkpoints/P33-unified-client-compatibility-20261111.md.
+
 # Current P32 override — 2026-11-10
 
 Ordinary and every Smart export (normal, Splash, Ads) must pass both the original

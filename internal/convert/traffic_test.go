@@ -61,6 +61,12 @@ func TestTrafficPolicyCoversFlatNestedChainsAndPools(t *testing.T) {
 	nodes[0].(M)["mux"] = M{"enabled": true, "concurrency": json.Number("-1"), "xudpConcurrency": json.Number("-1")}
 	nodes[1].(M)["proxySettings"] = M{"tag": "hop"}
 	nodes = append(nodes, M{"tag": "hop", "protocol": "vless", "settings": M{"vnext": []any{M{"address": "192.0.2.3", "port": 443, "users": []any{M{"id": "11111111-1111-4111-8111-111111111111", "flow": "xtls-rprx-vision", "encryption": "none"}}}}}, "mux": M{"enabled": true, "xudpProxyUDP443": "reject"}})
+	for _, n := range nodes {
+		ob := n.(M)
+		if ob["protocol"] == "vless" {
+			ob["streamSettings"] = M{"security": "tls", "tlsSettings": M{"serverName": "fixture.test"}}
+		}
+	}
 	m["outbounds"] = nodes
 	raw := encode(t, m)
 	p := Prepare(raw)

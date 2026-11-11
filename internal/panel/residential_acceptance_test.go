@@ -220,6 +220,7 @@ func TestResidentialAutomaticReadmissionRequiresNewEvidence(t *testing.T) {
 	if e = s.CompleteResidential(ctx, completion); e != nil {
 		t.Fatal(e)
 	}
+	revalidateRetainedClient(t, s)
 	if w := resRequest(s, "all", "configs.jsonl"); w.Code != 200 {
 		t.Fatal("new valid evidence not admitted", w.Code, w.Body.String())
 	}

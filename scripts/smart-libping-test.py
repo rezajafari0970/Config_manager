@@ -43,8 +43,15 @@ def main():
  spec=importlib.util.spec_from_file_location('libping_sandbox',HERE/'live-probe.py');lab=importlib.util.module_from_spec(spec);spec.loader.exec_module(lab)
  after=request['config'];before=copy.deepcopy(after)
  before['outbounds'].sort(key=lambda x:x['tag']!='block')
+ relay=copy.deepcopy(after)
+ first=relay['outbounds'][0];settings=first['settings']
+ node=settings if 'address' in settings else settings['vnext'][0]
+ node['address']='127.0.0.1';node['port']=39081
+ relay['inbounds'].append({'tag':'fixture-relay','listen':'127.0.0.1','port':39081,'protocol':'dokodemo-door','settings':{'address':'127.0.0.1','port':24443,'network':'tcp','followRedirect':False}})
+ relay['outbounds'].append({'tag':'fixture-transport','protocol':'freedom','settings':{}})
+ relay['routing']['rules'].insert(0,{'type':'field','inboundTag':['fixture-relay'],'ip':['127.0.0.1'],'port':'24443','network':'tcp','outboundTag':'fixture-transport'})
  results={}
- for name,config in [('block_first',before),('independent_ip_first',after)]:
+ for name,config in [('block_first',before),('independent_ip_first',after),('local_relay_default',relay)]:
   with lab.Sandbox(str(helper),secrets.token_hex(3),8198,prefix='cstp') as box:
    # No external DNS or Internet is permitted in this regression.
    box.net([lab.NFT,'-f','-'],input=b'flush ruleset\ntable inet guard { chain out { type filter hook output priority 0; policy drop; oifname "lo" accept; }; chain in { type filter hook input priority 0; policy drop; iifname "lo" accept; }; }\n')
@@ -52,11 +59,11 @@ def main():
    try:
     time.sleep(.25)
     process=box.launch(json.dumps(config).encode());process.wait(timeout=12)
-    result=json.loads(box.logs());assert result['core']=='26.7.28',result
+    result=json.loads(box.logs());assert result['core']=='26.10.31',result
     results[name]=result
    finally:
     child.terminate();child.wait(timeout=3)
- assert not results['block_first']['passed'] and results['independent_ip_first']['passed'],results
+ assert not results['block_first']['passed'] and results['independent_ip_first']['passed'] and not results['local_relay_default']['passed'],results
  print(json.dumps({'passed':True,'lib':'v40','android_apk':'not_run','results':results}))
 if __name__=='__main__':
  if '--serve' in sys.argv:serve()

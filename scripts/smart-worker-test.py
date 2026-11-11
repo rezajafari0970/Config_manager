@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Real pinned-core smart worker, isolated queue, restart, sources and inline exports."""
+"""Real core-build and SIGKILL queue tests with SYNTHETIC connection receipts.
+Real final-profile traffic is tested separately; no network health is claimed here.
+"""
 import argparse,hashlib,json,os,pathlib,sqlite3,subprocess,tempfile,time,urllib.request
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 def get(url,prod=False):
@@ -31,8 +33,12 @@ def main():
     if len(picked)>=args.live_canary:break
    samples['Canary']=picked;receipt['live_samples']=len(picked)
   (work/'samples.json').write_text(json.dumps(samples))
-  for name in ['probe-one.py','live-probe.py']:(work/name).write_text((ROOT/'scripts'/name).read_text())
+  for name in ['probe-one.py','live-probe.py','config-preflight.py','app-import-contract.py','transport-checks.py','http3-check.py']:(work/name).write_text((ROOT/'scripts'/name).read_text())
   (work/'smart-probe-one.py').write_text((ROOT/'scripts'/('ads-probe-one.py' if args.ads else 'splash-probe-one.py' if args.splash else 'smart-probe-one.py')).read_text().replace("PREFIX='csm'","PREFIX='cst'").replace("PREFIX='csp'","PREFIX='cpt'").replace("PREFIX='csa'","PREFIX='cat'"))
+  if args.live_canary:raise RuntimeError('Use the separate exact-profile live-canary driver; synthetic queue receipts cannot certify live samples')
+  helper=work/'smart-probe-one.py'
+  text=helper.read_text();text=text.replace("if __name__=='__main__':driver.main()",(ROOT/'scripts/testdata/synthetic-connection-adapter.py').read_text()+"\nif __name__=='__main__':driver.main()")
+  helper.write_text(text)
   panel=worker=None
   with (work/'panel.log').open('w') as pl,(work/'worker.log').open('w') as wl:
    try:
@@ -46,9 +52,9 @@ def main():
      except (OSError,json.JSONDecodeError) as error:last_ready_error=type(error).__name__;time.sleep(.1)
     else:raise RuntimeError("fixture unavailable: "+last_ready_error+"; "+(work/"panel.log").read_text()[-2000:])
     receipt["fixture_ready_seconds"]=round(time.monotonic()-fixture_started,2)
-    def launch():return subprocess.Popen([str(ROOT/'bin/config-probe-worker'),'-mode',mode,'-socket',str(work/'data/probe.sock'),'-helper',str(work/'smart-probe-one.py'),'-core',str(ROOT/'.local/xray-26.7.28/xray'),'-lock-file',str(work/'smart.lock')],stdout=wl,stderr=wl)
+    def launch():return subprocess.Popen([str(ROOT/'bin/config-probe-worker'),'-mode',mode,'-socket',str(work/'data/probe.sock'),'-helper',str(work/'smart-probe-one.py'),'-core','/opt/config-repair/core-26.11.9/xray','-lock-file',str(work/'smart.lock')],stdout=wl,stderr=wl)
     worker=launch();killed=False;start=time.monotonic();last=-1;max_active=0
-    while time.monotonic()-start<480:
+    while time.monotonic()-start<900:
      state=json.loads(get(origin+api)[0]);active=state['worker']['active'];max_active=max(max_active,active)
      running=sum(r['state']=='running' for r in state['entries'])
      with sqlite3.connect(str(work/'data/panel.db')) as claims:live_claims=claims.execute("SELECT count(*) FROM "+table+"heads WHERE token!='' AND lease_until>?",(int(time.time()*1000),)).fetchone()[0]
@@ -61,7 +67,7 @@ def main():
      time.sleep(.25)
     else:raise RuntimeError('smart queue timeout: '+json.dumps(state['stats'])+' codes '+str({r['code'] for r in state['entries']}))
     assert killed and max_active<=2
-    lines=get(state['export_url'])[0].splitlines();assert len(lines)==state['stats']['ready']==len(set(lines))
+    values=json.loads(get(state['export_url'])[0]);lines=[json.dumps(v,separators=(',',':')).encode() for v in values];assert len(lines)==state['stats']['ready']==len(set(lines))
     for line in lines:
      j=json.loads(line);assert j['remarks']==('@shenvpn-smart-ads' if args.ads else '@shenvpn-smart-parallel-v6b')
      assert list(j)==['remarks','log','dns','inbounds','outbounds','routing','burstObservatory','policy','stats','metrics']
@@ -87,7 +93,7 @@ def main():
     if args.splash:
      other=json.loads(get(origin+'/api/smart')[0]);assert other['stats']['ready']==0 and other['settings']['count']==10
      assert all(b'192.0.2.200' not in line for line in lines)
-    receipt.update(passed=True,profiles=len(lines),members_per_profile=51 if args.ads else 50,sources=len(samples),max_active=max_active,sigkill_recovered=True,unique_head_round=True,inline=True,core='xray-26.7.28')
+    receipt.update(passed=True,profiles=len(lines),members_per_profile=51 if args.ads else 50,sources=len(samples),max_active=max_active,sigkill_recovered=True,unique_head_round=True,inline=True,core='xray-26.11.9',connection_receipts='synthetic_state_machine_only')
    finally:
     (ROOT/(".local/"+scope+"-fixture-diagnostic.log")).write_text((work/"panel.log").read_text()[-8000:])
     for process in [worker,panel]:

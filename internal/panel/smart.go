@@ -373,7 +373,7 @@ func (s *SmartPipeline) RenewSmart(ctx context.Context, j probe.Job) error {
 	return nil
 }
 func (s *SmartPipeline) CompleteSmart(ctx context.Context, r probe.Result) error {
-	if r.Version != s.version() || r.CoreSHA256 != probe.CoreSHA256 || !validDigest(r.Hash) || !safeCode(r.Code) || r.Connection != "not_run" {
+	if r.Version != s.version() || r.CoreSHA256 != probe.CoreSHA256 || !validDigest(r.Hash) || !safeCode(r.Code) {
 		return ErrInvalid
 	}
 	if r.Core != "passed" && r.Core != "failed" && r.Core != "blocked" && r.Core != "not_run" {
@@ -404,9 +404,15 @@ func (s *SmartPipeline) CompleteSmart(ctx context.Context, r probe.Result) error
 	if r.Core == "passed" && hash != r.SHA256 {
 		return ErrInvalid
 	}
+	if r.Connection == "passed" && (r.Core != "passed" || r.RuntimeSHA256 != r.SHA256 || r.EndpointsPassed != 2 || !probe.VerifiedEvidence(r.Evidence)) {
+		return ErrInvalid
+	}
+	if e = s.saveSmartEvidence(ctx, tx, r); e != nil {
+		return e
+	}
 	state := "blocked"
 	next := now + 60000
-	if r.Core == "passed" {
+	if r.Core == "passed" && r.Connection == "passed" {
 		state = "ready"
 		next = 0
 		if e = publishSmartCache(ctx, tx, r.Hash); e != nil {

@@ -16,6 +16,9 @@ lab = adapter.lab
 PREFIX = os.environ.get('SHEN_RESIDENTIAL_TEST_PREFIX', 'crr')
 if PREFIX not in ('crr', 'crt'): raise RuntimeError('invalid resource prefix')
 adapter.PREFIX = PREFIX
+# Residential compatibility screening has its own historical baseline. Updating
+# the client-publication core must not silently change this supervisor contract.
+adapter.CORE_SHA = '64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d'
 adapter.OWN = re.compile(r'^'+PREFIX+r'[0-9a-f]{6}20(?:0[0-8])$')
 CONTROLS = ['www.cloudflare.com', 'api64.ipify.org']
 IPV4_CONTROLS = ['1.1.1.1', 'api.ipify.org']

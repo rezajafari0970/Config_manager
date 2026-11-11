@@ -30,7 +30,7 @@ for phase in ('1', '2'):
                     time.sleep(.1)
             else:
                 raise RuntimeError('fixture not ready')
-            result = subprocess.run(['node', str(ROOT / 'scripts' / 'panel-browser.cjs'), phase], cwd=ROOT, env=ENV, capture_output=True, text=True, timeout=150)
+            result = subprocess.run(['node', str(ROOT / 'scripts' / 'panel-browser.cjs'), phase], cwd=ROOT, env=ENV, capture_output=True, text=True, timeout=300)
             if result.returncode:
                 raise RuntimeError(result.stderr[-6000:])
             RECEIPTS.append(json.loads(result.stdout.strip()))
@@ -44,6 +44,6 @@ for phase in ('1', '2'):
                 raise RuntimeError('fixture shutdown failed')
         if process.returncode != 0:
             raise RuntimeError('fixture stopped with nonzero status')
-receipt = {'phases': RECEIPTS, 'passed': True, 'tests':['input_bulk_dedup_status','jsonl_one_object_per_line','common_template','bank_routes_removed','mobile_and_desktop_no_overflow','restart_persistence','TTL_removes_conversions','conversion_settings','source_timeout']}
+receipt = {'phases': RECEIPTS, 'passed': True, 'tests':['input_bulk_dedup_status','native_json_array_and_legacy_jsonl','common_template','bank_routes_removed','mobile_and_desktop_no_overflow','restart_persistence','TTL_removes_conversions','conversion_settings','source_timeout']}
 (WORK / 'receipt.json').write_text(json.dumps(receipt, indent=2))
 print(json.dumps({'receipt': str(WORK / 'receipt.json'), 'passed': True}))

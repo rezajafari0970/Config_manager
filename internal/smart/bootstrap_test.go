@@ -17,6 +17,17 @@ func TestBootstrapUsesOnlyIndependentIPEntries(t *testing.T) {
 		M{"tag": "node-d", "protocol": "vless", "settings": M{"address": "192.0.2.3"}, "streamSettings": M{"xhttpSettings": M{"extra": M{"downloadSettings": M{"address": "Download.Test"}}}}},
 		M{"tag": "node-e", "protocol": "vless", "settings": M{"vnext": []any{M{"address": "2001:db8::1"}}}, "streamSettings": M{"sockopt": M{"dialerProxy": "node-a", "tcpFastOpen": true}}},
 	}
+	for _, n := range nodes {
+		ob := n.(M)
+		if ob["protocol"] == "vless" {
+			stream, _ := ob["streamSettings"].(M)
+			if stream == nil {
+				stream = M{}
+				ob["streamSettings"] = stream
+			}
+			stream["security"] = "tls"
+		}
+	}
 	source := M{"outbounds": nodes, "routing": M{"balancers": []any{M{"tag": "pool", "selector": []string{"node-"}}}, "rules": []any{M{"network": "tcp,udp", "balancerTag": "pool"}}}}
 	raw, _ := json.Marshal(source)
 	before := bytes.Clone(raw)
@@ -40,7 +51,7 @@ func TestBootstrapUsesOnlyIndependentIPEntries(t *testing.T) {
 	out := root["outbounds"].([]any)
 	for _, value := range out[:5] {
 		socket := value.(M)["streamSettings"].(M)["sockopt"].(M)
-		if socket["domainStrategy"] != "UseIPv4" || socket["tcpKeepAliveIdle"] != json.Number("45") || socket["tcpKeepAliveInterval"] != json.Number("15") {
+		if socket["domainStrategy"] != "ForceIPv4" || socket["tcpKeepAliveIdle"] != json.Number("45") || socket["tcpKeepAliveInterval"] != json.Number("15") {
 			t.Fatal(socket)
 		}
 	}

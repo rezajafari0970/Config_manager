@@ -115,7 +115,7 @@ func applySmartSocketPolicy(ob M) {
 			socket = M{}
 			stream["sockopt"] = socket
 		}
-		socket["domainStrategy"] = "UseIPv4"
+		socket["domainStrategy"] = "ForceIPv4"
 		socket["tcpKeepAliveIdle"] = json.Number("45")
 		socket["tcpKeepAliveInterval"] = json.Number("15")
 	}

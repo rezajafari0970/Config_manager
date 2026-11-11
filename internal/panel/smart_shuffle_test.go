@@ -45,7 +45,7 @@ func TestSmartPerRequestShuffleKeepsCacheAndRoundOwnership(t *testing.T) {
 		if r.Code != 200 || r.Header().Get("Cache-Control") != "no-store" || r.Header().Get("X-Content-SHA256") != repair.Digest(r.Body.Bytes()) {
 			t.Fatal("invalid full response")
 		}
-		lines := bytes.Split(bytes.TrimSpace(r.Body.Bytes()), []byte{'\n'})
+		lines := exportObjects(t, r.Body.Bytes())
 		seen := map[string]bool{}
 		order := ""
 		for i, line := range lines {

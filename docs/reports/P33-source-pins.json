@@ -1,0 +1,28 @@
+{
+  "26.10.31": "cc4b84d3069569f297a61f04b914f2bb37e9d202fd7b84cb50def1fc30fd40e1",
+  "26.11.9": "e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d",
+  "sources": {
+    "v2rayNG": {
+      "version": "2.3.15",
+      "commit": "57907cf354d9769200ed4717b4430d605abe0952",
+      "repository": "https://github.com/2dust/v2rayNG"
+    },
+    "AndroidLibXrayLite": {
+      "version": "Lib40",
+      "commit": "2ffe5f794a32ba15b122e177b5acffc6f11c4959",
+      "repository": "https://github.com/2dust/AndroidLibXrayLite"
+    },
+    "bundled_Xray": {
+      "version": "26.10.31",
+      "commit": "a4a3dff5b20c2faae567b742c172c7b95e75c083",
+      "repository": "https://github.com/XTLS/Xray-core"
+    },
+    "standalone_Xray": {
+      "version": "26.11.9",
+      "commit": "676eaf66f8f05d4d558ee7a74b4736623d3feeb9",
+      "repository": "https://github.com/XTLS/Xray-core"
+    }
+  },
+  "network_runtime": "bundled_Xray",
+  "additional_build_gate": "standalone_Xray"
+}

@@ -74,6 +74,7 @@ func TestResidentialAgeExemptionAndHealthCacheAreIndependent(t *testing.T) {
 	if e = s.CompleteResidential(ctx, resCompletion(*fresh)); e != nil {
 		t.Fatal(e)
 	}
+	revalidateRetainedClient(t, s)
 	if w := resRequest(s, "all", "raw.txt"); w.Code != 200 {
 		t.Fatal("fresh proof not restored", w.Code)
 	}

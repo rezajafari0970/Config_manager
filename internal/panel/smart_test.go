@@ -17,7 +17,7 @@ import (
 )
 
 func smartResult(j *probe.Job) probe.Result {
-	return probe.Result{Hash: j.Hash, Token: j.Token, Revision: j.Revision, Version: smart.Version, CoreSHA256: probe.CoreSHA256, Attempt: probe.Attempt{SHA256: repair.Digest(j.Raw), Rule: smart.Version, Core: "passed", Connection: "not_run", Code: "synthetic_smart_fixture"}, Candidate: j.Raw}
+	return probe.Result{Hash: j.Hash, Token: j.Token, Revision: j.Revision, Version: smart.Version, CoreSHA256: probe.CoreSHA256, Attempt: probe.Attempt{SHA256: repair.Digest(j.Raw), Rule: smart.Version, Core: "passed", Connection: "passed", Code: "synthetic_smart_fixture", RuntimeSHA256: repair.Digest(j.Raw), EndpointsPassed: 2, Evidence: syntheticCompatibilityEvidence()}, Candidate: j.Raw}
 }
 func finishSmart(t *testing.T, s *Store) int {
 	t.Helper()
@@ -107,7 +107,7 @@ func TestSmartCacheCoverageWarmingAndIndependentRounds(t *testing.T) {
 	if rr.Code != 200 || rr.Header().Get("Content-Disposition") != "inline" {
 		t.Fatal("not inline")
 	}
-	lines := bytes.Split(bytes.TrimSpace(rr.Body.Bytes()), []byte{'\n'})
+	lines := exportObjects(t, rr.Body.Bytes())
 	if len(lines) != 7 {
 		t.Fatal("full cache")
 	}
@@ -238,7 +238,7 @@ func TestSmartPersistentConcurrentRoundsAndMigration(t *testing.T) {
 	defer other.Close()
 	var schema int
 	other.db.QueryRow("PRAGMA user_version").Scan(&schema)
-	if schema != 19 {
+	if schema != 20 {
 		t.Fatal(schema)
 	}
 	var wg sync.WaitGroup

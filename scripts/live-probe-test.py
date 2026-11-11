@@ -59,11 +59,23 @@ class ProbeTests(unittest.TestCase):
 
  def test_no_direct_success(self):
   c={'inbounds':[],'outbounds':[{'protocol':'freedom','settings':{},'tag':'direct'},{'protocol':'trojan','settings':{'address':'example.com','port':443,'password':'synthetic'}}],'routing':{'rules':[{'outboundTag':'direct','domain':['example.org']}]}}
-  before=copy.deepcopy(c);r=p.runtime_config(c,{'example.com':{'ips':['1.1.1.1'],'port':443}})
-  self.assertEqual(c,before);self.assertEqual(r['outbounds'][0]['protocol'],'blackhole');self.assertEqual(r['routing'],c['routing'])
- def test_dns_override_is_not_silent(self):
-  with self.assertRaisesRegex(ValueError,'custom_dns_mapping_requires_review'):
-   p.runtime_config({'dns':{'hosts':{'example.com':'8.8.8.8'}}},{'example.com':{'ips':['1.1.1.1'],'port':443}})
+  before=copy.deepcopy(c)
+  with self.assertRaisesRegex(ValueError,'direct_route_not_qualified'):p.runtime_config(c,{'example.com':{'ips':['1.1.1.1'],'port':443}})
+  self.assertEqual(c,before)
+ def test_runtime_preserves_custom_dns_without_rewriting(self):
+  c={'inbounds':[{'tag':'socks','listen':'127.0.0.1','port':10808,'protocol':'socks','settings':{'udp':True}}],'outbounds':[{'tag':'proxy','protocol':'trojan','settings':{'address':'example.com','port':443}}],'routing':{'rules':[]},'dns':{'hosts':{'example.com':'8.8.8.8'}}}
+  self.assertEqual(p.runtime_config(c,{'example.com':{'ips':['1.1.1.1'],'port':443}}),c)
+ def test_relay_scope_and_exact_runtime(self):
+  c={'inbounds':[{'tag':'socks','listen':'127.0.0.1','port':10808,'protocol':'socks','settings':{'udp':True}}, {'tag':'relay','listen':'127.0.0.1','port':39081,'protocol':'dokodemo-door','settings':{'address':'1.1.1.1','port':443,'network':'tcp','followRedirect':False}}], 'outbounds':[{'tag':'proxy','protocol':'vless','settings':{'address':'127.0.0.1','port':39081,'id':'synthetic','encryption':'none'},'streamSettings':{'network':'tcp','security':'none'}},{'tag':'transport','protocol':'freedom','settings':{}},{'tag':'block','protocol':'blackhole','settings':{}}], 'routing':{'rules':[{'type':'field','inboundTag':['relay'],'network':'tcp','ip':['1.1.1.1'],'port':'443','outboundTag':'transport'},{'type':'field','inboundTag':['relay'],'network':'tcp,udp','outboundTag':'block'},{'type':'field','network':'tcp,udp','outboundTag':'proxy'}]}}
+  self.assertEqual(p.runtime_config(c,{}),c)
+  cases=[]
+  bad=copy.deepcopy(c);bad['routing']['rules'][0]['port']='1-65535';cases.append(bad)
+  bad=copy.deepcopy(c);bad['routing']['rules'].pop(1);cases.append(bad)
+  bad=copy.deepcopy(c);bad['inbounds'][1]['listen']='0.0.0.0';cases.append(bad)
+  bad=copy.deepcopy(c);bad['routing']['rules'].insert(0,{'outboundTag':'transport'});cases.append(bad)
+  bad=copy.deepcopy(c);bad['inbounds'].append(copy.deepcopy(bad['inbounds'][0]));cases.append(bad)
+  for bad in cases:
+   with self.assertRaises(ValueError):p.runtime_config(bad,{})
  def test_mixed_public_private_dns_fails_closed(self):
   class R:stdout=b'["1.1.1.1","127.0.0.1"]'
   with patch.object(p,'cmd',return_value=R()):
@@ -96,6 +108,7 @@ class ProbeTests(unittest.TestCase):
   with patch.object(p,'cmd',side_effect=[V4(),V6()]):
    resolved=p.endpoints(c)
   self.assertEqual(set(resolved),{'a.example'})
+  c['inbounds']=[{'listen':'127.0.0.1','port':10808,'protocol':'socks','settings':{'udp':True}}]
   runtime=p.runtime_config(c,resolved)
   self.assertEqual(runtime['outbounds'],c['outbounds'])
   with patch.object(p,'cmd',return_value=V6()):

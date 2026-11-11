@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/rezajafari0970/Config_manager/internal/compat"
 	"net"
 	"strconv"
 
@@ -13,7 +14,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 )
 
-const Version = "xray-26.7.28.template.v5"
+const Version = "xray-26.11.9.template.v6"
 
 type M = map[string]any
 
@@ -77,7 +78,7 @@ func Prepare(raw []byte) probe.Plan {
 			continue
 		}
 		seen[h] = true
-		p.Candidates = append(p.Candidates, probe.Candidate{Rule: Version + "." + c.Rule, SHA256: h, Config: b, RequiresConnection: c.RequiresConnection})
+		p.Candidates = append(p.Candidates, probe.Candidate{Rule: Version + "." + c.Rule, SHA256: h, Config: b, RequiresConnection: true})
 	}
 	if len(p.Candidates) > 0 {
 		p.Code = "prepared"
@@ -100,6 +101,9 @@ func object(b []byte) (M, error) {
 func Apply(b []byte) ([]byte, error) {
 	source, e := object(b)
 	if e != nil {
+		return nil, e
+	}
+	if _, e = compat.Logical(source); e != nil {
 		return nil, e
 	}
 	list, ok := source["outbounds"].([]any)
@@ -213,6 +217,9 @@ func Apply(b []byte) ([]byte, error) {
 	out = append(out, M{"tag": "dns-out", "protocol": "dns", "settings": M{}, "streamSettings": M{"sockopt": M{"dialerProxy": "proxy"}}}, M{"tag": "direct", "protocol": "freedom"}, M{"tag": "block", "protocol": "blackhole"})
 	root["outbounds"] = out
 	addBootstrap(root, chain)
+	if _, e := compat.Wrap(root); e != nil {
+		return nil, e
+	}
 	return json.Marshal(root)
 }
 
@@ -338,8 +345,8 @@ func normalize(ob M) error {
 			opt = M{}
 			stream["sockopt"] = opt
 		}
-		if opt["domainStrategy"] == nil {
-			opt["domainStrategy"] = "UseIPv4"
+		if err := compat.FailClosedSocketDNS(stream); err != nil {
+			return err
 		}
 	} else if s["domainStrategy"] == nil {
 		s["domainStrategy"] = "ForceIPv4"

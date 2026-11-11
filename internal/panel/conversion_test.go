@@ -46,6 +46,7 @@ func conversionResult(j probe.Job, idx int, connected bool) probe.Result {
 		a.Connection = "passed"
 		a.Code = "https_multi_site_verified" // synthetic application-site receipt, never network evidence
 		a.EndpointsPassed = 2
+		a.Evidence = syntheticCompatibilityEvidence()
 	}
 	return probe.Result{Hash: j.Hash, Token: j.Token, Revision: j.Revision, Version: convert.Version, CoreSHA256: probe.CoreSHA256, Attempt: a, Candidate: c.Config}
 }
@@ -53,7 +54,7 @@ func TestConversionExportJSONLinesAndRemovedBank(t *testing.T) {
 	s := testStore(t)
 	ctx := context.Background()
 	_, j := addConversion(t, s, conversionSample)
-	if e := s.CompleteProbe(ctx, conversionResult(j, 0, false)); e != nil {
+	if e := s.CompleteProbe(ctx, conversionResult(j, 0, true)); e != nil {
 		t.Fatal(e)
 	}
 	// Identical connection with a different label must not duplicate the output.
@@ -349,4 +350,31 @@ func TestUnavailableConversionDoesNotBreakJSONLinesAndRequeues(t *testing.T) {
 	if !rows[0].Available || !rows[1].Available {
 		t.Fatal("stale snapshot revoked fresh result")
 	}
+}
+
+// Synthetic private-worker receipt for state-machine tests, never network proof.
+func syntheticCompatibilityEvidence() map[string]string {
+	e := map[string]string{}
+	for _, k := range []string{"https", "dns_tcp", "dns_udp", "doh_cloudflare", "doh_google", "quic_vn", "bundled_core", "target_core", "app_import_contract"} {
+		e[k] = "passed"
+	}
+	return e
+}
+
+func revalidateRetainedClient(t *testing.T, s *Store) {
+	t.Helper()
+	s.db.Exec("UPDATE conversion_jobs SET next_run=0")
+	for i := 0; i < 100; i++ {
+		j, e := s.ClaimProbe(context.Background())
+		if e != nil {
+			t.Fatal(e)
+		}
+		if j == nil {
+			return
+		}
+		if e = s.CompleteProbe(context.Background(), conversionResult(*j, 0, true)); e != nil {
+			t.Fatal(e)
+		}
+	}
+	t.Fatal("fixture queue did not drain")
 }

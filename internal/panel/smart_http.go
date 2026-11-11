@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/rezajafari0970/Config_manager/internal/probe"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
-	"github.com/rezajafari0970/Config_manager/internal/smart"
 	"math/rand/v2"
 	"net/http"
 	"strconv"
@@ -19,7 +18,7 @@ type smartModule struct {
 
 func (s *Server) smartURL(single bool) string { return s.pipelineURL(s.store.Smart(), single) }
 func (s *Server) pipelineURL(p *SmartPipeline, single bool) string {
-	mode, file := "smart-jsonl-v1", "configs.jsonl"
+	mode, file := "smart-array-v1", "configs.json"
 	if single {
 		mode, file = "smart-single-v1", "next.json"
 	}
@@ -30,6 +29,14 @@ func (m smartModule) Register(mux *http.ServeMux) {
 	s := m.s
 	p := m.pipeline
 	base := p.path()
+	mux.HandleFunc("GET /api"+base+"/evidence/{id}", func(w http.ResponseWriter, r *http.Request) {
+		var metadata string
+		if e := p.reader().QueryRowContext(r.Context(), "SELECT metadata FROM smart_evidence WHERE head=?", r.PathValue("id")).Scan(&metadata); e != nil {
+			failure(w, ErrNotFound)
+			return
+		}
+		respond(w, 200, json.RawMessage(metadata))
+	})
 	mux.HandleFunc("GET /api"+base+"/settings", func(w http.ResponseWriter, r *http.Request) {
 		settings, e := p.SmartSettings(r.Context())
 		if e != nil {
@@ -121,8 +128,12 @@ func (m smartModule) Register(mux *http.ServeMux) {
 		w.Header().Set("X-Content-SHA256", v.Hash)
 		w.Write(b)
 	})
-	mux.HandleFunc("GET "+base+"-subscription/{token}/configs.jsonl", func(w http.ResponseWriter, r *http.Request) {
-		if !equal(r.PathValue("token"), s.store.digest("subscription", tokenMode("smart-jsonl-v1"))) {
+	grouped := func(w http.ResponseWriter, r *http.Request) {
+		mode := "smart-jsonl-v1"
+		if strings.HasSuffix(r.URL.Path, "/configs.json") {
+			mode = "smart-array-v1"
+		}
+		if !equal(r.PathValue("token"), s.store.digest("subscription", tokenMode(mode))) {
 			http.NotFound(w, r)
 			return
 		}
@@ -137,6 +148,7 @@ func (m smartModule) Register(mux *http.ServeMux) {
 			return
 		}
 		defer out.Close()
+		out.array = strings.HasSuffix(r.URL.Path, "/configs.json")
 		count := 0
 		var selected []SmartEntry
 		seen := map[string]bool{}
@@ -153,11 +165,7 @@ func (m smartModule) Register(mux *http.ServeMux) {
 				continue
 			}
 			seen[v.Hash] = true
-			b, e = smart.Shuffle(b)
-			if e != nil {
-				failure(w, e)
-				return
-			}
+			// Publish exact validated bytes. Rotation selects profiles, never mutates them.
 			if e = out.Line(b); e != nil {
 				failure(w, e)
 				return
@@ -195,10 +203,16 @@ func (m smartModule) Register(mux *http.ServeMux) {
 			return
 		}
 		smartHeaders(w)
+		if out.array {
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		}
 		w.Header().Set("X-Config-Count", strconv.Itoa(count))
 		w.Header().Set("X-Content-SHA256", out.Hash())
 		_, _ = out.WriteTo(w)
-	})
+	}
+	mux.HandleFunc("GET "+base+"-subscription/{token}/configs.jsonl", grouped)
+	mux.HandleFunc("GET "+base+"-subscription/{token}/configs.json", grouped)
+
 	mux.HandleFunc("GET "+base+"-subscription/{token}/status.json", func(w http.ResponseWriter, r *http.Request) {
 		if !equal(r.PathValue("token"), s.store.digest("subscription", tokenMode("smart-single-v1"))) {
 			http.NotFound(w, r)
@@ -251,11 +265,7 @@ func (m smartModule) Register(mux *http.ServeMux) {
 		}
 		w.Header().Set("X-Config-Count", "1")
 		w.Header().Set("X-Export-Cycle", strconv.FormatInt(cycle, 10))
-		b, e = smart.Shuffle(b)
-		if e != nil {
-			failure(w, e)
-			return
-		}
+		// Publish exact validated bytes. Rotation selects profiles, never mutates them.
 		w.Header().Set("X-Content-SHA256", repair.Digest(b))
 		w.Header().Set("X-Smart-Cache-SHA256", v.Hash)
 		w.Header().Set("X-Smart-First-ID", v.ID) // Legacy profile identity, not the first outbound.
@@ -266,11 +276,11 @@ func (m smartModule) Register(mux *http.ServeMux) {
 }
 func smartHeaders(w http.ResponseWriter) {
 	w.Header().Set("Cache-Control", "no-store")
-	w.Header().Set("X-Smart-Order", "random-per-request; independent-ip-first")
+	w.Header().Set("X-Smart-Order", "verified-profile-bytes; independent-ip-first")
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("Content-Disposition", "inline")
 	w.Header().Set("X-Android-Import", "not-run")
-	w.Header().Set("X-Verification-Scope", "pinned-core-smart-profile; member-connectivity-is-separate")
+	w.Header().Set("X-Verification-Scope", "exact-target-profile; https-dns-tcp-udp-verified; android-not-run")
 }
 func (s *Store) registerPrivateSmart(mux *http.ServeMux) {
 	s.Smart().registerPrivate(mux)

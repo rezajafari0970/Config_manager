@@ -1,7 +1,6 @@
 package panel
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"net/http/httptest"
@@ -164,7 +163,7 @@ func TestSplashIndependentSettingsCacheRotationAndHTTP(t *testing.T) {
 			if r.Code != 200 {
 				t.Fatal(r.Code, r.Body.String())
 			}
-			for _, line := range bytes.Split(bytes.TrimSpace(r.Body.Bytes()), []byte{'\n'}) {
+			for _, line := range exportObjects(t, r.Body.Bytes()) {
 				var j map[string]any
 				if json.Unmarshal(line, &j) != nil {
 					t.Fatal("bad output")
@@ -318,6 +317,7 @@ func TestSmartBlockedBootstrapRetriesOnPoolChange(t *testing.T) {
 	}
 	r := smartResult(j)
 	r.Core = "blocked"
+	r.Connection = "not_run"
 	r.Candidate = nil
 	r.Code = j.Issue
 	if e = s.CompleteSmart(ctx, r); e != nil {

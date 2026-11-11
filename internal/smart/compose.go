@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/rezajafari0970/Config_manager/internal/compat"
 	"github.com/rezajafari0970/Config_manager/internal/probe"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 	"github.com/rezajafari0970/Config_manager/internal/target"
@@ -32,7 +33,7 @@ func Prepare(b []byte) probe.Plan {
 		p.Code = "smart_invalid_profile"
 		return p
 	}
-	p.Candidates = []probe.Candidate{{Rule: Version, SHA256: repair.Digest(b), Config: bytes.Clone(b)}}
+	p.Candidates = []probe.Candidate{{Rule: Version, SHA256: repair.Digest(b), Config: bytes.Clone(b), RequiresConnection: true}}
 	return p
 }
 
@@ -47,6 +48,9 @@ func Compose(members []Member) ([]byte, error) {
 	for slot, member := range members {
 		source, e := object(member.Body)
 		if e != nil {
+			return nil, e
+		}
+		if _, e = compat.Logical(source); e != nil {
 			return nil, e
 		}
 		nodes, ok := source["outbounds"].([]any)
@@ -194,6 +198,36 @@ func Compose(members []Member) ([]byte, error) {
 	encoded, _ = json.Marshal(bootstrapTags)
 	result = bytes.Replace(result, []byte("\"selector\":[]"), append([]byte("\"selector\":"), encoded...), 1)
 	result = bytes.Replace(result, []byte("\"outbounds\":[]"), append([]byte("\"outbounds\":"), body.Bytes()...), 1)
+	if len(result) > repair.MaxBytes {
+		return nil, errors.New("smart_profile_size_limit")
+	}
+	result, changes, err := compat.ApplyJSON(result)
+	if err != nil {
+		return nil, err
+	}
+	if len(changes) > 0 {
+		var root M
+		decoder := json.NewDecoder(bytes.NewReader(result))
+		decoder.UseNumber()
+		if err = decoder.Decode(&root); err != nil {
+			return nil, err
+		}
+		var ordered bytes.Buffer
+		ordered.WriteByte('{')
+		for i, key := range []string{"remarks", "log", "dns", "inbounds", "outbounds", "routing", "burstObservatory", "policy", "stats", "metrics"} {
+			if i > 0 {
+				ordered.WriteByte(',')
+			}
+			encoded, _ := json.Marshal(key)
+			ordered.Write(encoded)
+			ordered.WriteByte(':')
+			if err = orderedJSON(&ordered, root[key]); err != nil {
+				return nil, err
+			}
+		}
+		ordered.WriteByte('}')
+		result = ordered.Bytes()
+	}
 	if len(result) > repair.MaxBytes {
 		return nil, errors.New("smart_profile_size_limit")
 	}

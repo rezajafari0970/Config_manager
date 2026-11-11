@@ -140,7 +140,11 @@ func TestClientCompatibilityUpgradeFencesEveryExportScope(t *testing.T) {
 			if rr.Code != 200 {
 				t.Fatal("new proof unavailable", rr.Code, rr.Body.String())
 			}
-			if !strings.HasPrefix(strings.TrimSpace(rr.Body.String()), "{") {
+			want := "["
+			if single {
+				want = "{"
+			}
+			if !strings.HasPrefix(strings.TrimSpace(rr.Body.String()), want) {
 				t.Fatal("object output changed")
 			}
 		}

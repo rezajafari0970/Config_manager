@@ -7,17 +7,19 @@ Only pre-resolved public proxy endpoint IP:port pairs and DNS:53 can leave it.
 Receipts contain hashes and bounded diagnosis codes, never credentials/logs.
 """
 import argparse, base64, concurrent.futures, contextlib, copy, fcntl, hashlib, ipaddress
-import json, os, pathlib, resource, signal, subprocess
+import json, os, pathlib, resource, signal, subprocess, importlib.util
 import tempfile, threading, time, urllib.request, uuid
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 IP = '/usr/sbin/ip' if pathlib.Path('/usr/sbin/ip').exists() else '/usr/bin/ip'
 NFT = '/usr/sbin/nft'
-TARGET = 'v2rayng-2.3.6-lib40-xray-26.7.28'
+TARGET = 'v2rayng-2.3.15-lib40-xray-26.10.31-and-26.11.9'
 TESTS = [('https://www.gstatic.com/generate_204', 204), ('https://www.cloudflare.com/cdn-cgi/trace', 200)]
 ALLOWED_PROTOCOLS = {'vless','vmess','trojan','shadowsocks','hysteria','wireguard','socks','http'}
 lock = threading.Lock()
 STOP = threading.Event()
+spec=importlib.util.spec_from_file_location("config_preflight",pathlib.Path(__file__).with_name("config-preflight.py"))
+preflight=importlib.util.module_from_spec(spec);spec.loader.exec_module(preflight)
 
 def digest(b): return hashlib.sha256(b).hexdigest()
 def cmd(args, **kw): return subprocess.run(args, check=True, capture_output=True, **kw)
@@ -74,6 +76,8 @@ def endpoints(config):
         else:
             servers=s.get('vnext',s.get('servers',[]))
             for server in servers: result.append((server['address'],int(server['port'])))
+    relays=preflight.relay_endpoints(config)
+    result=[relays.get((host,port),(host,port)) for host,port in result]
     if not result: raise ValueError('no_proxy_endpoint')
     resolved={};answers={}
     for host,port in result:
@@ -97,25 +101,8 @@ def endpoints(config):
     if not resolved: raise ValueError('ipv6_only_probe_pending')
     return resolved
 
-def runtime_config(config, resolved):
-    c=copy.deepcopy(config)
-    tags=[x.get('tag') for x in c.get('inbounds',[]) if x.get('protocol')=='socks']
-    tag=next((x for x in tags if x),'socks')
-    c['inbounds']=[{'tag':tag,'listen':'127.0.0.1','port':10808,'protocol':'socks','settings':{'auth':'noauth','udp':True}}]
-    c['log']={'loglevel':'warning','access':'/dev/stdout','error':'/dev/stderr'}
-    # No direct-route success can be reported as a proxy connection.
-    for ob in c.get('outbounds',[]):
-        if ob.get('protocol')=='freedom': ob['protocol']='blackhole';ob['settings']={}
-    # Pin DNS answers to the allowlist; no address rewriting or SNI changes.
-    dns=c.setdefault('dns',{});hosts=dns.setdefault('hosts',{})
-    for host, entry in resolved.items():
-        try: ipaddress.ip_address(host)
-        except ValueError:
-            # Preserve an existing mapping rather than silently overriding it.
-            if host in hosts and hosts[host] not in (entry['ips'],entry['ips'][0]): raise ValueError('custom_dns_mapping_requires_review')
-            hosts[host]=entry['ips']
-    c.pop('api',None);c.pop('metrics',None)
-    return c
+def runtime_config(config,resolved):
+    return preflight.runtime_config(config,resolved)
 
 # Disjoint /30 blocks for simultaneous worker scopes and trusted test adapters.
 # Keep crw's existing block stable. Resource names/cleanup ownership do not change.
@@ -155,7 +142,7 @@ class Sandbox:
         pairs=sorted({(ip,str(p)) for v in resolved.values() for ip in v['ips'] for p in v.get('ports',[v['port']])})
         # Namespace-local rules apply equally to all transports and all DNS rebinds.
         allow='\n'.join(f'ip daddr {ip} tcp dport {p} accept\nip daddr {ip} udp dport {p} accept' for ip,p in pairs)
-        rules='flush ruleset\ntable inet guard { chain out { type filter hook output priority 0; policy drop; oifname "lo" accept; ip daddr 1.1.1.1 udp dport 53 accept; ip daddr 1.1.1.1 tcp dport 53 accept; '+allow+'\n}; chain in { type filter hook input priority 0; policy drop; iifname "lo" accept; ct state established,related accept; }; }\n'
+        rules='flush ruleset\ntable inet guard { chain out { type filter hook output priority 0; policy drop; oifname "lo" accept; '+allow+'\n}; chain in { type filter hook input priority 0; policy drop; iifname "lo" accept; ct state established,related accept; }; }\n'
         self.net([NFT,'-f','-'],input=rules.encode())
     def core_mounts(self):
         return []
@@ -163,8 +150,9 @@ class Sandbox:
         return ['/xray','run']+(['-test'] if test else [])+['-c','/config.json']
     def launch(self,b,test=False):
         (self.work/'config.json').write_bytes(b);os.chmod(self.work/'config.json',0o444)
+        (self.work/'hosts').write_text('127.0.0.1 localhost\n'+''.join(ip+' '+host+'\n' for host,entry in getattr(self,'resolved',{}).items() for ip in entry['ips']))
         (self.work/'resolv.conf').write_text('nameserver 1.1.1.1\noptions timeout:2 attempts:1\n')
-        args=[IP,'netns','exec',self.name,'/usr/bin/bwrap','--unshare-user','--unshare-pid','--unshare-ipc','--unshare-uts','--unshare-cgroup','--die-with-parent','--new-session','--cap-drop','ALL','--uid','65534','--gid','65534','--clearenv','--setenv','SSL_CERT_FILE','/etc/ssl/certs/ca-certificates.crt','--setenv','GOMAXPROCS','1','--setenv','GOMEMLIMIT','128MiB','--setenv','XRAY_LOCATION_ASSET','/assets','--ro-bind','/etc/ssl/certs/ca-certificates.crt','/etc/ssl/certs/ca-certificates.crt','--ro-bind',str(self.core),'/xray','--ro-bind',str(self.work/'config.json'),'/config.json','--ro-bind',str(self.work/'resolv.conf'),'/etc/resolv.conf','--proc','/proc','--dev','/dev','--tmpfs','/tmp','--dir','/assets']
+        args=[IP,'netns','exec',self.name,'/usr/bin/bwrap','--unshare-user','--unshare-pid','--unshare-ipc','--unshare-uts','--unshare-cgroup','--die-with-parent','--new-session','--cap-drop','ALL','--uid','65534','--gid','65534','--clearenv','--setenv','SSL_CERT_FILE','/etc/ssl/certs/ca-certificates.crt','--setenv','GOMAXPROCS','1','--setenv','GOMEMLIMIT','128MiB','--setenv','XRAY_LOCATION_ASSET','/assets','--ro-bind','/etc/ssl/certs/ca-certificates.crt','/etc/ssl/certs/ca-certificates.crt','--ro-bind',str(self.core),'/xray','--ro-bind',str(self.work/'config.json'),'/config.json','--ro-bind',str(self.work/'resolv.conf'),'/etc/resolv.conf','--ro-bind',str(self.work/'hosts'),'/etc/hosts','--proc','/proc','--dev','/dev','--tmpfs','/tmp','--dir','/assets']
         for name in ['geoip.dat','geosite.dat']:
             asset=self.core.parent/name
             if asset.exists():args+=['--ro-bind',str(asset),'/assets/'+name]
@@ -220,7 +208,13 @@ def test_candidate(box,candidate,timeout):
         config=json.loads(b);resolved=endpoints(config);runtime=runtime_config(config,resolved)
     except (ValueError,TypeError,KeyError) as e:
         code=str(e);result['code']=code if code in {'outbound_driver_pending','wireguard_endpoint_invalid','no_proxy_endpoint','invalid_proxy_endpoint','endpoint_dns_failed','nonpublic_endpoint_blocked','ipv6_only_probe_pending','custom_dns_mapping_requires_review','invalid_download_settings','invalid_download_endpoint','transport_dependency_depth','port_hopping_invalid'} else 'probe_preparation_failed';return result
-    box.policy(resolved);runtime_bytes=json.dumps(runtime,separators=(',',':')).encode();result['runtime_sha256']=digest(runtime_bytes)
+    box.resolved=resolved
+    # Explicit bootstrap DoH may reach its fixed resolver; app DNS stays routed.
+    for server in config.get('dns',{}).get('servers',[]):
+        address=server.get('address','') if isinstance(server,dict) else server
+        if address in ('https+local://1.1.1.1/dns-query','https+local://8.8.8.8/dns-query'):
+            ip=address.split('/')[2];resolved['bootstrap-'+ip]={'ips':[ip],'port':443}
+    box.policy(resolved);runtime_bytes=b;result['runtime_sha256']=digest(runtime_bytes)
     p=box.launch(runtime_bytes);codes=[];curl_errors=[]
     # Readiness waits are local and do not reject slow remote proxies with TCP ping.
     ready=False
@@ -232,8 +226,14 @@ def test_candidate(box,candidate,timeout):
     if ready:
         for url,expected in TESTS:
             args=[IP,'netns','exec',box.name,'/usr/bin/curl','--noproxy','','--proxy','socks5h://127.0.0.1:10808','--max-time',str(timeout),'--connect-timeout',str(timeout),'--max-filesize','65536','--silent','--show-error','--output','/dev/null','--write-out','%{http_code}',url]
+            if config.get('burstObservatory'):
+                # Cold leastLoad has no successful observation yet. Retry the
+                # SAME final runtime through SOCKS; never substitute a member.
+                args[args.index('--max-time')+1]=str(min(timeout,4))
+                args[args.index('--connect-timeout')+1]=str(min(timeout,4))
+                args+=['--retry','4','--retry-all-errors','--retry-delay','1','--retry-max-time',str(min(15,timeout+5))]
             try:
-                r=subprocess.run(args,capture_output=True,timeout=timeout+2,env={'PATH':'/usr/bin:/usr/sbin'})
+                r=subprocess.run(args,capture_output=True,timeout=timeout+20,env={'PATH':'/usr/bin:/usr/sbin'})
                 passed=r.returncode==0 and r.stdout.strip()==str(expected).encode()
                 if not passed: curl_errors.append(r.stderr[-4096:])
             except subprocess.TimeoutExpired:
@@ -243,10 +243,26 @@ def test_candidate(box,candidate,timeout):
                 # A second independent destination distinguishes endpoint-specific failures.
                 continue
     site_ok=bool(codes and all(codes) and smart_site_check(box,timeout))
+    evidence={'https':'passed' if len(codes)==2 and all(codes) else 'failed','http3':'not_run','android':'not_run'}
+    if ready and len(codes)==2 and all(codes):
+        try:
+            tcp_only={o.get('protocol') for o in config.get('outbounds',[]) if o.get('protocol') not in ('freedom','blackhole','dns','loopback')}=={'http'}
+            checks=box.net(['/usr/bin/python3',str(pathlib.Path(__file__).with_name('transport-checks.py')),'--timeout',str(min(timeout,6))]+(['--tcp-only'] if tcp_only else []),timeout=min(timeout,6)*4+5)
+            report=json.loads(checks.stdout)
+            evidence.update({x['name']:x['status'] for x in report['checks']})
+            evidence['http3']=report['http3']
+            h3python=pathlib.Path('/opt/config-repair/http3-venv/bin/python')
+            if not tcp_only and h3python.exists() and evidence.get('quic_vn')=='passed':
+                response=box.net([str(h3python),str(pathlib.Path(__file__).with_name('http3-check.py')),str(min(timeout,8))],timeout=min(timeout,8)+3)
+                evidence['http3']=json.loads(response.stdout)['status']
+        except (OSError,ValueError,subprocess.SubprocessError):evidence['transport']='infrastructure_error'
+    result['evidence']=evidence
     log=box.logs();box.stop();result['endpoints_passed']=sum(codes)
     if codes and all(codes):result.update(connection='passed',code='https_multi_site_verified' if site_ok else 'https_proxy_verified_site_unavailable')
     elif any(codes):result.update(connection='partial',code='test_destination_partial')
     else:result.update(connection='failed',code=classify(log,classify(b'\n'.join(curl_errors),'proxy_request_failed' if ready else 'runtime_start_failed')))
+    if result['connection']=='passed' and (any(evidence.get(k)!='passed' for k in ('dns_tcp','doh_cloudflare','doh_google')) or any(evidence.get(k) not in ('passed','unsupported') for k in ('dns_udp','quic_vn'))):
+        result.update(connection='partial',code='transport_verification_incomplete')
     return result
 
 if __name__=='__main__':

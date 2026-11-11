@@ -1,6 +1,6 @@
 // Run inside the existing closed sandbox, never with production credentials.
-// Reproduces AndroidLibXrayLite v26.7.28 (Lib v40) MeasureOutboundDelay's exact
-// essential-app filter against Xray 5ca6f4b7d4dc. This is not an APK test.
+// Reproduces AndroidLibXrayLite 2ffe5f794a32 (Lib v40) MeasureOutboundDelay's exact
+// essential-app filter against Xray a4a3dff5b20c. This is not an APK test.
 package main
 
 import (

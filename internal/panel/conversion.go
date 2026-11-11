@@ -194,7 +194,7 @@ func (s *Store) CompleteProbe(ctx context.Context, r probe.Result) error {
 	if r.Connection != "passed" && r.Connection != "partial" && r.Connection != "failed" && r.Connection != "not_run" {
 		return ErrInvalid
 	}
-	if r.Connection == "passed" && (r.Core != "passed" || r.EndpointsPassed != 2 || !validDigest(r.RuntimeSHA256)) {
+	if r.Connection == "passed" && (r.Core != "passed" || r.EndpointsPassed != 2 || r.RuntimeSHA256 != r.SHA256 || !probe.VerifiedEvidence(r.Evidence)) {
 		return ErrInvalid
 	}
 	var ref blob.Ref
@@ -249,6 +249,9 @@ func (s *Store) CompleteProbe(ctx context.Context, r probe.Result) error {
 	}
 	var retest, ttl int64
 	if e = tx.QueryRowContext(ctx, "SELECT retest_seconds,health_ttl_seconds FROM conversion_settings WHERE id=1").Scan(&retest, &ttl); e != nil {
+		return e
+	}
+	if e = saveConversionEvidence(ctx, tx, r); e != nil {
 		return e
 	}
 	state := "blocked"

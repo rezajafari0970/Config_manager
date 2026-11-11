@@ -1,7 +1,6 @@
 package panel
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -117,7 +116,7 @@ func TestAdsRolesRoundRestartAndHTTPIsolation(t *testing.T) {
 		}
 	}
 	rr := exportRequest(t, h, "GET", app.pipelineURL(p, false))
-	if rr.Code != 200 || len(bytes.Split(bytes.TrimSpace(rr.Body.Bytes()), []byte{'\n'})) != 3 {
+	if rr.Code != 200 || len(exportObjects(t, rr.Body.Bytes())) != 3 {
 		t.Fatal(rr.Code, rr.Body.String())
 	}
 	markSplash(t, s, splash, false)

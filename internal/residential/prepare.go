@@ -63,7 +63,7 @@ type XrayDriver struct{}
 
 func (XrayDriver) ID() string { return "xray-26.7.28" }
 func (XrayDriver) Prepare(raw []byte) Plan {
-	out := Plan{Version: Version, Driver: "xray", CoreSHA256: probe.CoreSHA256, Code: "UNSUPPORTED", Variants: []Execution{}}
+	out := Plan{Version: Version, Driver: "xray", CoreSHA256: "64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d", Code: "UNSUPPORTED", Variants: []Execution{}}
 	p := probe.Prepare(raw)
 	for _, c := range p.Candidates {
 		if c.RequiresConnection {

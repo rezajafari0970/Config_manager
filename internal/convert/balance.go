@@ -3,6 +3,7 @@ package convert
 import (
 	"encoding/json"
 	"errors"
+	"github.com/rezajafari0970/Config_manager/internal/compat"
 	"strings"
 )
 
@@ -261,5 +262,8 @@ func applyBalanced(source M, list []any, byTag map[string]M, target string) ([]b
 		M{"type": "field", "network": "tcp,udp", "balancerTag": target},
 	}}
 	addBootstrap(root, chain)
+	if _, e := compat.Wrap(root); e != nil {
+		return nil, e
+	}
 	return json.Marshal(root)
 }

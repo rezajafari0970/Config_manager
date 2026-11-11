@@ -114,6 +114,7 @@ func TestBrowserFixtureServer(t *testing.T) {
 						r.Rule = p.version()
 						if j.Issue != "" {
 							r.Core = "blocked"
+							r.Connection = "not_run"
 							r.Code = j.Issue
 							r.Candidate = nil
 						}

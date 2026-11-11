@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 // Preserve the existing global round exactly, then add independent source
@@ -101,9 +102,9 @@ func (s *Server) exportURL(source string, single bool) string {
 		if single {
 			return s.singleExportURL()
 		}
-		return s.origin + "/subscription/" + s.store.digest("subscription", "template-jsonl-v1") + "/configs.jsonl"
+		return s.origin + "/subscription/" + s.store.digest("subscription", "template-array-v1") + "/configs.json"
 	}
-	file := "configs.jsonl"
+	file := "configs.json"
 	if single {
 		file = "next.json"
 	}
@@ -142,6 +143,11 @@ func (m sourceExportModule) Register(mux *http.ServeMux) {
 			s.writeJSONLines(w, r, r.PathValue("source"))
 		}
 	})
+	mux.HandleFunc("GET /subscription/source/{source}/{token}/configs.json", func(w http.ResponseWriter, r *http.Request) {
+		if s.validSourceExport(w, r, false) {
+			s.writeJSONLines(w, r, r.PathValue("source"))
+		}
+	})
 	mux.HandleFunc("GET /subscription/source/{source}/{token}/next.json", func(w http.ResponseWriter, r *http.Request) {
 		if s.validSourceExport(w, r, true) {
 			s.writeNextJSON(w, r, r.PathValue("source"))
@@ -151,6 +157,9 @@ func (m sourceExportModule) Register(mux *http.ServeMux) {
 func (s *Server) validSourceExport(w http.ResponseWriter, r *http.Request, single bool) bool {
 	source := r.PathValue("source")
 	file := "configs.jsonl"
+	if strings.HasSuffix(r.URL.Path, "/configs.json") {
+		file = "configs.json"
+	}
 	if single {
 		file = "next.json"
 	}

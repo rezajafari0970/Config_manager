@@ -43,6 +43,15 @@ func TestResidentialV16MigrationPreservesAgeAndSources(t *testing.T) {
 // Legacy fixtures must actually remove the additive schema, rather than merely
 // lower user_version while leaving a future module's tables and trigger behind.
 func dropResidentialForMigration(t *testing.T, s *Store) {
+	var inputs string
+	if e := s.db.QueryRow("SELECT sql FROM sqlite_master WHERE type='view' AND name='conversion_inputs'").Scan(&inputs); e == nil {
+		if i := strings.Index(inputs, " UNION SELECT hash,kind,size FROM residential_eligible"); i >= 0 {
+			if _, e = s.db.Exec("DROP VIEW conversion_inputs;" + inputs[:i]); e != nil {
+				t.Fatal(e)
+			}
+		}
+	}
+
 	t.Helper()
 	var exists int
 	if e := s.db.QueryRow("SELECT count(*) FROM sqlite_master WHERE name='residential_settings'").Scan(&exists); e != nil {
@@ -67,6 +76,15 @@ func dropResidentialForMigration(t *testing.T, s *Store) {
 }
 
 func restoreV17ForTest(t *testing.T, s *Store) {
+	var inputs string
+	if e := s.db.QueryRow("SELECT sql FROM sqlite_master WHERE type='view' AND name='conversion_inputs'").Scan(&inputs); e == nil {
+		if i := strings.Index(inputs, " UNION SELECT hash,kind,size FROM residential_eligible"); i >= 0 {
+			if _, e = s.db.Exec("DROP VIEW conversion_inputs;" + inputs[:i]); e != nil {
+				t.Fatal(e)
+			}
+		}
+	}
+
 	t.Helper()
 	var view string
 	if e := s.db.QueryRow("SELECT sql FROM sqlite_master WHERE name='residential_active'").Scan(&view); e != nil {

@@ -125,6 +125,7 @@ func (s *Store) Get(ctx context.Context, id string) (Source, error) {
 	return v, e
 }
 func (s *Store) Save(ctx context.Context, id string, revision int64, input SourceInput) (string, error) {
+	creating := id == ""
 	if input.Name == "" {
 		input.Name = AutoName(input.URL)
 	}
@@ -186,8 +187,14 @@ func (s *Store) Save(ctx context.Context, id string, revision int64, input Sourc
 			return "", e
 		}
 	}
-	if e = syncConversions(ctx, tx); e != nil {
-		return "", e
+	// A new source has no memberships or owned proofs to invalidate. Running the
+	// full conversion/Smart reconciliation for every imported empty source makes
+	// bulk ingestion quadratic and can exhaust the request deadline. Edits still
+	// reconcile atomically; the collector reconciles new data when it arrives.
+	if !creating {
+		if e = syncConversions(ctx, tx); e != nil {
+			return "", e
+		}
 	}
 	return id, tx.Commit()
 }

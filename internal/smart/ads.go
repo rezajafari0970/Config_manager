@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/rezajafari0970/Config_manager/internal/compat"
 	"strconv"
 	"strings"
 
@@ -12,7 +13,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 )
 
-const AdsVersion = "xray-26.7.28.smart-ads.v2"
+const AdsVersion = "xray-26.11.9.smart-ads.v3"
 
 func PrepareAds(b []byte) probe.Plan {
 	p := Prepare(b)
@@ -36,6 +37,9 @@ func ComposeAds(main []Member, ads Member) ([]byte, error) {
 		if e != nil {
 			return nil, e
 		}
+		if _, e = compat.Logical(root); e != nil {
+			return nil, e
+		}
 		nodes, ok := root["outbounds"].([]any)
 		if !ok {
 			return nil, errors.New("smart_missing_outbounds")
@@ -53,6 +57,9 @@ func ComposeAds(main []Member, ads Member) ([]byte, error) {
 	}
 	root, e := object(body)
 	if e != nil {
+		return nil, e
+	}
+	if _, e = compat.Logical(root); e != nil {
 		return nil, e
 	}
 	nodes := root["outbounds"].([]any)
@@ -196,6 +203,9 @@ func ComposeAds(main []Member, ads Member) ([]byte, error) {
 	root["remarks"] = "@shenvpn-smart-ads"
 	root["burstObservatory"].(M)["subjectSelector"] = subjects
 	root["outbounds"] = out
+	if _, e = compat.Wrap(root); e != nil {
+		return nil, e
+	}
 	// Preserve the existing root-field order as well as all unchanged globals.
 	var result bytes.Buffer
 	result.WriteByte('{')

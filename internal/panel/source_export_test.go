@@ -74,11 +74,11 @@ func exportRequest(t *testing.T, h http.Handler, method, url string) *httptest.R
 func assertExportLines(t *testing.T, h http.Handler, url string, expected map[string][]byte) {
 	t.Helper()
 	rr := exportRequest(t, h, "GET", url)
-	if rr.Code != 200 || rr.Header().Get("Content-Type") != "text/plain; charset=utf-8" || rr.Header().Get("Content-Disposition") != "inline" {
+	if rr.Code != 200 || (rr.Header().Get("Content-Type") != "text/plain; charset=utf-8" && rr.Header().Get("Content-Type") != "application/json; charset=utf-8") || rr.Header().Get("Content-Disposition") != "inline" {
 		t.Fatal("bad export response", rr.Code)
 	}
 	seen := map[string]bool{}
-	for _, line := range bytes.Split(bytes.TrimSuffix(rr.Body.Bytes(), []byte{'\n'}), []byte{'\n'}) {
+	for _, line := range exportObjects(t, rr.Body.Bytes()) {
 		if len(line) == 0 {
 			continue
 		}
@@ -361,7 +361,23 @@ func TestSchema7MigrationPreservesGlobalQueue(t *testing.T) {
 	}
 	var version int
 	s.db.QueryRow("PRAGMA user_version").Scan(&version)
-	if version != 19 {
+	if version != 20 {
 		t.Fatal("schema version", version)
 	}
+}
+
+func exportObjects(t *testing.T, body []byte) [][]byte {
+	t.Helper()
+	if bytes.HasPrefix(bytes.TrimSpace(body), []byte("[")) {
+		var items []json.RawMessage
+		if e := json.Unmarshal(body, &items); e != nil {
+			t.Fatal(e)
+		}
+		out := make([][]byte, len(items))
+		for i, v := range items {
+			out[i] = v
+		}
+		return out
+	}
+	return bytes.Split(bytes.TrimSpace(body), []byte{'\n'})
 }

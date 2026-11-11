@@ -42,12 +42,12 @@ func TestSourceConversionSummaryMatchesScopedCanonicalOutput(t *testing.T) {
 	check(SourceConversionSummary{Total: 1, Ready: 1, Connected: 1}, SourceConversionSummary{Total: 1, Blocked: 1})
 	exec("UPDATE conversion_results SET rule=? WHERE hash=?", convert.Version+"."+repair.RulesVersion, repair.Digest([]byte(rawA)))
 	check(SourceConversionSummary{Total: 1, Ready: 1, Connected: 1, Repaired: 1}, SourceConversionSummary{Total: 1, Blocked: 1})
-	// Expired connection evidence is not a fresh pass, but structural output remains ready.
+	// Expired connection evidence is not a fresh pass, and must no longer be published.
 	exec("UPDATE conversion_results SET valid_until=0 WHERE hash=?", repair.Digest([]byte(rawA)))
-	check(SourceConversionSummary{Total: 1, Ready: 1, Repaired: 1}, SourceConversionSummary{Total: 1, Blocked: 1})
+	check(SourceConversionSummary{Total: 1, Blocked: 1}, SourceConversionSummary{Total: 1, Blocked: 1})
 	exec("UPDATE conversion_results SET code='missing_reality_public_key' WHERE hash=?", repair.Digest([]byte(rawB)))
 	summary, err := s.SourceConversionSummaries(ctx, sources)
-	if err != nil || summary[b].Issues["missing_reality_public_key"] != 1 || len(summary[a].Issues) != 0 {
+	if err != nil || summary[b].Issues["missing_reality_public_key"] != 1 || len(summary[a].Issues) != 1 {
 		t.Fatal("source-scoped diagnostics", err)
 	}
 	// Old rules need a new result; no old proof is presented as ready.

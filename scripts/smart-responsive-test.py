@@ -52,16 +52,23 @@ def services():
  for fn,args in [(dns_tcp,(24453,False)),(dns_tcp,(24454,True)),(dns_udp,()),(relay,())]:
   threading.Thread(target=fn,args=args,daemon=True).start()
  class Handler(BaseHTTPRequestHandler):
-  def do_GET(self):self.send_response(204);self.end_headers()
+  def do_GET(self):self.send_response(204);self.send_header('X-Fixture-Path','slow' if self.client_address[0]=='127.0.0.11' else 'fast');self.end_headers()
   def log_message(self,*args):pass
  ThreadingHTTPServer(('127.0.0.1',24447),Handler).serve_forever()
 def exercise():
- durations=[]
+ durations=[];paths=[]
  for _ in range(24):
   start=time.monotonic();s,_=traffic.socks(1,24447)
   with s:
    s.sendall(b'GET /generate_204 HTTP/1.1\r\nHost: fixture.test\r\nConnection: close\r\n\r\n')
-   head=s.recv(4096);assert b' 204 ' in head
+   head=b''
+   while b'\r\n\r\n' not in head and len(head)<8192:
+    chunk=s.recv(4096)
+    if not chunk:break
+    head+=chunk
+   assert b' 204 ' in head
+   path='slow' if b'X-Fixture-Path: slow' in head else 'fast' if b'X-Fixture-Path: fast' in head else None
+   assert path is not None;paths.append(path)
   durations.append(round((time.monotonic()-start)*1000,2))
  dns={}
  for kind,dest,key in [(1,'203.0.113.99','intercept_a'),(16,'127.0.0.1','relay_txt')]:
@@ -75,10 +82,10 @@ def exercise():
     dns[key]=b.endswith(socket.inet_aton('203.0.113.7') if kind==1 else b'\x02ok')
    except socket.timeout:dns[key]=False
  ordered=sorted(durations)
- print(json.dumps({'requests':len(durations),'slow_requests':sum(x>180 for x in durations),'p50_ms':ordered[len(ordered)//2],'p95_ms':ordered[math.ceil(.95*len(ordered))-1],'dns':dns}))
+ print(json.dumps({'requests':len(durations),'slow_requests':paths.count('slow'),'p50_ms':ordered[len(ordered)//2],'p95_ms':ordered[math.ceil(.95*len(ordered))-1],'dns':dns}))
 def main():
  request=json.load(sys.stdin);core=pathlib.Path(request['core']).resolve()
- assert os.geteuid()==0 and hashlib.sha256(core.read_bytes()).hexdigest()=='64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d'
+ assert os.geteuid()==0 and hashlib.sha256(core.read_bytes()).hexdigest() in {'64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d','cc4b84d3069569f297a61f04b914f2bb37e9d202fd7b84cb50def1fc30fd40e1','e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d'}
  lab=module('responsive_sandbox',HERE/'live-probe.py');report={}
  assert request['config']['routing']['balancers'][0]['strategy']=={'type':'leastLoad','settings':{'expected':3,'maxRTT':'2s','tolerance':.15}}
  for phase in ('reference_leastping','leastload','domain'):
@@ -101,8 +108,9 @@ def main():
    config['dns']['servers'].insert(0,{'address':'tcp://127.0.0.1:24454','domains':['full:peer.test'],'skipFallback':True,'tag':'dns-bootstrap'})
   config['inbounds'].append({'tag':'fixture-server','listen':'127.0.0.1','port':24443,'protocol':'vless','settings':{'decryption':'none','clients':[{'id':'11111111-1111-4111-8111-111111111111'}]},'streamSettings':{'network':'tcp','security':'none'}})
   spare=copy.deepcopy(config['inbounds'][-1]);spare.update(tag='fixture-spare',port=24449);config['inbounds'].append(spare)
-  config['outbounds'].append({'tag':'fixture-direct','protocol':'freedom','settings':{'finalRules':[{'action':'allow','network':'tcp,udp','ip':['127.0.0.1/32'],'port':'53,24447,24453,24454'}]}})
-  config['routing']['rules'].insert(0,{'type':'field','inboundTag':['fixture-server','fixture-spare'],'outboundTag':'fixture-direct'})
+  for tag,source in [('fixture-server','127.0.0.10'),('fixture-spare','127.0.0.11')]:
+   config['outbounds'].append({'tag':tag+'-exit','protocol':'freedom','sendThrough':source,'settings':{'finalRules':[{'action':'allow','network':'tcp,udp','ip':['127.0.0.1/32'],'port':'53,24447,24453,24454'}]}})
+   config['routing']['rules'].insert(0,{'type':'field','inboundTag':[tag],'outboundTag':tag+'-exit'})
   # Local probe destination; shipped timing remains in the IP comparison/recovery phase.
   config['burstObservatory']['pingConfig']['destination']='http://127.0.0.1:24447/generate_204'
   with lab.Sandbox(str(core),secrets.token_hex(3),8199,prefix='csrf') as box:

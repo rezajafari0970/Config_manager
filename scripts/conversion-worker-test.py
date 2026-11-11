@@ -42,7 +42,7 @@ def main():
   (work/'samples.json').write_text(json.dumps([base64.b64encode(b).decode() for b in samples]))
   # Distinct tested resource prefix and lock: cannot clean production namespaces.
   (work/'probe-one.py').write_text((ROOT/'scripts/probe-one.py').read_text().replace('crw','ctw'))
-  (work/'live-probe.py').write_text((ROOT/'scripts/live-probe.py').read_text())
+  for name in ['live-probe.py','config-preflight.py','app-import-contract.py','transport-checks.py','http3-check.py']:(work/name).write_text((ROOT/'scripts'/name).read_text())
   panel=worker=None
   with (work/'panel.log').open('w') as pl,(work/'worker.log').open('w') as wl:
    try:
@@ -51,7 +51,7 @@ def main():
      try:json.loads(get(ORIGIN+'/api/conversions'));break
      except OSError:time.sleep(.1)
     else:raise RuntimeError('fixture unavailable')
-    def launch():return subprocess.Popen([str(ROOT/'bin/config-probe-worker'),'-socket',str(work/'data/probe.sock'),'-helper',str(work/'probe-one.py'),'-core',str(ROOT/'.local/xray-26.7.28/xray'),'-lock-file',str(work/'worker.lock')],stdout=wl,stderr=wl)
+    def launch():return subprocess.Popen([str(ROOT/'bin/config-probe-worker'),'-socket',str(work/'data/probe.sock'),'-helper',str(work/'probe-one.py'),'-core','/opt/config-repair/core-26.11.9/xray','-lock-file',str(work/'worker.lock')],stdout=wl,stderr=wl)
     worker=launch();killed=False;start=time.monotonic();max_active=0;last=-1
     while time.monotonic()-start<420:
      state=json.loads(get(ORIGIN+'/api/conversions'));rows=state['entries'];active=sum(r['state']=='running' for r in rows);max_active=max(max_active,active);completed=sum(r['tested']>0 for r in rows)
@@ -61,9 +61,10 @@ def main():
      if int(time.monotonic()-start)//20!=last:last=int(time.monotonic()-start)//20;print(json.dumps({'completed':completed,'total':len(rows),'active':active}),flush=True)
      time.sleep(1)
     else:raise RuntimeError('durable conversion queue did not finish')
-    lines=get(state['export_url']).splitlines();configs=[json.loads(b) for b in lines]
+    configs=json.loads(get(state['export_url']));lines=[json.dumps(c,sort_keys=True) for c in configs]
     assert killed and max_active<=3 and any(r['code']=='hysteria1_unsupported_by_target_core' for r in rows)
-    assert any(r['code']=='client_vless_encryption_required' and not r['available'] and r['connection']=='not_run' for r in rows)
+    assert any(r['core']=='passed' and not r['available'] and r['connection']!='passed' for r in rows)
+    assert not any(r['available'] and r['connection']!='passed' for r in rows)
     assert len(lines)==len(set(lines)) and all(c['remarks']=='@shenvpn' and len(c['outbounds'])>=4 for c in configs)
     receipt.update(passed=True,total=len(rows),completed=completed,core_passed=sum(r['core']=='passed' for r in rows),connected=sum(r['connection']=='passed' for r in rows),jsonl_configs=len(lines),max_active=max_active,sigkill_recovered=True,codes={c:sum(r['code']==c for r in rows) for c in sorted({r['code'] for r in rows})})
    finally:

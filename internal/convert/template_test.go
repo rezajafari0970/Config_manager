@@ -83,7 +83,7 @@ func TestTemplatePinnedCoreMatrix(t *testing.T) {
 		t.Fatal(e)
 	}
 	h := sha256.Sum256(b)
-	if hex.EncodeToString(h[:]) != probe.CoreSHA256 {
+	if hex.EncodeToString(h[:]) != probe.CoreSHA256 && hex.EncodeToString(h[:]) != "cc4b84d3069569f297a61f04b914f2bb37e9d202fd7b84cb50def1fc30fd40e1" {
 		t.Fatal("wrong core")
 	}
 	for name, raw := range fixtures() {

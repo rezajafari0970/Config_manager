@@ -25,7 +25,7 @@ func (s *Store) migrateV12() error {
 		return e
 	}
 	// Capture DDL before executing it: one SQLite connection, no nested reads.
-	rows, e := tx.Query(`SELECT sql FROM sqlite_master WHERE (type='table' OR type='index') AND name GLOB 'smart_*' AND sql IS NOT NULL ORDER BY type DESC,name`)
+	rows, e := tx.Query(`SELECT sql FROM sqlite_master WHERE (type='table' OR type='index') AND name GLOB 'smart_*' AND name!='smart_evidence' AND sql IS NOT NULL ORDER BY type DESC,name`)
 	if e != nil {
 		return e
 	}

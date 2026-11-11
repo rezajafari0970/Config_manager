@@ -18,7 +18,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/target"
 )
 
-const Version = "xray-26.7.28.probe-plan.v3"
+const Version = "xray-26.11.9.probe-plan.v4"
 
 type M = map[string]any
 type Candidate struct {

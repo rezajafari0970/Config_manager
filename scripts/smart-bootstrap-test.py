@@ -57,7 +57,7 @@ def exercise():
 
 def main():
  request=json.load(sys.stdin);core=pathlib.Path(request['core']).resolve()
- assert os.geteuid()==0 and hashlib.sha256(core.read_bytes()).hexdigest()=='64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d'
+ assert os.geteuid()==0 and hashlib.sha256(core.read_bytes()).hexdigest() in {'64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d','cc4b84d3069569f297a61f04b914f2bb37e9d202fd7b84cb50def1fc30fd40e1','e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d'}
  config=request['config'];resolvers=config['dns']['servers'];assert len(resolvers)==4
  assert [x['address'] for x in resolvers]==['https://8.8.8.8/dns-query','https://1.1.1.1/dns-query','https://1.1.1.1/dns-query','https://8.8.8.8/dns-query']
  for n,server in enumerate(resolvers):
@@ -80,9 +80,10 @@ def main():
   assert driver.count(needle)==1
   (work/'driver.py').write_text(driver.replace(needle,"'--ro-bind',"+repr(str(work/'cert.pem'))+",'/etc/ssl/certs/ca-certificates.crt'"))
   subprocess.run(['go','build','-trimpath','-buildvcs=false','-o',str(work/'doh'),str(HERE/'testdata/doh-fixture.go')],check=True,capture_output=True,timeout=60)
+  (work/'config-preflight.py').write_text((HERE/'config-preflight.py').read_text())
   lab=module('bootstrap_sandbox',work/'driver.py')
   with lab.Sandbox(str(core),secrets.token_hex(3),8200,prefix='cstb') as box:
-   # Close even the driver's normal DNS exception. The fixture has no successful egress. UseIPv4 system-fallback attempts are counted.
+   # Close even the driver's normal DNS exception. The fixture has no successful egress. Any system-DNS fallback attempt fails this test.
    box.net([lab.NFT,'-f','-'],input=b'flush ruleset\ntable inet guard { counter dns_fallback { packets 0 bytes 0; }; chain out { type filter hook output priority 0; policy drop; oifname "lo" accept; ip daddr 1.1.1.1 udp dport 53 counter name dns_fallback drop; ip daddr 1.1.1.1 tcp dport 53 counter name dns_fallback drop; counter; }; chain in { type filter hook input priority 0; policy drop; iifname "lo" accept; }; }\n')
    child=subprocess.Popen([lab.IP,'netns','exec',box.name,sys.executable,__file__,'--services',str(work)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
    doh=subprocess.Popen([lab.IP,'netns','exec',box.name,str(work/'doh'),str(work)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
@@ -107,6 +108,7 @@ def main():
      state=json.loads(box.net([lab.NFT,'-j','list','counter','inet','guard','dns_fallback']).stdout)
      return next(x['counter']['packets'] for x in state['nftables'] if 'counter' in x)
     startup_attempts=dns_attempts()
+    assert startup_attempts==0, "startup attempted system DNS"
     # Cold restart with the independent IP peer unavailable: block fallback,
     # never recursively bootstrap via domain or silently fall back to direct.
     box.stop();box.net([lab.NFT,'add','table','inet','fixture_failure'])
@@ -118,7 +120,8 @@ def main():
     later=[json.loads(x) for x in (work/'trace.jsonl').read_text().splitlines()][count:]
     assert not any(x.get('name')=='peer.test' for x in later),'bootstrap bypassed dead IP pool'
     blocked=dns_attempts()
-    print(json.dumps({'passed':True,'tls_doh_resolvers':2,'bootstrap_ip_only':True,'domain_member_connected':True,'dns_a_and_txt_tunneled':True,'cold_proxy_failure_closed':True,'blocked_startup_dns_attempts':startup_attempts,'blocked_cold_failure_dns_attempts':blocked-startup_attempts,'useipv4_system_fallback':'possible; prevented by fixture firewall, not by this JSON','carrier_tests':'not_run'}))
+    assert blocked==0, "cold failure attempted system DNS"
+    print(json.dumps({'passed':True,'tls_doh_resolvers':2,'bootstrap_ip_only':True,'domain_member_connected':True,'dns_a_and_txt_tunneled':True,'cold_proxy_failure_closed':True,'blocked_startup_dns_attempts':startup_attempts,'blocked_cold_failure_dns_attempts':blocked-startup_attempts,'system_dns_fallback':'none; ForceIPv4 fails closed in final JSON','carrier_tests':'not_run'}))
    finally:
     for process in (child,doh):
      process.terminate()

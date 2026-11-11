@@ -50,7 +50,10 @@ func adsCompletion(j residential.Job, same bool) residential.Completion {
 }
 func seedAds(t *testing.T, s *Store, n int) (string, *residential.Job) {
 	t.Helper()
-	source, _ := addConversion(t, s, strings.Replace(conversionSample, "192.0.2.10", fmt.Sprintf("192.0.2.%d", n), 1))
+	source, probeJob := addConversion(t, s, strings.Replace(conversionSample, "192.0.2.10", fmt.Sprintf("192.0.2.%d", n), 1))
+	if e := s.CompleteProbe(context.Background(), conversionResult(probeJob, 0, true)); e != nil {
+		t.Fatal(e)
+	}
 	j, e := s.ClaimResidential(context.Background())
 	if e != nil || j == nil {
 		t.Fatal(e)

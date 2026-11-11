@@ -5,6 +5,14 @@ spec=importlib.util.spec_from_file_location('res',pathlib.Path(__file__).with_na
 res=importlib.util.module_from_spec(spec);spec.loader.exec_module(res)
 
 class Tests(unittest.IsolatedAsyncioTestCase):
+ def test_supervisor_baseline_does_not_follow_publication_core(self):
+  import json
+  pins=json.loads(pathlib.Path(__file__).with_name('residential-cores.json').read_text())['cores']
+  baseline=next(x for x in pins if x['id']=='xray-26.7.28')
+  self.assertEqual(res.adapter.CORE_SHA,baseline['sha256'])
+  spec=importlib.util.spec_from_file_location('publication_adapter',pathlib.Path(__file__).with_name('probe-one.py'))
+  publication=importlib.util.module_from_spec(spec);spec.loader.exec_module(publication)
+  self.assertNotEqual(res.adapter.CORE_SHA,publication.CORE_SHA)
  async def test_healthy_screen_expands_all_explicit_domains_in_first_wave(self):
   async def fake(host,variant,wave,timeout,path):return {'domain':host,'tls_verified':True,'wave':wave,'outcome':'passed','family':6}
   domains=['googleads.g.doubleclick.net','pubads.g.doubleclick.net','securepubads.g.doubleclick.net','www.googleadservices.com','admob.com']

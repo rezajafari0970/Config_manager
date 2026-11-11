@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rezajafari0970/Config_manager/internal/convert"
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 	"github.com/rezajafari0970/Config_manager/internal/residential"
 )
@@ -49,10 +50,10 @@ func residentialSnapshot(ctx context.Context, q residentialQuery, scope string) 
 		view = "ads_different_eligible"
 		scope = strings.TrimPrefix(scope, "ads:")
 	}
-	query := `SELECT hash,candidate_hash,kind,size,revision,epoch,tested,valid_until,retain_until FROM ` + view + ` e`
-	args := []any{}
+	query := `SELECT hash,candidate_hash,kind,size,revision,epoch,tested,valid_until,retain_until FROM ` + view + ` e WHERE EXISTS(SELECT 1 FROM conversion_results c WHERE c.hash=e.hash AND c.candidate_hash=e.candidate_hash AND c.version=? AND c.core='passed' AND c.connection='passed' AND c.valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER))`
+	args := []any{convert.Version}
 	if scope != "all" {
-		query += ` WHERE EXISTS(SELECT 1 FROM residential_owners o WHERE o.hash=e.hash AND o.source=?)`
+		query += ` AND EXISTS(SELECT 1 FROM residential_owners o WHERE o.hash=e.hash AND o.source=?)`
 		args = append(args, scope)
 	}
 	rows, e := q.QueryContext(ctx, query+" ORDER BY hash", args...)
@@ -135,7 +136,7 @@ func (m residentialModule) Register(mux *http.ServeMux) {
 		w.Header().Set("Cache-Control", "no-store")
 		http.Redirect(w, r, target, http.StatusPermanentRedirect)
 	})
-	for _, format := range []string{"configs.jsonl", "next.json", "raw.txt"} {
+	for _, format := range []string{"configs.json", "configs.jsonl", "next.json", "raw.txt"} {
 		mux.HandleFunc("GET /residential-subscription/{scope}/{token}/"+format, s.residentialExport)
 		mux.HandleFunc("GET /ads-different-subscription/{scope}/{token}/"+format, s.residentialExport)
 	}
@@ -193,6 +194,7 @@ func (s *Server) residentialExport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer spool.Close()
+	spool.array = format == "configs.json"
 	rawOutput := format == "raw.txt"
 	for i, entry := range snapshot.Entries {
 		hash := entry.CandidateHash
@@ -251,6 +253,9 @@ func (s *Server) residentialExport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	if spool.array {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	}
 	w.Header().Set("Content-Disposition", "inline")
 	w.Header().Set("X-Content-SHA256", spool.Hash())
 	if rawOutput {
@@ -522,7 +527,7 @@ func (s *Server) residentialState(w http.ResponseWriter, r *http.Request) {
 		worker.Status = "offline"
 	}
 	links := map[string]string{}
-	for _, format := range []string{"configs.jsonl", "next.json", "raw.txt"} {
+	for _, format := range []string{"configs.json", "configs.jsonl", "next.json", "raw.txt"} {
 		links[format] = s.residentialURL(scope, format)
 	}
 	adsSnapshot, e := s.store.ResidentialSnapshot(r.Context(), "ads:"+scope)
@@ -531,7 +536,7 @@ func (s *Server) residentialState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	adsLinks := map[string]string{}
-	for _, format := range []string{"configs.jsonl", "next.json", "raw.txt"} {
+	for _, format := range []string{"configs.json", "configs.jsonl", "next.json", "raw.txt"} {
 		adsLinks[format] = s.residentialURL("ads:"+scope, format)
 	}
 	metrics, e := s.store.residentialMetrics(r.Context())

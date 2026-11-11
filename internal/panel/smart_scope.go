@@ -56,7 +56,7 @@ func (s *SmartPipeline) path() string {
 
 // Rewrite only fixed SQL identifiers, never values, credentials or user input.
 // The vocabulary is closed and the regexp uses whole-word matches (one pass).
-var smartIdentifiers = regexp.MustCompile(`\bsmart_(?:cache_members_source|cache_members|cache_hash|cache_owned|cache|rotation_state|rotation_queue|source_usage|refresh_needed|owned_members|members_source|members|heads_hash|heads|settings|worker|offers|inputs|ready|usage|due|ids)\b`)
+var smartIdentifiers = regexp.MustCompile(`\bsmart_(?:evidence|cache_members_source|cache_members|cache_hash|cache_owned|cache|rotation_state|rotation_queue|source_usage|refresh_needed|owned_members|members_source|members|heads_hash|heads|settings|worker|offers|inputs|ready|usage|due|ids)\b`)
 
 func smartSQL(q string, splash bool) string {
 	if !splash {

@@ -1,3 +1,31 @@
+# Current P33 handoff — 2026-11-11 (Asia/Tehran)
+
+P33 supersedes previous target/admission/subscription and output-shuffle notes.
+Official target is v2rayNG2.3.15 / Lib40 / bundled Xray26.10.31, with additional
+26.11.9 exact-build validation. Real final-byte connection tests run on26.10.31.
+Read docs/CLIENT_COMPATIBILITY.md, the P33 checkpoint and current private receipts.
+
+Schema20 preserves source/settings/rotations, fences old results and records
+bounded separate provenance. Every generated normal/Smart/Splash/Ads/classified
+client export requires current exact-byte build and real transport evidence.
+Raw exports remain explicitly unqualified originals. Native subscriptions use
+JSON arrays; old JSONL URLs remain supported for integrations. Published profile
+bytes are never shuffled after validation; durable profile rotation remains.
+
+The user explicitly authorizes the narrow legacy VLESS plaintext TCP/RAW HTTP
+loopback relay. It adds NO encryption. Unique ports/tags, exact destination allow,
+relay deny, carrier handling and graph recognition are common to all composers.
+Other incompatible protocols/transports remain explicit; no forged server fields.
+Generated socket DNS uses forced strategies (including XHTTP download) to stop
+system resolver fallback; global DNS queryStrategy stays UseIPv4. Cold failure
+and normal startup fixtures both recorded zero system DNS attempts.
+
+Current receipt files identify actual deployment/publication, not this header.
+No Android APK/carrier/long-term/IPv6-only guarantee. RealPing strips relay
+inbounds and may fail despite full-profile connectivity. HTTP3 canaries are real
+TLS-valid DoH tests; generic QUIC VN alone is not full HTTP3. TC81 was unreachable
+from this project server at this test time and is not certified healthy.
+
 # Current P32 handoff — 2026-11-10
 
 The reported legacy VLESS vnext shape passed Xray26.7.28 but failed on26.11.9 with

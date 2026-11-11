@@ -44,6 +44,7 @@ func TestSmartSafeCacheSurvivesGrowthAndFailedReplacement(t *testing.T) {
 			}
 			r := smartResult(j)
 			r.Core = "failed"
+			r.Connection = "not_run"
 			r.Code = "synthetic_replacement_failure"
 			r.Candidate = nil
 			if e = s.CompleteSmart(ctx, r); e != nil {
