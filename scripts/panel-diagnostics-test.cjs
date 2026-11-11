@@ -2,13 +2,14 @@
 const assert=require('assert/strict');
 module.exports=async function(context,origin){
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
- let updates=0;
+ let updates=0,drop=false;
  await page.route('**/api/state*',async route=>{
   const response=await route.fetch(),data=await response.json();
   if(data.sources.length){
    const s=data.sources[0];s.state='updated';s.error_code='';s.enabled=true;s.config_count=2;s.content_state='config';
    data.conversions[s.id]={total:2,ready:0,connected:0,pending:0,blocked:2,repaired:0,issues:{ipv6_only_probe_pending:1,transport_verification_incomplete:1}};
    s.fetch_count=++updates;
+   if(drop){s.state='error';s.error_code=s.refresh_reason='source_count_drop_pending';s.config_count=148;s.received_count=6;s.receipt_unique=2;s.receipt_new=-1;}
   }
   await route.fulfill({response,json:data});
  });
@@ -23,13 +24,17 @@ module.exports=async function(context,origin){
  for(let i=0;updates<=initial&&i<100;i++)await page.waitForTimeout(100);
  assert(updates>initial,'no independent refresh');
  assert.equal(await issue.getAttribute('open'),'','issue expansion lost after polling');
+ drop=true;
+ await page.getByText('افت تعداد پاسخ؛ در حال بررسی دوباره',{exact:true}).waitFor();
+ assert.match(await page.locator('.source-count').first().textContent(),/۱۴۸/);
+ assert.match(await page.locator('.source-error').first().textContent(),/موجودی قبلی/);
  await page.unroute('**/api/state*');
  const list=await(await context.request.get(origin+'/api/conversions')).json();
  const item=list.entries.find(e=>e.candidate_hash);assert(item);
  let phase='valid',observed=0;
  await page.route('**/api/conversion/evidence/*',async route=>{
   observed++;
-  const data={raw_sha256:item.hash,candidate_sha256:item.candidate_hash,tested:item.tested,checks:{https:'passed',dns_tcp:'passed',dns_udp:'passed',quic_vn:'failed',android:'not_run'}};
+  const data={raw_sha256:item.hash,candidate_sha256:item.candidate_hash,tested:item.tested+26,record_tested:item.tested,checks:{https:'passed',dns_tcp:'passed',dns_udp:'passed',quic_vn:'failed',android:'not_run'}};
   if(phase==='stale')data.candidate_sha256='0'.repeat(64);
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(data)});
  });

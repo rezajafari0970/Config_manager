@@ -378,3 +378,44 @@ func revalidateRetainedClient(t *testing.T, s *Store) {
 	}
 	t.Fatal("fixture queue did not drain")
 }
+
+func TestConversionEvidenceBindsRecordTimeWithoutChangingReceipt(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	_, j := addConversion(t, s, conversionSample)
+	if e := s.CompleteProbe(ctx, conversionResult(j, 0, true)); e != nil {
+		t.Fatal(e)
+	}
+	rows, e := s.Conversions(ctx, 0, true)
+	if e != nil || len(rows) != 1 {
+		t.Fatal(e)
+	}
+	// Receipt creation and result commit clocks are distinct. Historical receipts
+	// stay immutable; the API exposes the atomically paired record's clock.
+	if _, e = s.db.Exec("UPDATE conversion_evidence SET metadata=json_set(metadata,'$.tested',?) WHERE hash=?", rows[0].Tested+26, j.Hash); e != nil {
+		t.Fatal(e)
+	}
+	server, _ := NewServer(s, "http://127.0.0.1:18191")
+	get := func() *httptest.ResponseRecorder {
+		rr := httptest.NewRecorder()
+		server.Handler().ServeHTTP(rr, httptest.NewRequest("GET", "http://127.0.0.1:18191/api/conversion/evidence/"+j.Hash, nil))
+		return rr
+	}
+	rr := get()
+	if rr.Code != 200 {
+		t.Fatal(rr.Code)
+	}
+	var body struct {
+		Tested       int64 `json:"tested"`
+		RecordTested int64 `json:"record_tested"`
+	}
+	if e = json.Unmarshal(rr.Body.Bytes(), &body); e != nil || body.Tested != rows[0].Tested+26 || body.RecordTested != rows[0].Tested {
+		t.Fatal(body, e)
+	}
+	if _, e = s.db.Exec("UPDATE conversion_evidence SET metadata=json_set(metadata,'$.candidate_sha256',?) WHERE hash=?", strings.Repeat("a", 64), j.Hash); e != nil {
+		t.Fatal(e)
+	}
+	if rr = get(); rr.Code != 404 {
+		t.Fatal("mismatched proof exposed", rr.Code)
+	}
+}

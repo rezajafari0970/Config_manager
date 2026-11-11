@@ -45,7 +45,7 @@ func TestResidentialMigrationRehearsal(t *testing.T) {
 		s.db.QueryRow("PRAGMA user_version").Scan(&version)
 		s.db.QueryRow("PRAGMA quick_check").Scan(&integrity)
 		s.db.QueryRow("SELECT count(*) FROM residential_active").Scan(&active)
-		if version != 21 || integrity != "ok" || active != 0 {
+		if version != 22 || integrity != "ok" || active != 0 {
 			s.Close()
 			t.Fatal("migration did not fence old evidence", version, integrity, active)
 		}

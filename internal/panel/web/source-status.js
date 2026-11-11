@@ -2,6 +2,7 @@
 export function sourceStatus(s, conversion={}) {
  const statuses={queued:['در انتظار','wait'],fetching:['در حال دریافت','working'],error:['ناموفق','bad'],paused:['متوقف','']};
  if(!s.enabled)return statuses.paused;
+ if(s.error_code==='source_count_drop_pending'||s.refresh_reason==='source_count_drop_pending')return ['افت تعداد پاسخ؛ در حال بررسی دوباره','wait'];
  if(s.refresh_reason&&s.state==='queued')return ['در انتظار دریافت تازه','wait'];
  if(s.state==='error'&&s.error_code==='processing_timeout')return ['دریافت شد؛ پردازش نیازمند تکرار است','wait'];
  if(s.state==='error'&&s.config_count>0)return ['خطای دریافت تازه؛ ورودی‌های قبلی موجودند','wait'];

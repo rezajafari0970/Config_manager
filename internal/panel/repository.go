@@ -278,7 +278,7 @@ func (s *Store) Claim(ctx context.Context, now time.Time, limit int, lease time.
 		return nil, e
 	}
 	defer tx.Rollback()
-	rows, e := tx.QueryContext(ctx, "SELECT id,url,revision,min,max,unit,etag,modified,timeout_seconds,EXISTS(SELECT 1 FROM responses r WHERE r.source_id=sources.id AND r.expires>?),(stored_count>0 AND refresh_reason='' AND (SELECT count(*) FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=sources.id AND a.expires>?)>=stored_count) FROM sources WHERE enabled=1 AND next_run<=? AND (lease_token='' OR lease_until<=?) ORDER BY next_run,id LIMIT ?", now.UnixMilli(), now.UnixMilli(), now.UnixNano(), now.UnixMilli(), limit)
+	rows, e := tx.QueryContext(ctx, "SELECT id,url,revision,min,max,unit,etag,modified,timeout_seconds,EXISTS(SELECT 1 FROM responses r WHERE r.source_id=sources.id AND r.expires>?),(stored_count>0 AND refresh_reason='' AND (SELECT count(*) FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=sources.id AND a.expires>?)>=stored_count),refresh_reason!='' FROM sources WHERE enabled=1 AND next_run<=? AND (lease_token='' OR lease_until<=?) ORDER BY next_run,id LIMIT ?", now.UnixMilli(), now.UnixMilli(), now.UnixNano(), now.UnixMilli(), limit)
 	if e != nil {
 		return nil, e
 	}
@@ -289,7 +289,7 @@ func (s *Store) Claim(ctx context.Context, now time.Time, limit int, lease time.
 		var sealed []byte
 		var in SourceInput
 		var response, items bool
-		if e = rows.Scan(&j.ID, &sealed, &j.Revision, &in.Min, &in.Max, &in.Unit, &j.ETag, &j.Modified, &j.TimeoutSeconds, &response, &items); e != nil {
+		if e = rows.Scan(&j.ID, &sealed, &j.Revision, &in.Min, &in.Max, &in.Unit, &j.ETag, &j.Modified, &j.TimeoutSeconds, &response, &items, &j.Revalidate); e != nil {
 			rows.Close()
 			return nil, e
 		}
@@ -393,6 +393,29 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 	if result.Staged && result.State == "updated" && stagedCount == 0 {
 		result.State = "error"
 		result.ErrorCode = "staging_expired"
+	}
+	if result.State == "updated" && (len(result.Items) > 0 || stagedCount > 0) {
+		unique := len(result.Items)
+		if result.Staged {
+			unique = stagedCount
+		}
+		eligible, manual, err := eligibleSourceItems(ctx, tx, result, job.Token, stamp)
+		if err != nil {
+			return err
+		}
+		residentialSuppressed = manual
+		admission, err := sourceAdmission(ctx, tx, job.ID, eligible, result.Raw.Hash, now)
+		if err != nil {
+			return err
+		}
+		if !admission.Accept {
+			suppressed = unique - eligible
+			result.State = "error"
+			result.ErrorCode = "source_count_drop_pending"
+			if retry := now.Add(admission.RetryAfter); retry.Before(next) {
+				next = retry
+			}
+		}
 	}
 	if result.State == "updated" && (len(result.Items) > 0 || stagedCount > 0) {
 		generation++
@@ -526,7 +549,11 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 	if result.HTTPStatus >= 200 && result.HTTPStatus < 300 && result.State != "updated" && result.State != "filtered" {
 		result.ETag = ""
 		result.Modified = ""
-		if _, e = tx.ExecContext(ctx, "UPDATE sources SET refresh_reason='incomplete_response' WHERE id=?", job.ID); e != nil {
+		reason := "incomplete_response"
+		if result.ErrorCode == "source_count_drop_pending" {
+			reason = "source_count_drop_pending"
+		}
+		if _, e = tx.ExecContext(ctx, "UPDATE sources SET refresh_reason=? WHERE id=?", reason, job.ID); e != nil {
 			return e
 		}
 	}

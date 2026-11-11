@@ -101,6 +101,10 @@ func (d HTTPDriver) fetch(ctx context.Context, job Job, legacy bool) (Response, 
 	}
 	request.Header.Set("User-Agent", "ConfigManager/3")
 	request.Header.Set("Accept", "*/*")
+	if job.Revalidate {
+		request.Header.Set("Cache-Control", "no-cache")
+		request.Header.Set("Pragma", "no-cache")
+	}
 	if job.ETag != "" {
 		request.Header.Set("If-None-Match", job.ETag)
 	}

@@ -1,3 +1,24 @@
+# Current P36 video and ingestion fixes — 2026-11-11
+
+P36 builds on published P35 (1a90cc7), integrating published P37 e6d5a6e and migrating21to22; normalv7/Smartv11/Adsv4 are unchanged.
+Read docs/checkpoints/P36-video-diagnostics-20261111.md and docs/reports/P36-report-fa.md.
+Shared probe.v5/share-compat.v1 only normalize proven inert metadata/empty options;
+strict TLS conflicts require new proof. HTTP body recovery retries once with a
+fresh HTTP/1.0 representation after successful chunked unexpected EOF; never
+accept partial bytes or weaken TLS, destination checks, deadlines or health gates.
+UI evidence is bound to raw/candidate/test timestamp; do not conflate environment,
+parser, server and network errors. Raw inputs, sources/settings/TTL and external
+revocation ledger remain unchanged. Actual Android/carrier execution remains not_run.
+Source-cardinality.v1 defers >=75% eligible-count drops when baseline>=16;
+two15s retries before accepting a third independent observation. Raw receipts
+stay exact, TTL and health are not refreshed, manual tombstones win. Schema22
+stores admission state. API evidence uses record_tested for atomic result binding.
+Deployment coordination: acquire /var/lock/config-repair-deploy.lock, verify current release and canonical parent before any stop/write, and preserve newer parallel commits.
+Private receipts under .local/p36-* identify final integrated tests, API code reviews,
+matched backup, deployment and publication. Never reset the independently completed
+P35 work or deploy older-schema binaries. No runtime AI dependency was introduced.
+Qualification hint: residential-worker-test.py uses XRAY_TEST_BINARY=core-26.7.28/xray for the baseline preflight; its matrix still tries latest26.11.9 first. With low disk headroom, use task-scoped bounded tmpfs build outputs and preserve all source/data/receipts.
+
 # Current P37 residential assessment deployment — 2026-11-11
 
 Installed release: p37-939e1eb750913ba8a2bb, on the deployed P36 code base95d579f,

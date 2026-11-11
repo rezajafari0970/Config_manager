@@ -24,7 +24,7 @@ export default function Output(ctx){
   const hash=b.dataset.evidence,candidate=b.dataset.candidate,tested=b.dataset.tested;
   const data=await api('/api/conversion/evidence/'+encodeURIComponent(hash));
   const current=$('#output-list').querySelector('[data-evidence="'+CSS.escape(hash)+'"]');
-  if(!current||current.dataset.candidate!==candidate||current.dataset.tested!==tested||data.tested!==Number(tested)||data.raw_sha256!==hash||data.candidate_sha256!==candidate)throw new Error('نتیجهٔ این ردیف تغییر کرده است؛ دوباره جزئیات را باز کنید.');
+  if(!current||current.dataset.candidate!==candidate||current.dataset.tested!==tested||data.record_tested!==Number(tested)||data.raw_sha256!==hash||data.candidate_sha256!==candidate)throw new Error('نتیجهٔ این ردیف تغییر کرده است؛ دوباره جزئیات را باز کنید.');
   const detail=current.nextElementSibling;
   detail.innerHTML='<p class="hint">این نتایج مربوط به همین نسخهٔ خروجی و زمان آزمون است؛ موفقیت یک مرحله جای مراحل دیگر را نمی‌گیرد.</p><div class="source-data">'+evidenceRows(data).map(r=>'<div><span>'+esc(r.label)+'</span><strong>'+esc(r.status)+'</strong></div>').join('')+'</div>';
   detail.hidden=false;

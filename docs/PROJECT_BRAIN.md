@@ -1,3 +1,12 @@
+## P36 current video follow-up — 2026-11-11
+
+Published P35 and P37 fixes are preserved. Shared HTTP framing recovery, closed share
+normalization, strict TLS proof and bound per-check UI diagnostics are implemented.
+See docs/reports/P36-report-fa.md, docs/reports/P36-validation.json and the P36
+checkpoint. Installation/publication identity is in private .local/p36-* receipts.
+Do not resurrect expired snapshot records or relabel actual server/IPv6/QUIC
+failures as healthy. Runtime source and canonical rebuild must match deployment.
+
 # Current P37 residential assessment deployment — 2026-11-11
 
 Installed release: p37-939e1eb750913ba8a2bb, on the deployed P36 code base95d579f,

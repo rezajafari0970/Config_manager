@@ -1,0 +1,776 @@
+{
+  "phase": "P36",
+  "date": "2026-11-11",
+  "parent": "e6d5a6e4e161f48551a5e5f19c28d1936b3765af",
+  "status": "deployed_and_verified",
+  "schema": 22,
+  "release": "/opt/config-repair/releases/p36-r2-0139f8a6e165cec1f05f",
+  "panel_sha256": "0139f8a6e165cec1f05f828e0f8f46974130b63ba4b286c2b36f9b27858ac8db",
+  "worker_sha256": "a92c846227858b8f08151bf1c4f7e9f1ee328c51ff28b4a13dcfc296034fad59",
+  "residential_worker_sha256": "088296bf3e26745eaac70b9119fcad69bc331c17273c4a4af3d640ed70bbd1d4",
+  "checks": {
+    "p36-check-integrated-r2": "passed",
+    "p36-browser-integrated-r2": "passed",
+    "p36-admission-reviewed-test": "passed",
+    "p36-http-recovery-test": "passed",
+    "p36-live-integrated-audit": "passed",
+    "p36-worker-normal": "passed",
+    "p36-worker-smart": "passed",
+    "p36-worker-splash": "passed",
+    "p36-worker-ads": "passed",
+    "p36-worker-residential": "passed"
+  },
+  "video": {
+    "duration_seconds": 80.015919,
+    "frames_reviewed": 40,
+    "audio": "silent"
+  },
+  "share_validation": {
+    "tested": 13,
+    "prepared": 11,
+    "built": 11,
+    "connected": 10,
+    "latest_connected": 10,
+    "android": "not_run",
+    "runtime_core": "26.10.31",
+    "build_cores": [
+      "26.10.31",
+      "26.11.9"
+    ]
+  },
+  "snapshot_retired": 2,
+  "initial_share_snapshot": {
+    "prepared": 13,
+    "built": 13,
+    "connected": 10
+  },
+  "http_recovery_valid_tls": [
+    {
+      "bytes": 0,
+      "complete": true,
+      "rule": "http10-incomplete-chunk.v1",
+      "status": 204,
+      "valid_tls": true
+    },
+    {
+      "bytes": 230,
+      "complete": true,
+      "rule": "http10-incomplete-chunk.v1",
+      "status": 200,
+      "valid_tls": true
+    }
+  ],
+  "initial_residential_harness_error": "incorrect baseline argument rejected by pinned-core preflight; final test used26.7.28 baseline while registry remained latest-first",
+  "http_recovery": {
+    "bytes": 42965,
+    "extracted": 148,
+    "kinds": {
+      "json": 2,
+      "ss": 33,
+      "vless": 85,
+      "vmess": 28
+    },
+    "recovery_driver": "http.v2",
+    "recovery_rule": "http10-incomplete-chunk.v1",
+    "passed": true
+  },
+  "live_panel": {
+    "passed": true,
+    "cardinality_source": {
+      "state": "updated",
+      "config_count": 150,
+      "received_count": 186,
+      "receipt_unique": 150,
+      "response_bytes": 30974,
+      "error_code": "",
+      "last_fetch": 1794370626653
+    },
+    "source_recovery": [
+      {
+        "round": 1,
+        "state": "updated",
+        "error_code": "invalid_content",
+        "http_status": 200,
+        "received": 139,
+        "unique_current": 125,
+        "bytes": 42965,
+        "duration_ms": 6777
+      },
+      {
+        "round": 2,
+        "state": "updated",
+        "error_code": "invalid_content",
+        "http_status": 200,
+        "received": 139,
+        "unique_current": 125,
+        "bytes": 42965,
+        "duration_ms": 302
+      }
+    ],
+    "all_sources_refresh": [
+      {
+        "name": "Splash otter",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 1,
+        "unique_current": 1
+      },
+      {
+        "name": "Alan xmr",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 1,
+        "unique_current": 1
+      },
+      {
+        "name": "Alan splash",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 1,
+        "unique_current": 1
+      },
+      {
+        "name": "output",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 19,
+        "unique_current": 19
+      },
+      {
+        "name": "Flux",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 11,
+        "unique_current": 11
+      },
+      {
+        "name": "Golden",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 1,
+        "unique_current": 1
+      },
+      {
+        "name": "Gozal",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 4,
+        "unique_current": 4
+      },
+      {
+        "name": "V2pro",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 6,
+        "unique_current": 6
+      },
+      {
+        "name": "Mixo splash",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 1,
+        "unique_current": 1
+      },
+      {
+        "name": "Pig smart",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 1,
+        "unique_current": 1
+      },
+      {
+        "name": "V2pro",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 1,
+        "unique_current": 1
+      },
+      {
+        "name": "Raytunnel",
+        "state": "updated",
+        "error_code": "invalid_content",
+        "http_status": 200,
+        "received": 1,
+        "unique_current": 1
+      },
+      {
+        "name": "Exo",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 1,
+        "unique_current": 1
+      },
+      {
+        "name": "Mixo",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 1,
+        "unique_current": 1
+      },
+      {
+        "name": "Chance",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 10,
+        "unique_current": 4
+      },
+      {
+        "name": "Exir",
+        "state": "empty",
+        "error_code": "",
+        "http_status": 200,
+        "received": 0,
+        "unique_current": 0
+      },
+      {
+        "name": "Nest sp",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 31,
+        "unique_current": 31
+      },
+      {
+        "name": "Otter",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 21,
+        "unique_current": 16
+      },
+      {
+        "name": "Yak",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 20,
+        "unique_current": 20
+      },
+      {
+        "name": "output",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 19,
+        "unique_current": 19
+      },
+      {
+        "name": "Zaha",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 30,
+        "unique_current": 30
+      },
+      {
+        "name": "Nest",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 62,
+        "unique_current": 31
+      },
+      {
+        "name": "Alan",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 20,
+        "unique_current": 15
+      },
+      {
+        "name": "kaya Splash",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 31,
+        "unique_current": 31
+      },
+      {
+        "name": "Afrak",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 20,
+        "unique_current": 20
+      },
+      {
+        "name": "Speedray",
+        "state": "unchanged",
+        "error_code": "",
+        "http_status": 304,
+        "received": 31,
+        "unique_current": 31
+      },
+      {
+        "name": "Hot",
+        "state": "updated",
+        "error_code": "invalid_content",
+        "http_status": 200,
+        "received": 72,
+        "unique_current": 71
+      },
+      {
+        "name": "Speedray",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 31,
+        "unique_current": 31
+      },
+      {
+        "name": "Mixo",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 30,
+        "unique_current": 30
+      },
+      {
+        "name": "Yak",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 20,
+        "unique_current": 20
+      },
+      {
+        "name": "Exo",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 97,
+        "unique_current": 95
+      },
+      {
+        "name": "sub",
+        "state": "updated",
+        "error_code": "invalid_content",
+        "http_status": 200,
+        "received": 139,
+        "unique_current": 125
+      },
+      {
+        "name": "splashearrr.nimadarkorg.workers.dev",
+        "state": "updated",
+        "error_code": "",
+        "http_status": 200,
+        "received": 186,
+        "unique_current": 150
+      }
+    ],
+    "page_errors": 0,
+    "viewports": [
+      {
+        "path": "/input",
+        "width": 390,
+        "status": 200,
+        "overflow": false
+      },
+      {
+        "path": "/output",
+        "width": 390,
+        "status": 200,
+        "overflow": false
+      },
+      {
+        "path": "/smart",
+        "width": 390,
+        "status": 200,
+        "overflow": false
+      },
+      {
+        "path": "/smart-splash",
+        "width": 390,
+        "status": 200,
+        "overflow": false
+      },
+      {
+        "path": "/smart-ads",
+        "width": 390,
+        "status": 200,
+        "overflow": false
+      },
+      {
+        "path": "/input",
+        "width": 1440,
+        "status": 200,
+        "overflow": false
+      },
+      {
+        "path": "/output",
+        "width": 1440,
+        "status": 200,
+        "overflow": false
+      },
+      {
+        "path": "/smart",
+        "width": 1440,
+        "status": 200,
+        "overflow": false
+      },
+      {
+        "path": "/smart-splash",
+        "width": 1440,
+        "status": 200,
+        "overflow": false
+      },
+      {
+        "path": "/smart-ads",
+        "width": 1440,
+        "status": 200,
+        "overflow": false
+      }
+    ],
+    "source_count": 33,
+    "inventory": 680,
+    "panel_certificate_only": "ignoreHTTPSErrors applies to panel UI; VPN HTTPS probes retain valid certificate verification"
+  },
+  "preservation": {
+    "sources": 33,
+    "settings": true,
+    "rotations": true,
+    "schema": 22,
+    "raw": "unchanged",
+    "external_revocation_journal": "not rewound"
+  },
+  "exports": {
+    "/api/conversions": {
+      "version": "xray-26.11.9.template.v7",
+      "group_status": 200,
+      "native_array_items": 143,
+      "single_status": 200,
+      "fresh_runtime": {
+        "core": "passed",
+        "connection": "passed",
+        "code": "https_multi_site_verified",
+        "runtime_sha256": "17ecc506132c3be2cafc29027d6ab43e3a95bc56349accba6b3bde14d9bf6159",
+        "endpoints_passed": 2,
+        "evidence": {
+          "https": "passed",
+          "http3": "passed",
+          "android": "not_run",
+          "dns_tcp": "passed",
+          "doh_cloudflare": "passed",
+          "doh_google": "passed",
+          "dns_udp": "passed",
+          "quic_vn": "passed",
+          "runtime_core": "xray_26_10_31"
+        }
+      },
+      "exact_served_body_both_cores": "passed",
+      "stored_exact_runtime_proof": "passed",
+      "checks": {
+        "android": "not_run",
+        "app_import_contract": "passed",
+        "bundled_core": "passed",
+        "dns_tcp": "passed",
+        "dns_udp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "http3": "passed",
+        "https": "passed",
+        "quic_vn": "passed",
+        "runtime_core": "xray_26_10_31",
+        "target_core": "passed"
+      }
+    },
+    "/api/smart": {
+      "version": "xray-26.11.9.smart.v11",
+      "group_status": 200,
+      "native_array_items": 4,
+      "single_status": 200,
+      "fresh_runtime": {
+        "core": "passed",
+        "connection": "passed",
+        "code": "https_multi_site_verified",
+        "runtime_sha256": "dd97d3af81bdf6f921f3cd21a58f322b813b508642172c8e8a79476cca521f91",
+        "endpoints_passed": 2,
+        "evidence": {
+          "https": "passed",
+          "http3": "passed",
+          "android": "not_run",
+          "dns_tcp": "passed",
+          "doh_cloudflare": "passed",
+          "doh_google": "passed",
+          "dns_udp": "passed",
+          "quic_vn": "passed",
+          "runtime_core": "xray_26_10_31"
+        }
+      },
+      "exact_served_body_both_cores": "passed",
+      "stored_exact_runtime_proof": "passed",
+      "checks": {
+        "android": "not_run",
+        "app_import_contract": "passed",
+        "bundled_core": "passed",
+        "dns_tcp": "passed",
+        "dns_udp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "http3": "passed",
+        "https": "passed",
+        "quic_vn": "passed",
+        "runtime_core": "xray_26_10_31",
+        "target_core": "passed"
+      }
+    },
+    "/api/smart-splash": {
+      "version": "xray-26.11.9.smart.v11",
+      "group_status": 200,
+      "native_array_items": 1,
+      "single_status": 200,
+      "fresh_runtime": {
+        "core": "passed",
+        "connection": "passed",
+        "code": "https_multi_site_verified",
+        "runtime_sha256": "753bbbe35c9cd7f3f7a066b7a26ea8990164895a7c081d284b5941e228369bf9",
+        "endpoints_passed": 2,
+        "evidence": {
+          "https": "passed",
+          "http3": "passed",
+          "android": "not_run",
+          "dns_tcp": "passed",
+          "doh_cloudflare": "passed",
+          "doh_google": "passed",
+          "dns_udp": "passed",
+          "quic_vn": "passed",
+          "runtime_core": "xray_26_10_31"
+        }
+      },
+      "exact_served_body_both_cores": "passed",
+      "stored_exact_runtime_proof": "passed",
+      "checks": {
+        "android": "not_run",
+        "app_import_contract": "passed",
+        "bundled_core": "passed",
+        "dns_tcp": "passed",
+        "dns_udp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "http3": "passed",
+        "https": "passed",
+        "quic_vn": "passed",
+        "runtime_core": "xray_26_10_31",
+        "target_core": "passed"
+      }
+    },
+    "/api/smart-ads": {
+      "version": "xray-26.11.9.smart-ads.v4",
+      "group_status": 200,
+      "native_array_items": 1,
+      "single_status": 200,
+      "fresh_runtime": {
+        "core": "passed",
+        "connection": "passed",
+        "code": "https_multi_site_verified",
+        "runtime_sha256": "6c824b5eb762781df924d24fa1059e1abab5e0aad97b3c460c451afa7203f472",
+        "endpoints_passed": 2,
+        "evidence": {
+          "https": "passed",
+          "http3": "passed",
+          "android": "not_run",
+          "dns_tcp": "passed",
+          "doh_cloudflare": "passed",
+          "doh_google": "passed",
+          "dns_udp": "passed",
+          "quic_vn": "passed",
+          "runtime_core": "xray_26_10_31"
+        }
+      },
+      "exact_served_body_both_cores": "passed",
+      "stored_exact_runtime_proof": "passed",
+      "checks": {
+        "android": "not_run",
+        "app_import_contract": "passed",
+        "bundled_core": "passed",
+        "dns_tcp": "passed",
+        "dns_udp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "http3": "passed",
+        "https": "passed",
+        "quic_vn": "passed",
+        "runtime_core": "xray_26_10_31",
+        "target_core": "passed"
+      }
+    }
+  },
+  "api_reviews": [
+    {
+      "model": "gpt-6-astra",
+      "status": "completed",
+      "code_only": true,
+      "store": false,
+      "usage": {
+        "input_tokens": 18770,
+        "input_tokens_details": {
+          "cache_write_tokens": 18767,
+          "cached_tokens": 0
+        },
+        "output_tokens": 7192,
+        "output_tokens_details": {
+          "reasoning_tokens": 6732
+        },
+        "total_tokens": 25962
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "status": "completed",
+      "code_only": true,
+      "store": false,
+      "usage": {
+        "input_tokens": 8804,
+        "input_tokens_details": {
+          "cache_write_tokens": 8801,
+          "cached_tokens": 0
+        },
+        "output_tokens": 5203,
+        "output_tokens_details": {
+          "reasoning_tokens": 4896
+        },
+        "total_tokens": 14007
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "status": "completed",
+      "code_only": true,
+      "store": false,
+      "usage": {
+        "input_tokens": 14731,
+        "input_tokens_details": {
+          "cache_write_tokens": 14728,
+          "cached_tokens": 0
+        },
+        "output_tokens": 5955,
+        "output_tokens_details": {
+          "reasoning_tokens": 5675
+        },
+        "total_tokens": 20686
+      }
+    }
+  ],
+  "limits": [
+    "No Android APK or carrier execution",
+    "IPv6-only endpoints await an IPv6-capable sandbox",
+    "REALITY/UUID/certificate failures remain explicit",
+    "QUIC Version Negotiation is not complete HTTP/3 proof",
+    "Unsupported active extensions are retained, not stripped",
+    "Upstream empty bodies and genuine outages are not guaranteed recoverable",
+    "Disk reserve remains limited; no production data/backups were removed"
+  ],
+  "source_cardinality": {
+    "driver": "source-cardinality.v1",
+    "minimum_baseline": 16,
+    "drop_fraction": 0.75,
+    "quick_retry_seconds": 15,
+    "confirmations": 3,
+    "minimum_sample_gap_seconds": 2,
+    "inactivity_reset_seconds": 120,
+    "screenshot": {
+      "bytes": 825,
+      "occurrences": 6,
+      "unique": 2
+    },
+    "fresh_requests": [
+      {
+        "profile": "default",
+        "status": 200,
+        "bytes": 30498,
+        "lines": 186,
+        "unique_lines": 148,
+        "seconds": 0.99
+      },
+      {
+        "profile": "v2rayng",
+        "status": 200,
+        "bytes": 30777,
+        "lines": 186,
+        "unique_lines": 146,
+        "seconds": 1.04
+      },
+      {
+        "profile": "android",
+        "status": 200,
+        "bytes": 30714,
+        "lines": 186,
+        "unique_lines": 145,
+        "seconds": 0.94
+      },
+      {
+        "profile": "cache-revalidate",
+        "status": 200,
+        "bytes": 30766,
+        "lines": 186,
+        "unique_lines": 142,
+        "seconds": 0.81
+      },
+      {
+        "profile": "plain",
+        "status": 200,
+        "bytes": 30586,
+        "lines": 186,
+        "unique_lines": 146,
+        "seconds": 0.73
+      }
+    ],
+    "production_latest": {
+      "state": "updated",
+      "config_count": 150,
+      "received_count": 186,
+      "receipt_unique": 150,
+      "response_bytes": 30974,
+      "error_code": "",
+      "last_fetch": 1794370626653
+    },
+    "regression_tests": "direct and staged;148→2→148;64→2 repeated;TTL/deletion/tombstones/stale lease;upgrade21→22;strict UI proof binding"
+  },
+  "exact_worker_qualification": {
+    "config-probe-plan": "4b30d605777662b27245c3df3241c7be600991bab0fce346b981f91fb798526b",
+    "config-probe-worker": "a92c846227858b8f08151bf1c4f7e9f1ee328c51ff28b4a13dcfc296034fad59",
+    "config-residential-worker": "088296bf3e26745eaac70b9119fcad69bc331c17273c4a4af3d640ed70bbd1d4"
+  },
+  "schema_rehearsal": {
+    "passed": true,
+    "source_count": 33,
+    "from_schema": 21,
+    "to_schema": 22,
+    "reopened_twice": true,
+    "preserved": [
+      "sources",
+      "settings",
+      "conversion_settings",
+      "smart_settings",
+      "splash_smart_settings",
+      "ads_smart_settings",
+      "export_rotation_state",
+      "smart_rotation_state",
+      "splash_smart_rotation_state",
+      "ads_smart_rotation_state",
+      "memberships",
+      "artifacts",
+      "responses"
+    ],
+    "external_journal": "isolated test override; production journal untouched"
+  },
+  "preserved_p37": {
+    "commit": "e6d5a6e4e161f48551a5e5f19c28d1936b3765af",
+    "residential_worker_sha256": "088296bf3e26745eaac70b9119fcad69bc331c17273c4a4af3d640ed70bbd1d4"
+  }
+}

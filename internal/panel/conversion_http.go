@@ -162,7 +162,7 @@ func (m conversionModule) Register(mux *http.ServeMux) {
 			return
 		}
 		var metadata string
-		if e := s.store.reader().QueryRowContext(r.Context(), "SELECT metadata FROM conversion_evidence WHERE hash=?", r.PathValue("hash")).Scan(&metadata); e != nil {
+		if e := s.store.reader().QueryRowContext(r.Context(), `SELECT json_set(e.metadata,'$.record_tested',r.tested) FROM conversion_evidence e JOIN conversion_results r ON r.hash=e.hash WHERE e.hash=? AND json_extract(e.metadata,'$.raw_sha256')=r.hash AND json_extract(e.metadata,'$.candidate_sha256')=r.candidate_hash AND json_extract(e.metadata,'$.runtime_sha256')=r.runtime_hash AND json_extract(e.metadata,'$.pipeline')=r.version`, r.PathValue("hash")).Scan(&metadata); e != nil {
 			failure(w, ErrNotFound)
 			return
 		}

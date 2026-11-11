@@ -1,6 +1,6 @@
 # P36 video diagnostics and acquisition recovery — 2026-11-11
 
-Worktree: `work/p36-video-errors-20261111`. P35 is an independently active deployment and must be preserved. This checkpoint does not itself assert final deployment or publication.
+Worktree: `work/p36-video-errors-20261111`. Published P35 parent 1a90cc7 is preserved. Implementation and final integrated deployment are verified; publication identity is recorded separately in .local/p36-published.json.
 
 The complete supplied 80-second video was inspected across forty evenly spaced frames and five contact sheets; the highlighted input details were read at full size. Source inventory was present. The visible failures belong to several different stages, not one failed fetch.
 
@@ -20,3 +20,7 @@ Evidence before final integrated deployment:
 - Two actual OpenAI Responses API reviews used `gpt-6-astra`, code only, `store:false`. Six concrete findings were addressed with regression coverage. Runtime fetching and export never depend on a model or API availability.
 
 Do not publish raw URLs, credentials, original configs, key files or private `.local` receipts. Do not reset P35, downgrade schema21, weaken target-core/HTTPS/UDP/QUIC eligibility, extend retention, resurrect explicit deletions, or rewind the external residential revocation journal. Complete the final integrated tests, matched backup, deployment/readback and branch CAS publication before marking this phase complete.
+
+Final integrated audit: 11 still-accessible snapshot entries, 10 complete connections on both pinned cores, one IPv6-only limitation; two removed snapshot inputs return404 and were not resurrected. See P36-validation.json for exact deployment and UI receipts.
+
+P36-r2 integrates published P37 e6d5a6e and migrates21to22. New source-cardinality.v1 protects prior eligible membership from transient148→2→148 responses; direct/staged, suppression, TTL, stale leases and migration tests passed. Source counts after final refresh:186 occurrences/150unique. All33 sources refreshed; exact normal/Smart/Splash/Ads outputs and fresh bundled-core HTTPS/DNS/TCP/UDP/QUIC/HTTP3 canaries passed. Source-state and receipt clocks are bound through record_tested without changing original evidence.

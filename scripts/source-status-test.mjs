@@ -46,3 +46,6 @@ assert.equal(evidenceRows({checks:{https:'unexpected'}}).find(r=>r.key==='https'
 console.log('Shared diagnostic classification and independent transport evidence passed');
 
 assert.equal(conversionDetail('https_proxy_verified_site_unavailable').category,'network');
+
+for (const state of ['error','queued','fetching']) {const got=sourceStatus({...base,state,config_count:148,refresh_reason:'source_count_drop_pending'});assert.equal(got[1],'wait');assert.match(got[0],/افت تعداد/)}
+assert.equal(receiptCounts({received_count:6,receipt_unique:2,receipt_new:-1}).added,null);

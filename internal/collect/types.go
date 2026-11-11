@@ -15,6 +15,7 @@ type Settings struct {
 	TimeoutSeconds   int64 `json:"timeout_seconds"`
 }
 type Job struct {
+	Revalidate                     bool
 	ID, URL, Token, ETag, Modified string
 	Revision                       int64
 	Min, Max                       time.Duration
