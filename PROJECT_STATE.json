@@ -154,7 +154,10 @@
     "completion_timeout_seconds": 30,
     "stage_batch_limit": 32,
     "compiler_sha256": "f2603d382a7c0d920ae4746c79422a8f63a3596d89af01ae110238e54afe3865",
-    "running_binary_verification_receipt": ".local/p36-runtime-final.json"
+    "running_binary_verification_receipt": ".local/p36-runtime-final.json",
+    "residential_worker_state_at_final_verification": "inactive; explicit clean systemd stop after activation",
+    "acquisition_and_export_workers_active": true,
+    "canonical_rebuild_matches": true
   },
   "next": [
     "Observe background requalification of current rotating sources; never transfer representative success to other endpoints",

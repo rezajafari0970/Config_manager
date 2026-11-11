@@ -1,5 +1,10 @@
 # Current P36 video and ingestion fixes — 2026-11-11
 
+Final readback: acquisition and all export workers active/hash-matched. Residential
+worker had an explicit clean systemd stop at04:14:26 after activation; a separate
+egress-rebuild-p39 checkout exists. Reconcile that parallel operation before
+changing its service state; do not describe it as a crash.
+
 P36 builds on published P35 (1a90cc7), integrating published P37 e6d5a6e and migrating21to22; normalv7/Smartv11/Adsv4 are unchanged.
 Read docs/checkpoints/P36-video-diagnostics-20261111.md and docs/reports/P36-report-fa.md.
 Shared probe.v5/share-compat.v1 only normalize proven inert metadata/empty options;

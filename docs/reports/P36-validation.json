@@ -673,7 +673,8 @@
     "QUIC Version Negotiation is not complete HTTP/3 proof",
     "Unsupported active extensions are retained, not stripped",
     "Upstream empty bodies and genuine outages are not guaranteed recoverable",
-    "Disk reserve remains limited; no production data/backups were removed"
+    "Disk reserve remains limited; no production data/backups were removed",
+    "Residential worker received an explicit clean systemd stop after deployment; final acquisition/export workers remain active. This separate stop was not treated as a crash or reversed during parallel egress work."
   ],
   "source_cardinality": {
     "driver": "source-cardinality.v1",
@@ -772,5 +773,21 @@
   "preserved_p37": {
     "commit": "e6d5a6e4e161f48551a5e5f19c28d1936b3765af",
     "residential_worker_sha256": "088296bf3e26745eaac70b9119fcad69bc331c17273c4a4af3d640ed70bbd1d4"
+  },
+  "final_runtime_readback": {
+    "release": "/opt/config-repair/releases/p36-r2-0139f8a6e165cec1f05f",
+    "schema": 22,
+    "services": {
+      "config-repair": "active_hash_matched",
+      "config-repair-prober": "active_hash_matched",
+      "config-repair-smart": "active_hash_matched",
+      "config-repair-splash": "active_hash_matched",
+      "config-repair-ads": "active_hash_matched",
+      "config-repair-residential": "inactive_explicit_systemd_stop_observed_after_deployment"
+    },
+    "canonical_rebuild_matches": true,
+    "acquisition_and_export_workers_fresh": true,
+    "all_services_active": false,
+    "at": 1794371081.252834
   }
 }
