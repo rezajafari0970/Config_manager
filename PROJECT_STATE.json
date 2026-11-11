@@ -1,7 +1,7 @@
 {
-  "phase": "P42",
+  "phase": "P41",
   "date": "2026-11-11",
-  "status": "deployed verified; strict TLS enforced; safe disk cleanup completed; independent requalification continues",
+  "status": "deployed verified; P42 preserved; finite Ads comparison active; throughput target unmet; classifier quota exhausted",
   "repository": "rezajafari0970/Config_manager",
   "branch": "go/v2rayng-2.3.6",
   "legacy_main": "unchanged",
@@ -59,7 +59,7 @@
   },
   "validation": {
     "status": "passed_with_documented_limits",
-    "report": "docs/reports/P42-validation.json",
+    "report": "docs/reports/P41-validation.json",
     "release_suite": "passed",
     "schema24_to25_rehearsal": "passed",
     "android": "not_run",
@@ -76,8 +76,8 @@
       "config-repair-egress"
     ],
     "enabled_at_boot": true,
-    "release": "/opt/config-repair/releases/p42-aa3602141aca9cc15b1b",
-    "panel_sha256": "aa3602141aca9cc15b1b9e53a639717844c6caa4f1db370f6f391d92012bf5d8",
+    "release": "/opt/config-repair/releases/p41-7d775a88f934ae9ae0be",
+    "panel_sha256": "7d775a88f934ae9ae0be251ce864b8ad147ba89a2a13ccd5f06e9f364c61bc29",
     "worker_sha256": "1ab50c77670a285c2eaecba45b12338d682f1f92111da29f0a296ca4f797a8fb",
     "template_version": "xray-26.11.9.template.v9",
     "retention_seconds": 36000,
@@ -88,8 +88,8 @@
     "retest_seconds": 900,
     "connection_ttl_seconds": 36000,
     "deployment_receipt": ".local/deployment.json",
-    "publication_receipt": ".local/p42-published.json",
-    "sandbox_driver_sha256": "65fc6d977c38e9589440a8d30acb8fe8557d7b5e5dac6a5da282128bff226b32",
+    "publication_receipt": ".local/p41-published.json",
+    "sandbox_driver_sha256": "15ca189f27f03e3c6a94c3ca6007176642785fa554318582e0a7a75513135f4c",
     "structural_version": "xray-26.7.28.structural.v3",
     "probe_version": "xray-26.11.9.probe-plan.v7",
     "smart_version": "xray-26.11.9.smart.v13",
@@ -105,7 +105,7 @@
     "splash_enabled": true,
     "splash_sources_at_inspection": 3,
     "splash_concurrency": 2,
-    "source_parent_commit": "860c91d6189fc7200b18a209581113bb8e2c81e1",
+    "source_parent_commit": "3761740",
     "tested_runtime_manifest": ".local/final-source-manifest.json",
     "ads_adapter_sha256": "1d205f54e7030cdd242d2872cfddba34ee4aaffd6b1927a2721e64211908f857",
     "ads_version": "xray-26.11.9.smart-ads.v6",
@@ -118,7 +118,7 @@
     "native_core": "sing-box-1.14.4",
     "native_core_sha256": "1264361b5f8868c8768f7555d3e77e20118bf503c41ac08bb290a0d99056aa3a",
     "acquisition_verification_receipt": ".local/p36-live-browser.json",
-    "fresh_heartbeat_receipt": ".local/health-final.json",
+    "fresh_heartbeat_receipt": ".local/live-verification.json",
     "processing_timeout_seconds": 120,
     "completion_timeout_seconds": 30,
     "stage_batch_limit": 32,
@@ -126,9 +126,11 @@
     "running_binary_verification_receipt": ".local/deployment.json",
     "acquisition_and_export_workers_active": true,
     "canonical_rebuild_matches": true,
-    "egress_worker_sha256": "a05f8567a55cef8aa874cb3db04a7be38023276b86458fbc0ad9c30429e627e3"
+    "egress_worker_sha256": "3f282baa36a54ee6d2f070f87420091eb86c4cf02d72d57f85cc61f165a966ae"
   },
   "next": [
+    "Improve measured throughput without replacing unknown results with guesses; current1000/300s target is unmet.",
+    "Provide sufficient exact-IP classification quota before expecting new Residential qualification.",
     "Observe background requalification of current rotating sources; never transfer representative success to other endpoints",
     "Test official APK on Android and MCI/Irancell; native Linux evidence is not device verification",
     "Add explicit adapters only for documented currently unsupported extensions; preserve security/endpoint meaning",
@@ -624,8 +626,8 @@
     "sources_preserved": 33
   },
   "egress": {
-    "version": "ads-egress.v2",
-    "schema": 23,
+    "version": "ads-egress.v3",
+    "schema": 25,
     "source": "Proxycheck v3 explicit network type",
     "scope": "three DoubleClick domains, observed family, TCP, raw and template; peer-reported",
     "worker": "config-repair-egress.service",
@@ -633,10 +635,47 @@
     "retention": "accepted entries survive ordinary TTL; evidence TTL 600 seconds; retest 120 seconds",
     "incomplete": "unknown and not published",
     "api_ai_dependency": false,
-    "total_at_readback": 776,
-    "pending_at_readback": 764,
+    "total_at_readback": 3218,
+    "pending_at_readback": 3015,
     "eligible_at_readback": 0,
-    "unregistered_current_inputs": 0
+    "unregistered_current_inputs": 0,
+    "default_workers": 8,
+    "max_workers": 31,
+    "benchmark": {
+      "version": "ads-egress.v3",
+      "requested": 1000,
+      "total": 1000,
+      "assessed": 1000,
+      "complete": true,
+      "seconds": 749.939,
+      "assessed_at_300s": 375,
+      "workers": 8,
+      "max_active": 8,
+      "min_available_mib": 3075,
+      "states": {
+        "NO_SPLIT": 562,
+        "UNKNOWN": 418,
+        "UNSUPPORTED": 20
+      },
+      "reasons": {
+        "ads_peer_echo_incomplete": 67,
+        "controls_incomplete": 27,
+        "core_evidence_missing": 144,
+        "driver_unavailable": 20,
+        "network_retry_pending": 180,
+        "route_not_distinct": 562
+      },
+      "sample_codes": {
+        "ads_peer_reported": 11185,
+        "control_echo": 14599,
+        "connection_failed": 2461,
+        "connection_timeout": 1359
+      },
+      "classifications": {},
+      "job_ms_p50": 5675.812960835174,
+      "job_ms_p95": 9911.07689589262,
+      "scope": "Distinct real retained source hashes; initial assessments include inconclusive and unsupported results. Not 1000 definitive residential classifications."
+    }
   },
   "validation_p39": {
     "full_checks": true,
@@ -1201,6 +1240,176 @@
       "Source originals may retain allowInsecure=true as immutable evidence.",
       "Initial Smart/Splash/Ads HTTP503 while requalification was pending was retained as an honest unavailable state.",
       "No whole-disk integrity or every external provider transaction claim."
+    ]
+  },
+  "validation_p41": {
+    "phase": "P41",
+    "date": "2026-11-11",
+    "integrated_base": "P42/schema25",
+    "release": "/opt/config-repair/releases/p41-7d775a88f934ae9ae0be",
+    "checks": {
+      "release_suite": "passed",
+      "panel_race_seconds": 609.459,
+      "python_egress_contracts": 16,
+      "crash_recovery": {
+        "passed": true,
+        "inputs": 5,
+        "real_inputs": 3,
+        "slots": 2
+      },
+      "fixture_browser_widths": [
+        390,
+        1440
+      ],
+      "private_rehearsal": {
+        "sources": 33,
+        "memberships": 843,
+        "retained_inputs": 3005,
+        "schema": 25
+      },
+      "live_browser": {
+        "passed": true,
+        "widths": [
+          390,
+          1440
+        ],
+        "scope": "UI verification; existing panel certificate errors ignored only in the private browser harness; VPN TLS checks remain strict"
+      }
+    },
+    "benchmark": {
+      "version": "ads-egress.v3",
+      "requested": 1000,
+      "total": 1000,
+      "assessed": 1000,
+      "complete": true,
+      "seconds": 749.939,
+      "assessed_at_300s": 375,
+      "workers": 8,
+      "max_active": 8,
+      "min_available_mib": 3075,
+      "states": {
+        "NO_SPLIT": 562,
+        "UNKNOWN": 418,
+        "UNSUPPORTED": 20
+      },
+      "reasons": {
+        "ads_peer_echo_incomplete": 67,
+        "controls_incomplete": 27,
+        "core_evidence_missing": 144,
+        "driver_unavailable": 20,
+        "network_retry_pending": 180,
+        "route_not_distinct": 562
+      },
+      "sample_codes": {
+        "ads_peer_reported": 11185,
+        "control_echo": 14599,
+        "connection_failed": 2461,
+        "connection_timeout": 1359
+      },
+      "classifications": {},
+      "job_ms_p50": 5675.812960835174,
+      "job_ms_p95": 9911.07689589262,
+      "scope": "Distinct real retained source hashes; initial assessments include inconclusive and unsupported results. Not 1000 definitive residential classifications."
+    },
+    "supplied_fastly_canary": {
+      "seconds": 12.197,
+      "route": "DIFFERENT",
+      "state": "ADS_SPLIT",
+      "network": "Unknown",
+      "eligible": false,
+      "unique_ads_ips": 14,
+      "control_ips": [
+        "2.31.165.121"
+      ],
+      "missing_ads_observations": 2,
+      "core_and_variant_checks": true,
+      "classifier": {
+        "code": "quota_exhausted",
+        "daily_limit": 90,
+        "provider": "proxycheck-v3",
+        "remaining": 0,
+        "used": 90
+      }
+    },
+    "deployment": {
+      "schema": 25,
+      "services_verified": 6,
+      "matched_backup": true,
+      "source_controls_and_settings_preserved": true,
+      "sources": 33,
+      "version": "ads-egress.v3|xray-26.11.9.template.v9",
+      "guard_correction": "Composite evaluator|template version verified; no database correction needed",
+      "canonical_rebuild_identical": true
+    },
+    "initial_live_readback": {
+      "version": "ads-egress.v3",
+      "total": 3218,
+      "pending": 3015,
+      "eligible": 0,
+      "counts": {
+        "NO_SPLIT": 98,
+        "PENDING": 3015,
+        "UNKNOWN": 102,
+        "UNSUPPORTED": 3
+      },
+      "worker": {
+        "active": 8,
+        "code": "capacity_8",
+        "heartbeat": 1794381358918,
+        "status": "running"
+      },
+      "throughput": {
+        "completed_5m": 220,
+        "max_workers": 31,
+        "target_5m": 1000
+      },
+      "classifier": {
+        "code": "quota_exhausted",
+        "daily_limit": 90,
+        "provider": "proxycheck-v3",
+        "remaining": 0,
+        "used": 90
+      },
+      "exports": {
+        "configs.json": {
+          "status": 503,
+          "bytes": 50,
+          "sha256": "1ddd7ebaea74a5715ab6f77f5e21c951ca5df36692e49afe32fbf6f14092d911"
+        },
+        "configs.jsonl": {
+          "status": 503,
+          "bytes": 50,
+          "sha256": "1ddd7ebaea74a5715ab6f77f5e21c951ca5df36692e49afe32fbf6f14092d911"
+        },
+        "next.json": {
+          "status": 503,
+          "bytes": 50,
+          "sha256": "1ddd7ebaea74a5715ab6f77f5e21c951ca5df36692e49afe32fbf6f14092d911"
+        },
+        "raw.txt": {
+          "status": 503,
+          "bytes": 50,
+          "sha256": "1ddd7ebaea74a5715ab6f77f5e21c951ca5df36692e49afe32fbf6f14092d911"
+        }
+      },
+      "unregistered_current_inputs": 0,
+      "schema": 25,
+      "source_count": 33,
+      "services": [
+        "active",
+        "active",
+        "active",
+        "active",
+        "active",
+        "active"
+      ],
+      "at": 1794381361
+    },
+    "limits": [
+      "The 1000-in-300-seconds target was not met. These are initial assessments, not 1000 definitive classifications.",
+      "Authenticated same-stream peer-reported diagnostics cover three named DoubleClick destinations, TCP, observed families and raw/template variants. They do not attest every real advertising request or hidden intermediate hop.",
+      "A repeated different exit is not itself Residential network-type proof. The unregistered exact-IP classifier has exhausted its90/day local budget.",
+      "IPv6-only entry servers, unsupported transports, missing echoes and ambiguous paths remain unknown/unsupported. UDP/QUIC, Android and carriers are not qualified by this run."
     ]
   }
 }

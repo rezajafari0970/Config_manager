@@ -18,7 +18,7 @@ with open(WORK/'fixture.log','w') as log:
    except (OSError,ValueError):pass
    time.sleep(.1)
   else:raise RuntimeError('fixture not ready')
-  args=[str(WORK/'worker'),'--socket',ready['socket'],'--helper',str(ROOT/'scripts/egress-probe.py'),'--prefix','cgt','--lock-file',str(WORK/'worker.lock')]
+  args=[str(WORK/'worker'),'--socket',ready['socket'],'--helper',str(ROOT/'scripts/egress-probe.py'),'--prefix','cgt','--lock-file',str(WORK/'worker.lock'),'--workers','2']
   def start():return subprocess.Popen(args,stdout=subprocess.DEVNULL,stderr=open(WORK/'worker.log','a'))
   worker=start();db=sqlite3.connect(WORK/'panel.db')
   for _ in range(100):
@@ -31,7 +31,7 @@ with open(WORK/'fixture.log','w') as log:
   subprocess.run(['node',str(ROOT/'scripts/egress-browser.cjs')],env=browserEnv,check=True,timeout=90)
   begin=time.monotonic();maximum=0
   while time.monotonic()-begin<300:
-   total,tested,active=db.execute("SELECT count(*),sum(tested>0),sum(token!='' AND lease_until>?) FROM egress_jobs",(int(time.time()*1000),)).fetchone();maximum=max(maximum,active)
+   total,tested,active=db.execute("SELECT count(*),sum(tested>0),sum(token!='' AND lease_until>?) FROM egress_jobs",(int(time.time()*1000),)).fetchone();maximum=max(maximum,len(list(pathlib.Path("/run/netns").glob("cgt*"))))
    if tested==total:break
    time.sleep(2)
   assert tested==total,(tested,total)

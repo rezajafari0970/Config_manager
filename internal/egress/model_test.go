@@ -72,3 +72,53 @@ func TestPreparationPreservesProtocolAndSecrets(t *testing.T) {
 		t.Fatal("direct marked complete")
 	}
 }
+
+func TestDNSDialerIsNotSecondEgress(t *testing.T) {
+	raw := []byte(`{"outbounds":[{"tag":"proxy","protocol":"vless","settings":{"vnext":[{"address":"8.8.8.8","port":443,"users":[{"id":"00000000-0000-4000-8000-000000000001","encryption":"none"}]}]},"streamSettings":{"security":"tls","tlsSettings":{"serverName":"example.com"}}},{"tag":"dns-out","protocol":"dns","streamSettings":{"sockopt":{"dialerProxy":"proxy"}}},{"tag":"direct","protocol":"freedom"}],"routing":{"rules":[{"outboundTag":"dns-out","port":"53"},{"outboundTag":"proxy","network":"tcp,udp"}]}}`)
+	before := string(raw)
+	if !singlePath(raw) || string(raw) != before {
+		t.Fatal("safe DNS dependency rejected or input changed")
+	}
+	if singlePath([]byte(strings.Replace(before, `"outboundTag":"proxy"`, `"outboundTag":"direct"`, 1))) {
+		t.Fatal("direct destination rule accepted")
+	}
+	if singlePath([]byte(strings.Replace(before, `"dialerProxy":"proxy"`, `"dialerProxy":"missing"`, 1))) {
+		t.Fatal("unknown DNS path accepted")
+	}
+	if singlePath([]byte(strings.Replace(before, `"security":"tls"`, `"sockopt":{"dialerProxy":"dns-out"},"security":"tls"`, 1))) {
+		t.Fatal("cycle accepted")
+	}
+}
+func TestOverlapNeverQualifiesAsDedicatedResidential(t *testing.T) {
+	r, p, now := fixture()
+	for i := range r.Samples {
+		r.Samples[i].IP = "8.8.8.8"
+	}
+	d := Evaluate(r, p, "fixture", now)
+	if d.Eligible || d.State != "NO_SPLIT" || !d.Negative {
+		t.Fatal(d)
+	}
+	r, p, now = fixture()
+	r.Facts = nil
+	d = Evaluate(r, p, "fixture", now)
+	if d.Eligible || d.State != "ADS_SPLIT" || d.Route != "DIFFERENT" || len(d.IPs) != 1 {
+		t.Fatal(d)
+	}
+}
+func TestPartialEchoRetainsEvidenceWithoutQualifying(t *testing.T) {
+	r, p, now := fixture()
+	r.Samples = append(r.Samples[1:5], r.Samples[6:]...)
+	d := Evaluate(r, p, "fixture", now)
+	if d.Eligible || d.Route != "PARTIAL_DIFFERENCE" || len(d.IPs) == 0 {
+		t.Fatal(d)
+	}
+}
+
+func TestRepeatedPartialSplitIsVisibleButNeverEligible(t *testing.T) {
+	r, p, now := fixture()
+	r.Samples = r.Samples[1:]
+	d := Evaluate(r, p, "fixture", now)
+	if d.Eligible || d.State != "ADS_SPLIT" || d.Route != "DIFFERENT" || d.Missing != 1 {
+		t.Fatal(d)
+	}
+}

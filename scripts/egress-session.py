@@ -5,7 +5,8 @@ Google diagnostic contract. The second HTTP authority is recorded separately.
 """
 import asyncio,hashlib,ipaddress,json,re,ssl,struct,sys,time,uuid
 DOMAINS=['googleads.g.doubleclick.net','pubads.g.doubleclick.net','securepubads.g.doubleclick.net']
-CONTROLS=['www.cloudflare.com','api.ipify.org','one.one.one.one','api6.ipify.org']
+CONTROLS=['1.1.1.1','api.ipify.org','one.one.one.one','api6.ipify.org']
+TLS_CONTEXT=ssl.create_default_context();TLS_CONTEXT.set_alpn_protocols(['http/1.1'])
 def digest(b):return hashlib.sha256(b).hexdigest()
 def now():return int(time.time()*1000)
 def authority(cert,name):
@@ -19,7 +20,7 @@ async def read_response(reader,close):
  for line in lines[1:]:
   if ':' in line:
    k,v=line.split(':',1);k=k.lower()
-   if k in h:raise ValueError('duplicate_header')
+   if k in h and k in ('content-length','transfer-encoding','connection','location'):raise ValueError('duplicate_header')
    h[k]=v.strip()
  body=b''
  if status in (204,304):pass
@@ -67,17 +68,17 @@ async def measure(domain,variant,wave,timeout):
    if typ==3:n=(await reader.readexactly(1))[0]
    if n is None:raise ValueError('socks_address')
    await reader.readexactly(n+2)
-   ctx=ssl.create_default_context();ctx.set_alpn_protocols(['http/1.1'])
+   ctx=TLS_CONTEXT
    await writer.start_tls(ctx,server_hostname=domain,ssl_handshake_timeout=timeout)
    tls=writer.get_extra_info('ssl_object');row.update(tls=True,certificate=digest(tls.getpeercert(binary_form=True)))
    async def get(host,path,close):
     writer.write(('GET '+path+' HTTP/1.1\r\nHost: '+host+'\r\nUser-Agent: Shen-Egress-Audit/2\r\nCache-Control: no-cache\r\nAccept-Encoding: identity\r\nConnection: '+('close' if close else 'keep-alive')+'\r\n\r\n').encode());await writer.drain()
     return await read_response(reader,close)
    if domain in CONTROLS:
-    path=('/cdn-cgi/trace?shen_probe=' if domain in ('www.cloudflare.com','one.one.one.one') else '/?format=json&shen_probe=')+nonce
+    path=('/cdn-cgi/trace?shen_probe=' if domain in ('1.1.1.1','one.one.one.one') else '/?format=json&shen_probe=')+nonce
     status,h,b=await get(domain,path,True);row['first_status']=status
     if status!=200:raise ValueError('control_http_status')
-    if domain in ('www.cloudflare.com','one.one.one.one'):
+    if domain in ('1.1.1.1','one.one.one.one'):
      fields=dict(x.split('=',1) for x in b.decode().splitlines() if '=' in x)
      if fields.get('h')!=domain:raise ValueError('control_authority')
      value=fields['ip']
@@ -102,9 +103,25 @@ async def measure(domain,variant,wave,timeout):
   if writer:writer.close()
  return row
 async def session(req):
- rows=[]
- for wave in range(req.get("start_wave",1),req.get("start_wave",1)+req.get("waves",3)):
-  rows+=await asyncio.gather(*(measure(d,req['variant'],wave,req.get('timeout',5)) for d in DOMAINS+CONTROLS))
-  if wave<req.get("start_wave",1)+req.get("waves",3)-1:await asyncio.sleep(.15)
- return rows
+ # Independent connections per wave, with staggered starts and bounded parallelism.
+ # IPv6 controls are only necessary when an Ads echo actually has that family.
+ async def wave(n,delay):
+  await asyncio.sleep(delay)
+  names=DOMAINS+CONTROLS[:2]
+  # Start both families together; a failed IPv4/Ads peer must not serialize
+  # the IPv6 control deadline. Discard/cancel IPv6 work when it is not needed.
+  ipv6=[asyncio.create_task(measure(d,req['variant'],n,req.get('timeout',3))) for d in CONTROLS[2:]]
+  try:
+   rows=await asyncio.gather(*(measure(d,req['variant'],n,req.get('timeout',3)) for d in names))
+   if req.get('ipv6_controls',False) or any(x['echo'] and x['family']==6 for x in rows if x['actual_ads']):
+    rows+=await asyncio.gather(*ipv6)
+   return rows
+  finally:
+   for task in ipv6:
+    if not task.done():task.cancel()
+   await asyncio.gather(*ipv6,return_exceptions=True)
+ start=req.get('start_wave',1);waves=req.get('waves',3)
+ if not 1<=waves<=3:raise ValueError('wave_limit')
+ groups=await asyncio.gather(*(wave(start+i,i*.15) for i in range(waves)))
+ return [row for rows in groups for row in rows]
 if __name__=='__main__':print(json.dumps(asyncio.run(session(json.load(sys.stdin)))))

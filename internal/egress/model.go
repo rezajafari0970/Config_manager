@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/rezajafari0970/Config_manager/internal/compat"
 	"github.com/rezajafari0970/Config_manager/internal/convert"
 	"github.com/rezajafari0970/Config_manager/internal/probe"
 	"net/netip"
@@ -13,14 +14,18 @@ import (
 	"time"
 )
 
-const Version = "ads-egress.v2"
+const Version = "ads-egress.v3"
+
+// Keep slots within the dedicated 32-address sandbox block.
+const MaxWorkers = 31
 const EvidenceTTL = int64(600000)
 
 var Domains = []string{"googleads.g.doubleclick.net", "pubads.g.doubleclick.net", "securepubads.g.doubleclick.net"}
 var Cores = map[string]string{
-	"xray-26.11.9": "e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d",
-	"xray-26.7.28": "64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d",
-	"xray-26.5.9":  "b2c525e082cf2fef460499c88838d355f0b9bfb5a00bdb3eaa99b6af63825006",
+	"xray-26.10.31": "cc4b84d3069569f297a61f04b914f2bb37e9d202fd7b84cb50def1fc30fd40e1",
+	"xray-26.11.9":  "e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d",
+	"xray-26.7.28":  "64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d",
+	"xray-26.5.9":   "b2c525e082cf2fef460499c88838d355f0b9bfb5a00bdb3eaa99b6af63825006",
 }
 
 func Hash(b []byte) string { h := sha256.Sum256(b); return hex.EncodeToString(h[:]) }
@@ -57,9 +62,23 @@ func Prepare(raw []byte) Plan {
 	}
 	return Plan{Driver: "none", Code: p.Code, Variants: []Variant{}}
 }
+
+// Inspect a private logical copy; raw and emitted bytes are never rewritten here.
 func singlePath(raw []byte) bool {
+	var root compat.M
+	if json.Unmarshal(raw, &root) != nil {
+		return false
+	}
+	if _, err := compat.Logical(root); err != nil {
+		return false
+	}
+	b, err := json.Marshal(root)
+	if err != nil {
+		return false
+	}
 	var x struct {
 		Outbounds []struct {
+			Tag            string          `json:"tag"`
 			Protocol       string          `json:"protocol"`
 			ProxySettings  json.RawMessage `json:"proxySettings"`
 			StreamSettings struct {
@@ -70,22 +89,55 @@ func singlePath(raw []byte) bool {
 		} `json:"outbounds"`
 		Routing struct {
 			Balancers []json.RawMessage `json:"balancers"`
+			Rules     []struct {
+				OutboundTag string `json:"outboundTag"`
+				BalancerTag string `json:"balancerTag"`
+			} `json:"rules"`
 		} `json:"routing"`
 	}
-	if json.Unmarshal(raw, &x) != nil || len(x.Routing.Balancers) > 0 {
+	if json.Unmarshal(b, &x) != nil || len(x.Routing.Balancers) > 0 || len(x.Outbounds) == 0 {
 		return false
 	}
+	tags := map[string]string{}
+	proxy := ""
 	n := 0
 	for _, o := range x.Outbounds {
+		if o.Tag != "" {
+			if _, exists := tags[o.Tag]; exists {
+				return false
+			}
+			tags[o.Tag] = o.Protocol
+		}
 		if o.Protocol != "freedom" && o.Protocol != "blackhole" && o.Protocol != "dns" {
 			n++
+			proxy = o.Tag
 		}
-		if len(o.ProxySettings) > 0 && string(o.ProxySettings) != "{}" || o.StreamSettings.Sockopt.DialerProxy != "" {
+	}
+	if n != 1 || x.Outbounds[0].Protocol == "freedom" || x.Outbounds[0].Protocol == "blackhole" || x.Outbounds[0].Protocol == "dns" {
+		return false
+	}
+	for _, o := range x.Outbounds {
+		if len(o.ProxySettings) > 0 && string(o.ProxySettings) != "{}" && string(o.ProxySettings) != "null" {
+			return false
+		}
+		dial := o.StreamSettings.Sockopt.DialerProxy
+		// DNS forwarded through the sole proxy is not a second egress path.
+		if dial != "" && !(o.Protocol == "dns" && proxy != "" && dial == proxy) {
 			return false
 		}
 	}
-	// An unrestricted direct-first input is not an investigated proxy path.
-	return n == 1 && len(x.Outbounds) > 0 && x.Outbounds[0].Protocol != "freedom"
+	for _, rule := range x.Routing.Rules {
+		if rule.BalancerTag != "" {
+			return false
+		}
+		if rule.OutboundTag != "" {
+			kind, ok := tags[rule.OutboundTag]
+			if !ok || kind == "freedom" {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 type Job struct {
@@ -96,6 +148,7 @@ type Job struct {
 	Revision int64  `json:"revision"`
 	Issue    string `json:"issue"`
 	Deep     bool   `json:"deep"`
+	Attempt  int    `json:"attempt"`
 }
 type Sample struct {
 	Variant             string `json:"variant"`
@@ -137,24 +190,26 @@ type Check struct {
 	Code        string `json:"code"`
 }
 type Attempt struct {
-	Core string  `json:"core"`
-	Code string  `json:"code"`
-	MS   float64 `json:"ms"`
+	Core   string             `json:"core"`
+	Code   string             `json:"code"`
+	MS     float64            `json:"ms"`
+	Stages map[string]float64 `json:"stages,omitempty"`
 }
 type Report struct {
-	Version        string    `json:"version"`
-	Hash           string    `json:"hash"`
-	Started        int64     `json:"started"`
-	Finished       int64     `json:"finished"`
-	Core           string    `json:"core"`
-	CoreSHA        string    `json:"core_sha"`
-	Infrastructure bool      `json:"infrastructure"`
-	Code           string    `json:"code"`
-	Checks         []Check   `json:"checks"`
-	Samples        []Sample  `json:"samples"`
-	Facts          []Fact    `json:"facts"`
-	Attempts       []Attempt `json:"attempts"`
-	WallMS         float64   `json:"wall_ms"`
+	Version        string         `json:"version"`
+	Hash           string         `json:"hash"`
+	Started        int64          `json:"started"`
+	Finished       int64          `json:"finished"`
+	Core           string         `json:"core"`
+	CoreSHA        string         `json:"core_sha"`
+	Infrastructure bool           `json:"infrastructure"`
+	Code           string         `json:"code"`
+	Checks         []Check        `json:"checks"`
+	Samples        []Sample       `json:"samples"`
+	Facts          []Fact         `json:"facts"`
+	Attempts       []Attempt      `json:"attempts"`
+	WallMS         float64        `json:"wall_ms"`
+	Classifier     map[string]any `json:"classifier,omitempty"`
 }
 type Completion struct {
 	Job    Job    `json:"job"`
@@ -180,7 +235,7 @@ func canonical(ip string) (netip.Addr, bool) {
 }
 func controlGroup(domain string) string {
 	switch domain {
-	case "www.cloudflare.com", "one.one.one.one":
+	case "1.1.1.1", "www.cloudflare.com", "one.one.one.one":
 		return "cloudflare"
 	case "api.ipify.org", "api6.ipify.org":
 		return "ipify"
@@ -196,6 +251,10 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 	if len(p.Variants) != 2 {
 		d.State = "UNSUPPORTED"
 		d.Reason = "driver_unavailable"
+		return d
+	}
+	if r.Code == "network_retry_pending" {
+		d.Reason = r.Code
 		return d
 	}
 	if len(r.Checks) != 2 || Cores[r.Core] == "" || Cores[r.Core] != r.CoreSHA {
@@ -218,6 +277,7 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 	seen := map[string]bool{}
 	healthMissing := 0
 	adsMissing := 0
+	repeats := map[string]int{}
 	controlSuccess := 0
 	controlFailed := map[string]bool{}
 	for _, v := range []string{"raw", "template"} {
@@ -271,6 +331,9 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 					valid = true
 					break
 				}
+				if valid {
+					repeats[v+"|"+domain]++
+				}
 				if !valid {
 					adsMissing++
 				}
@@ -278,15 +341,6 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 		}
 	}
 	d.Missing = adsMissing
-	if healthMissing > 0 {
-		d.Reason = "controls_incomplete"
-		d.Negative = r.Infrastructure && healthMissing == 6 && controlSuccess == 0 && len(controlFailed) >= 12 && len(ips) == 0
-		return d
-	}
-	if adsMissing > 0 {
-		d.Reason = "ads_peer_echo_incomplete"
-		return d
-	}
 	for ip := range ips {
 		d.IPs = append(d.IPs, ip)
 	}
@@ -295,13 +349,65 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 	}
 	sort.Strings(d.IPs)
 	sort.Strings(d.ControlIPs)
-	if len(controls) == 1 {
+	stable := len(controls) > 0
+	byFamily := map[bool]int{}
+	for ip := range controls {
+		a, _ := canonical(ip)
+		byFamily[a.Is4()]++
+	}
+	for _, n := range byFamily {
+		if n != 1 {
+			stable = false
+		}
+	}
+	if stable && len(ips) > 0 {
 		d.Route = "DIFFERENT"
 		for ip := range ips {
 			if controls[ip] {
 				d.Route = "OVERLAP"
 			}
 		}
+	}
+	if healthMissing > 0 {
+		d.Reason = "controls_incomplete"
+		d.Negative = r.Infrastructure && healthMissing == 6 && controlSuccess == 0 && len(controlFailed) >= 12 && len(ips) == 0
+		if d.Route == "DIFFERENT" {
+			d.Route = "PARTIAL_DIFFERENCE"
+		}
+		return d
+	}
+	if adsMissing > 0 {
+		d.Reason = "ads_peer_echo_incomplete"
+		repeated := true
+		for _, v := range []string{"raw", "template"} {
+			for _, domain := range Domains {
+				if repeats[v+"|"+domain] < 2 {
+					repeated = false
+				}
+			}
+		}
+		if d.Route == "DIFFERENT" {
+			if repeated {
+				d.State = "ADS_SPLIT"
+			} else {
+				d.Route = "PARTIAL_DIFFERENCE"
+			}
+		}
+		return d
+	}
+	if d.Route != "DIFFERENT" {
+		d.Reason = "route_not_distinct"
+		if stable && d.Route == "OVERLAP" {
+			d.State = "NO_SPLIT"
+			d.Negative = true
+			for ip := range ips {
+				if !controls[ip] {
+					d.State = "UNKNOWN"
+					d.Negative = false
+				}
+			}
+		}
+		return d
 	}
 	allRes := true
 	allNonResidential := true
@@ -332,6 +438,7 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 		d.Negative = true
 		d.Reason = "provider_non_residential"
 	} else {
+		d.State = "ADS_SPLIT"
 		d.Reason = "classification_missing_or_mixed"
 	}
 	return d

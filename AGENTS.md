@@ -1,3 +1,21 @@
+# P41 activated after P42 — 2026-11-11
+
+Activated p41-7d775a88f934ae9ae0be, schema25, egress v3; preserve all
+P42 strict-TLS and P40 parser/source fixes. Read docs/reports/P41-report-fa.md,
+P41-validation.json and docs/EGRESS.md. All six executable hashes match.
+The1000-real-input isolated run completed in749.939s, with375 initial
+assessments in300s. The1000/5-minute target was NOT met. Unknown and unsupported
+are not definitive classifications. Eight slots were more reliable than31 on
+this shared four-CPU server; default is min(31,2*CPU), with bounded memory.
+Persistent trusted helpers/netns always kill cores, deny egress and erase private
+runtime files between jobs. Shared driver defaults and main worker binary remain.
+Never label split egress alone Residential. Exact-IP classifier quota is exhausted;
+fresh explicit class and full evidence still gate all four Residential exports.
+The supplied Fastly config again showed ADS_SPLIT, not eligible Residential proof.
+Accepted retention, outage guard, revocation, raw bytes, pins and source controls
+remain. Hold the common deploy lock and matching stopped DB/blob/key/release
+backup; never run pre25 binaries or rewind external deletion evidence.
+
 # P42: strict TLS and safe disk reclamation — 2026-11-11
 
 Activated p42-aa3602141aca9cc15b1b, schema25. Normalv9 / Smartv13 / Adsv6;

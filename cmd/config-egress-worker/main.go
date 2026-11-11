@@ -1,7 +1,8 @@
-// Independent two-slot supervisor for finite Ads egress investigations.
+// Bounded adaptive supervisor for finite Ads egress investigations.
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -16,6 +17,9 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"runtime"
+	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -70,7 +74,7 @@ func clean(helper, prefix string, slot int, run string) {
 	cmd.WaitDelay = 2 * time.Second
 	_ = cmd.Run()
 }
-func execute(ctx context.Context, c client, helper, prefix string, slot int, j egress.Job) {
+func execute(ctx context.Context, c client, driver *driverSession, j egress.Job) {
 	started := egress.Now()
 	p := egress.Prepare(j.Raw)
 	r := egress.Report{Version: egress.Version, Hash: j.Hash, Started: started, Finished: started, Code: "driver_unavailable"}
@@ -96,18 +100,12 @@ func execute(ctx context.Context, c client, helper, prefix string, slot int, j e
 				}
 			}
 		}()
-		run := egress.Hash([]byte(j.Token))[:6]
-		input, _ := json.Marshal(map[string]any{"hash": j.Hash, "started": started, "plan": p, "deep": j.Deep})
-		out := &bounded{max: 1 << 20}
-		cmd := exec.CommandContext(job, "/usr/bin/python3", helper, "--prefix", prefix, "--slot", fmt.Sprint(slot), "--run-id", run)
-		cmd.Stdin = bytes.NewReader(input)
-		cmd.Stdout = out
-		cmd.Stderr = io.Discard
-		cmd.WaitDelay = 3 * time.Second
-		if e := cmd.Run(); e != nil || json.Unmarshal(out.Bytes(), &r) != nil {
+		input, _ := json.Marshal(map[string]any{"hash": j.Hash, "started": started, "plan": p, "deep": j.Deep, "attempt": j.Attempt})
+		output, err := driver.exchange(job, input)
+		if err != nil || json.Unmarshal(output, &r) != nil {
+			driver.stop()
 			r = egress.Report{Version: egress.Version, Hash: j.Hash, Started: started, Finished: egress.Now(), Code: "driver_unavailable"}
 		}
-		clean(helper, prefix, slot, run)
 	}
 	if r.Finished == 0 {
 		r.Finished = egress.Now()
@@ -117,12 +115,138 @@ func execute(ctx context.Context, c client, helper, prefix string, slot int, j e
 		log.Print("egress completion deferred; lease will recover")
 	}
 }
+
+// One trusted helper and network namespace per slot. Every request launches a
+// fresh capability-free core; the helper kills its whole cgroup and denies all
+// egress before acknowledging a result. Failure destroys the slot and restarts it.
+type driverSession struct {
+	owner               context.Context
+	helper, prefix, run string
+	slot                int
+	cmd                 *exec.Cmd
+	input               io.WriteCloser
+	responses           <-chan []byte
+	closed              chan struct{}
+}
+
+func (d *driverSession) start() error {
+	d.run = egress.Hash([]byte(fmt.Sprint(os.Getpid(), d.slot, time.Now().UnixNano())))[:6]
+	cmd := exec.CommandContext(d.owner, "/usr/bin/python3", d.helper, "--prefix", d.prefix, "--slot", fmt.Sprint(d.slot), "--run-id", d.run, "--serve")
+	cmd.Stderr = io.Discard
+	cmd.WaitDelay = 3 * time.Second
+	input, err := cmd.StdinPipe()
+	if err != nil {
+		return err
+	}
+	output, err := cmd.StdoutPipe()
+	if err != nil {
+		input.Close()
+		return err
+	}
+	if err = cmd.Start(); err != nil {
+		input.Close()
+		return err
+	}
+	responses := make(chan []byte, 1)
+	closed := make(chan struct{})
+	d.cmd = cmd
+	d.input = input
+	d.responses = responses
+	d.closed = closed
+	go func() {
+		defer close(responses)
+		scanner := bufio.NewScanner(output)
+		scanner.Buffer(make([]byte, 65536), 1<<20)
+		for scanner.Scan() {
+			body := append([]byte(nil), scanner.Bytes()...)
+			select {
+			case responses <- body:
+			case <-closed:
+				return
+			}
+		}
+	}()
+	return nil
+}
+func (d *driverSession) stop() {
+	if d.cmd == nil {
+		return
+	}
+	close(d.closed)
+	d.input.Close()
+	_ = d.cmd.Process.Kill()
+	_ = d.cmd.Wait()
+	clean(d.helper, d.prefix, d.slot, d.run)
+	d.cmd = nil
+	d.input = nil
+	d.responses = nil
+}
+func (d *driverSession) exchange(ctx context.Context, input []byte) ([]byte, error) {
+	if d.cmd == nil {
+		if err := d.start(); err != nil {
+			return nil, err
+		}
+	}
+	written := make(chan error, 1)
+	writer := d.input
+	go func() { _, err := writer.Write(append(input, '\n')); written <- err }()
+	select {
+	case err := <-written:
+		if err != nil {
+			d.stop()
+			return nil, err
+		}
+	case <-ctx.Done():
+		d.stop()
+		return nil, ctx.Err()
+	}
+	select {
+	case result, ok := <-d.responses:
+		if !ok {
+			d.stop()
+			return nil, errors.New("driver closed")
+		}
+		return result, nil
+	case <-ctx.Done():
+		d.stop()
+		return nil, ctx.Err()
+	}
+}
+
+// Admission slows under pressure; already claimed jobs retain deadlines and cleanup.
+func resourceLimit(maximum int) int {
+	b, err := os.ReadFile("/proc/meminfo")
+	if err != nil {
+		return min(maximum, 2)
+	}
+	for _, line := range strings.Split(string(b), "\n") {
+		f := strings.Fields(line)
+		if len(f) >= 2 && f[0] == "MemAvailable:" {
+			kb, _ := strconv.ParseInt(f[1], 10, 64)
+			if kb < 512*1024 {
+				return 0
+			}
+			if kb < 1024*1024 {
+				return min(maximum, 4)
+			}
+			if kb < 1536*1024 {
+				return min(maximum, 12)
+			}
+			break
+		}
+	}
+	return maximum
+}
 func run() error {
 	socket := flag.String("socket", "/var/lib/config-repair/probe.sock", "local protected queue")
 	helper := flag.String("helper", "/opt/config-repair/current/scripts/egress-probe.py", "trusted driver")
 	prefix := flag.String("prefix", "cge", "isolated scope")
 	lockPath := flag.String("lock-file", "/run/config-repair-egress.lock", "single supervisor")
+	workers := flag.Int("workers", min(egress.MaxWorkers, runtime.NumCPU()*2), "maximum concurrent isolated jobs")
 	flag.Parse()
+	if *workers < 1 || *workers > egress.MaxWorkers {
+		return errors.New("invalid worker limit")
+	}
 	if os.Geteuid() != 0 || (*prefix != "cge" && *prefix != "cgt") {
 		return errors.New("invalid supervisor environment")
 	}
@@ -142,15 +266,17 @@ func run() error {
 	}}}}
 	var active atomic.Int32
 	var wg sync.WaitGroup
-	for slot := 1; slot <= 2; slot++ {
+	for slot := 1; slot <= *workers; slot++ {
 		wg.Add(1)
 		go func(slot int) {
 			defer wg.Done()
+			driver := &driverSession{owner: ctx, helper: *helper, prefix: *prefix, slot: slot}
+			defer driver.stop()
 			for ctx.Err() == nil {
 				var j *egress.Job
-				if c.call(ctx, "claim", nil, &j) == nil && j != nil {
+				if slot <= resourceLimit(*workers) && c.call(ctx, "claim", nil, &j) == nil && j != nil {
 					active.Add(1)
-					execute(ctx, c, *helper, *prefix, slot, *j)
+					execute(ctx, c, driver, *j)
 					active.Add(-1)
 					continue
 				}
@@ -165,7 +291,7 @@ func run() error {
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 	for ctx.Err() == nil {
-		_ = c.call(ctx, "status", map[string]any{"status": "running", "active": active.Load(), "code": ""}, nil)
+		_ = c.call(ctx, "status", map[string]any{"status": "running", "active": active.Load(), "code": fmt.Sprintf("capacity_%d", resourceLimit(*workers))}, nil)
 		select {
 		case <-ctx.Done():
 		case <-ticker.C:

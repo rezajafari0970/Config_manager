@@ -54,7 +54,11 @@ func syntheticEgress(j egress.Job) egress.Report {
 func TestEgressQueueLeaseExportAndExpiry(t *testing.T) {
 	s := testStore(t)
 	ctx := context.Background()
-	newExportSource(t, s, "all", sourceURI(1), sourceURI(2), sourceURI(3))
+	uris := []string{}
+	for i := 1; i <= egress.MaxWorkers+1; i++ {
+		uris = append(uris, sourceURI(i))
+	}
+	newExportSource(t, s, "all", uris...)
 	j, e := s.ClaimEgress(ctx)
 	if e != nil || j == nil {
 		t.Fatal(e)
@@ -62,6 +66,12 @@ func TestEgressQueueLeaseExportAndExpiry(t *testing.T) {
 	j2, e := s.ClaimEgress(ctx)
 	if e != nil || j2 == nil || j2.Hash == j.Hash {
 		t.Fatal(e)
+	}
+	for i := 2; i < egress.MaxWorkers; i++ {
+		extra, err := s.ClaimEgress(ctx)
+		if err != nil || extra == nil {
+			t.Fatal("parallel claim failed", i, err)
+		}
 	}
 	third, e := s.ClaimEgress(ctx)
 	if e != nil || third != nil {

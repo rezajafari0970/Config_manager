@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"github.com/rezajafari0970/Config_manager/internal/blob"
 	"io"
 	"net"
@@ -13,6 +14,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"syscall"
 	"testing"
 	"time"
@@ -31,7 +33,7 @@ func TestEgressWorkerFixture(t *testing.T) {
 	}
 	defer s.Close()
 	var count int
-	s.db.QueryRow("SELECT count(*) FROM sources").Scan(&count)
+	s.db.QueryRow("SELECT count(*) FROM egress_jobs").Scan(&count)
 	if count == 0 {
 		private, e := os.ReadFile("/etc/config-repair/panel.json")
 		if e != nil {
@@ -51,7 +53,12 @@ func TestEgressWorkerFixture(t *testing.T) {
 		if e != nil {
 			t.Fatal(e)
 		}
-		rows, e := original.Query("SELECT DISTINCT r.hash FROM conversion_results r JOIN memberships m ON m.raw_hash=r.hash WHERE r.connection='passed' AND r.core='passed' ORDER BY r.tested DESC LIMIT 3")
+		query := "SELECT DISTINCT r.hash FROM conversion_results r JOIN memberships m ON m.raw_hash=r.hash WHERE r.connection='passed' AND r.core='passed' ORDER BY r.tested DESC LIMIT 3"
+		benchmark, _ := strconv.Atoi(os.Getenv("EGRESS_BENCHMARK_INPUTS"))
+		if benchmark > 0 && benchmark <= 2000 {
+			query = fmt.Sprintf("SELECT hash FROM egress_jobs WHERE state!='DELETED' ORDER BY hash LIMIT %d", benchmark)
+		}
+		rows, e := original.Query(query)
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -71,17 +78,42 @@ func TestEgressWorkerFixture(t *testing.T) {
 		}
 		rows.Close()
 		original.Close()
-		raws = append(raws, sourceURI(241), "hysteria2://synthetic@192.0.2.242:443?sni=example.com")
-		for _, raw := range raws {
-			src := testSource()
-			src.URL = "https://example.com/fixture/" + randomToken()
-			id, e := s.Save(ctx, "", 0, src)
+		if benchmark == 0 {
+			raws = append(raws, sourceURI(241), "hysteria2://synthetic@192.0.2.242:443?sni=example.com")
+		}
+		if benchmark > 0 {
+			// Seed the isolated measurement queue directly; acquisition is not part of
+			// the throughput clock. Bytes are real, immutable source inputs, not fixtures.
+			tx, e := s.db.BeginTx(ctx, nil)
 			if e != nil {
 				t.Fatal(e)
 			}
-			j := claimOne(t, s, id)
-			if e = s.Complete(ctx, j, fixtureResult(t, s, raw), time.Now()); e != nil {
+			for _, raw := range raws {
+				ref, e := s.vault.Put(ctx, bytes.NewReader([]byte(raw)))
+				if e != nil {
+					t.Fatal(e)
+				}
+				_, e = tx.ExecContext(ctx, "INSERT OR IGNORE INTO egress_jobs(hash,kind,size,first_seen,last_seen) VALUES(?,?,?,?,?)", ref.Hash, "retained_input", ref.Size, time.Now().UnixMilli(), time.Now().UnixMilli())
+				s.vault.Release(ref.Hash)
+				if e != nil {
+					t.Fatal(e)
+				}
+			}
+			if e = tx.Commit(); e != nil {
 				t.Fatal(e)
+			}
+		} else {
+			for _, raw := range raws {
+				src := testSource()
+				src.URL = "https://example.com/fixture/" + randomToken()
+				id, e := s.Save(ctx, "", 0, src)
+				if e != nil {
+					t.Fatal(e)
+				}
+				j := claimOne(t, s, id)
+				if e = s.Complete(ctx, j, fixtureResult(t, s, raw), time.Now()); e != nil {
+					t.Fatal(e)
+				}
 			}
 		}
 	}
@@ -109,7 +141,7 @@ func TestEgressWorkerFixture(t *testing.T) {
 	web := &http.Server{Handler: app.Handler()}
 	defer web.Close()
 	go web.Serve(tcp)
-	ready, _ := json.Marshal(map[string]any{"pid": os.Getpid(), "socket": socket, "origin": origin})
+	ready, _ := json.Marshal(map[string]any{"pid": os.Getpid(), "socket": socket, "origin": origin, "benchmark": os.Getenv("EGRESS_BENCHMARK_INPUTS")})
 	os.WriteFile(filepath.Join(dir, "ready.json"), ready, 0600)
 	<-ctx.Done()
 }

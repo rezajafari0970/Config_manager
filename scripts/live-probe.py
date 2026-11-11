@@ -138,7 +138,9 @@ class Sandbox:
             return self
         except BaseException:
             self.__exit__(None,None,None);raise
-    def net(self,args,**kw): return cmd([IP,'netns','exec',self.name]+args,**kw)
+    def network_command(self): return [IP,'netns','exec',self.name]
+    def launch_command(self): return ['/usr/bin/python3',str(pathlib.Path(__file__).resolve()),'--sandbox-launch',str(self.cg)]
+    def net(self,args,**kw): return cmd(self.network_command()+args,**kw)
     def policy(self,resolved):
         pairs=sorted({(ip,str(p)) for v in resolved.values() for ip in v['ips'] for p in v.get('ports',[v['port']])})
         # Namespace-local rules apply equally to all transports and all DNS rebinds.
@@ -153,13 +155,13 @@ class Sandbox:
         (self.work/'config.json').write_bytes(b);os.chmod(self.work/'config.json',0o444)
         (self.work/'hosts').write_text('127.0.0.1 localhost\n'+''.join(ip+' '+host+'\n' for host,entry in getattr(self,'resolved',{}).items() for ip in entry['ips']))
         (self.work/'resolv.conf').write_text('nameserver 1.1.1.1\noptions timeout:2 attempts:1\n')
-        args=[IP,'netns','exec',self.name,'/usr/bin/bwrap','--unshare-user','--unshare-pid','--unshare-ipc','--unshare-uts','--unshare-cgroup','--die-with-parent','--new-session','--cap-drop','ALL','--uid','65534','--gid','65534','--clearenv','--setenv','SSL_CERT_FILE','/etc/ssl/certs/ca-certificates.crt','--setenv','GOMAXPROCS','1','--setenv','GOMEMLIMIT','128MiB','--setenv','XRAY_LOCATION_ASSET','/assets','--ro-bind','/etc/ssl/certs/ca-certificates.crt','/etc/ssl/certs/ca-certificates.crt','--ro-bind',str(self.core),'/xray','--ro-bind',str(self.work/'config.json'),'/config.json','--ro-bind',str(self.work/'resolv.conf'),'/etc/resolv.conf','--ro-bind',str(self.work/'hosts'),'/etc/hosts','--proc','/proc','--dev','/dev','--tmpfs','/tmp','--dir','/assets']
+        args=self.network_command()+['/usr/bin/bwrap','--unshare-user','--unshare-pid','--unshare-ipc','--unshare-uts','--unshare-cgroup','--die-with-parent','--new-session','--cap-drop','ALL','--uid','65534','--gid','65534','--clearenv','--setenv','SSL_CERT_FILE','/etc/ssl/certs/ca-certificates.crt','--setenv','GOMAXPROCS','1','--setenv','GOMEMLIMIT','128MiB','--setenv','XRAY_LOCATION_ASSET','/assets','--ro-bind','/etc/ssl/certs/ca-certificates.crt','/etc/ssl/certs/ca-certificates.crt','--ro-bind',str(self.core),'/xray','--ro-bind',str(self.work/'config.json'),'/config.json','--ro-bind',str(self.work/'resolv.conf'),'/etc/resolv.conf','--ro-bind',str(self.work/'hosts'),'/etc/hosts','--proc','/proc','--dev','/dev','--tmpfs','/tmp','--dir','/assets']
         for name in ['geoip.dat','geosite.dat']:
             asset=self.core.parent/name
             if asset.exists():args+=['--ro-bind',str(asset),'/assets/'+name]
         args+=self.core_mounts()+['--']+self.core_command(test)
         self.log=tempfile.TemporaryFile(dir='/dev/shm')
-        self.process=subprocess.Popen(['/usr/bin/python3',str(pathlib.Path(__file__).resolve()),'--sandbox-launch',str(self.cg)]+args,stdout=self.log,stderr=subprocess.STDOUT,start_new_session=True)
+        self.process=subprocess.Popen(self.launch_command()+args,stdout=self.log,stderr=subprocess.STDOUT,start_new_session=True)
         return self.process
     def logs(self):
         self.log.seek(0);return self.log.read(128*1024)

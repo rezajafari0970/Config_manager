@@ -14,8 +14,8 @@ TimeoutStopSec=40
 KillMode=control-group
 UMask=0077
 Environment=GOMEMLIMIT=128MiB
-MemoryMax=768M
-TasksMax=512
-LimitNOFILE=2048
+MemoryMax=2G
+TasksMax=4096
+LimitNOFILE=8192
 [Install]
 WantedBy=multi-user.target

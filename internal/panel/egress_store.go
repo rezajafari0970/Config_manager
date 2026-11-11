@@ -26,18 +26,20 @@ func (s *Store) ClaimEgress(ctx context.Context) (*egress.Job, error) {
 	if e = tx.QueryRowContext(ctx, "SELECT enabled,(SELECT count(*) FROM egress_jobs WHERE token!='' AND lease_until>?) FROM egress_settings WHERE id=1", now).Scan(&enabled, &active); e != nil {
 		return nil, e
 	}
-	if enabled == 0 || active >= 2 {
+	if enabled == 0 || active >= egress.MaxWorkers {
 		return nil, tx.Commit()
 	}
 	j := &egress.Job{}
 	var size int64
-	e = tx.QueryRowContext(ctx, `SELECT hash,kind,size,revision,ever_accepted FROM egress_jobs WHERE state!='DELETED' AND paused=0 AND next_run<=? AND (token='' OR lease_until<=?) ORDER BY CASE WHEN ever_accepted=1 THEN 0 WHEN tested=0 THEN 1 ELSE 2 END,next_run,first_seen,hash LIMIT 1`, now, now).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Deep)
+	e = tx.QueryRowContext(ctx, `SELECT hash,kind,size,revision,ever_accepted,attempts FROM egress_jobs WHERE state!='DELETED' AND paused=0 AND next_run<=? AND (token='' OR lease_until<=?) ORDER BY CASE WHEN ever_accepted=1 AND valid_until<=? THEN 0 WHEN tested=0 THEN 1 WHEN ever_accepted=1 THEN 2 ELSE 3 END,next_run,first_seen,hash LIMIT 1`, now, now, now+60000).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Deep, &j.Attempt)
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, tx.Commit()
 	}
 	if e != nil {
 		return nil, e
 	}
+	j.Deep = j.Deep || j.Attempt > 0
+	j.Attempt++
 	j.Token = randomToken()
 	if _, e = tx.ExecContext(ctx, "UPDATE egress_jobs SET token=?,lease_until=?,claimed_at=?,attempts=attempts+1 WHERE hash=?", j.Token, now+120000, now, j.Hash); e != nil {
 		return nil, e
@@ -168,6 +170,9 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 		}
 	}
 	delay := int64(300000)
+	if r.Code == "network_retry_pending" {
+		delay = 30000
+	}
 	if state == "UNSUPPORTED" {
 		delay = 3600000
 	}

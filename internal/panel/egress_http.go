@@ -50,7 +50,7 @@ func (s *Store) registerPrivateEgress(mux *http.ServeMux) {
 			Code   string `json:"code"`
 			Active int    `json:"active"`
 		}
-		if decode(r, &x) != nil || !safeCode(x.Status) || x.Active < 0 || x.Active > 2 || x.Code != "" && !safeCode(x.Code) {
+		if decode(r, &x) != nil || !safeCode(x.Status) || x.Active < 0 || x.Active > egress.MaxWorkers || x.Code != "" && !safeCode(x.Code) {
 			failure(w, ErrInvalid)
 			return
 		}
@@ -120,11 +120,13 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 	if offset > 1000000 {
 		offset = 1000000
 	}
-	table := "egress_eligible"
+	table := "egress_jobs"
+	filter := " AND (state='RESIDENTIAL' OR state='ADS_SPLIT')"
 	if r.URL.Query().Get("view") == "diagnostics" {
 		table = "egress_jobs"
+		filter = ""
 	}
-	rows, e = db.QueryContext(ctx, "SELECT hash,kind,state,reason,revision,tested,valid_until,format,decision,report FROM "+table+" WHERE state!='DELETED' ORDER BY tested DESC,hash LIMIT 50 OFFSET ?", offset)
+	rows, e = db.QueryContext(ctx, "SELECT hash,kind,state,reason,revision,tested,valid_until,format,decision,report FROM "+table+" WHERE state!='DELETED'"+filter+" ORDER BY tested DESC,hash LIMIT 50 OFFSET ?", offset)
 	if e != nil {
 		failure(w, e)
 		return
@@ -141,7 +143,14 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		entries = append(entries, map[string]any{"hash": h, "kind": kind, "state": state, "reason": reason, "revision": rev, "tested": tested, "valid_until": until, "format": format, "decision": json.RawMessage(decision), "report": json.RawMessage(report)})
 	}
 	rows.Close()
-	respond(w, 200, map[string]any{"version": egress.Version, "total": total, "pending": pending, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Proxycheck v3; explicit Residential only; provider classification, not a 100% guarantee", "scope": "TCP / observed family / three explicit Ads domains / raw and template; IPv6-only entry, QUIC and ambiguous multipath remain unqualified"})
+	var classifier string
+	db.QueryRowContext(ctx, "SELECT coalesce(json_extract(report,'$.classifier'),'{}') FROM egress_jobs WHERE tested>0 ORDER BY tested DESC LIMIT 1").Scan(&classifier)
+	if !json.Valid([]byte(classifier)) {
+		classifier = "{}"
+	}
+	var completed int
+	db.QueryRowContext(ctx, "SELECT count(DISTINCT hash) FROM egress_events WHERE at>?", egress.Now()-300000).Scan(&completed)
+	respond(w, 200, map[string]any{"classifier": json.RawMessage(classifier), "throughput": map[string]any{"completed_5m": completed, "target_5m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Proxycheck v3; explicit Residential only; provider classification, not a 100% guarantee", "scope": "TCP / observed family / three explicit Ads domains / raw and template; IPv6-only entry, QUIC and ambiguous multipath remain unqualified"})
 }
 func (m egressModule) action(w http.ResponseWriter, r *http.Request) {
 	var b struct {
