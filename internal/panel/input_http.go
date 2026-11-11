@@ -62,7 +62,7 @@ func (s *Server) bulk(w http.ResponseWriter, r *http.Request) {
 		timeout = 0
 		parseError = nil
 	}
-	if parseError != nil || timeout < 0 || timeout > int64((1<<63-1)/1000000000)-30 {
+	if parseError != nil || timeout < 0 || timeout > int64((1<<63-1)/1000000000)-210 {
 		failure(w, ErrInvalid)
 		return
 	}

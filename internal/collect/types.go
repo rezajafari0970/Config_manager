@@ -49,6 +49,20 @@ type Repository interface {
 	Referenced(context.Context, string) (bool, error)
 	Recover(context.Context) error
 }
+
+// BatchRepository is an optional storage driver capability. Publication is still
+// revision/token fenced and atomic in Complete, never in StageBatch.
+type BatchRepository interface {
+	StageBatch(context.Context, Job, []Item) (int, error)
+}
+
+const ProcessingTimeout = 2 * time.Minute
+const CompletionTimeout = 30 * time.Second
+
+func LeaseDuration(fetchTimeout time.Duration) time.Duration {
+	return fetchTimeout + ProcessingTimeout + CompletionTimeout + 30*time.Second
+}
+
 type Response struct {
 	Body           io.ReadCloser
 	Status         int

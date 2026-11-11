@@ -229,7 +229,7 @@ func TestPerSourceTimeoutDoesNotBlockOtherSources(t *testing.T) {
 	for time.Now().Before(deadline) {
 		a, _ := s.Get(ctx, slow)
 		b, _ := s.Get(ctx, fast)
-		if a.ErrorCode == "timeout" && b.State == "updated" {
+		if a.ErrorCode == "fetch_timeout" && b.State == "updated" {
 			return
 		}
 		time.Sleep(10 * time.Millisecond)

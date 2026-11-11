@@ -1,0 +1,256 @@
+{
+  "status": "implemented_deployed_and_runtime_verified",
+  "date": "2026-11-11",
+  "scope": "shared source acquisition and storage; all sources and downstream normal/Smart/Splash/Ads consumers",
+  "parent": "4371c3dbacc305e48a3a5e25ac45f058bc57867d",
+  "schema": 20,
+  "release": "/opt/config-repair/releases/p34-25bcb3a7bb488e1434d7",
+  "panel_sha256": "25bcb3a7bb488e1434d776e45c70c0de57a2f2546b99269942b385a95a544e7a",
+  "target_policy": "unchanged from P33; protocol capability matrix and Android source contract are inherited, not rerun in this acquisition patch",
+  "raw_bytes_preserved": true,
+  "source_controls_preserved": true,
+  "rotations_preserved": true,
+  "publication_gates_unchanged": true,
+  "validation": {
+    "full_race_suite": "one old timeout-code assertion failed; every other case passed",
+    "corrected_assertion": "TestPerSourceTimeoutDoesNotBlockOtherSources: timeout -> fetch_timeout; isolated race rerun passed",
+    "runtime_source_unchanged_after_full_suite": true,
+    "aggregate_validation": "passed; original failing log retained, not relabelled green",
+    "format_vet_build_dependencies": "passed",
+    "python_js_regressions": "passed",
+    "new_regressions": [
+      "62/97/186 item acquisition",
+      "storage slower than fetch budget",
+      "bounded batches and pins",
+      "deduplication and rollback",
+      "edit/delete cancellation and source revision fence",
+      "network truncation",
+      "empty/chunk-boundary authenticated storage EOF"
+    ],
+    "worker_sigkill_recovery": "four queues passed; Smart profile proofs are synthetic state-machine tests, not new network proof",
+    "browser": "isolated restart and live 390/1440px pages passed; failed source count visibly nonzero",
+    "services": "six enabled services active; five fresh post-verification-epoch heartbeats and installed PID hashes verified",
+    "db": "quick_check and foreign_key_check passed; schema20 with two additive indexes"
+  },
+  "acquisition": {
+    "sources": 33,
+    "fresh_collection_completed": 33,
+    "sources_with_inventory": 32,
+    "current_unique_inputs_at_snapshot": 724,
+    "recovered_source_previous_inventory": 0,
+    "recovered_source_repeated_runs": [
+      {
+        "received_count": 186,
+        "receipt_unique": 142,
+        "duration_ms": 12289,
+        "error_streak": 0,
+        "state": "updated"
+      },
+      {
+        "received_count": 186,
+        "receipt_unique": 151,
+        "duration_ms": 3639,
+        "error_streak": 0,
+        "state": "updated"
+      },
+      {
+        "received_count": 186,
+        "receipt_unique": 149,
+        "duration_ms": 2848,
+        "error_streak": 0,
+        "state": "updated"
+      }
+    ],
+    "upstream_empty": "Exir: HTTP200, zero bytes; not fabricated as successful import",
+    "upstream_truncation": "sub: incomplete_body; prior 161 unique inputs retained under existing TTL",
+    "counts_are": "current input identities, distinct from source occurrences and connection-qualified exports"
+  },
+  "public_export_checks": {
+    "/api/conversions": {
+      "version": "xray-26.11.9.template.v6",
+      "stats": null,
+      "codes": {
+        "": 52,
+        "https_multi_site_verified": 22,
+        "transport_verification_incomplete": 3,
+        "https_proxy_verified_site_unavailable": 2,
+        "reality_authentication_rejected": 17,
+        "tls_name_mismatch": 1,
+        "unknown_vmess_field": 1,
+        "proxy_request_failed": 1,
+        "test_destination_partial": 1
+      },
+      "group_status": 200,
+      "native_array_items": 191,
+      "single_status": 200,
+      "exact_served_body_both_cores": "passed",
+      "stored_exact_runtime_proof": "passed",
+      "sha256": "50798d9d38fb14665879987c69de26672d16c388fa8922f6f5bbf6cc3ef1c87c",
+      "outbounds": 4,
+      "checks": {
+        "android": "not_run",
+        "app_import_contract": "passed",
+        "bundled_core": "passed",
+        "dns_tcp": "passed",
+        "dns_udp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "http3": "passed",
+        "https": "passed",
+        "quic_vn": "passed",
+        "runtime_core": "xray_26_10_31",
+        "target_core": "passed"
+      }
+    },
+    "/api/smart": {
+      "version": "xray-26.11.9.smart.v10",
+      "stats": {
+        "blocked": 0,
+        "eligible": 179,
+        "ready": 6,
+        "sources": 14,
+        "total": 178,
+        "warming": 172
+      },
+      "codes": {
+        "https_proxy_verified_site_unavailable": 1,
+        "https_multi_site_verified": 5,
+        "": 94
+      },
+      "group_status": 200,
+      "native_array_items": 6,
+      "single_status": 200,
+      "exact_served_body_both_cores": "passed",
+      "stored_exact_runtime_proof": "passed",
+      "sha256": "de485494fb86da97c5f5a09ffd52777f9882814132a8c6440010b700d0e23281",
+      "outbounds": 231,
+      "checks": {
+        "android": "not_run",
+        "app_import_contract": "passed",
+        "bundled_core": "passed",
+        "dns_tcp": "passed",
+        "dns_udp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "http3": "passed",
+        "https": "passed",
+        "quic_vn": "passed",
+        "runtime_core": "xray_26_10_31",
+        "target_core": "passed"
+      }
+    },
+    "/api/smart-splash": {
+      "version": "xray-26.11.9.smart.v10",
+      "stats": {
+        "blocked": 0,
+        "eligible": 1,
+        "ready": 1,
+        "sources": 2,
+        "total": 1,
+        "warming": 0
+      },
+      "codes": {
+        "https_multi_site_verified": 1
+      },
+      "group_status": 200,
+      "native_array_items": 1,
+      "single_status": 200,
+      "exact_served_body_both_cores": "passed",
+      "stored_exact_runtime_proof": "passed",
+      "sha256": "753bbbe35c9cd7f3f7a066b7a26ea8990164895a7c081d284b5941e228369bf9",
+      "outbounds": 7,
+      "checks": {
+        "android": "not_run",
+        "app_import_contract": "passed",
+        "bundled_core": "passed",
+        "dns_tcp": "passed",
+        "dns_udp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "http3": "passed",
+        "https": "passed",
+        "quic_vn": "passed",
+        "runtime_core": "xray_26_10_31",
+        "target_core": "passed"
+      }
+    },
+    "/api/smart-ads": {
+      "version": "xray-26.11.9.smart-ads.v3",
+      "stats": {
+        "ads_eligible": 1,
+        "ads_sources": 2,
+        "blocked": 0,
+        "eligible": 1,
+        "main_eligible": 181,
+        "main_sources": 14,
+        "ready": 1,
+        "sources": 16,
+        "total": 1,
+        "warming": 0
+      },
+      "codes": {
+        "https_multi_site_verified": 1
+      },
+      "group_status": 200,
+      "native_array_items": 1,
+      "single_status": 200,
+      "exact_served_body_both_cores": "passed",
+      "stored_exact_runtime_proof": "passed",
+      "sha256": "03539be4de52d44ec6ccedeb60745a35dc4669ec91ebe77c10fae85918de0475",
+      "outbounds": 236,
+      "checks": {
+        "android": "not_run",
+        "app_import_contract": "passed",
+        "bundled_core": "passed",
+        "dns_tcp": "passed",
+        "dns_udp": "passed",
+        "doh_cloudflare": "passed",
+        "doh_google": "passed",
+        "http3": "passed",
+        "https": "passed",
+        "quic_vn": "passed",
+        "runtime_core": "xray_26_10_31",
+        "target_core": "passed"
+      }
+    }
+  },
+  "public_export_evidence": "exact served bodies freshly build-validated on both official cores; stored exact-byte real runtime proofs checked. This is not a new per-server network or Android test.",
+  "index_rehearsal": {
+    "reference_checks": 63,
+    "before_ms": 109.16,
+    "after_ms": 2.92,
+    "decisions_unchanged": true
+  },
+  "api_review": {
+    "model": "gpt-6-astra",
+    "first_call": "incomplete: output budget",
+    "second_call": "completed",
+    "action": "authenticated EOF finding fixed and regression passed",
+    "estimated_total_cost_usd": 0.59533,
+    "actual_billing": "unknown",
+    "input": "code only; no source URLs, credentials or raw configs",
+    "runtime_dependency": false
+  },
+  "private_receipts": [
+    ".local/p34-check-final.log",
+    ".local/p34-network-timeout-contract.log",
+    ".local/p34-validation-complete.json",
+    ".local/p34-release-checks.log",
+    ".local/p34-browser.log",
+    ".local/p34-workers.log",
+    ".local/p34-index-rehearsal.json",
+    ".local/p34-deployed.json",
+    ".local/p34-live-acquisition.json",
+    ".local/p34-live-check-initial.json",
+    ".local/p34-live-check.json",
+    ".local/p34-live-browser.json",
+    ".local/p34-runtime-final.json",
+    ".local/p34-published.json"
+  ],
+  "limitations": [
+    "upstream empty/truncated/network failures remain possible",
+    "processing and retries remain bounded",
+    "fixed retention and rotating-source generation semantics unchanged",
+    "no Android app/carrier/long-term stability test"
+  ]
+}

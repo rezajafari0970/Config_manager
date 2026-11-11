@@ -73,11 +73,15 @@ func (v *Vault) Put(ctx context.Context, r io.Reader) (Ref, error) {
 	buf := make([]byte, chunkSize)
 	var size int64
 	var sequence uint64
+	input := &sourceReader{Reader: r}
 	for {
 		if err = ctx.Err(); err != nil {
 			return Ref{}, err
 		}
-		n, readErr := io.ReadFull(r, buf)
+		n, readErr := io.ReadFull(input, buf)
+		if input.err != nil {
+			return Ref{}, input.err
+		}
 		if readErr != nil && readErr != io.EOF && readErr != io.ErrUnexpectedEOF {
 			return Ref{}, readErr
 		}
@@ -108,13 +112,32 @@ func (v *Vault) Put(ctx context.Context, r io.Reader) (Ref, error) {
 	if _, err = f.Write(terminal); err != nil {
 		return Ref{}, err
 	}
+	ref := Ref{Hash: hex.EncodeToString(hash.Sum(nil)), Size: size}
+	// Reuse only a fully authenticated existing ciphertext. Pin while verifying
+	// outside the mutex; corrupt/truncated files are still healed by atomic rename.
+	v.mu.Lock()
+	existing, openErr := os.Open(v.path(ref.Hash))
+	if openErr == nil {
+		v.pins[ref.Hash]++
+	}
+	v.mu.Unlock()
+	if openErr == nil {
+		checkErr := v.decode(&sourceContextReader{ctx: ctx, Reader: existing}, io.Discard, ref.Hash)
+		existing.Close()
+		if checkErr == nil {
+			return ref, nil
+		}
+		v.Release(ref.Hash)
+	}
+	if err = ctx.Err(); err != nil {
+		return Ref{}, err
+	}
 	if err = f.Sync(); err != nil {
 		return Ref{}, err
 	}
 	if err = f.Close(); err != nil {
 		return Ref{}, err
 	}
-	ref := Ref{Hash: hex.EncodeToString(hash.Sum(nil)), Size: size}
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	// The completed, fsynced ciphertext also repairs a corrupt existing file.
@@ -155,7 +178,7 @@ func (v *Vault) Open(hash string) (io.ReadCloser, error) {
 func (v *Vault) decode(r io.Reader, w io.Writer, expected string) error {
 	header := make([]byte, 16)
 	if _, err := io.ReadFull(r, header); err != nil {
-		return err
+		return mandatoryReadError(err)
 	}
 	if string(header[:4]) != "CRV1" {
 		return errors.New("invalid blob")
@@ -165,7 +188,7 @@ func (v *Vault) decode(r io.Reader, w io.Writer, expected string) error {
 	for {
 		var length [4]byte
 		if _, err := io.ReadFull(r, length[:]); err != nil {
-			return err
+			return mandatoryReadError(err)
 		}
 		size := binary.BigEndian.Uint32(length[:])
 		if size < uint32(v.aead.Overhead()) || size > chunkSize+uint32(v.aead.Overhead()) {
@@ -173,12 +196,12 @@ func (v *Vault) decode(r io.Reader, w io.Writer, expected string) error {
 		}
 		data := make([]byte, size)
 		if _, err := io.ReadFull(r, data); err != nil {
-			return err
+			return mandatoryReadError(err)
 		}
 		plain, err := v.aead.Open(nil, nonce(header[4:], sequence), data, header)
 		sequence++
 		if err != nil {
-			return err
+			return mandatoryReadError(err)
 		}
 		if len(plain) == 0 {
 			var extra [1]byte
@@ -193,7 +216,7 @@ func (v *Vault) decode(r io.Reader, w io.Writer, expected string) error {
 		}
 		hash.Write(plain)
 		if _, err = w.Write(plain); err != nil {
-			return err
+			return mandatoryReadError(err)
 		}
 	}
 }
@@ -240,4 +263,40 @@ func (v *Vault) Sweep(ctx context.Context, referenced func(context.Context, stri
 		}
 	}
 	return nil
+}
+
+// io.ReadFull synthesizes ErrUnexpectedEOF at a normal short final chunk. Keep
+// a distinct underlying failure, including n>0 with an error, from being hidden.
+type sourceReader struct {
+	io.Reader
+	err error
+}
+
+func (r *sourceReader) Read(p []byte) (int, error) {
+	n, e := r.Reader.Read(p)
+	if e != nil && e != io.EOF {
+		r.err = e
+	}
+	return n, e
+}
+
+type sourceContextReader struct {
+	ctx context.Context
+	io.Reader
+}
+
+func (r *sourceContextReader) Read(p []byte) (int, error) {
+	if e := r.ctx.Err(); e != nil {
+		return 0, e
+	}
+	return r.Reader.Read(p)
+}
+
+// EOF before authenticated termination is truncation, never a successful pipe
+// close. io.Pipe otherwise translates CloseWithError(io.EOF) into normal EOF.
+func mandatoryReadError(err error) error {
+	if err == io.EOF {
+		return io.ErrUnexpectedEOF
+	}
+	return err
 }

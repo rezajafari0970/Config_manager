@@ -74,7 +74,7 @@ func (s SourceInput) durations() (time.Duration, time.Duration, error) {
 	return min, max, nil
 }
 func validateSource(s SourceInput) (string, error) {
-	if s.URL == "" || s.TimeoutSeconds < 0 || s.TimeoutSeconds > int64((1<<63-1)/int64(time.Second))-30 {
+	if s.URL == "" || s.TimeoutSeconds < 0 || s.TimeoutSeconds > int64((1<<63-1)/int64(time.Second))-210 {
 		return "", ErrInvalid
 	}
 	for _, value := range []string{s.Name, s.URL} {

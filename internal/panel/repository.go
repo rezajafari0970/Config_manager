@@ -219,7 +219,7 @@ func (s *Store) Settings(ctx context.Context) (collect.Settings, error) {
 	return v, e
 }
 func (s *Store) SaveSettings(ctx context.Context, v collect.Settings) error {
-	if v.RetentionSeconds <= 0 || v.Concurrency < 1 || v.TimeoutSeconds < 1 || v.RetentionSeconds > int64((1<<63-1)/int64(time.Second)) || v.TimeoutSeconds > int64((1<<63-1)/int64(time.Second))-30 {
+	if v.RetentionSeconds <= 0 || v.Concurrency < 1 || v.TimeoutSeconds < 1 || v.RetentionSeconds > int64((1<<63-1)/int64(time.Second)) || v.TimeoutSeconds > int64((1<<63-1)/int64(time.Second))-210 {
 		return ErrInvalid
 	}
 	tx, e := s.db.BeginTx(ctx, nil)
@@ -324,7 +324,7 @@ func (s *Store) Claim(ctx context.Context, now time.Time, limit int, lease time.
 	for _, j := range jobs {
 		jobLease := lease
 		if j.TimeoutSeconds > 0 {
-			jobLease = time.Duration(j.TimeoutSeconds)*time.Second + 30*time.Second
+			jobLease = collect.LeaseDuration(time.Duration(j.TimeoutSeconds) * time.Second)
 		}
 		if _, e = tx.ExecContext(ctx, "UPDATE sources SET lease_token=?,lease_until=?,state='fetching',error_code='' WHERE id=?", j.Token, now.Add(jobLease).UnixMilli(), j.ID); e != nil {
 			return nil, e
@@ -587,7 +587,7 @@ func (s *Store) Expire(ctx context.Context, now time.Time) error {
 }
 func (s *Store) Referenced(ctx context.Context, hash string) (bool, error) {
 	var used bool
-	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM residential_records WHERE hash=? AND state!='DELETED' UNION ALL SELECT 1 FROM residential_records WHERE candidate_hash=? AND state!='DELETED' UNION ALL SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+") UNION ALL SELECT 1 FROM conversion_results r JOIN conversion_inputs i ON i.hash=r.hash WHERE r.candidate_hash=? UNION ALL SELECT 1 FROM smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM splash_smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM splash_smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM ads_smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM ads_smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER))", hash, hash, hash, hash, hash, hash, hash, hash, hash, hash, hash, hash, hash).Scan(&used)
+	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM residential_records WHERE hash=? AND state!='DELETED' UNION ALL SELECT 1 FROM residential_records WHERE candidate_hash=? AND state!='DELETED' UNION ALL SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+") UNION ALL SELECT 1 FROM conversion_results WHERE candidate_hash=? UNION ALL SELECT 1 FROM smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM splash_smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM splash_smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM ads_smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM ads_smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER))", hash, hash, hash, hash, hash, hash, hash, hash, hash, hash, hash, hash, hash).Scan(&used)
 	return used, e
 }
 
@@ -692,28 +692,42 @@ func (s *Store) NewEngine() *collect.Engine {
 }
 
 func (s *Store) Stage(ctx context.Context, job collect.Job, item collect.Item) (bool, error) {
+	n, err := s.StageBatch(ctx, job, []collect.Item{item})
+	return n == 1, err
+}
+func (s *Store) StageBatch(ctx context.Context, job collect.Job, items []collect.Item) (int, error) {
+	if len(items) > 32 {
+		return 0, ErrInvalid
+	}
 	tx, e := s.db.BeginTx(ctx, nil)
 	if e != nil {
-		return false, e
+		return 0, e
 	}
 	defer tx.Rollback()
 	var valid bool
 	e = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM sources WHERE id=? AND revision=? AND lease_token=? AND enabled=1)", job.ID, job.Revision, job.Token).Scan(&valid)
 	if e != nil {
-		return false, e
+		return 0, e
 	}
 	if !valid {
-		return false, ErrConflict
+		return 0, ErrConflict
 	}
-	result, e := tx.ExecContext(ctx, "INSERT INTO staged(source_id,token,identity,hash,kind,size,quality) VALUES (?,?,?,?,?,?,?) ON CONFLICT(token,identity) DO NOTHING", job.ID, job.Token, item.Identity, item.Hash, item.Kind, item.Size, item.Quality)
-	if e != nil {
-		return false, e
+	added := 0
+	for _, item := range items {
+		result, e := tx.ExecContext(ctx, "INSERT INTO staged(source_id,token,identity,hash,kind,size,quality) VALUES (?,?,?,?,?,?,?) ON CONFLICT(token,identity) DO NOTHING", job.ID, job.Token, item.Identity, item.Hash, item.Kind, item.Size, item.Quality)
+		if e != nil {
+			return 0, e
+		}
+		n, _ := result.RowsAffected()
+		added += int(n)
+		if e = saveRepair(ctx, tx, item); e != nil {
+			return 0, e
+		}
 	}
-	n, _ := result.RowsAffected()
-	if e = saveRepair(ctx, tx, item); e != nil {
-		return false, e
+	if e = tx.Commit(); e != nil {
+		return 0, e
 	}
-	return n == 1, tx.Commit()
+	return added, nil
 }
 
 func (s *Store) WalkOutputs(ctx context.Context, visit func(Artifact) error) error {

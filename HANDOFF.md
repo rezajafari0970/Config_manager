@@ -1,3 +1,43 @@
+# Current P34 acquisition recovery — 2026-11-11
+
+The current user requests fixing intermittent acquisition of healthy sources.
+A live 186-occurrence response arrived in1.308s and parsed in<1ms while the old
+collector repeatedly exhausted its shared30s deadline and owned zero inputs.
+Fetch/body consumption now has the configured network timeout; processing has
+an independent120s budget and completion30s, all under bounded source admission.
+Leases cover those budgets; source edit/delete/shutdown cancellation still wins.
+
+Optional StageBatch commits at most32 metadata records with exact raw/candidate
+pins until commit, preserving atomic nonempty generation publication. Reuse a
+ciphertext only after complete AEAD/hash verification; repair corruption by
+atomic replacement. Reject underlying truncated streams and unauthenticated
+EOF at ciphertext record boundaries. Additive blob-reference indexes keep
+schema20 and existing controls; GC uses current writer reads and never snapshots
+away a new reference. Raw bytes, fixed TTL, manual deletion, ordinary/Smart
+proof gates, target cores, source settings and rotations remain unchanged.
+
+Read docs/checkpoints/P34-acquisition-recovery-20261111.md and private deployment,
+validation and publication receipts before claiming runtime state. API review
+used gpt-6-astra; model output is not network health evidence. Empty upstream
+responses and actual network failures remain explicit, bounded retries.
+
+## P34 deployed evidence
+
+Installed release: p34-25bcb3a7bb488e1434d7 (schema20). All six services and five
+fresh worker heartbeats were checked after activation; PID executable hashes
+match the tested binaries. Source controls, rotations and publication gates
+were preserved. All33 sources completed a fresh collection:32 have inventory,
+with724 unique inputs at the verification snapshot. The formerly empty worker
+source succeeded three times:186 occurrences each,142/151/149 unique inputs,
+12.289/3.639/2.848s. Rotating content explains differing unique counts.
+Exir still returned an empty body; sub returned incomplete_body and retained
+its161 previous inputs. Neither is relabelled a successful fresh import.
+Live mobile/desktop rendering verified the recovered count. Final exact-export
+build checks and existing real-runtime proof checks are in P34-validation.json.
+API review used gpt-6-astra; no ongoing AI dependency was added.
+Publication and canonical rebuild identity are recorded privately in
+.local/p34-published.json; main remains unchanged.
+
 # Current P33 handoff — 2026-11-11 (Asia/Tehran)
 
 P33 supersedes previous target/admission/subscription and output-shuffle notes.

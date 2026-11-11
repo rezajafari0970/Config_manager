@@ -7,7 +7,10 @@ for(const state of ['updated','unchanged','empty','invalid','filtered'])assert.n
 assert.match(sourceStatus({...base,state:'filtered',suppressed_count:31})[0],/حذف/);
 assert.equal(sourceStatus({...base,config_count:31})[1],'good');
 assert.equal(sourceStatus({...base,enabled:false,config_count:31})[0],'متوقف');
-assert.equal(sourceStatus({...base,state:'error',config_count:31})[1],'bad');
+assert.equal(sourceStatus({...base,state:'error',config_count:31})[1],'wait');
+assert.match(sourceStatus({...base,state:'error',config_count:31})[0],/قبلی موجودند/);
+assert.match(sourceStatus({...base,state:'error',error_code:'processing_timeout'})[0],/پردازش/);
+assert.equal(sourceStatus({...base,state:'error',error_code:'fetch_timeout'})[1],'bad');
 assert.equal(sourceStatus({...base,state:'fetching'})[1],'working');
 assert.equal(sourceStatus({...base,config_count:29,suppressed_count:1})[1],'wait');
 assert.equal(sourceStatus({...base,config_count:1},{blocked:1})[1],'wait');

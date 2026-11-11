@@ -178,6 +178,17 @@ PRAGMA user_version=1;`)
 	if err = s.migrateV20(); err != nil {
 		return nil, err
 	}
+	// Additive performance indexes are safe for schema20 readers. GC must retain
+	// the writer connection for current-reference admission, but never scan the
+	// retained residential archive or eligibility views for every encrypted blob.
+	for _, q := range []string{
+		"CREATE INDEX IF NOT EXISTS residential_candidate_blob ON residential_records(candidate_hash)",
+		"CREATE INDEX IF NOT EXISTS conversion_candidate_blob ON conversion_results(candidate_hash)",
+	} {
+		if _, err = s.db.Exec(q); err != nil {
+			return nil, err
+		}
+	}
 	s.residentialDBPath = path
 	if err = s.initResidentialJournal(context.Background(), path); err != nil {
 		return nil, err

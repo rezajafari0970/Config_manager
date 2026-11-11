@@ -3,6 +3,8 @@ export function sourceStatus(s, conversion={}) {
  const statuses={queued:['در انتظار','wait'],fetching:['در حال دریافت','working'],error:['ناموفق','bad'],paused:['متوقف','']};
  if(!s.enabled)return statuses.paused;
  if(s.refresh_reason&&s.state==='queued')return ['در انتظار دریافت تازه','wait'];
+ if(s.state==='error'&&s.error_code==='processing_timeout')return ['دریافت شد؛ پردازش نیازمند تکرار است','wait'];
+ if(s.state==='error'&&s.config_count>0)return ['خطای دریافت تازه؛ ورودی‌های قبلی موجودند','wait'];
  if(statuses[s.state])return statuses[s.state];
  if(s.state==='filtered'||(s.config_count===0&&s.suppressed_count>0))return ['ذخیره نشد: قبلاً حذف شده','wait'];
  if(s.config_count===0&&(['updated','unchanged'].includes(s.state)||s.content_state==='config'))return [s.stored_count>0?'ورودی‌های قبلی دیگر موجود نیستند؛ دریافت تازه لازم است':'ورودی یکتای موجود ندارد','wait'];

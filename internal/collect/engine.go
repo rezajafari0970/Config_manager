@@ -133,7 +133,7 @@ func (e *Engine) dispatch(ctx context.Context) {
 		return
 	}
 	e.diskBlocked.Store(false)
-	jobs, err := e.repo.Claim(ctx, time.Now(), available, time.Duration(settings.TimeoutSeconds)*time.Second+30*time.Second)
+	jobs, err := e.repo.Claim(ctx, time.Now(), available, LeaseDuration(time.Duration(settings.TimeoutSeconds)*time.Second))
 	if err != nil {
 		log.Print("collector claim will retry")
 		return
@@ -154,7 +154,7 @@ func (e *Engine) dispatch(ctx context.Context) {
 		if job.TimeoutSeconds > 0 {
 			timeout = job.TimeoutSeconds
 		}
-		jobctx, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
+		jobctx, cancel := context.WithCancel(ctx)
 		e.active[job.ID] = cancel
 		e.mu.Unlock()
 		e.wg.Add(1)
@@ -162,11 +162,23 @@ func (e *Engine) dispatch(ctx context.Context) {
 			defer e.wg.Done()
 			defer cancel()
 			defer func() { e.mu.Lock(); delete(e.active, job.ID); e.mu.Unlock(); e.Wake("", false) }()
-			e.runJob(jobctx, job)
+			e.runJobWithTimeout(jobctx, job, time.Duration(timeout)*time.Second)
 		}()
 	}
 }
 func (e *Engine) runJob(ctx context.Context, job Job) {
+	timeout := 30 * time.Second
+	if job.TimeoutSeconds > 0 {
+		timeout = time.Duration(job.TimeoutSeconds) * time.Second
+	}
+	e.runJobWithTimeout(ctx, job, timeout)
+}
+func (e *Engine) runJobWithTimeout(parent context.Context, job Job, fetchTimeout time.Duration) {
+	e.runJobWithBudgets(parent, job, fetchTimeout, ProcessingTimeout)
+}
+func (e *Engine) runJobWithBudgets(parent context.Context, job Job, fetchTimeout, processTimeout time.Duration) {
+	ctx, fetchCancel := context.WithTimeout(parent, fetchTimeout)
+	defer fetchCancel()
 	started := time.Now()
 	result := Result{State: "error"}
 	pins := []string{}
@@ -175,7 +187,7 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 			result = Result{State: "error", ErrorCode: "worker_recovered"}
 		}
 		result.DurationMS = time.Since(started).Milliseconds()
-		commitctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		commitctx, cancel := context.WithTimeout(context.Background(), CompletionTimeout)
 		defer cancel()
 		if err := e.repo.Complete(commitctx, job, result, time.Now()); err != nil {
 			log.Print("collector result rejected or pending lease recovery")
@@ -184,9 +196,11 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 			e.vault.Release(hash)
 		}
 	}()
+	phase := "fetch"
+	fetchMS := int64(0)
 	response, err := e.fetch.Fetch(ctx, job)
 	if err != nil {
-		result.ErrorCode = errorCode(err)
+		result.ErrorCode = phaseError(phase, err)
 		return
 	}
 	defer response.Body.Close()
@@ -204,9 +218,27 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 		return
 	}
 	defer spool.Close()
-	raw, err := e.vault.Put(ctx, io.TeeReader(&contextReader{ctx, response.Body}, spool))
+	_, err = io.Copy(spool, &contextReader{ctx, response.Body})
 	if err != nil {
-		result.ErrorCode = errorCode(err)
+		result.ErrorCode = phaseError(phase, err)
+		return
+	}
+	_ = response.Body.Close()
+	fetchCancel()
+	fetchMS = time.Since(started).Milliseconds()
+	ctx, processCancel := context.WithTimeout(parent, processTimeout)
+	defer processCancel()
+	phase = "processing"
+	defer func() {
+		log.Printf("collector phases fetch_ms=%d processing_ms=%d extracted=%d code=%s", fetchMS, time.Since(started).Milliseconds()-fetchMS, result.Extracted, result.ErrorCode)
+	}()
+	if _, err = spool.Seek(0, io.SeekStart); err != nil {
+		result.ErrorCode = "storage_error"
+		return
+	}
+	raw, err := e.vault.Put(ctx, &contextReader{ctx, spool})
+	if err != nil {
+		result.ErrorCode = phaseError(phase, err)
 		return
 	}
 	pins = append(pins, raw.Hash)
@@ -217,6 +249,8 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 		return
 	}
 	unique := 0
+	batch := newStageBuffer(e.repo, e.vault, job)
+	defer batch.release()
 	result.Staged = true
 	err = e.formats.Extract(ctx, spoolPath, func(ctx context.Context, r io.Reader, kind string) error {
 		sample := &sampleWriter{}
@@ -224,7 +258,7 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 		if err != nil {
 			return err
 		}
-		defer e.vault.Release(ref.Hash)
+		batch.pin(ref.Hash)
 		identity := Fingerprint(sample.data, ref.Size <= int64(len(sample.data)), kind, ref.Hash)
 		quality := e.inspectors.Inspect(sample.data, ref.Size <= int64(len(sample.data)), kind)
 		switch quality {
@@ -250,19 +284,25 @@ func (e *Engine) runJob(ctx context.Context, job Job) {
 					diagnostic.Candidate = nil
 					diagnostic.CandidateSHA256 = ""
 				} else {
-					defer e.vault.Release(candidate.Hash)
+					batch.pin(candidate.Hash)
 				}
 			}
 		}
 		diagnostic.OriginalSHA256 = ref.Hash
-		added, err := e.repo.Stage(ctx, job, Item{Ref: ref, Identity: identity, Kind: kind, Quality: quality, Repair: diagnostic, Candidate: candidate})
-		if added {
-			unique++
-		}
-		return err
+		diagnostic.Candidate = nil // Persisted separately; never retain payloads in the metadata batch.
+		return batch.add(ctx, Item{Ref: ref, Identity: identity, Kind: kind, Quality: quality, Repair: diagnostic, Candidate: candidate})
 	})
+	if err == nil || IsContentError(err) {
+		if flushErr := batch.flush(ctx); flushErr != nil {
+			err = flushErr
+		}
+	}
+	unique = batch.unique
+	if ctx.Err() != nil {
+		err = ctx.Err()
+	}
 	if err != nil && !IsContentError(err) {
-		result.ErrorCode = errorCode(err)
+		result.ErrorCode = phaseError(phase, err)
 		return
 	}
 	if err != nil {
@@ -335,3 +375,14 @@ func (e *Engine) Capacity() int { return int(e.capacity.Load()) }
 func (e *Engine) RegisterInspector(driver InspectionDriver) { e.inspectors.Register(driver) }
 
 func (e *Engine) RegisterRepair(d repair.CandidateDriver) { e.repairs.Register(d) }
+
+func phaseError(phase string, err error) string {
+	code := errorCode(err)
+	if code == "timeout" {
+		return phase + "_timeout"
+	}
+	if errors.Is(err, io.ErrUnexpectedEOF) {
+		return "incomplete_body"
+	}
+	return code
+}
