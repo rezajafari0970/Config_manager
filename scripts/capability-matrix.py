@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Reproducible official-core build matrix. Build acceptance is NOT transport proof."""
-import base64,copy,importlib.util,json,pathlib,secrets,sys
+import argparse,subprocess,base64,copy,importlib.util,json,pathlib,secrets,sys
 HERE=pathlib.Path(__file__).resolve().parent
 spec=importlib.util.spec_from_file_location('lab',HERE/'live-probe.py')
 lab=importlib.util.module_from_spec(spec);spec.loader.exec_module(lab)
@@ -26,10 +26,11 @@ def outbound(protocol,network,security):
     return {'tag':'proxy','protocol':protocol,'settings':settings,**({'streamSettings':stream} if protocol!='wireguard' else {})}
 def cases():
     for p in ('vless','vmess','trojan','shadowsocks'):
-        for n in ('tcp','raw','tcp-http','ws','xhttp','grpc','httpupgrade'):
+        for n in ('tcp','raw','tcp-http','ws','xhttp','grpc','httpupgrade','kcp','hysteria'):
             for s in ('none','tls','reality'):yield p,n,s,outbound(p,n,s)
     for p,n,s in [('hysteria','hysteria','tls'),('hysteria1','hysteria','tls'),('wireguard','native','native'),('socks','tcp','none'),('http','tcp','tls'),('tuic','quic','tls'),('vless','http','tls'),('vless','quic','tls')]:yield p,n,s,outbound(p,n,s)
 def run():
+    parser=argparse.ArgumentParser();parser.add_argument('--template',action='store_true');parser.add_argument('--compiler',default=str(HERE.parent/'.local/config-probe-plan'));args=parser.parse_args()
     rows=[]
     pins={'26.10.31':'cc4b84d3069569f297a61f04b914f2bb37e9d202fd7b84cb50def1fc30fd40e1','26.11.9':'e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d'}
     for version,sha in pins.items():
@@ -38,8 +39,14 @@ def run():
             for protocol,network,security,ob in cases():
                 config={'inbounds':[],'outbounds':[ob],'routing':{}}
                 data=json.dumps(config,separators=(',',':')).encode()
+                if args.template:
+                    plan=json.loads(subprocess.run([args.compiler,'--template'],input=data,capture_output=True,check=True,timeout=15).stdout)
+                    if not plan.get('candidates'):
+                        rows.append({'core':version,'protocol':protocol,'transport':network,'security':security,'build':'not_run','diagnostic':plan.get('code'),'sha256':lab.digest(data),'connection':'not_run'})
+                        continue
+                    candidate=plan['candidates'][0];data=base64.b64decode(candidate['config'],validate=True);assert lab.digest(data)==candidate['sha256']
                 process=box.launch(data,True);process.wait(timeout=10)
                 accepted=process.returncode==0;log=box.logs();box.stop()
                 rows.append({'core':version,'protocol':protocol,'transport':network,'security':security,'build':'passed' if accepted else 'failed','diagnostic':'core_build_only' if accepted else lab.classify(log,'core_rejected'),'sha256':lab.digest(data),'connection':'not_run'})
-    print(json.dumps({'version':'official-core-matrix.2026-11-11.v1','pins':pins,'rows':rows},indent=2))
+    print(json.dumps({'version':'official-core-matrix.2026-11-11.v2','template_applied':args.template,'pins':pins,'rows':rows},indent=2))
 if __name__=='__main__':run()

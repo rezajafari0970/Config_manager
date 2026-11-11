@@ -11,18 +11,18 @@ def normalize(body):
  value=json.loads(body);value['outbounds'].sort(key=lambda x:x['tag'])
  return json.dumps(value,sort_keys=True,separators=(',',':'))
 def main():
- parser=argparse.ArgumentParser();parser.add_argument('--splash',action='store_true');parser.add_argument('--ads',action='store_true');parser.add_argument('--live-canary',type=int,default=0);args=parser.parse_args()
+ parser=argparse.ArgumentParser();parser.add_argument('--splash',action='store_true');parser.add_argument('--ads',action='store_true');parser.add_argument('--live-canary',type=int,default=0);parser.add_argument('--profiles',type=int,choices=(7,55),default=55);args=parser.parse_args()
  if os.geteuid()!=0:raise SystemExit('root required for sandbox integration')
  scope='splash' if args.splash else 'normal';api='/api/smart-splash' if args.splash else '/api/smart';table='splash_smart_' if args.splash else 'smart_';mode='smart-splash' if args.splash else 'smart'
  if args.ads:scope='ads';api='/api/smart-ads';table='ads_smart_';mode='smart-ads'
- receipt={'scope':scope,'android':'not_run','whole_profile_connection':'not_run'}
+ receipt={'scope':scope,'android':'not_run','whole_profile_connection':'not_run','worker_sha256':hashlib.sha256((ROOT/'bin/config-probe-worker').read_bytes()).hexdigest()}
  with tempfile.TemporaryDirectory(prefix='smart-worker-',dir=ROOT/'.local') as tmp:
   work=pathlib.Path(tmp);os.chmod(work,0o700)
   fixture=work/'fixture'
   subprocess.run(['go','test','-c','-o',str(fixture),'./internal/panel'],cwd=ROOT,check=True)
   samples={name:[] for name in ['Alpha','Beta','Gamma']}
-  for i in range(1,56):
-   name='Alpha' if i<50 else 'Beta' if i<54 else 'Gamma'
+  for i in range(1,args.profiles+1):
+   name='Alpha' if i<max(2,args.profiles-5) else 'Beta' if i<args.profiles-1 else 'Gamma'
    samples[name].append(f'vless://00000000-0000-4000-8000-{i:012d}@192.0.2.{i}:443?security=tls&sni=example.com')
   if args.live_canary:
    state=json.loads(get('http://127.0.0.1:18191/api/conversions',True)[0])
@@ -60,7 +60,7 @@ def main():
      with sqlite3.connect(str(work/'data/panel.db')) as claims:live_claims=claims.execute("SELECT count(*) FROM "+table+"heads WHERE token!='' AND lease_until>?",(int(time.time()*1000),)).fetchone()[0]
      max_active=max(max_active,live_claims)
      if not killed and running:worker.kill();worker.wait(timeout=10);worker=launch();killed=True
-     if state['stats']['total']>=55 and state['stats']['ready']==state['stats']['total']:break
+     if state['stats']['total']>=args.profiles and state['stats']['ready']==state['stats']['total']:break
      if worker.poll() is not None:raise RuntimeError('worker exited; '+(work/'worker.log').read_text()[-1000:])
      now=int(time.monotonic()-start)//20
      if now!=last:last=now;print(json.dumps({'ready':state['stats']['ready'],'total':state['stats']['total'],'active':active,'blocked':state['stats']['blocked']}),flush=True)
@@ -74,7 +74,7 @@ def main():
      assert j['log']=={'loglevel':'none','access':'none','error':'none','dnsLog':False}
      assert len(j['dns']['servers'])==4 and len(j['routing']['balancers'])==2 and len(j['routing']['rules'])==(6 if args.ads else 4)
      assert j['outbounds'][0]['tag'] in j['routing']['balancers'][1]['selector'] and j['routing']['balancers'][0]['fallbackTag']=='block'
-     assert len([x for x in j['outbounds'] if x['tag'].startswith('proxy-')])>=50
+     assert len([x for x in j['outbounds'] if x['tag'].startswith('proxy-')])>=(50 if args.ads else min(50,args.profiles))
      assert j['routing']['balancers'][-1]['strategy']=={'type':'leastLoad','settings':{'expected':3,'maxRTT':'2s','tolerance':.15}}
     normalized={normalize(line) for line in lines}
     turns=[]
@@ -93,7 +93,8 @@ def main():
     if args.splash:
      other=json.loads(get(origin+'/api/smart')[0]);assert other['stats']['ready']==0 and other['settings']['count']==10
      assert all(b'192.0.2.200' not in line for line in lines)
-    receipt.update(passed=True,profiles=len(lines),members_per_profile=51 if args.ads else 50,sources=len(samples),max_active=max_active,sigkill_recovered=True,unique_head_round=True,inline=True,core='xray-26.11.9',connection_receipts='synthetic_state_machine_only')
+    assert hashlib.sha256((ROOT/'bin/config-probe-worker').read_bytes()).hexdigest()==receipt['worker_sha256']
+    receipt.update(passed=True,profiles=len(lines),members_per_profile=51 if args.ads else min(50,args.profiles),sources=len(samples),max_active=max_active,sigkill_recovered=True,unique_head_round=True,inline=True,core='xray-26.11.9',connection_receipts='synthetic_state_machine_only')
    finally:
     (ROOT/(".local/"+scope+"-fixture-diagnostic.log")).write_text((work/"panel.log").read_text()[-8000:])
     for process in [worker,panel]:

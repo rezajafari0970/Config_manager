@@ -14,12 +14,12 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 )
 
-const Version = "xray-26.11.9.template.v6"
+const Version = "xray-26.11.9.template.v7"
 
 type M = map[string]any
 
 // The endpoint and transport are deliberately absent from the shared template.
-const envelope = `{"remarks":"@shenvpn","log":{"loglevel":"info","access":"none","error":"","dnsLog":true},"dns":{"servers":["https://1.1.1.1/dns-query","https://8.8.8.8/dns-query","https://9.9.9.9/dns-query"],"queryStrategy":"UseIPv4","tag":"dns-module"},"inbounds":[{"tag":"socks","listen":"127.0.0.1","port":10808,"protocol":"socks","settings":{"auth":"noauth","udp":true},"sniffing":{"enabled":true,"destOverride":["http","tls","quic"],"routeOnly":true}}],"outbounds":[],"routing":{"domainStrategy":"AsIs","rules":[{"type":"field","inboundTag":["dns-module"],"outboundTag":"proxy"},{"type":"field","inboundTag":["socks"],"port":"53","network":"tcp,udp","outboundTag":"dns-out"},{"type":"field","network":"tcp,udp","outboundTag":"proxy"}]},"stats":{},"policy":{"system":{"statsOutboundUplink":true,"statsOutboundDownlink":true}}}`
+const envelope = `{"remarks":"@shenvpn","log":{"loglevel":"warning","access":"none","dnsLog":false},"dns":{"servers":["https://1.1.1.1/dns-query","https://8.8.8.8/dns-query","https://9.9.9.9/dns-query"],"queryStrategy":"UseIPv4","tag":"dns-module"},"inbounds":[{"tag":"socks","listen":"127.0.0.1","port":10808,"protocol":"socks","settings":{"auth":"noauth","udp":true},"sniffing":{"enabled":true,"destOverride":["http","tls","quic"],"routeOnly":true}}],"outbounds":[],"routing":{"domainStrategy":"AsIs","rules":[{"type":"field","inboundTag":["dns-module"],"outboundTag":"proxy"},{"type":"field","inboundTag":["socks","tun"],"port":"53","network":"tcp,udp","outboundTag":"dns-out"},{"type":"field","network":"tcp,udp","outboundTag":"proxy"}]},"stats":{},"policy":{"system":{"statsOutboundUplink":true,"statsOutboundDownlink":true}}}`
 
 func Prepare(raw []byte) probe.Plan {
 	p := probe.Prepare(raw)

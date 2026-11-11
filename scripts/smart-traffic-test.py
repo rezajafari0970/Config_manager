@@ -15,8 +15,12 @@ def main():
   for i,p in enumerate(proxies):
    assert p['protocol']=='vless'
    s=p['settings'];assert (s.get('address') or s['vnext'][0]['address'])=='127.0.0.1'
-   p['streamSettings']['tlsSettings']={'serverName':'localhost','pinnedPeerCertSha256':pin}
+   if not request.get('redirect'):p['streamSettings']['tlsSettings']={'serverName':'localhost','pinnedPeerCertSha256':pin}
   server={'tag':'fixture-server','listen':'127.0.0.1','port':24443,'protocol':'vless','settings':{'decryption':'none','clients':[{'id':'11111111-1111-4111-8111-111111111111','flow':'xtls-rprx-vision'}]},'streamSettings':{'network':'tcp','security':'tls','tlsSettings':{'certificates':[{'certificate':cert.read_text().strip().splitlines(),'key':key.read_text().strip().splitlines()}]}}}
+  if request.get('redirect'):
+   server['listen']='203.0.113.81';server['settings']['clients'][0].pop('flow',None);server['streamSettings']={'network':'tcp','security':'none'}
+   assert all(x['protocol']!='dokodemo-door' for x in config['inbounds'])
+   assert len([x for x in config['outbounds'] if x.get('settings',{}).get('redirect')])==2
   config['inbounds'].append(server)
   config['outbounds'].append({'tag':'fixture-direct','protocol':'freedom','settings':{'finalRules':[{'action':'allow','network':'tcp,udp','ip':['127.0.0.1/32'],'port':'443,24444,24445,24447'}]}})
   config['routing']['rules'].insert(0,{'type':'field','inboundTag':['fixture-server'],'outboundTag':'fixture-direct'})
@@ -24,6 +28,7 @@ def main():
   config['burstObservatory']['pingConfig'].update(destination='http://127.0.0.1:24447/generate_204',interval='1s',sampling=1,timeout='500ms')
   assert config['log']=={'loglevel':'none','access':'none','error':'none','dnsLog':False}
   with lab.Sandbox(str(core),secrets.token_hex(3),8199,prefix='cstf') as box:
+   if request.get('redirect'):box.net([lab.IP,'addr','add','203.0.113.81/32','dev','lo'])
    box.policy({});children=[]
    try:
     children.append(subprocess.Popen([lab.IP,'netns','exec',box.name,sys.executable,str(HERE/'traffic-policy-test.py'),'--echo'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL))

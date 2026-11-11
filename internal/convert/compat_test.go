@@ -19,8 +19,8 @@ func TestLegacyRelaySharedConversionIsIdempotent(t *testing.T) {
 	}
 	var root M
 	json.Unmarshal(c.Config, &root)
-	if len(root["inbounds"].([]any)) != 2 {
-		t.Fatal("missing relay")
+	if len(root["inbounds"].([]any)) != 1 {
+		t.Fatal("unexpected local relay")
 	}
 	again, e := Apply(c.Config)
 	if e != nil || !bytes.Equal(again, c.Config) {

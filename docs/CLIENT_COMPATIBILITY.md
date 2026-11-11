@@ -1,4 +1,4 @@
-# P33 client compatibility contract
+# P35 client compatibility contract
 
 Target: official v2rayNG **2.3.15**, Lib40, bundled Xray **26.10.31**.
 The additional forward-compatibility gate uses official Xray **26.11.9**.
@@ -21,7 +21,7 @@ Independent residential diagnosis retains its own checksum-pinned historical
 supervisor baseline; publication upgrades cannot silently retarget that preflight.
 Positive/negative live self-tests and a regression test cover this separation.
 
-Schema20 records current raw/candidate/runtime hashes, target and driver versions,
+Schema21 records current raw/candidate/runtime hashes, target and driver versions,
 changes, attempts and transport checks separately. Receipts are bounded metadata,
 not a new historical sample bank. Originals remain immutable. Migration updates
 persisted admission predicates, fences old leases and caches, and schedules new
@@ -36,30 +36,29 @@ atomically. The 1,003-source bulk/CSRF regression passes without raising its
 request deadline. Payloads only cross the protected Unix
 queue. Untrusted cores run without root, in a restricted filesystem/cgroup/netns.
 
-## Legacy plaintext VLESS TCP driver
+## Plaintext VLESS stream compatibility
 
-`legacy-vless-tcp-loopback.v1` applies only to VLESS with no transport TLS/REALITY,
-no VLESS encryption, TCP/RAW, optional none/HTTP header, and no unsupported flow,
-stream override/finalmask or proxySettings. It preserves credentials, HTTP headers
-and actual endpoint. The local VLESS leg dials a unique loopback port; a bounded
-`dokodemo-door` leg targets only the actual endpoint. Exact scoped allow followed
-by relay deny precedes normal routing. Outbound socket/carrier options move to the
-remote transport leg, including Ads dialer chaining. Port/tag allocation is per
-complete profile, reserves existing listeners, and rejects ambiguous graphs.
+`legacy-vless-stream-redirect.v2` covers RAW/TCP with optional HTTP header,
+WebSocket, gRPC, XHTTP, HTTPUpgrade and mKCP when supported by the pinned cores.
+The original protocol/credentials/endpoint/transport are retained. A dedicated
+Freedom outbound redirects the VLESS dialer's logical loopback destination to
+only its original public endpoint. No listening socket or relay inbound exists.
+Original remote socket policy is on that fixed helper. Implicit HTTP Host/authority
+is materialized from the original endpoint before changing its logical address.
+This is **NO ADDED ENCRYPTION** compatibility, not TLS/REALITY or a security upgrade.
+Do not export only the VLESS URI: the helper is part of the Custom JSON graph.
 
-**This is legacy compatibility with NO ADDED ENCRYPTION.** It uses the core's
-loopback exception. It never upgrades security and never downgrades encrypted
-inputs. It is retained as Custom JSON; exporting only a VLESS URI would lose the
-relay. Other plaintext transports remain `legacy_vless_transport_requires_driver`
-until separately qualified. TLS/REALITY keys and server capabilities are never
-invented. Unsupported inputs remain stored with explicit diagnostics.
+`Logical` validates exclusive ownership and unwraps recognized fixed-redirect or
+old bounded-listener graphs before normal/Smart/Ads composition. `Wrap` rebuilds
+collision-free fixed helpers. Shared routes/pool selectors, ambiguous ownership,
+unsupported flow/proxySettings/finalmask/stream destination or separate XHTTP
+legs remain explicit driver limitations. Repeated composition is deterministic.
+Native VLESS encryption is never replaced with `none`.
 
-`Logical` recognizes complete source relay graphs before composition; `Wrap`
-rebuilds their infrastructure without collisions. Unbounded/shared routes,
-missing deny, wrong listener, carrier extensions and ambiguous ownership fail
-closed. Repeated application is deterministic. Number precision and Smart root
-field ordering are preserved. No post-validation outbound shuffle changes the
-published bytes; durable profile rotation still works.
+Known VMess `skip-cert-verify` maps to the same certificate policy as `insecure`;
+conflicting/invalid values fail explicitly. Display-only `name` and `test_name`
+are accepted. Unknown transport/plugin fields are not silently discarded. The
+existing strict-certificate alternative still requires real connection proof.
 
 ## Import and publication
 
@@ -75,15 +74,18 @@ Config builder preserves relay/routing, changes stats/policy.system according to
 preferences and may add a TUN inbound. Four source-derived speed/TUN variants are
 core-tested. Package-to-UID routing needs a real Android device and is not certified.
 
-**RealPing caveat:** Lib40 MeasureOutboundDelay removes all inbounds, routing,
-DNS and observers. A loopback-relay default can therefore fail the app's delay
-button even when full VPN execution works. This repository does not patch the
-Android APK and does not claim to fix that distinct app limitation.
+**Native delay:** official Lib40 MeasureOutboundDelay removes inbounds, routing,
+DNS and observers but keeps outbounds. Fixed outbound redirects therefore survive
+its filtering, unlike the former listener relay. The source-compatible negative
+controls and unmodified official-library Internet tests are recorded separately.
+A Smart profile's native delay measures its first outbound, not the leastLoad
+pool; the full running-profile test exercises the balancer. JSON cannot change
+APK scheduling, built-in retry count/timeouts, or guarantee latency on every ISP.
 
 ## What the evidence means
 
-The release matrix tests 184 protocol/transport/security builds across both cores;
-132 are accepted as constructed. Acceptance is not a useful-network or universal
+The P35 matrix applies the common template before protocol/transport/security
+build checks on both cores; see the P35 reports for accepted and rejected rows. Acceptance is not a useful-network or universal
 combination claim. RAW/TCP aliases, TLS/REALITY constraints, deprecated accepted
 WS/gRPC/HTTPUpgrade and removed legacy HTTP/QUIC transports remain distinct.
 Hysteria2 is native TLS/QUIC; Hysteria1 and TUIC require another core/client, not a
@@ -91,7 +93,8 @@ renamed Xray protocol. WireGuard has native encryption and transport.
 
 Closed synthetic traffic fixtures test TCP, UDP and UDP443 for VLESS TLS
 TCP/WS/XHTTP/gRPC/HTTPUpgrade, VMess TCP and WS/TLS, Trojan TLS, Shadowsocks AEAD,
-Hysteria2 and WireGuard, plus legacy VLESS TCP/HTTP relay, on both core versions.
+Hysteria2 and WireGuard, plus plaintext VLESS stream redirects, on both core versions. Six Shadowsocks
+ciphers (three AEAD and three 2022 methods) have separate TCP/UDP/UDP443 fixtures.
 A fixture certificate pin is not public-PKI proof. Separate existing-project live
 canaries have valid-public-certificate HTTPS, Cloudflare/Google DoH, DNS TCP/UDP,
 QUIC Version Negotiation and full HTTP/3 DoH receipts. VN alone is never HTTP/3.
@@ -103,8 +106,7 @@ absence is recorded; it is not silently promoted to passed. Smart membership als
 retains the existing Instagram check; a balanced profile pass does not prove every
 internal member or every possible selected path.
 
-The supplied TC81 endpoint was currently unreachable from this server during this
-run. The relay built and ran, but that endpoint is not certified healthy here.
+Live evidence is snapshot-specific and separate from controlled fixtures.
 No Android APK/device, MCI/Irancell/RighTel, long-term stability, IPv6-only runtime,
 throughput or zero-loss guarantee is claimed. Unsupported/ambiguous extensions
 remain explicit instead of silently rewriting their semantics.
@@ -142,3 +144,21 @@ Official source:
 - https://github.com/2dust/AndroidLibXrayLite/tree/2ffe5f794a32ba15b122e177b5acffc6f11c4959
 - https://github.com/XTLS/Xray-core/releases/tag/v26.10.31
 - https://github.com/XTLS/Xray-core/releases/tag/v26.11.9
+
+## Current diagnostics and repeatable audit
+
+Normal v7, Smart v11 and Ads v4 share the compatibility boundary. Schema21 fences
+prior final-byte proofs before serving and queues fresh validation. P34 acquisition
+recovery and blob-reference indexes are preserved. Current family metadata appears
+on Output rows and `/api/conversion/families`; build and connection counts differ.
+`scripts/template-audit.py` validates all accessible unique candidates, samples at
+most three per family for traffic, and builds/tests representative Smart profiles.
+Concurrent expiry/deletion can make raw records unavailable; these are recorded as
+snapshot-unavailable, not malformed or core-rejected. Official native delay tests
+are optional and sandboxed. Audits never grant health/publication to other records.
+
+In the strict native-delay sandbox, some domain endpoints attempt UDP53 after
+Lib40 discards DNS/routing. The firewall denies that bootstrap; the native test
+is blocked even when the exact full profile passed. No direct-DNS exception was
+added. This is not an observed Android APK failure or proof of universal DNS
+behavior on devices. IP endpoints and full-profile tunnel DNS tests are separate.

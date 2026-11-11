@@ -120,4 +120,25 @@ class ProbeTests(unittest.TestCase):
   with patch.object(p,'cmd',side_effect=[V4(),V6()]):
    with self.assertRaisesRegex(ValueError,'nonpublic_endpoint_blocked'):p.endpoints(c)
 
+ def test_outbound_only_redirects_are_per_tag_and_do_not_edit_runtime(self):
+  c={'inbounds':[{'protocol':'socks','listen':'127.0.0.1','port':10808,'settings':{'udp':True}}],'outbounds':[],'routing':{'rules':[{'network':'tcp,udp','outboundTag':'proxy-a'}]}}
+  for label,host in [('a','1.1.1.1'),('b','8.8.8.8')]:
+   c['outbounds'] += [
+    {'tag':'proxy-'+label,'protocol':'vless','settings':{'address':'127.0.0.1','port':443,'id':'synthetic','encryption':'none'},'streamSettings':{'network':'tcp','sockopt':{'dialerProxy':'transport-'+label}}},
+    {'tag':'transport-'+label,'protocol':'freedom','settings':{'redirect':host+':443'}}]
+  original=copy.deepcopy(c)
+  class R:stdout=b'["1.1.1.1"]'
+  with patch.object(p,'cmd',return_value=R()):
+   self.assertEqual(set(p.endpoints(c)),{'1.1.1.1','8.8.8.8'})
+  self.assertEqual(p.runtime_config(c,{}),original)
+  self.assertEqual(c,original)
+  for value in ['127.0.0.1:443','1.1.1.1:444','1.1.1.1:0','bad value:443']:
+   bad=copy.deepcopy(c);bad['outbounds'][1]['settings']['redirect']=value
+   with self.assertRaises(ValueError):p.runtime_config(bad,{})
+  bad=copy.deepcopy(c);bad['routing']['rules'][0]['outboundTag']='transport-a'
+  with self.assertRaises(ValueError):p.runtime_config(bad,{})
+  bad=copy.deepcopy(c);bad['burstObservatory']={'subjectSelector':['transport-']}
+  with self.assertRaises(ValueError):p.runtime_config(bad,{})
+
+
 if __name__=='__main__':unittest.main()

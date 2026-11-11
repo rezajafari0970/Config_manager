@@ -149,3 +149,31 @@ func TestXHTTPPaddingCompatibilityAlias(t *testing.T) {
 		t.Fatal("alias ignored on wrong transport")
 	}
 }
+
+func TestVMessCertificateAliasAndDisplayMetadata(t *testing.T) {
+	base := M{"add": "example.com", "port": "443", "id": "11111111-1111-4111-8111-111111111111", "net": "tcp", "tls": "tls", "skip-cert-verify": false, "name": "display only", "test_name": "display only"}
+	check := func(want string) Plan {
+		b, _ := json.Marshal(base)
+		raw := append([]byte("vmess://"), []byte(base64.StdEncoding.EncodeToString(b))...)
+		saved := bytes.Clone(raw)
+		p := Prepare(raw)
+		if p.Code != want || !bytes.Equal(saved, raw) {
+			t.Fatalf("code=%s want=%s", p.Code, want)
+		}
+		return p
+	}
+	p := check("prepared")
+	if !bytes.Contains(p.Candidates[0].Config, []byte(`"allowInsecure":false`)) {
+		t.Fatal("strict verification lost")
+	}
+	base["skip-cert-verify"] = true
+	p = check("prepared")
+	if !bytes.Contains(p.Candidates[0].Config, []byte(`"allowInsecure":true`)) || len(p.Candidates) < 2 || !p.Candidates[1].RequiresConnection {
+		t.Fatal("verification policy silently changed")
+	}
+	base["insecure"] = false
+	check("ambiguous_vmess_certificate_policy")
+	delete(base, "insecure")
+	base["skip-cert-verify"] = "maybe"
+	check("invalid_vmess_certificate_policy")
+}

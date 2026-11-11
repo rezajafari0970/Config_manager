@@ -1,3 +1,20 @@
+# Current P35 deployment — shared outbound-only templates
+
+P35 is installed and verified: release p35-57a1e4adb432b7dcca5c, schema21,
+normalv7 / Smartv11 / Adsv4. All33 sources/settings/rotations were preserved.
+P34 acquisition recovery is included. Read docs/checkpoints/P35-template-realping-20261111.md
+and docs/reports/P35-report-fa.md; source/runtime receipts remain private .local/p35-*.
+Full race/vet/build, four final worker recovery fixtures and mobile/desktop browser
+checks passed. Actual served outputs from all four scopes passed both core builds
+and fresh bundled-core HTTPS/DNS/TCP/UDP/QUIC/HTTP3. Legacy VLESS HTTP native delay
+passed with no relay listener. Android APK and carrier tests are NOT run.
+Audit:721 snapshot identities,718 accessible,686 accepted,32 unresolved,3 unavailable;
+690 distinct final candidates accepted by both cores.28/46 normal network samples
+passed completely; Smart17/18 built and8 complete network samples. Samples never
+make untested members healthy. See report for partial/failing cases and DNS limits.
+Current sources are automatically requalified; stale evidence cannot publish.
+Do not roll an old binary onto schema21 or rewind the external deletion journal.
+
 # Current P34 acquisition recovery — 2026-11-11
 
 The current user requests fixing intermittent acquisition of healthy sources.

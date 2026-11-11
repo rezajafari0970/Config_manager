@@ -12,8 +12,8 @@ import (
 
 type M = map[string]any
 
-const Version = "client-compat.2026-11-11.v1"
-const RelayDriver = "legacy-vless-tcp-loopback.v1"
+const Version = "client-compat.2026-11-11.v2"
+const RelayDriver = "legacy-vless-stream-redirect.v2"
 
 type Change struct {
 	Driver string `json:"driver"`
@@ -135,7 +135,7 @@ func socksOf(ob M) M       { s, _ := ob["streamSettings"].(M); o, _ := s["sockop
 
 // Logical recognizes a complete fixed-destination relay graph before composition.
 // Source-supplied graph names alone are never trusted as an authorization marker.
-func Logical(root M) ([]Change, error) {
+func logicalListener(root M) ([]Change, error) {
 	obs, _ := root["outbounds"].([]any)
 	ins, _ := root["inbounds"].([]any)
 	rules := rulesOf(root)
@@ -356,8 +356,18 @@ func eligible(ob M, e endpoint) error {
 	if method, ok := s["method"].(string); ok && method != "" {
 		network = method
 	}
-	if network != "" && network != "tcp" && network != "raw" {
+	switch network {
+	case "", "tcp", "raw", "ws", "websocket", "httpupgrade", "grpc", "xhttp", "splithttp", "kcp", "mkcp":
+	default:
 		return errors.New("legacy_vless_transport_requires_driver")
+	}
+	for _, key := range []string{"xhttpSettings", "splithttpSettings"} {
+		x, _ := s[key].(M)
+		for _, holder := range []M{x, func() M { m, _ := x["extra"].(M); return m }()} {
+			if holder["downloadSettings"] != nil {
+				return errors.New("relay_download_requires_driver")
+			}
+		}
 	}
 	for _, key := range []string{"finalmask", "address", "port"} {
 		if _, ok := s[key]; ok {
@@ -380,7 +390,7 @@ func eligible(ob M, e endpoint) error {
 
 // Wrap replaces only the carrier destination; protocol/header/credentials stay intact.
 // The carrier is still plaintext. The local exception adds no encryption.
-func Wrap(root M) ([]Change, error) {
+func wrapListener(root M) ([]Change, error) {
 	if e := ValidateCapabilities(root); e != nil {
 		return nil, e
 	}

@@ -16,7 +16,7 @@ func relayMember(t *testing.T, host string) Member {
 	}
 	return Member{Body: p.Candidates[0].Config}
 }
-func TestSmartRelaysHaveUniquePortsAndPreserveCarrier(t *testing.T) {
+func TestSmartRedirectsPreserveEndpointsAndCarrier(t *testing.T) {
 	a, b := relayMember(t, "203.0.113.81"), relayMember(t, "203.0.113.82")
 	for _, ads := range []bool{false, true} {
 		var body []byte
@@ -39,29 +39,28 @@ func TestSmartRelaysHaveUniquePortsAndPreserveCarrier(t *testing.T) {
 		}
 		var root M
 		json.Unmarshal(body, &root)
-		ports := map[float64]bool{}
+
+		if len(root["inbounds"].([]any)) != 1 {
+			t.Fatal("local listener remains")
+		}
 		count := 0
 		carrier := false
-		for _, v := range root["inbounds"].([]any) {
-			m := v.(M)
-			if m["protocol"] == "dokodemo-door" {
-				p := m["port"].(float64)
-				if ports[p] {
-					t.Fatal("collision")
-				}
-				ports[p] = true
-				count++
-			}
-		}
+		targets := map[string]bool{}
 		for _, v := range root["outbounds"].([]any) {
 			m := v.(M)
-			s, _ := m["streamSettings"].(M)
-			o, _ := s["sockopt"].(M)
-			if o["dialerProxy"] == "main-chain-dispatch" {
-				if m["protocol"] != "freedom" {
-					t.Fatal("carrier attached to local VLESS leg")
+			settings, _ := m["settings"].(M)
+			redirect, _ := settings["redirect"].(string)
+			if m["protocol"] == "freedom" && redirect != "" {
+				if targets[redirect] {
+					t.Fatal("duplicate redirect")
 				}
-				carrier = true
+				targets[redirect] = true
+				count++
+				s, _ := m["streamSettings"].(M)
+				o, _ := s["sockopt"].(M)
+				if o["dialerProxy"] == "main-chain-dispatch" {
+					carrier = true
+				}
 			}
 		}
 		if count != 2 || ads && !carrier {

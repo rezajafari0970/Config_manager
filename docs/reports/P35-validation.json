@@ -1,0 +1,1273 @@
+{
+  "summary": {
+    "snapshot_unix": 1794363959,
+    "target": "v2rayNG2.3.15",
+    "bundled_core": "26.10.31",
+    "additional_core": "26.11.9",
+    "snapshot_inputs": 721,
+    "accessible_inputs": 718,
+    "unique_final_candidates": 690,
+    "accepted_inputs": 686,
+    "prepare_unresolved": 32,
+    "core_rejected_after_template": 0,
+    "snapshot_unavailable": 3,
+    "normal_samples": 46,
+    "normal_complete_connection": 28,
+    "normal_native_ping_passed": 27,
+    "smart_profiles": 18,
+    "smart_core_passed": 17,
+    "smart_connection_counts": {
+      "passed": 8,
+      "partial": 3,
+      "failed": 6,
+      "not_run": 1
+    },
+    "smart_native_ping_passed": 12,
+    "capability_cases": 232,
+    "capability_build_counts": {
+      "passed": 172,
+      "not_run": 42,
+      "failed": 18
+    },
+    "android_apk": "not_run",
+    "carriers": "not_run",
+    "sample_success_is_not_family_health": true
+  },
+  "families": [
+    {
+      "family": "json+unparsed",
+      "inputs": 2,
+      "build_passed": 0,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 2,
+      "build_rejected": 0,
+      "connection_samples": 0,
+      "connected_samples": 0,
+      "native_ping_passed": 0
+    },
+    {
+      "family": "shadowsocks+tcp+none",
+      "inputs": 40,
+      "build_passed": 40,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 3,
+      "connected_samples": 3,
+      "native_ping_passed": 3
+    },
+    {
+      "family": "trojan+tcp+tls",
+      "inputs": 2,
+      "build_passed": 2,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 2,
+      "connected_samples": 0,
+      "native_ping_passed": 2
+    },
+    {
+      "family": "trojan+ws+tls",
+      "inputs": 2,
+      "build_passed": 1,
+      "prepare_rejected": 1,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 1,
+      "connected_samples": 0,
+      "native_ping_passed": 0
+    },
+    {
+      "family": "vless+grpc+reality",
+      "inputs": 6,
+      "build_passed": 6,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 3,
+      "connected_samples": 2,
+      "native_ping_passed": 3
+    },
+    {
+      "family": "vless+grpc+tls",
+      "inputs": 22,
+      "build_passed": 22,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 3,
+      "connected_samples": 1,
+      "native_ping_passed": 1
+    },
+    {
+      "family": "vless+tcp+none",
+      "inputs": 10,
+      "build_passed": 10,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 3,
+      "connected_samples": 0,
+      "native_ping_passed": 0
+    },
+    {
+      "family": "vless+tcp+reality",
+      "inputs": 194,
+      "build_passed": 176,
+      "prepare_rejected": 18,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 3,
+      "connected_samples": 3,
+      "native_ping_passed": 3
+    },
+    {
+      "family": "vless+tcp+tls",
+      "inputs": 17,
+      "build_passed": 17,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 3,
+      "connected_samples": 3,
+      "native_ping_passed": 0
+    },
+    {
+      "family": "vless+tcp-http+none",
+      "inputs": 345,
+      "build_passed": 342,
+      "prepare_rejected": 3,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 3,
+      "connected_samples": 3,
+      "native_ping_passed": 3
+    },
+    {
+      "family": "vless+tcp-http+reality",
+      "inputs": 1,
+      "build_passed": 0,
+      "prepare_rejected": 1,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 0,
+      "connected_samples": 0,
+      "native_ping_passed": 0
+    },
+    {
+      "family": "vless+unclassified+reality",
+      "inputs": 1,
+      "build_passed": 0,
+      "prepare_rejected": 1,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 0,
+      "connected_samples": 0,
+      "native_ping_passed": 0
+    },
+    {
+      "family": "vless+unparsed",
+      "inputs": 1,
+      "build_passed": 0,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 1,
+      "build_rejected": 0,
+      "connection_samples": 0,
+      "connected_samples": 0,
+      "native_ping_passed": 0
+    },
+    {
+      "family": "vless+ws+none",
+      "inputs": 5,
+      "build_passed": 3,
+      "prepare_rejected": 2,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 3,
+      "connected_samples": 2,
+      "native_ping_passed": 2
+    },
+    {
+      "family": "vless+ws+tls",
+      "inputs": 40,
+      "build_passed": 39,
+      "prepare_rejected": 1,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 3,
+      "connected_samples": 3,
+      "native_ping_passed": 1
+    },
+    {
+      "family": "vless+xhttp+reality",
+      "inputs": 4,
+      "build_passed": 4,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 3,
+      "connected_samples": 0,
+      "native_ping_passed": 0
+    },
+    {
+      "family": "vless+xhttp+tls",
+      "inputs": 6,
+      "build_passed": 6,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 3,
+      "connected_samples": 0,
+      "native_ping_passed": 2
+    },
+    {
+      "family": "vmess+grpc+tls",
+      "inputs": 1,
+      "build_passed": 1,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 1,
+      "connected_samples": 0,
+      "native_ping_passed": 0
+    },
+    {
+      "family": "vmess+tcp+none",
+      "inputs": 6,
+      "build_passed": 6,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 3,
+      "connected_samples": 3,
+      "native_ping_passed": 3
+    },
+    {
+      "family": "vmess+tcp+tls",
+      "inputs": 6,
+      "build_passed": 6,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 3,
+      "connected_samples": 3,
+      "native_ping_passed": 3
+    },
+    {
+      "family": "vmess+unparsed",
+      "inputs": 4,
+      "build_passed": 0,
+      "prepare_rejected": 4,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 0,
+      "connected_samples": 0,
+      "native_ping_passed": 0
+    },
+    {
+      "family": "vmess+ws+none",
+      "inputs": 4,
+      "build_passed": 4,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 2,
+      "connected_samples": 1,
+      "native_ping_passed": 0
+    },
+    {
+      "family": "vmess+ws+tls",
+      "inputs": 1,
+      "build_passed": 1,
+      "prepare_rejected": 0,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 1,
+      "connected_samples": 1,
+      "native_ping_passed": 1
+    },
+    {
+      "family": "wireguard+unparsed",
+      "inputs": 1,
+      "build_passed": 0,
+      "prepare_rejected": 1,
+      "snapshot_unavailable": 0,
+      "build_rejected": 0,
+      "connection_samples": 0,
+      "connected_samples": 0,
+      "native_ping_passed": 0
+    }
+  ],
+  "smart": [
+    {
+      "family": "shadowsocks+tcp+none",
+      "members": 3,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "passed",
+      "native": {
+        "ok": true,
+        "delay_ms": 1148,
+        "elapsed_ms": 3985
+      }
+    },
+    {
+      "family": "trojan+tcp+tls",
+      "members": 2,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "partial",
+      "native": {
+        "ok": true,
+        "delay_ms": 94,
+        "elapsed_ms": 515
+      }
+    },
+    {
+      "family": "trojan+ws+tls",
+      "members": 1,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "failed",
+      "native": {
+        "ok": false,
+        "delay_ms": -1,
+        "elapsed_ms": 6886
+      }
+    },
+    {
+      "family": "vless+grpc+reality",
+      "members": 3,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "passed",
+      "native": {
+        "ok": true,
+        "delay_ms": 7,
+        "elapsed_ms": 90
+      }
+    },
+    {
+      "family": "vless+grpc+tls",
+      "members": 3,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "partial",
+      "native": {
+        "ok": true,
+        "delay_ms": 24,
+        "elapsed_ms": 200
+      }
+    },
+    {
+      "family": "vless+tcp+none",
+      "members": 3,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "failed",
+      "native": {
+        "ok": false,
+        "delay_ms": -1,
+        "elapsed_ms": 2012
+      }
+    },
+    {
+      "family": "vless+tcp+reality",
+      "members": 3,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "passed",
+      "native": {
+        "ok": true,
+        "delay_ms": 29,
+        "elapsed_ms": 138
+      }
+    },
+    {
+      "family": "vless+tcp+tls",
+      "members": 3,
+      "code": "smart_bootstrap_no_ip",
+      "build": "not_run",
+      "connection": "not_run",
+      "native": null
+    },
+    {
+      "family": "vless+tcp-http+none",
+      "members": 3,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "passed",
+      "native": {
+        "ok": true,
+        "delay_ms": 25,
+        "elapsed_ms": 161
+      }
+    },
+    {
+      "family": "vless+ws+none",
+      "members": 3,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "passed",
+      "native": {
+        "ok": true,
+        "delay_ms": 29,
+        "elapsed_ms": 177
+      }
+    },
+    {
+      "family": "vless+ws+tls",
+      "members": 3,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "passed",
+      "native": {
+        "ok": true,
+        "delay_ms": 97,
+        "elapsed_ms": 528
+      }
+    },
+    {
+      "family": "vless+xhttp+reality",
+      "members": 3,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "failed",
+      "native": {
+        "ok": false,
+        "delay_ms": -1,
+        "elapsed_ms": 80
+      }
+    },
+    {
+      "family": "vless+xhttp+tls",
+      "members": 3,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "partial",
+      "native": {
+        "ok": true,
+        "delay_ms": 64,
+        "elapsed_ms": 367
+      }
+    },
+    {
+      "family": "vmess+grpc+tls",
+      "members": 1,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "failed",
+      "native": {
+        "ok": false,
+        "delay_ms": -1,
+        "elapsed_ms": 8007
+      }
+    },
+    {
+      "family": "vmess+tcp+none",
+      "members": 3,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "passed",
+      "native": {
+        "ok": true,
+        "delay_ms": 210,
+        "elapsed_ms": 4117
+      }
+    },
+    {
+      "family": "vmess+tcp+tls",
+      "members": 3,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "passed",
+      "native": {
+        "ok": true,
+        "delay_ms": 114,
+        "elapsed_ms": 611
+      }
+    },
+    {
+      "family": "vmess+ws+none",
+      "members": 2,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "failed",
+      "native": {
+        "ok": false,
+        "delay_ms": -1,
+        "elapsed_ms": 4016
+      }
+    },
+    {
+      "family": "vmess+ws+tls",
+      "members": 1,
+      "code": "prepared",
+      "build": "passed",
+      "connection": "failed",
+      "native": {
+        "ok": true,
+        "delay_ms": 187,
+        "elapsed_ms": 1349
+      }
+    }
+  ],
+  "unresolved_codes": {
+    "missing_reality_public_key": 12,
+    "invalid_port": 1,
+    "ambiguous_vmess_certificate_policy": 2,
+    "unknown_query_parameter": 9,
+    "snapshot_http_404": 3,
+    "unknown_vmess_field": 1,
+    "wireguard_extension_unsupported": 1,
+    "relay_invalid_destination": 3,
+    "relay_stream_override_requires_driver": 1,
+    "invalid_reality_public_key": 1,
+    "transport_driver_pending": 1
+  },
+  "controlled_traffic": {
+    "primary_rows": 74,
+    "initial_complete_passes": 73,
+    "xhttp_tls_retest": [
+      {
+        "core": "26.10.31",
+        "protocol": "vless",
+        "transport": "xhttp",
+        "security": "tls",
+        "tcp": "passed",
+        "udp": "passed",
+        "udp443": "passed",
+        "config_sha256": "2939f159eb5d9e0e4e324abb98919de7bd2017b5fff92fabcaab5514c62fff8a",
+        "runtime_sha256": "2939f159eb5d9e0e4e324abb98919de7bd2017b5fff92fabcaab5514c62fff8a"
+      },
+      {
+        "core": "26.11.9",
+        "protocol": "vless",
+        "transport": "xhttp",
+        "security": "tls",
+        "tcp": "passed",
+        "udp": "passed",
+        "udp443": "passed",
+        "config_sha256": "2939f159eb5d9e0e4e324abb98919de7bd2017b5fff92fabcaab5514c62fff8a",
+        "runtime_sha256": "2939f159eb5d9e0e4e324abb98919de7bd2017b5fff92fabcaab5514c62fff8a"
+      }
+    ],
+    "wireguard": [
+      {
+        "core": "26.10.31",
+        "protocol": "wireguard",
+        "transport": "native",
+        "security": "native",
+        "tcp": "passed",
+        "udp": "passed",
+        "udp443": "passed",
+        "config_sha256": "350d6cc813c1dcf75c48325991c7286ea7745602ff6bb3973ade4f64c1f67ce4",
+        "runtime_sha256": "350d6cc813c1dcf75c48325991c7286ea7745602ff6bb3973ade4f64c1f67ce4"
+      },
+      {
+        "core": "26.11.9",
+        "protocol": "wireguard",
+        "transport": "native",
+        "security": "native",
+        "tcp": "passed",
+        "udp": "passed",
+        "udp443": "passed",
+        "config_sha256": "350d6cc813c1dcf75c48325991c7286ea7745602ff6bb3973ade4f64c1f67ce4",
+        "runtime_sha256": "350d6cc813c1dcf75c48325991c7286ea7745602ff6bb3973ade4f64c1f67ce4"
+      }
+    ],
+    "shadowsocks_ciphers": [
+      {
+        "method": "2022-blake3-aes-128-gcm",
+        "rows": 2,
+        "tcp_udp_udp443_passed": true
+      },
+      {
+        "method": "2022-blake3-aes-256-gcm",
+        "rows": 2,
+        "tcp_udp_udp443_passed": true
+      },
+      {
+        "method": "2022-blake3-chacha20-poly1305",
+        "rows": 2,
+        "tcp_udp_udp443_passed": true
+      },
+      {
+        "method": "aes-128-gcm",
+        "rows": 2,
+        "tcp_udp_udp443_passed": true
+      },
+      {
+        "method": "aes-256-gcm",
+        "rows": 2,
+        "tcp_udp_udp443_passed": true
+      },
+      {
+        "method": "chacha20-ietf-poly1305",
+        "rows": 2,
+        "tcp_udp_udp443_passed": true
+      }
+    ]
+  },
+  "deployment": {
+    "passed": true,
+    "release": "/opt/config-repair/releases/p35-57a1e4adb432b7dcca5c",
+    "schema": 21,
+    "panel_sha256": "57a1e4adb432b7dcca5c342cff99a05b63ed3eb889663427563ddcad86125f9a",
+    "worker_sha256": "71a745694788ed4c6f84f8627f7221537adfef495fbee303582f0819ca613eb7",
+    "residential_worker_sha256": "ab087f1e842d8d43a3999241c01037f294903c7bdc47b13598422b5f20728189",
+    "sources_settings_preserved": true,
+    "rotations_preserved": true,
+    "old_caches_fenced": true,
+    "source_count": 33,
+    "workers": {
+      "conversion_worker": {
+        "status": "running",
+        "version": "xray-26.11.9.template.v7"
+      },
+      "smart_worker": {
+        "status": "running",
+        "version": "xray-26.11.9.smart.v11"
+      },
+      "splash_smart_worker": {
+        "status": "running",
+        "version": "xray-26.11.9.smart.v11"
+      },
+      "ads_smart_worker": {
+        "status": "running",
+        "version": "xray-26.11.9.smart-ads.v4"
+      },
+      "residential_worker": {
+        "status": "running",
+        "version": "shen.residential.v1"
+      }
+    }
+  },
+  "p35-final-delta": {
+    "compiler_sha256": "f2603d382a7c0d920ae4746c79422a8f63a3596d89af01ae110238e54afe3865",
+    "snapshot_counts": {
+      "identical_candidate_bytes": 476,
+      "raw_changed": 11,
+      "snapshot_unavailable": 234
+    },
+    "changed_candidates": 0,
+    "changes": [],
+    "all_changed_builds_accepted": true,
+    "raw_unchanged": true,
+    "prior_evidence_reused_only_for_identical_final_bytes": true
+  },
+  "p35-postdeploy-live": {
+    "passed": true,
+    "at": 1794365549.7146676,
+    "android": "not_run",
+    "scopes": {
+      "/api/conversions": {
+        "version": "xray-26.11.9.template.v7",
+        "stats": null,
+        "codes": {
+          "": 22,
+          "https_multi_site_verified": 50,
+          "transport_verification_incomplete": 4,
+          "invalid_port": 1,
+          "https_proxy_verified_site_unavailable": 4,
+          "reality_authentication_rejected": 15,
+          "peer_reset_connection": 1,
+          "unknown_vmess_field": 1,
+          "proxy_request_failed": 1,
+          "peer_closed_connection": 1
+        },
+        "group_status": 200,
+        "native_array_items": 103,
+        "single_status": 200,
+        "fresh_runtime": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "6170bc7bd0b379231c72118b151f1bb46101d63763a155cd7c6fae9059c9cd69",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed",
+            "runtime_core": "xray_26_10_31"
+          }
+        },
+        "exact_served_body_both_cores": "passed",
+        "stored_exact_runtime_proof": "passed",
+        "sha256": "6170bc7bd0b379231c72118b151f1bb46101d63763a155cd7c6fae9059c9cd69",
+        "outbounds": 4,
+        "checks": {
+          "android": "not_run",
+          "app_import_contract": "passed",
+          "bundled_core": "passed",
+          "dns_tcp": "passed",
+          "dns_udp": "passed",
+          "doh_cloudflare": "passed",
+          "doh_google": "passed",
+          "http3": "passed",
+          "https": "passed",
+          "quic_vn": "passed",
+          "runtime_core": "xray_26_10_31",
+          "target_core": "passed"
+        }
+      },
+      "/api/smart": {
+        "version": "xray-26.11.9.smart.v11",
+        "stats": {
+          "blocked": 0,
+          "eligible": 89,
+          "ready": 26,
+          "sources": 13,
+          "total": 88,
+          "warming": 62
+        },
+        "codes": {
+          "https_multi_site_verified": 67,
+          "": 21
+        },
+        "group_status": 200,
+        "native_array_items": 26,
+        "single_status": 200,
+        "fresh_runtime": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "b48c5465e006769b9218db6c46c3b9a6aea1f7fdcc8b429a955953cd80964282",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed",
+            "runtime_core": "xray_26_10_31"
+          }
+        },
+        "exact_served_body_both_cores": "passed",
+        "stored_exact_runtime_proof": "passed",
+        "sha256": "b48c5465e006769b9218db6c46c3b9a6aea1f7fdcc8b429a955953cd80964282",
+        "outbounds": 235,
+        "checks": {
+          "android": "not_run",
+          "app_import_contract": "passed",
+          "bundled_core": "passed",
+          "dns_tcp": "passed",
+          "dns_udp": "passed",
+          "doh_cloudflare": "passed",
+          "doh_google": "passed",
+          "http3": "passed",
+          "https": "passed",
+          "quic_vn": "passed",
+          "runtime_core": "xray_26_10_31",
+          "target_core": "passed"
+        }
+      },
+      "/api/smart-splash": {
+        "version": "xray-26.11.9.smart.v11",
+        "stats": {
+          "blocked": 0,
+          "eligible": 1,
+          "ready": 1,
+          "sources": 2,
+          "total": 1,
+          "warming": 0
+        },
+        "codes": {
+          "https_multi_site_verified": 1
+        },
+        "group_status": 200,
+        "native_array_items": 1,
+        "single_status": 200,
+        "fresh_runtime": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "753bbbe35c9cd7f3f7a066b7a26ea8990164895a7c081d284b5941e228369bf9",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed",
+            "runtime_core": "xray_26_10_31"
+          }
+        },
+        "exact_served_body_both_cores": "passed",
+        "stored_exact_runtime_proof": "passed",
+        "sha256": "753bbbe35c9cd7f3f7a066b7a26ea8990164895a7c081d284b5941e228369bf9",
+        "outbounds": 7,
+        "checks": {
+          "android": "not_run",
+          "app_import_contract": "passed",
+          "bundled_core": "passed",
+          "dns_tcp": "passed",
+          "dns_udp": "passed",
+          "doh_cloudflare": "passed",
+          "doh_google": "passed",
+          "http3": "passed",
+          "https": "passed",
+          "quic_vn": "passed",
+          "runtime_core": "xray_26_10_31",
+          "target_core": "passed"
+        }
+      },
+      "/api/smart-ads": {
+        "version": "xray-26.11.9.smart-ads.v4",
+        "stats": {
+          "ads_eligible": 1,
+          "ads_sources": 2,
+          "blocked": 0,
+          "eligible": 1,
+          "main_eligible": 97,
+          "main_sources": 14,
+          "ready": 1,
+          "sources": 16,
+          "total": 1,
+          "warming": 0
+        },
+        "codes": {
+          "": 1
+        },
+        "group_status": 503,
+        "single_status": 200,
+        "fresh_runtime": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "0e9e99dd309e02908d1226cf2ec7c35e32c3acdc47f46704dbf9e03faca3ef83",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed",
+            "runtime_core": "xray_26_10_31"
+          }
+        },
+        "exact_served_body_both_cores": "passed",
+        "stored_exact_runtime_proof": "passed",
+        "sha256": "0e9e99dd309e02908d1226cf2ec7c35e32c3acdc47f46704dbf9e03faca3ef83",
+        "outbounds": 239,
+        "checks": {
+          "android": "not_run",
+          "app_import_contract": "passed",
+          "bundled_core": "passed",
+          "dns_tcp": "passed",
+          "dns_udp": "passed",
+          "doh_cloudflare": "passed",
+          "doh_google": "passed",
+          "http3": "passed",
+          "https": "passed",
+          "quic_vn": "passed",
+          "runtime_core": "xray_26_10_31",
+          "target_core": "passed"
+        }
+      }
+    },
+    "families": {
+      "android_apk": "not_run",
+      "families": {
+        "json": {
+          "family": "json",
+          "total": 59,
+          "accepted": 0,
+          "rejected": 0,
+          "connected": 0,
+          "pending": 59,
+          "unresolved": 0
+        },
+        "shadowsocks+tcp+none": {
+          "family": "shadowsocks+tcp+none",
+          "total": 10,
+          "accepted": 10,
+          "rejected": 0,
+          "connected": 6,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "ss": {
+          "family": "ss",
+          "total": 20,
+          "accepted": 0,
+          "rejected": 0,
+          "connected": 0,
+          "pending": 20,
+          "unresolved": 0
+        },
+        "trojan+tcp+tls": {
+          "family": "trojan+tcp+tls",
+          "total": 1,
+          "accepted": 1,
+          "rejected": 0,
+          "connected": 0,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "unclassified": {
+          "family": "unclassified",
+          "total": 7,
+          "accepted": 0,
+          "rejected": 0,
+          "connected": 0,
+          "pending": 0,
+          "unresolved": 7
+        },
+        "vless": {
+          "family": "vless",
+          "total": 428,
+          "accepted": 0,
+          "rejected": 0,
+          "connected": 0,
+          "pending": 428,
+          "unresolved": 0
+        },
+        "vless+grpc+reality": {
+          "family": "vless+grpc+reality",
+          "total": 3,
+          "accepted": 3,
+          "rejected": 0,
+          "connected": 2,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "vless+grpc+tls": {
+          "family": "vless+grpc+tls",
+          "total": 8,
+          "accepted": 8,
+          "rejected": 0,
+          "connected": 0,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "vless+tcp+none": {
+          "family": "vless+tcp+none",
+          "total": 7,
+          "accepted": 7,
+          "rejected": 0,
+          "connected": 0,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "vless+tcp+reality": {
+          "family": "vless+tcp+reality",
+          "total": 49,
+          "accepted": 49,
+          "rejected": 0,
+          "connected": 31,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "vless+tcp+tls": {
+          "family": "vless+tcp+tls",
+          "total": 5,
+          "accepted": 5,
+          "rejected": 0,
+          "connected": 4,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "vless+tcp-http+none": {
+          "family": "vless+tcp-http+none",
+          "total": 64,
+          "accepted": 64,
+          "rejected": 0,
+          "connected": 62,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "vless+ws+tls": {
+          "family": "vless+ws+tls",
+          "total": 8,
+          "accepted": 8,
+          "rejected": 0,
+          "connected": 3,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "vless+xhttp+reality": {
+          "family": "vless+xhttp+reality",
+          "total": 2,
+          "accepted": 2,
+          "rejected": 0,
+          "connected": 0,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "vless+xhttp+tls": {
+          "family": "vless+xhttp+tls",
+          "total": 1,
+          "accepted": 1,
+          "rejected": 0,
+          "connected": 0,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "vmess": {
+          "family": "vmess",
+          "total": 17,
+          "accepted": 0,
+          "rejected": 0,
+          "connected": 0,
+          "pending": 17,
+          "unresolved": 0
+        },
+        "vmess+grpc+tls": {
+          "family": "vmess+grpc+tls",
+          "total": 1,
+          "accepted": 1,
+          "rejected": 0,
+          "connected": 0,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "vmess+tcp+tls": {
+          "family": "vmess+tcp+tls",
+          "total": 1,
+          "accepted": 1,
+          "rejected": 0,
+          "connected": 1,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "vmess+ws+none": {
+          "family": "vmess+ws+none",
+          "total": 2,
+          "accepted": 2,
+          "rejected": 0,
+          "connected": 1,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "vmess+ws+tls": {
+          "family": "vmess+ws+tls",
+          "total": 1,
+          "accepted": 1,
+          "rejected": 0,
+          "connected": 1,
+          "pending": 0,
+          "unresolved": 0
+        },
+        "wireguard": {
+          "family": "wireguard",
+          "total": 1,
+          "accepted": 0,
+          "rejected": 0,
+          "connected": 0,
+          "pending": 1,
+          "unresolved": 0
+        }
+      },
+      "sample_success_is_not_family_health": true,
+      "version": "xray-26.11.9.template.v7"
+    },
+    "all_fresh_canaries_connected": true
+  },
+  "p35-postdeploy-native": {
+    "ok": true,
+    "delay_ms": 7,
+    "elapsed_ms": 54,
+    "sha256": "b698d3ee5c1399020b4926a24825a9c03a55797de1e68a8a2dc4fa40a3cad3af",
+    "family": "vless+tcp-http+none",
+    "no_relay_listener": true,
+    "android_apk": "not_run"
+  },
+  "p35-live-browser": {
+    "passed": true,
+    "page_errors": 0,
+    "viewports": [
+      {
+        "path": "/output",
+        "width": 390,
+        "status": 200,
+        "overflow": false,
+        "family_badges": 10,
+        "password_inputs": 0
+      },
+      {
+        "path": "/smart",
+        "width": 390,
+        "status": 200,
+        "overflow": false,
+        "family_badges": 0,
+        "password_inputs": 0
+      },
+      {
+        "path": "/smart-splash",
+        "width": 390,
+        "status": 200,
+        "overflow": false,
+        "family_badges": 0,
+        "password_inputs": 0
+      },
+      {
+        "path": "/smart-ads",
+        "width": 390,
+        "status": 200,
+        "overflow": false,
+        "family_badges": 0,
+        "password_inputs": 0
+      },
+      {
+        "path": "/output",
+        "width": 1440,
+        "status": 200,
+        "overflow": false,
+        "family_badges": 10,
+        "password_inputs": 0
+      },
+      {
+        "path": "/smart",
+        "width": 1440,
+        "status": 200,
+        "overflow": false,
+        "family_badges": 0,
+        "password_inputs": 0
+      },
+      {
+        "path": "/smart-splash",
+        "width": 1440,
+        "status": 200,
+        "overflow": false,
+        "family_badges": 0,
+        "password_inputs": 0
+      },
+      {
+        "path": "/smart-ads",
+        "width": 1440,
+        "status": 200,
+        "overflow": false,
+        "family_badges": 0,
+        "password_inputs": 0
+      }
+    ]
+  },
+  "p35-group-followup": {
+    "/api/conversions": {
+      "api": 200,
+      "version": "xray-26.11.9.template.v7",
+      "stats": null,
+      "group_status": 200,
+      "items": 139
+    },
+    "/api/smart": {
+      "api": 200,
+      "version": "xray-26.11.9.smart.v11",
+      "stats": {
+        "blocked": 0,
+        "eligible": 128,
+        "ready": 49,
+        "sources": 15,
+        "total": 127,
+        "warming": 78
+      },
+      "group_status": 200,
+      "items": 49
+    },
+    "/api/smart-splash": {
+      "api": 200,
+      "version": "xray-26.11.9.smart.v11",
+      "stats": {
+        "blocked": 0,
+        "eligible": 1,
+        "ready": 1,
+        "sources": 2,
+        "total": 1,
+        "warming": 0
+      },
+      "group_status": 200,
+      "items": 1
+    },
+    "/api/smart-ads": {
+      "api": 200,
+      "version": "xray-26.11.9.smart-ads.v4",
+      "stats": {
+        "ads_eligible": 1,
+        "ads_sources": 2,
+        "blocked": 0,
+        "eligible": 1,
+        "main_eligible": 130,
+        "main_sources": 15,
+        "ready": 1,
+        "sources": 17,
+        "total": 1,
+        "warming": 0
+      },
+      "group_status": 200,
+      "items": 1
+    }
+  },
+  "p35-final-checks": {
+    "p35-check-release": "passed",
+    "p35-traffic-final": "passed",
+    "p35-worker-normal-final": "passed",
+    "p35-worker-smart-final": "passed",
+    "p35-worker-splash-final": "passed",
+    "p35-worker-ads-final": "passed",
+    "p35-client-core": "passed",
+    "p35-authority-regression": "passed",
+    "p35-rehearsal-integrated": "passed",
+    "p35-browser-qualified": "passed",
+    "p35-final-template-audit": "passed",
+    "p35-final-delta": "passed",
+    "p35-postdeploy-run": "passed",
+    "source_manifest_files": 255,
+    "source_manifest_matches": true,
+    "worker_queue_receipts": "synthetic connection adapters; separate from Internet proofs",
+    "android_apk": "not_run",
+    "carriers": "not_run"
+  },
+  "p35-runtime-final": {
+    "passed": true,
+    "services": [
+      {
+        "service": "config-repair.service",
+        "active": true,
+        "binary_hash_matches": true
+      },
+      {
+        "service": "config-repair-prober.service",
+        "active": true,
+        "binary_hash_matches": true
+      },
+      {
+        "service": "config-repair-smart.service",
+        "active": true,
+        "binary_hash_matches": true
+      },
+      {
+        "service": "config-repair-splash.service",
+        "active": true,
+        "binary_hash_matches": true
+      },
+      {
+        "service": "config-repair-ads.service",
+        "active": true,
+        "binary_hash_matches": true
+      },
+      {
+        "service": "config-repair-residential.service",
+        "active": true,
+        "binary_hash_matches": true
+      }
+    ],
+    "drivers_checked": 16,
+    "release": "/opt/config-repair/releases/p35-57a1e4adb432b7dcca5c"
+  }
+}

@@ -144,7 +144,11 @@ func TestSmartUnreadableCacheCleanupFailureIsBounded(t *testing.T) {
 		t.Fatal("failed delivery consumed turn")
 	}
 	s.db.Exec("DROP TRIGGER synthetic_no_cleanup")
-	if _, _, _, e = s.smartNext(bounded); e != nil {
+	// A subsequent request has its own deadline. Intervening SQLite assertions
+	// must not consume the timeout used to prove that the rotation lock released.
+	nextRequest, nextCancel := context.WithTimeout(ctx, time.Second)
+	defer nextCancel()
+	if _, _, _, e = s.smartNext(nextRequest); e != nil {
 		t.Fatal("rotation lock was not released", e)
 	}
 }

@@ -48,5 +48,5 @@ def run():
                     p.terminate()
                     try:p.wait(timeout=3)
                     except subprocess.TimeoutExpired:p.kill();p.wait()
-    print(json.dumps({'driver':'legacy-vless-tcp-loopback.v1','passed':True,'tests':report,'https':'separate_test_required','http3':'not_run','android':'not_run'}))
+    print(json.dumps({'driver':'legacy-vless-tcp-redirect.v2','passed':True,'tests':report,'https':'separate_test_required','http3':'not_run','android':'not_run'}))
 if __name__=='__main__':run()

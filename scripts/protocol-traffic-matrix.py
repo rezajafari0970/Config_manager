@@ -15,10 +15,18 @@ def run():
   pin=hashlib.sha256(subprocess.check_output(['openssl','x509','-in',str(cert),'-outform','DER'])).hexdigest()
   for version in ('26.10.31','26.11.9'):
    core='/opt/config-repair/core-'+version+'/xray'
-   for protocol,network,security in ([('wireguard','native','native')] if '--wireguard' in sys.argv else [('vless','tcp','tls'),('vless','ws','tls'),('vless','xhttp','tls'),('vless','grpc','tls'),('vless','httpupgrade','tls'),('vmess','tcp','none'),('vmess','ws','tls'),('trojan','tcp','tls'),('shadowsocks','tcp','none'),('hysteria','hysteria','tls')]):
+   for protocol,network,security in ([('wireguard','native','native')] if '--wireguard' in sys.argv else
+    [(p,n,s) for p in ('vless','vmess','trojan') for n in ('tcp','tcp-http','ws','xhttp','grpc','httpupgrade','kcp') for s in (('none','tls') if p!='trojan' else ('tls',))]
+    + [('shadowsocks','tcp','none'),('hysteria','hysteria','tls')]):
+    if '--case' in sys.argv and ','.join((protocol,network,security)) != sys.argv[sys.argv.index('--case')+1]:continue
     item={'core':version,'protocol':protocol,'transport':network,'security':security,'tcp':'failed','udp':'not_run','udp443':'not_run'}
     ob=matrix.outbound(protocol,network,security);ob['settings']['port']=24443
     if protocol=='vmess':ob['settings']['vnext'][0]['port']=24443
+    if protocol=='shadowsocks' and '--ss-method' in sys.argv:
+     method=sys.argv[sys.argv.index('--ss-method')+1]
+     if method not in ('aes-128-gcm','aes-256-gcm','chacha20-ietf-poly1305','2022-blake3-aes-128-gcm','2022-blake3-aes-256-gcm','2022-blake3-chacha20-poly1305'):raise ValueError('unknown_ss_cipher')
+     password=base64.b64encode(bytes(range(16 if method=='2022-blake3-aes-128-gcm' else 32))).decode() if method.startswith('2022-') else 'synthetic-test-only'
+     ob['settings'].update(method=method,password=password);item['cipher']=method
     stream=ob.get('streamSettings',{});serverStream=copy.deepcopy(stream)
     if security=='tls':
      stream['tlsSettings']={'serverName':'fixture.invalid','pinnedPeerCertSha256':pin}
@@ -26,7 +34,7 @@ def run():
     if protocol=='vless':settings={'decryption':'none','clients':[{'id':matrix.UUID}]}
     elif protocol=='vmess':settings={'clients':[{'id':matrix.UUID,'alterId':0}]}
     elif protocol=='trojan':settings={'clients':[{'password':'synthetic-test-only'}]}
-    elif protocol=='shadowsocks':settings={'method':'aes-128-gcm','password':'synthetic-test-only','network':'tcp,udp'}
+    elif protocol=='shadowsocks':settings={'method':ob['settings']['method'],'password':ob['settings']['password'],'network':'tcp,udp'}
     else:settings={'version':2,'clients':[{'auth':'synthetic-test-only'}]}
     if protocol=='wireguard':
      def pair(seed):
@@ -38,9 +46,14 @@ def run():
      cp,cu=pair(bytes(range(32)));sp,su=pair(bytes(range(1,33)))
      ob['settings']={'secretKey':cp,'address':['10.23.0.2/32'],'noKernelTun':True,'peers':[{'endpoint':'203.0.113.81:24443','publicKey':su,'allowedIPs':['0.0.0.0/0']}] }
      settings={'secretKey':sp,'address':['10.23.0.1/32'],'noKernelTun':True,'peers':[{'publicKey':cu,'allowedIPs':['10.23.0.2/32']}] }
+    if network=='tcp-http':serverStream['tcpSettings']={'header':{'type':'http'}}
     server={'log':{'loglevel':'warning'},'inbounds':[{'tag':'fixture','listen':'203.0.113.81','port':24443,'protocol':protocol,'settings':settings,'streamSettings':serverStream}],'outbounds':[{'protocol':'freedom','settings':{'finalRules':[{'action':'allow','network':'tcp,udp','ip':['127.0.0.1/32'],'port':'443,24444,24445'}]}}]}
     client={'log':{'loglevel':'warning'},'inbounds':[{'tag':'socks','listen':'127.0.0.1','port':10808,'protocol':'socks','settings':{'auth':'noauth','udp':True}}],'outbounds':[ob],'routing':{'rules':[{'type':'field','network':'tcp,udp','outboundTag':'proxy'}]}}
-    data=json.dumps(client,separators=(',',':')).encode()
+    # Exercise the common template actually exported by production.
+    plan=json.loads(subprocess.run([str(HERE.parent/'.local/config-probe-plan'),'--template'],input=json.dumps(client).encode(),capture_output=True,check=True).stdout)
+    if not plan.get('candidates'):
+     item['diagnostic']=plan.get('code','conversion_failed');report.append(item);continue
+    data=base64.b64decode(plan['candidates'][0]['config'])
     with lab.Sandbox(core,secrets.token_hex(3),8202,prefix='ctf') as box:
      box.net([lab.IP,'addr','add','203.0.113.81/32','dev','lo'])
      path=box.work/'fixture.json';path.write_text(json.dumps(server))

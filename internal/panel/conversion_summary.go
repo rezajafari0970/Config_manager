@@ -25,9 +25,9 @@ func (s *Store) SourceConversionSummaries(ctx context.Context, sources []Source)
 		return out, nil
 	}
 	now := readStamp(ctx)
-	end := strings.Index(conversionQuery, "\n SELECT id,raw_hash")
+	end := strings.LastIndex(conversionQuery, "\n SELECT ")
 	q := conversionQuery[:end]
-	q = strings.Replace(q, "SELECT a.id,m.raw_hash", "SELECT m.source_id,r.version AS result_version,r.rule AS result_rule,a.id,m.raw_hash", 1)
+	q = strings.Replace(q, " SELECT ", " SELECT m.source_id,r.version AS result_version,r.rule AS result_rule,", 1)
 	q = strings.Replace(q, "PARTITION BY a.id", "PARTITION BY m.source_id,a.id", 1)
 	marks := make([]string, len(sources))
 	args := []any{convert.Version, now, convert.Version, now, now, now}

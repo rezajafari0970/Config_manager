@@ -16,6 +16,8 @@ import (
 )
 
 type Conversion struct {
+	Family        string `json:"family"`
+	Current       bool   `json:"current"`
 	ID            string `json:"id"`
 	Hash          string `json:"hash"`
 	Kind          string `json:"kind"`
@@ -33,13 +35,13 @@ type Conversion struct {
 // Pick one conversion per canonical source identity. A candidate's connection
 // evidence belongs only to its own bytes; duplicates never inherit a pass.
 const conversionQuery = `WITH choices AS (
- SELECT a.id,m.raw_hash,m.kind,a.expires,j.state,r.candidate_hash,r.code,r.core,r.connection,r.tested,r.valid_until,
+ SELECT coalesce(json_extract(e.metadata,'$.family'),m.kind) AS family,coalesce(r.version='` + convert.Version + `',0) AS current,a.id,m.raw_hash,m.kind,a.expires,j.state,r.candidate_hash,r.code,r.core,r.connection,r.tested,r.valid_until,
  (r.core='passed' AND r.candidate_hash!='' AND r.version=? AND (r.connection='passed' AND r.valid_until>?)) AS available,
  row_number() OVER(PARTITION BY a.id ORDER BY (r.core='passed' AND r.version=? AND (r.connection='passed' AND r.valid_until>?)) DESC,(r.connection='passed') DESC,r.tested DESC,m.raw_hash) AS choice
  FROM memberships m JOIN artifacts a ON a.id=m.artifact_id JOIN sources s ON s.id=m.source_id
- LEFT JOIN conversion_jobs j ON j.hash=m.raw_hash LEFT JOIN conversion_results r ON r.hash=m.raw_hash
+ LEFT JOIN conversion_jobs j ON j.hash=m.raw_hash LEFT JOIN conversion_results r ON r.hash=m.raw_hash LEFT JOIN conversion_evidence e ON e.hash=m.raw_hash
  WHERE a.expires>? AND s.enabled=1 AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.expires>?) AND m.raw_hash NOT IN (SELECT hash FROM residential_blocked) AND a.id NOT IN (SELECT identity FROM residential_blocked_identities) /* source filter */)
- SELECT id,raw_hash,kind,expires,coalesce(state,'queued'),coalesce(candidate_hash,''),coalesce(code,''),coalesce(core,'not_run'),coalesce(connection,'not_run'),coalesce(tested,0),coalesce(valid_until,0),coalesce(available,0) FROM choices WHERE choice=1`
+ SELECT family,current,id,raw_hash,kind,expires,coalesce(state,'queued'),coalesce(candidate_hash,''),coalesce(code,''),coalesce(core,'not_run'),coalesce(connection,'not_run'),coalesce(tested,0),coalesce(valid_until,0),coalesce(available,0) FROM choices WHERE choice=1`
 
 type conversionQuerier interface {
 	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
@@ -73,7 +75,7 @@ func querySourceConversions(ctx context.Context, db conversionQuerier, source st
 	out := []Conversion{}
 	for rows.Next() {
 		var c Conversion
-		if e = rows.Scan(&c.ID, &c.Hash, &c.Kind, &c.Expires, &c.State, &c.CandidateHash, &c.Code, &c.Core, &c.Connection, &c.Tested, &c.ValidUntil, &c.Available); e != nil {
+		if e = rows.Scan(&c.Family, &c.Current, &c.ID, &c.Hash, &c.Kind, &c.Expires, &c.State, &c.CandidateHash, &c.Code, &c.Core, &c.Connection, &c.Tested, &c.ValidUntil, &c.Available); e != nil {
 			return nil, e
 		}
 		out = append(out, c)
@@ -104,6 +106,56 @@ type conversionModule struct{ s *Server }
 
 func (m conversionModule) Register(mux *http.ServeMux) {
 	s := m.s
+	mux.HandleFunc("GET /api/conversion/families", func(w http.ResponseWriter, r *http.Request) {
+		entries, e := s.store.Conversions(r.Context(), 0, true)
+		if e != nil {
+			failure(w, e)
+			return
+		}
+		type family struct {
+			Name       string `json:"family"`
+			Total      int    `json:"total"`
+			Accepted   int    `json:"accepted"`
+			Rejected   int    `json:"rejected"`
+			Connected  int    `json:"connected"`
+			Pending    int    `json:"pending"`
+			Unresolved int    `json:"unresolved"`
+		}
+		counts := map[string]*family{}
+		now := time.Now().UnixMilli()
+		for _, entry := range entries {
+			name := entry.Family
+			if name == "" {
+				name = entry.Kind
+			}
+			f := counts[name]
+			if f == nil {
+				f = &family{Name: name}
+				counts[name] = f
+			}
+			f.Total++
+			if !entry.Current {
+				f.Pending++
+				continue
+			}
+			switch entry.Core {
+			case "passed":
+				f.Accepted++
+			case "failed":
+				f.Rejected++
+			default:
+				if entry.State == "queued" || entry.State == "running" {
+					f.Pending++
+				} else {
+					f.Unresolved++
+				}
+			}
+			if entry.Connection == "passed" && entry.ValidUntil > now {
+				f.Connected++
+			}
+		}
+		respond(w, 200, map[string]any{"version": convert.Version, "families": counts, "android_apk": "not_run", "sample_success_is_not_family_health": true})
+	})
 	mux.HandleFunc("GET /api/conversion/evidence/{hash}", func(w http.ResponseWriter, r *http.Request) {
 		if !validDigest(r.PathValue("hash")) {
 			failure(w, ErrInvalid)

@@ -1,3 +1,18 @@
+# Current P35 authorization and deployment — 2026-11-11
+
+The latest user authorizes outbound-only fixed redirect compatibility, replacing
+P33 local listener relays to preserve official native RealPing. No core/server
+changes or invented encryption. Read docs/checkpoints/P35-template-realping-20261111.md.
+Normalv7/Smartv11/Adsv4 and schema21 fence old final-byte evidence; source controls,
+retention, deletion journal and rotations remain intact. All unique input builds
+and up to3 live representatives per family qualify the template; individual healthy
+publication still needs its own evidence. Raw never changes. Do not overwrite
+parallel P34 acquisition work or deploy an older schema binary over schema21.
+Official targets remain v2rayNG2.3.15, bundled26.10.31 and latest26.11.9.
+Installed release p35-57a1e4adb432b7dcca5c is schema21. Exact runtime canaries,
+full release checks and native legacy delay passed; APK/carriers not_run.
+Read docs/reports/P35-report-fa.md for solved families and remaining limits.
+
 # Current P34 acquisition recovery — 2026-11-11
 
 The current user requests fixing intermittent acquisition of healthy sources.

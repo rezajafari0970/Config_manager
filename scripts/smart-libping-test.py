@@ -36,7 +36,7 @@ def serve():
    except (OSError,EOFError,AssertionError):pass
  class Server(socketserver.ThreadingTCPServer):allow_reuse_address=True;daemon_threads=True
  threading.Thread(target=ThreadingHTTPServer(('127.0.0.1',24447),HTTP).serve_forever,daemon=True).start()
- Server(('127.0.0.1',24443),Proxy).serve_forever()
+ Server(('0.0.0.0',24443),Proxy).serve_forever()
 def main():
  assert os.geteuid()==0
  request=json.load(sys.stdin);helper=pathlib.Path(request['helper']).resolve()
@@ -50,9 +50,16 @@ def main():
  relay['inbounds'].append({'tag':'fixture-relay','listen':'127.0.0.1','port':39081,'protocol':'dokodemo-door','settings':{'address':'127.0.0.1','port':24443,'network':'tcp','followRedirect':False}})
  relay['outbounds'].append({'tag':'fixture-transport','protocol':'freedom','settings':{}})
  relay['routing']['rules'].insert(0,{'type':'field','inboundTag':['fixture-relay'],'ip':['127.0.0.1'],'port':'24443','network':'tcp','outboundTag':'fixture-transport'})
+ redirect=copy.deepcopy(after)
+ first=redirect['outbounds'][0];settings=first['settings'];node=settings if 'address' in settings else settings['vnext'][0]
+ node['address']='127.0.0.1';node['port']=24443
+ first.setdefault('streamSettings',{})['sockopt']={'dialerProxy':'fixture-fixed-transport'}
+ redirect['outbounds'].append({'tag':'fixture-fixed-transport','protocol':'freedom','settings':{'redirect':'203.0.113.81:24443'}})
+ negative=copy.deepcopy(redirect);negative['outbounds'][-1]['settings']['redirect']='203.0.113.81:1'
  results={}
- for name,config in [('block_first',before),('independent_ip_first',after),('local_relay_default',relay)]:
+ for name,config in [('block_first',before),('independent_ip_first',after),('local_relay_default',relay),('outbound_redirect',redirect),('dead_redirect',negative)]:
   with lab.Sandbox(str(helper),secrets.token_hex(3),8198,prefix='cstp') as box:
+   box.net([lab.IP,'addr','add','203.0.113.81/32','dev','lo'])
    # No external DNS or Internet is permitted in this regression.
    box.net([lab.NFT,'-f','-'],input=b'flush ruleset\ntable inet guard { chain out { type filter hook output priority 0; policy drop; oifname "lo" accept; }; chain in { type filter hook input priority 0; policy drop; iifname "lo" accept; }; }\n')
    child=subprocess.Popen([lab.IP,'netns','exec',box.name,sys.executable,__file__,'--serve'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
@@ -63,7 +70,7 @@ def main():
     results[name]=result
    finally:
     child.terminate();child.wait(timeout=3)
- assert not results['block_first']['passed'] and results['independent_ip_first']['passed'] and not results['local_relay_default']['passed'],results
+ assert not results['block_first']['passed'] and results['independent_ip_first']['passed'] and not results['local_relay_default']['passed'] and results['outbound_redirect']['passed'] and not results['dead_redirect']['passed'],results
  print(json.dumps({'passed':True,'lib':'v40','android_apk':'not_run','results':results}))
 if __name__=='__main__':
  if '--serve' in sys.argv:serve()

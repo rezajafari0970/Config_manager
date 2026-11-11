@@ -533,7 +533,7 @@ func vmess(s string) (M, error) {
 		return nil, e
 	}
 	for k := range m {
-		if !strings.Contains(" v ps add port id aid scy net type host path tls sni fp alpn insecure vcn pcs ", " "+k+" ") {
+		if !strings.Contains(" v ps add port id aid scy net type host path tls sni fp alpn insecure vcn pcs skip-cert-verify name test_name ", " "+k+" ") {
 			return nil, errors.New("unknown_vmess_field")
 		}
 	}
@@ -550,6 +550,30 @@ func vmess(s string) (M, error) {
 	q := url.Values{}
 	for from, to := range map[string]string{"net": "type", "type": "headerType", "host": "host", "path": "path", "tls": "security", "sni": "sni", "fp": "fp", "alpn": "alpn", "insecure": "insecure", "vcn": "vcn", "pcs": "pcs"} {
 		q.Set(to, str(m, from))
+	}
+	// Known subscription spelling; do not silently discard certificate policy.
+	if raw, exists := m["skip-cert-verify"]; exists {
+		normalize := func(v any) (string, bool) {
+			switch fmt.Sprint(v) {
+			case "false", "0":
+				return "false", true
+			case "true", "1":
+				return "true", true
+			default:
+				return "", false
+			}
+		}
+		v, ok := normalize(raw)
+		if !ok {
+			return nil, errors.New("invalid_vmess_certificate_policy")
+		}
+		if original, exists := m["insecure"]; exists {
+			other, valid := normalize(original)
+			if !valid || other != v {
+				return nil, errors.New("ambiguous_vmess_certificate_policy")
+			}
+		}
+		q.Set("insecure", v)
 	}
 	if q.Get("type") == "grpc" {
 		q.Set("mode", str(m, "type"))

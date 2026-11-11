@@ -13,7 +13,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 )
 
-const AdsVersion = "xray-26.11.9.smart-ads.v3"
+const AdsVersion = "xray-26.11.9.smart-ads.v4"
 
 func PrepareAds(b []byte) probe.Plan {
 	p := Prepare(b)

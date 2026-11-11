@@ -54,6 +54,7 @@ def download_endpoints(stream, depth=0):
 
 def endpoints(config):
     """Never infer dial targets by recursively trusting arbitrary address keys."""
+    config=preflight.logical_for_inspection(config)
     result=[];hopping={}
     for ob in config.get('outbounds',[]):
         protocol=ob.get('protocol');s=ob.get('settings',{})
