@@ -181,16 +181,10 @@ func (s *Store) ManageConfigs(ctx context.Context, b ConfigBatch) (BatchResult, 
 	if e != nil {
 		return result, e
 	}
-	if b.Action != "delete" {
-		paused := b.Action == "disable"
-		if _, e = tx.ExecContext(ctx, `UPDATE residential_records SET paused=?,valid_until=0,state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE state END,reason='manual_enable_requires_revalidation',revision=revision+1,token='',lease_until=0,next_run=0 WHERE hash IN (SELECT hash FROM residential_owners WHERE identity IN (SELECT id FROM selected_configs))`, paused); e != nil {
-			return result, e
-		}
+	if e = s.manageEgress(ctx, tx, b.Action, b.All, stamp); e != nil {
+		return result, e
 	}
 	if b.Action == "delete" {
-		if e = s.manualResidentialDelete(ctx, tx, b.All, stamp); e != nil {
-			return result, e
-		}
 		if _, e = tx.ExecContext(ctx, "DELETE FROM artifacts WHERE id IN (SELECT id FROM selected_configs)"); e != nil {
 			return result, e
 		}

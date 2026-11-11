@@ -1,0 +1,21 @@
+[Unit]
+Description=Independent Ads egress investigation supervisor
+After=network-online.target config-repair.service
+Wants=network-online.target config-repair.service
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/config-repair/current
+ExecStart=/opt/config-repair/current/config-egress-worker
+Restart=always
+RestartSec=10
+TimeoutStopSec=40
+KillMode=control-group
+UMask=0077
+Environment=GOMEMLIMIT=128MiB
+MemoryMax=768M
+TasksMax=512
+LimitNOFILE=2048
+[Install]
+WantedBy=multi-user.target

@@ -77,12 +77,6 @@ func run() error {
 		return e
 	}
 	defer store.Close()
-	if e = store.LoadResidentialConfiguration(context.Background(), os.Getenv("SHEN_RESIDENTIAL_CONFIG")); e != nil {
-		return e
-	}
-	if e = store.PrepareResidentialServing(context.Background()); e != nil {
-		return e
-	}
 	app, e := panel.NewServer(store, c.PublicOrigin)
 	if e != nil {
 		return e

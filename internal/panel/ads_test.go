@@ -192,7 +192,7 @@ func TestAdsCacheProtectedFromBlobGC(t *testing.T) {
 
 // Historical fixtures must remove newer dependent views before rebuilding old DDL.
 func dropAdsForMigration(t *testing.T, s *Store) {
-	dropResidentialForMigration(t, s)
+	dropEgressForMigration(t, s)
 	t.Helper()
 	rows, e := s.db.Query("SELECT name FROM sqlite_master WHERE type='view' AND name GLOB 'ads_smart_*'")
 	if e != nil {

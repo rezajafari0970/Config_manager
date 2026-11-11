@@ -209,7 +209,7 @@ func TestSourceCardinalitySuppressionCannotBypassGuardOrExposeRaw(t *testing.T) 
 				for _, item := range mixed.Items[2:] {
 					var e error
 					if manual {
-						_, e = s.db.Exec("INSERT INTO residential_identity_tombstones VALUES(?,?,?,1)", item.Identity, now.UnixMilli(), item.Hash)
+						_, e = s.db.Exec("INSERT INTO input_exclusions VALUES(?,?,?,1)", item.Identity, now.UnixMilli(), item.Hash)
 					} else {
 						_, e = s.db.Exec("INSERT INTO config_controls VALUES(?,'deleted',?,?)", item.Identity, now.UnixMilli(), now.Add(time.Hour).UnixMilli())
 					}

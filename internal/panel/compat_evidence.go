@@ -70,14 +70,6 @@ func (s *Store) migrateV20() error {
 			return e
 		}
 	}
-	var inputs string
-	if e = tx.QueryRow("SELECT sql FROM sqlite_master WHERE type='view' AND name='conversion_inputs'").Scan(&inputs); e != nil {
-		return e
-	}
-	inputs += " UNION SELECT hash,kind,size FROM residential_eligible UNION SELECT hash,kind,size FROM ads_different_eligible"
-	if _, e = tx.Exec("DROP VIEW conversion_inputs;" + inputs); e != nil {
-		return e
-	}
 	if _, e = tx.Exec("PRAGMA user_version=20"); e != nil {
 		return e
 	}

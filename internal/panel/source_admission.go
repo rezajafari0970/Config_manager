@@ -37,7 +37,7 @@ func (s *Store) migrateV22() error {
 // Deferral stores the exact response but never refreshes old artifact TTLs.
 func sourceAdmission(ctx context.Context, tx *sql.Tx, source string, unique int, hash string, now time.Time) (collect.AdmissionDecision, error) {
 	var existing int
-	if e := tx.QueryRowContext(ctx, `SELECT count(*) FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=? AND a.expires>? AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='deleted' AND c.expires>?) AND NOT EXISTS(SELECT 1 FROM residential_identity_tombstones t WHERE t.identity=a.id AND t.manual=1)`, source, now.UnixMilli(), now.UnixMilli()).Scan(&existing); e != nil {
+	if e := tx.QueryRowContext(ctx, `SELECT count(*) FROM memberships m JOIN artifacts a ON a.id=m.artifact_id WHERE m.source_id=? AND a.expires>? AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='deleted' AND c.expires>?) AND NOT EXISTS(SELECT 1 FROM input_exclusions t WHERE t.identity=a.id AND t.manual=1)`, source, now.UnixMilli(), now.UnixMilli()).Scan(&existing); e != nil {
 		return collect.AdmissionDecision{}, e
 	}
 	state := collect.AdmissionState{}
@@ -78,7 +78,7 @@ func eligibleSourceItems(ctx context.Context, tx *sql.Tx, r collect.Result, toke
 	}
 	var eligible int
 	var manual bool
-	query := "WITH candidates AS (" + source + "), flags AS (SELECT EXISTS(SELECT 1 FROM residential_identity_tombstones t WHERE t.identity=c.identity AND t.manual=1) AS manual, EXISTS(SELECT 1 FROM config_controls d WHERE d.id=c.identity AND d.action='deleted' AND d.expires>?) AS deleted FROM candidates c) SELECT coalesce(sum(CASE WHEN manual=0 AND deleted=0 THEN 1 ELSE 0 END),0),coalesce(max(manual),0) FROM flags"
+	query := "WITH candidates AS (" + source + "), flags AS (SELECT EXISTS(SELECT 1 FROM input_exclusions t WHERE t.identity=c.identity AND t.manual=1) AS manual, EXISTS(SELECT 1 FROM config_controls d WHERE d.id=c.identity AND d.action='deleted' AND d.expires>?) AS deleted FROM candidates c) SELECT coalesce(sum(CASE WHEN manual=0 AND deleted=0 THEN 1 ELSE 0 END),0),coalesce(max(manual),0) FROM flags"
 	e := tx.QueryRowContext(ctx, query, arg, stamp).Scan(&eligible, &manual)
 	return eligible, manual, e
 }

@@ -23,17 +23,14 @@ import (
 )
 
 type Store struct {
-	residentialDBPath  string
-	residentialJournal string
-	db                 *sql.DB
-	readDB             *sql.DB
-	aead               cipher.AEAD
-	key                []byte
-	vault              *blob.Vault
-	probeTurn          atomic.Uint64
-	residentialTurn    atomic.Uint64
-	rotationMu         sync.Mutex
-	rotationLocks      map[string]*rotationLock
+	db            *sql.DB
+	readDB        *sql.DB
+	aead          cipher.AEAD
+	key           []byte
+	vault         *blob.Vault
+	probeTurn     atomic.Uint64
+	rotationMu    sync.Mutex
+	rotationLocks map[string]*rotationLock
 }
 
 func Open(path string, key []byte) (*Store, error) {
@@ -88,7 +85,7 @@ func Open(path string, key []byte) (*Store, error) {
 	if err = db.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
 		return nil, err
 	}
-	if version > 22 {
+	if version > 23 {
 		return nil, errors.New("database schema newer than application")
 	}
 	if version == 0 {
@@ -163,15 +160,6 @@ PRAGMA user_version=1;`)
 	if err = s.migrateV15(); err != nil {
 		return nil, err
 	}
-	if err = s.migrateV16(); err != nil {
-		return nil, err
-	}
-	if err = s.migrateV17(); err != nil {
-		return nil, err
-	}
-	if err = s.migrateV18(); err != nil {
-		return nil, err
-	}
 	if err = s.migrateV19(); err != nil {
 		return nil, err
 	}
@@ -180,9 +168,8 @@ PRAGMA user_version=1;`)
 	}
 	// Additive performance indexes are safe for schema20 readers. GC must retain
 	// the writer connection for current-reference admission, but never scan the
-	// retained residential archive or eligibility views for every encrypted blob.
+	// retained investigation archive or eligibility views for every encrypted blob.
 	for _, q := range []string{
-		"CREATE INDEX IF NOT EXISTS residential_candidate_blob ON residential_records(candidate_hash)",
 		"CREATE INDEX IF NOT EXISTS conversion_candidate_blob ON conversion_results(candidate_hash)",
 	} {
 		if _, err = s.db.Exec(q); err != nil {
@@ -195,8 +182,10 @@ PRAGMA user_version=1;`)
 	if err = s.migrateV22(); err != nil {
 		return nil, err
 	}
-	s.residentialDBPath = path
-	if err = s.initResidentialJournal(context.Background(), path); err != nil {
+	if err = s.migrateEgress(); err != nil {
+		return nil, err
+	}
+	if err = s.reconcileEgressVersion(); err != nil {
 		return nil, err
 	}
 	// Reconcile transient children left by older connections with foreign keys

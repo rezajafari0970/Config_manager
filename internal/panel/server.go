@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -103,11 +102,11 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	static, _ := fs.Sub(assets, "web")
 	files := http.StripPrefix("/assets/", http.FileServer(http.FS(static)))
-	for _, asset := range []string{"style.css", "waiting.css", "waiting.js", "residential.js", "app.js", "core.js", "poll.js", "settings-form.js", "input.js", "source-status.js", "output.js", "setting.js", "actions.js", "diagnostics.js", "smart.js", "repairs.js", "Vazirmatn.woff2"} {
+	for _, asset := range []string{"style.css", "waiting.css", "waiting.js", "egress.js", "app.js", "core.js", "poll.js", "settings-form.js", "input.js", "source-status.js", "output.js", "setting.js", "actions.js", "diagnostics.js", "smart.js", "repairs.js", "Vazirmatn.woff2"} {
 		mux.Handle("GET /assets/"+asset, files)
 	}
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
-		if s.store.Ping(r.Context()) != nil || s.store.residentialBarrier(r.Context()) != nil {
+		if s.store.Ping(r.Context()) != nil {
 			http.Error(w, "unavailable", 503)
 			return
 		}
@@ -127,7 +126,7 @@ func (s *Server) Handler() http.Handler {
 		}
 		mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "/input", 303) })
 	}
-	for _, page := range []string{"input", "output", "setting", "smart", "smart-splash", "smart-ads", "residential"} {
+	for _, page := range []string{"input", "output", "setting", "smart", "smart-splash", "smart-ads", "egress"} {
 		page := page
 		mux.HandleFunc("GET /"+page, func(w http.ResponseWriter, r *http.Request) {
 			token := s.token(r)
@@ -140,7 +139,7 @@ func (s *Server) Handler() http.Handler {
 		})
 	}
 	mux.HandleFunc("GET /api/state", s.state)
-	modules := []PanelModule{residentialModule{s}, inputModule{s}, outputModule{s}, settingModule{s}, conversionModule{s}, rotationModule{s}, sourceExportModule{s}, smartModule{s, s.store.Smart()}, smartModule{s, s.store.SplashSmart()}, smartModule{s, s.store.AdsSmart()}}
+	modules := []PanelModule{egressModule{s}, inputModule{s}, outputModule{s}, settingModule{s}, conversionModule{s}, rotationModule{s}, sourceExportModule{s}, smartModule{s, s.store.Smart()}, smartModule{s, s.store.SplashSmart()}, smartModule{s, s.store.AdsSmart()}}
 	s.modulesMu.RLock()
 	modules = append(modules, s.modules...)
 	s.modulesMu.RUnlock()
@@ -166,19 +165,6 @@ func (s *Server) Handler() http.Handler {
 		}
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Minute)
 		defer cancel()
-		if r.Method == http.MethodGet || r.Method == http.MethodHead {
-			path := r.URL.Path
-			if strings.Contains(path, "subscription/") || strings.HasPrefix(path, "/output/") || strings.HasPrefix(path, "/input/raw/") || strings.HasPrefix(path, "/smart/json/") || strings.Contains(path, "/json/") {
-				if e := s.store.residentialBarrier(ctx); e != nil {
-					http.Error(w, "revocation state unavailable", 503)
-					return
-				}
-				if !strings.HasPrefix(path, "/residential-subscription/") {
-					s.guardLegacyPublication(w, r.WithContext(ctx), mux)
-					return
-				}
-			}
-		}
 		mux.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

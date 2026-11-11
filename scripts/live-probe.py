@@ -107,7 +107,7 @@ def runtime_config(config,resolved):
 
 # Disjoint /30 blocks for simultaneous worker scopes and trusted test adapters.
 # Keep crw's existing block stable. Resource names/cleanup ownership do not change.
-SANDBOX_ADDRESS_BASES={'crw':8192,'csm':8224,'csp':8256,'ctw':8288,'cst':8320,'cpt':8352,'ctf':8384,'cstf':8416,'csrf':8448,'cstb':8480,'cstp':8512,'csa':8544,'cat':8576,'csta':8608,'crr':8640,'crt':8672}
+SANDBOX_ADDRESS_BASES={'crw':8192,'csm':8224,'csp':8256,'ctw':8288,'cst':8320,'cpt':8352,'ctf':8384,'cstf':8416,'csrf':8448,'cstb':8480,'cstp':8512,'csa':8544,'cat':8576,'csta':8608,'cge':8704,'cgt':8736}
 
 class Sandbox:
     def __init__(self, core, runid, index, prefix="crp"):

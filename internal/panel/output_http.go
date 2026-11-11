@@ -144,7 +144,7 @@ func (s *Server) rawAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer tx.Rollback()
-	if _, e = tx.ExecContext(r.Context(), "UPDATE residential_settings SET generation=generation WHERE id=1"); e != nil {
+	if _, e = tx.ExecContext(r.Context(), "UPDATE metadata SET value=value WHERE key='key-check'"); e != nil {
 		failure(w, e)
 		return
 	}
@@ -178,7 +178,7 @@ func (s *Server) rawAll(w http.ResponseWriter, r *http.Request) {
 
 // New arrivals belong to the next request. Every captured member must still
 // have the same current representation and lifetime at serialized admission.
-func rawSnapshotCurrent(ctx context.Context, q residentialQuery, members map[string]struct{}, before []byte) (bool, error) {
+func rawSnapshotCurrent(ctx context.Context, q databaseQuery, members map[string]struct{}, before []byte) (bool, error) {
 	after := sha256.New()
 	verify := json.NewEncoder(after)
 	if e := walkOutputs(ctx, q, func(a Artifact) error {

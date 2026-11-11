@@ -251,18 +251,9 @@ func (s *Store) SaveSettings(ctx context.Context, v collect.Settings) error {
 	if _, e = tx.ExecContext(ctx, "UPDATE responses SET expires=min(expires,created+?)", v.RetentionSeconds*1000); e != nil {
 		return e
 	}
-	if _, e = tx.ExecContext(ctx, "UPDATE residential_records SET retain_until=min(retain_until,first_seen+?) WHERE state!='DELETED' AND ever_accepted=0", v.RetentionSeconds*1000); e != nil {
-		return e
-	}
-	if e = s.expireResidential(ctx, tx, time.Now().UnixMilli()); e != nil {
-		return e
-	}
 	return tx.Commit()
 }
 func (s *Store) Recover(ctx context.Context) error {
-	if e := s.recoverResidential(ctx); e != nil {
-		return e
-	}
 	if _, e := s.db.ExecContext(ctx, "DELETE FROM staged"); e != nil {
 		return e
 	}
@@ -383,7 +374,7 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 	newCount := 0
 	duplicates := max(0, result.Extracted-len(result.Items))
 	suppressed := 0
-	residentialSuppressed := false
+	globallySuppressed := false
 	var stagedCount int
 	if result.Staged {
 		if e = tx.QueryRowContext(ctx, "SELECT count(*) FROM staged WHERE token=?", job.Token).Scan(&stagedCount); e != nil {
@@ -403,7 +394,7 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 		if err != nil {
 			return err
 		}
-		residentialSuppressed = manual
+		globallySuppressed = manual
 		admission, err := sourceAdmission(ctx, tx, job.ID, eligible, result.Raw.Hash, now)
 		if err != nil {
 			return err
@@ -424,12 +415,12 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 		}
 		for _, item := range result.Items {
 			var manual bool
-			if e = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM residential_identity_tombstones WHERE identity=? AND manual=1)", item.Identity).Scan(&manual); e != nil {
+			if e = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM input_exclusions WHERE identity=? AND manual=1)", item.Identity).Scan(&manual); e != nil {
 				return e
 			}
 			if manual {
 				suppressed++
-				residentialSuppressed = true
+				globallySuppressed = true
 				continue
 			}
 			if e = saveRepair(ctx, tx, item); e != nil {
@@ -473,13 +464,13 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 		}
 	}
 	if result.State == "updated" && result.Staged && stagedCount > 0 {
-		res, err := tx.ExecContext(ctx, "INSERT INTO artifacts(id,hash,kind,size,created,expires,quality) SELECT identity,hash,kind,size,?,?,quality FROM staged WHERE token=? AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=staged.identity AND c.action='deleted' AND c.expires>?) AND NOT EXISTS(SELECT 1 FROM residential_identity_tombstones t WHERE t.identity=staged.identity AND t.manual=1) ON CONFLICT(id) DO NOTHING", stamp, expiry, job.Token, stamp)
+		res, err := tx.ExecContext(ctx, "INSERT INTO artifacts(id,hash,kind,size,created,expires,quality) SELECT identity,hash,kind,size,?,?,quality FROM staged WHERE token=? AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=staged.identity AND c.action='deleted' AND c.expires>?) AND NOT EXISTS(SELECT 1 FROM input_exclusions t WHERE t.identity=staged.identity AND t.manual=1) ON CONFLICT(id) DO NOTHING", stamp, expiry, job.Token, stamp)
 		if err != nil {
 			return err
 		}
 		inserted, _ := res.RowsAffected()
 		newCount += int(inserted)
-		if e = tx.QueryRowContext(ctx, "SELECT count(*) FROM staged t WHERE t.token=? AND (EXISTS(SELECT 1 FROM config_controls c WHERE c.id=t.identity AND c.action='deleted' AND c.expires>?) OR EXISTS(SELECT 1 FROM residential_identity_tombstones r WHERE r.identity=t.identity AND r.manual=1))", job.Token, stamp).Scan(&suppressed); e != nil {
+		if e = tx.QueryRowContext(ctx, "SELECT count(*) FROM staged t WHERE t.token=? AND (EXISTS(SELECT 1 FROM config_controls c WHERE c.id=t.identity AND c.action='deleted' AND c.expires>?) OR EXISTS(SELECT 1 FROM input_exclusions r WHERE r.identity=t.identity AND r.manual=1))", job.Token, stamp).Scan(&suppressed); e != nil {
 			return e
 		}
 		duplicates = result.Extracted - int(inserted) - suppressed
@@ -491,11 +482,11 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 		}
 	}
 	if result.Staged {
-		if e = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM staged t JOIN residential_identity_tombstones r ON r.identity=t.identity WHERE t.token=? AND r.manual=1)", job.Token).Scan(&residentialSuppressed); e != nil {
+		if e = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM staged t JOIN input_exclusions r ON r.identity=t.identity WHERE t.token=? AND r.manual=1)", job.Token).Scan(&globallySuppressed); e != nil {
 			return e
 		}
 	}
-	if residentialSuppressed {
+	if globallySuppressed {
 		if _, e = tx.ExecContext(ctx, "DELETE FROM responses WHERE source_id=?", job.ID); e != nil {
 			return e
 		}
@@ -576,7 +567,7 @@ func (s *Store) Expire(ctx context.Context, now time.Time) error {
 		return e
 	}
 	defer tx.Rollback()
-	if e = s.expireResidential(ctx, tx, now.UnixMilli()); e != nil {
+	if e = s.expireEgress(ctx, tx, now.UnixMilli()); e != nil {
 		return e
 	}
 	if e = queueExpiredSources(ctx, tx, now); e != nil {
@@ -614,7 +605,7 @@ func (s *Store) Expire(ctx context.Context, now time.Time) error {
 }
 func (s *Store) Referenced(ctx context.Context, hash string) (bool, error) {
 	var used bool
-	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM residential_records WHERE hash=? AND state!='DELETED' UNION ALL SELECT 1 FROM residential_records WHERE candidate_hash=? AND state!='DELETED' UNION ALL SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+") UNION ALL SELECT 1 FROM conversion_results WHERE candidate_hash=? UNION ALL SELECT 1 FROM smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM splash_smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM splash_smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM ads_smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM ads_smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER))", hash, hash, hash, hash, hash, hash, hash, hash, hash, hash, hash, hash, hash).Scan(&used)
+	e := s.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM egress_jobs WHERE hash=? AND state!='DELETED' UNION ALL SELECT 1 FROM egress_jobs WHERE candidate_hash=? AND state!='DELETED' UNION ALL SELECT 1 FROM memberships WHERE raw_hash=? UNION ALL SELECT 1 FROM responses WHERE hash=? UNION ALL SELECT 1 FROM staged WHERE hash=? UNION ALL SELECT 1 FROM repairs WHERE candidate_hash=? AND ("+repairReferences+") UNION ALL SELECT 1 FROM conversion_results WHERE candidate_hash=? UNION ALL SELECT 1 FROM smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM splash_smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM splash_smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM ads_smart_heads WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER) UNION ALL SELECT 1 FROM ads_smart_cache WHERE hash=? AND expires>CAST(unixepoch('subsec')*1000 AS INTEGER))", hash, hash, hash, hash, hash, hash, hash, hash, hash, hash, hash, hash, hash).Scan(&used)
 	return used, e
 }
 
@@ -630,7 +621,7 @@ type Artifact struct {
 	Quality  string `json:"quality"`
 }
 
-const residentialOutputGate = " AND m.raw_hash NOT IN (SELECT hash FROM residential_blocked) AND a.id NOT IN (SELECT identity FROM residential_blocked_identities) "
+const inputOutputGate = " AND m.raw_hash NOT IN (SELECT hash FROM input_blocked) AND a.id NOT IN (SELECT identity FROM input_blocked_identities) "
 
 const representativeJoin = " FROM artifacts a JOIN memberships m ON m.artifact_id=a.id AND m.source_id=(SELECT min(m2.source_id) FROM memberships m2 WHERE m2.artifact_id=a.id) "
 
@@ -639,7 +630,7 @@ func (s *Store) Outputs(ctx context.Context, kind string, page int, all bool) ([
 }
 func (s *Store) OutputsFiltered(ctx context.Context, kind, repairStatus string, page int, all bool) ([]Artifact, error) {
 	args := []any{readStamp(ctx)}
-	query := "SELECT a.id,m.raw_hash,m.kind,m.size,a.created,a.expires,(SELECT count(*) FROM memberships m3 WHERE m3.artifact_id=a.id),EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='disabled' AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)),a.quality" + representativeJoin + "WHERE a.expires>?" + residentialOutputGate
+	query := "SELECT a.id,m.raw_hash,m.kind,m.size,a.created,a.expires,(SELECT count(*) FROM memberships m3 WHERE m3.artifact_id=a.id),EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='disabled' AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)),a.quality" + representativeJoin + "WHERE a.expires>?" + inputOutputGate
 	if kind != "" {
 		query += " AND m.kind=?"
 		args = append(args, kind)
@@ -673,7 +664,7 @@ func (s *Store) OutputsFiltered(ctx context.Context, kind, repairStatus string, 
 }
 func (s *Store) Output(ctx context.Context, id string) (Artifact, error) {
 	var a Artifact
-	e := s.read(ctx).QueryRowContext(ctx, "SELECT a.id,m.raw_hash,m.kind,m.size,a.created,a.expires,EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='disabled' AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)),a.quality"+representativeJoin+"WHERE a.id=? AND a.expires>?"+residentialOutputGate, id, readStamp(ctx)).Scan(&a.ID, &a.Hash, &a.Kind, &a.Size, &a.Created, &a.Expires, &a.Disabled, &a.Quality)
+	e := s.read(ctx).QueryRowContext(ctx, "SELECT a.id,m.raw_hash,m.kind,m.size,a.created,a.expires,EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='disabled' AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)),a.quality"+representativeJoin+"WHERE a.id=? AND a.expires>?"+inputOutputGate, id, readStamp(ctx)).Scan(&a.ID, &a.Hash, &a.Kind, &a.Size, &a.Created, &a.Expires, &a.Disabled, &a.Quality)
 	if errors.Is(e, sql.ErrNoRows) {
 		e = ErrNotFound
 	}
@@ -681,7 +672,7 @@ func (s *Store) Output(ctx context.Context, id string) (Artifact, error) {
 }
 func (s *Store) Response(ctx context.Context, id string) (blob.Ref, error) {
 	var ref blob.Ref
-	e := s.read(ctx).QueryRowContext(ctx, "SELECT hash,size FROM responses WHERE source_id=? AND expires>? AND NOT EXISTS(SELECT 1 FROM memberships m WHERE m.source_id=responses.source_id AND (m.raw_hash IN (SELECT hash FROM residential_blocked) OR m.artifact_id IN (SELECT identity FROM residential_blocked_identities)))", id, readStamp(ctx)).Scan(&ref.Hash, &ref.Size)
+	e := s.read(ctx).QueryRowContext(ctx, "SELECT hash,size FROM responses WHERE source_id=? AND expires>? AND NOT EXISTS(SELECT 1 FROM memberships m WHERE m.source_id=responses.source_id AND (m.raw_hash IN (SELECT hash FROM input_blocked) OR m.artifact_id IN (SELECT identity FROM input_blocked_identities)))", id, readStamp(ctx)).Scan(&ref.Hash, &ref.Size)
 	if errors.Is(e, sql.ErrNoRows) {
 		e = ErrNotFound
 	}
@@ -760,8 +751,8 @@ func (s *Store) StageBatch(ctx context.Context, job collect.Job, items []collect
 func (s *Store) WalkOutputs(ctx context.Context, visit func(Artifact) error) error {
 	return walkOutputs(ctx, s.read(ctx), visit)
 }
-func walkOutputs(ctx context.Context, q residentialQuery, visit func(Artifact) error) error {
-	rows, e := q.QueryContext(ctx, "SELECT a.id,m.raw_hash,m.kind,m.size,a.created,a.expires"+representativeJoin+"WHERE a.expires>?"+residentialOutputGate+" AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='disabled' AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)) ORDER BY a.created DESC,a.id", time.Now().UnixMilli())
+func walkOutputs(ctx context.Context, q databaseQuery, visit func(Artifact) error) error {
+	rows, e := q.QueryContext(ctx, "SELECT a.id,m.raw_hash,m.kind,m.size,a.created,a.expires"+representativeJoin+"WHERE a.expires>?"+inputOutputGate+" AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.action='disabled' AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)) ORDER BY a.created DESC,a.id", time.Now().UnixMilli())
 	if e != nil {
 		return e
 	}

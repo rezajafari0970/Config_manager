@@ -1,3 +1,34 @@
+# P39: independent Ads egress replacement — 2026-11-11
+
+Activated p39-ebd1c323ba6e0e2d4879, schema23. Full release checks passed,
+including419.188s panel race suite and fresh two-slot SIGKILL recovery. All six
+services are active and their running executable hashes match. The cutover seeded
+724 raw inputs from33 sources; ongoing acquisitions are also registered. Initial
+readback showed zero eligible members; never describe pending inputs as classified.
+
+
+The latest user explicitly requested complete retirement and rebuilding of the
+Residential feature. Legacy implementation, worker, UI, API handlers, queues,
+classification policies, attestations and historical feature documents are removed.
+Do not resurrect the old engine or treat previous MO/ASN observations as proof.
+
+Read docs/EGRESS.md and docs/checkpoints/P39-egress-rebuild-20261111.md.
+Schema23 replaces the old subsystem and preserves the published schema22 source
+admission fix from c88a43f. Never run a pre23 binary against the new database.
+Deployment must hold /var/lock/config-repair-deploy.lock and preserve a matching
+stopped database/blob/key/binary backup. All unrelated services and source settings
+must survive. Source branch remains go/v2rayng-2.3.6; never force-push.
+
+Evidence is explicitly finite: authenticated Ads TLS peer reports an IP in an
+undocumented diagnostic response on the same stream. A second HTTP authority may
+not match the certificate, which is recorded. This is not a signed observation of
+all real ad requests. Only explicit, fresh Proxycheck v3 Residential classification
+can qualify that observed IP; never substitute ASN, country or normal IP echoes.
+No promise of 100% coverage, all Google categories, UDP/QUIC, Android or carriers.
+Accepted entries are retention-exempt but publication requires fresh proof. Unknown
+quarantines; three spaced credible negatives plus outage guard revoke globally.
+Keep immutable raw bytes, strict TLS, bounded netns sandboxing and core pins.
+
 ## P36 current video follow-up — 2026-11-11
 
 Published P35 and P37 fixes are preserved. Shared HTTP framing recovery, closed share
@@ -6,33 +37,6 @@ See docs/reports/P36-report-fa.md, docs/reports/P36-validation.json and the P36
 checkpoint. Installation/publication identity is in private .local/p36-* receipts.
 Do not resurrect expired snapshot records or relabel actual server/IPv6/QUIC
 failures as healthy. Runtime source and canonical rebuild must match deployment.
-
-# Current P37 residential assessment deployment — 2026-11-11
-
-Installed release: p37-939e1eb750913ba8a2bb, on the deployed P36 code base95d579f,
-schema21. Read docs/checkpoints/P37-residential-coverage-20261111.md and
- docs/reports/P37-residential-report-fa.md; private p37-* receipts separate source,
-full tests, runtime hashes and production verification.
-
-First assessments precede unqualified retries; accepted revalidation priority
-remains. Unsupported reports use their independent Residential plan identity.
-Framed 3xx Ads replies can retain the same TLS stream without following Location;
-second-authority/semantics failures remain candidate-only and never Residential.
-The Go publication core26.11.9 was already admitted; do NOT repeat the corrected
-initial claim that its identity caused current HTTP400 failures.
-
-Full isolated Go1.27.1 race/vet/build and Python/JS checks passed. Worker SIGKILL
-recovery completed7/7 inputs (4live,3synthetic), max2 active,190.38s; all uncertain
-exports503. Mobile390/desktop1440 browser tests passed. The initial Stockholm
-canary currently timed out (60Ads samples,0candidates,0passed controls), so no MO
-or residential claim is refreshed. Android/carrier tests were not run.
-
-All33 sources preserved; all707 distinct current acquired raws had Residential
-records at the activation snapshot. Queue9679 /9411 awaiting assessment: not all
-inputs have been assessed. Trusted egress observer and specialist providers are
-absent; verified Residential and ADS_DIFFERENT both0. Unknown is not Datacenter.
-Keep strict publication/retention/tombstone contracts; never rewind the external
-revocation journal. No schema migration or trust override was performed.
 
 # Current P35 deployment — shared outbound-only templates
 
@@ -149,14 +153,6 @@ Android app, carrier connectivity and live QUIC handshakes remain not_run.
 
 # Current P31 handoff — 2026-11-10
 
-The current implementation separates observed Ads routing from network type.
-ADS_DIFFERENT is scoped to repeated, attributable differences with stable paired
-independent controls in both raw/template. Residential still requires specialty
-exact-IP evidence plus independent confirmation and complete configured scope.
-Existing verified-Residential links retain their meaning; the new Ads-difference
-triplet appears beside them. Each triplet shares membership/generation, persistent
-per-link rotation and transactional revocation fencing.
-
 Accepted entries are age-exempt again under the latest user instruction. Pending
 first assessments survive ordinary TTL/source deletion; unqualified assessed
 records retain ordinary TTL. Evidence expires separately (600s, retest300s).
@@ -164,21 +160,7 @@ Migration18 requeues/fences old policy evidence and preserves current controls.
 Read docs/checkpoints/P31-ads-route-20261110.md and docs/reports/P31-report-fa.md;
 PROJECT_STATE.json and .local/p31-deployed.json identify actual runtime status.
 
-New native TUIC/Hysteria driver uses pinned sing-box1.14.4. Both native variants
-have synthetic TLS-valid TCP/UDP round-trip and failed-upstream block tests.
-This is not Google QUIC, Android, carrier, live Residential or universal protocol
-coverage. Unknown extensions, forcedIPv6 and complex selectable paths stay
-explicitly incomplete. No authorized observer or specialist classification has
-been invented. Real queue coverage is not a claim that every queued test finished.
-
 # Current P30 handoff — 2026-11-10
-
-Nine user inputs were tested against three official checksum-verified Xray cores.
-Only samples3/4 had healthy raw AND template connectivity (26.5.9). Plain VLESS
-is rejected by26.11.9;26.7.28 rejects their raw URI import but accepts the template.
-Samples1/2 fail REALITY authentication on all three; samples5–9 have no verified
-connection in these trials. The sample6 ALPN hypothesis also failed and was not
-adopted. No sample has proven Residential Ads egress. Metadata is not a classifier.
 
 P30 also permits unrelated raw-export arrivals while fencing invalidated captured members.
 P30 adds the adaptive multi-core driver, bounded cancellation/cleanup/parent
@@ -194,30 +176,6 @@ revocation journal must never be rolled back. Canonical branch remains
 
 # Current handoff — P29 fixed lifetime and diagnostics
 
-P29 supersedes earlier P28 lifetime/raw-format notes. Read AGENTS.md,
-docs/RESIDENTIAL.md, PROJECT_STATE.json and the P29 checkpoint. Schema17 is live;
-all29sources and other settings preserved. Shared retention and ordinary health
-cache are36,000s each, panel-configurable; Ads evidence600s/retest300s independent.
-Existing generations and old health proofs are not retroactively renewed.
-
-Release: /opt/config-repair/releases/p29-2f64c060f235239d875f. All six services active/enabled and
-actual executable hashes verified. Public mobile/desktop checks passed. Raw ZIP
-has been replaced by inline raw.txt in both residential and all-source outputs.
-The direct all-source raw link is /output/raw.txt; it makes no health/residential
-claim. Residential links remain at /residential with actual eligibility counts.
-
-Diagnostics expose same-connection candidate IPs, repeated same-family control
-comparisons, rotation and independently corroborated ASN/country metadata. These
-never grant residential acceptance or deletion. Raw structural imports are
-recorded; immutable originals preserved. Direct-first fallback coverage corrected.
-
-Current live residential proof is still incomplete: no authorized flow observer
-or specialist+independent classifier configured, and no complete forcedIPv6,
-UDP/QUIC/balancer-path method. All three full-scope outputs currently503/count0.
-This is not evidence that no residential config exists. The queue continues for
-every input; at04:14:55UTC it held2622records,1070assessed/1552awaiting first test.
-Do not call this all-config completion or claim ground-truth accuracy.
-
 All final checks, five worker recoveries, schema migration, concurrency/expiry/
 raw bytes and browser/restart passed; no actual Android/carrier or10h wall-clock
 soak. P29 API review:gpt-6-astra completed, estimated$0.163855; one finding fixed.
@@ -227,18 +185,6 @@ The external revocation journal must never roll back; schema16 runtime cannot
 open schema17. Preserve matching backup and fix forward on migration problems.
 
 ---
-
-# Current handoff — P28 residential Google Ads
-
-Read AGENTS.md, docs/RESIDENTIAL.md, docs/checkpoints/P28-residential-20261110.md and PROJECT_STATE.json first. All later historical sections below are superseded where P28 says so.
-
-P28 is deployed with schema16 and six active/enabled services. Final release is /opt/config-repair/releases/p28-d5c9dc60e5946dfd03fb-r2. All29sources and existing settings were preserved. The residential queue covers every current input membership and has independent retained raw/template references, expiring evidence, fair bounded workers, quarantine, confirmed deletion, external authenticated tombstones and three common-generation exports at /residential. Full technical/test details and runtime hashes are in the checkpoint. Private receipts are in /root/projects/config-manager-production-p28/.local; final source publication/readback is p28-published.json. Canonical repository remains /root/projects/v2ray-config-repair, branch go/v2rayng-2.3.6; never touch legacy main.
-
-**Live evidence remains incomplete.** There is no configured authorized flow observer or specialist exact-IP provider. The native screen is TCP with two controls and repeated safe requests. Unverified same-TLS diagnostic candidates remain UNKNOWN. Forced IPv6, UDP/QUIC and complete multi-path drivers are not supplied. Default full coverage is closed: at the documented snapshot all three outputs correctly returned503/count0. Do not invent trust entries, narrow the policy silently, or relabel ASN differences as residential. Next work needs real authorized observer/provider access and separately verified transport/path drivers.
-
-The accepted-residential retention exception supersedes the old fixed-age rule only for its independent records. Evidence TTL600s and recheck300s are separate and configurable. /var/lib/shen-residential-revocations is outside the regular backup tree and must never be rolled back with the database. Schema15 rollback is invalid. Startup invalidates prior proofs before listeners; stale jobs/manual aliases cannot restore a tombstoned member. Private model reviews used gpt-6-astra; total estimated cost $1.30336, two usable reviews and one incomplete attempt. No runtime AI dependency.
-
-Final tests include full check/race/vet/build/pinned traffic, all five worker recoveries, lifecycle/retention/atomic export/journal regressions, synthetic mobile/desktop browser, and read-only public browser. R2 only fixes unnecessary generation invalidation from initial UNKNOWN results and has its own Residential race pass. No Android, Iran-carrier or live residential ground-truth accuracy claim.
 
 ---
 
@@ -429,12 +375,6 @@ P27 final acceptance: all code/race/build checks and15probe regressions passed; 
 
 
 ## P32 verified release
-
-Mandatory ordinary/Smart/Splash/Ads compatibility on checksum-pinned Xray26.11.9
-is deployed with schema19 and ordinaryv5/Smartv9/Adsv2. All six services were
-verified against running executable hashes. A stopped-service matched backup
-was taken before migration; sources, settings, rotations and Residential policy
-were preserved, and the external revocation journal was not rewound.
 
 Full race/vet/build/Python/JavaScript checks,11 real core cases, the user's supplied
 config reproduction, actual DB migration rehearsal, controlled traffic and all

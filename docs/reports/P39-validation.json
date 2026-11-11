@@ -1,0 +1,134 @@
+{
+  "phase": "P39",
+  "user_requested_full_replacement": true,
+  "rehearsal": {
+    "sources": 33,
+    "memberships": 819,
+    "new_queue": 715,
+    "legacy_objects": 0,
+    "schema": 23
+  },
+  "worker": {
+    "directory": "/tmp/shen-egress-p39-worker-88952791",
+    "passed": true,
+    "total": 5,
+    "tested": 5,
+    "max_active": 2,
+    "states": {
+      "NON_RESIDENTIAL": 3,
+      "UNKNOWN": 2
+    },
+    "crash_recovered": true,
+    "seconds": 136.19,
+    "live_inputs": 3
+  },
+  "live_observations": [
+    {
+      "state": "NON_RESIDENTIAL",
+      "route": "OVERLAP",
+      "scope": "three explicit DoubleClick domains; TCP; observed IP family; raw and template; peer-reported",
+      "samples": 42,
+      "facts": [
+        {
+          "ip": "2600:1f16:b3b:b000:d6b0:c33:93dc:251e",
+          "provider": "proxycheck-v3",
+          "class": "Hosting",
+          "asn": "AS16509",
+          "country": "US",
+          "at": 1794372572616,
+          "expires": 1794376172616,
+          "digest": "5607a24d00d8042c7aff2293c4cee85593c6338fa3cb3c9fc01d979a84e96cc2",
+          "code": "explicit_network_type"
+        }
+      ]
+    },
+    {
+      "state": "NON_RESIDENTIAL",
+      "route": "OVERLAP",
+      "scope": "three explicit DoubleClick domains; TCP; observed IP family; raw and template; peer-reported",
+      "samples": 42,
+      "facts": [
+        {
+          "ip": "2a01:7e04::2000:7fff:fef4:444",
+          "provider": "proxycheck-v3",
+          "class": "Hosting",
+          "asn": "AS63949",
+          "country": "US",
+          "at": 1794372574259,
+          "expires": 1794376174259,
+          "digest": "da9046b2a283d5356d2167c658f7582d0e55a173db35341f2975b2694f48caf1",
+          "code": "explicit_network_type"
+        }
+      ]
+    },
+    {
+      "state": "NON_RESIDENTIAL",
+      "route": "OVERLAP",
+      "scope": "three explicit DoubleClick domains; TCP; observed IP family; raw and template; peer-reported",
+      "samples": 42,
+      "facts": [
+        {
+          "ip": "2a03:b0c0:1:e0:0:1:f704:f001",
+          "provider": "proxycheck-v3",
+          "class": "Hosting",
+          "asn": "AS14061",
+          "country": "GB",
+          "at": 1794372583181,
+          "expires": 1794376183181,
+          "digest": "196f1d0161c6423f8acee34ca669b4bd072023a3f035c0aaebc800ab6a93a983",
+          "code": "explicit_network_type"
+        }
+      ]
+    }
+  ],
+  "original_stockholm_canary": {
+    "cores": 3,
+    "requests": 90,
+    "echoes": 0,
+    "result": "timeout; no MO or Residential finding"
+  },
+  "limitations": [
+    "finite TCP domain/IP-family scope",
+    "peer-reported undocumented Google response",
+    "network type is provider classification",
+    "no 100% guarantee",
+    "IPv6-only ingress and ambiguous multipath remain unqualified",
+    "Android and carrier tests not run"
+  ],
+  "release_checks": "passed: module verification, vet, full Go race tests, all six builds, Python and JavaScript contracts",
+  "activation": {
+    "release": "/opt/config-repair/releases/p39-ebd1c323ba6e0e2d4879",
+    "initial_raws": 724,
+    "sources": 33,
+    "schema": 23,
+    "legacy_objects": 0,
+    "unregistered_current_inputs": 0,
+    "services_active": 6,
+    "panel_sha256": "ebd1c323ba6e0e2d4879acdf18cef079b4faf848aecf7e66abc9d222d76df533",
+    "worker_sha256": "2ecda7184baee882b200624553ec3b1341bca79fdeb99da003e0194e6f4f3699"
+  },
+  "initial_live_readback": {
+    "schema": 23,
+    "sources": 33,
+    "current_raws": 724,
+    "unregistered_raws": 0,
+    "old_objects": 0,
+    "old_references": 0,
+    "total": 776,
+    "pending": 764,
+    "eligible": 0,
+    "counts": {
+      "NON_RESIDENTIAL": 8,
+      "PENDING": 764,
+      "UNKNOWN": 3,
+      "UNSUPPORTED": 1
+    },
+    "at": 1794372897952,
+    "exports": {
+      "configs.json": 503,
+      "configs.jsonl": 503,
+      "next.json": 503,
+      "raw.txt": 503
+    }
+  }
+}

@@ -29,4 +29,6 @@
 
 .source-name .splash-toggle{display:block;margin-block-start:8px;margin-inline-start:0}
 
-#res-policy{overflow:auto;max-width:100%;font-size:12px}#res-generation{overflow-wrap:anywhere}#res-list .config-card{padding:18px;border:1px solid var(--line);border-radius:12px;margin:12px 0;overflow-wrap:anywhere}#res-list p{font-size:12px;line-height:1.8}
+#egress-list .config-card{padding:18px;border:1px solid var(--line);border-radius:12px;margin:12px 0;min-width:0;overflow-wrap:anywhere}#egress-list pre{overflow:auto;max-width:100%;max-height:400px;font-size:11px;white-space:pre}#egress-worker{overflow-wrap:anywhere}
+
+body[data-page="egress"] #stat-retention{font-size:17px;white-space:normal;line-height:1.5}body[data-page="egress"] .page-heading>div{min-width:0}body[data-page="egress"] #page-title{overflow-wrap:anywhere}

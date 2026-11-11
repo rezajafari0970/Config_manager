@@ -40,7 +40,7 @@ const conversionQuery = `WITH choices AS (
  row_number() OVER(PARTITION BY a.id ORDER BY (r.core='passed' AND r.version=? AND (r.connection='passed' AND r.valid_until>?)) DESC,(r.connection='passed') DESC,r.tested DESC,m.raw_hash) AS choice
  FROM memberships m JOIN artifacts a ON a.id=m.artifact_id JOIN sources s ON s.id=m.source_id
  LEFT JOIN conversion_jobs j ON j.hash=m.raw_hash LEFT JOIN conversion_results r ON r.hash=m.raw_hash LEFT JOIN conversion_evidence e ON e.hash=m.raw_hash
- WHERE a.expires>? AND s.enabled=1 AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.expires>?) AND m.raw_hash NOT IN (SELECT hash FROM residential_blocked) AND a.id NOT IN (SELECT identity FROM residential_blocked_identities) /* source filter */)
+ WHERE a.expires>? AND s.enabled=1 AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.expires>?) AND m.raw_hash NOT IN (SELECT hash FROM input_blocked) AND a.id NOT IN (SELECT identity FROM input_blocked_identities) /* source filter */)
  SELECT family,current,id,raw_hash,kind,expires,coalesce(state,'queued'),coalesce(candidate_hash,''),coalesce(code,''),coalesce(core,'not_run'),coalesce(connection,'not_run'),coalesce(tested,0),coalesce(valid_until,0),coalesce(available,0) FROM choices WHERE choice=1`
 
 type conversionQuerier interface {
@@ -322,7 +322,7 @@ func (s *Server) writeJSONLines(w http.ResponseWriter, r *http.Request, source s
 func (s *Store) PrivateProbeHandler() http.Handler {
 	mux := http.NewServeMux()
 	s.registerPrivateSmart(mux)
-	s.registerPrivateResidential(mux)
+	s.registerPrivateEgress(mux)
 	mux.HandleFunc("POST /claim", func(w http.ResponseWriter, r *http.Request) {
 		j, e := s.ClaimProbe(r.Context())
 		if e != nil {
