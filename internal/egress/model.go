@@ -1,5 +1,5 @@
 // Package egress owns the new, finite-observation Ads investigation contract.
-// A peer-reported egress and a provider's network class are separate assertions.
+// Residential is the project label for a repeatedly observed dedicated Ads egress.
 package egress
 
 import (
@@ -9,12 +9,12 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/compat"
 	"github.com/rezajafari0970/Config_manager/internal/convert"
 	"github.com/rezajafari0970/Config_manager/internal/probe"
-	"net/netip"
+
 	"sort"
 	"time"
 )
 
-const Version = "ads-egress.v4"
+const Version = "ads-egress.v5"
 
 // Keep slots within the dedicated 32-address sandbox block.
 const MaxWorkers = 31
@@ -159,7 +159,7 @@ type Sample struct {
 	Domain              string `json:"domain"`
 	Wave                int    `json:"wave"`
 	At                  int64  `json:"at"`
-	IP                  string `json:"ip"`
+	Source              string `json:"source"`
 	Family              int    `json:"family"`
 	Transport           string `json:"transport"`
 	Nonce               string `json:"nonce"`
@@ -175,17 +175,6 @@ type Sample struct {
 	EchoStatus          int    `json:"echo_status"`
 	DiagnosticAuthority bool   `json:"diagnostic_authority"`
 }
-type Fact struct {
-	IP       string `json:"ip"`
-	Provider string `json:"provider"`
-	Class    string `json:"class"`
-	ASN      string `json:"asn"`
-	Country  string `json:"country"`
-	At       int64  `json:"at"`
-	Expires  int64  `json:"expires"`
-	Digest   string `json:"digest"`
-	Code     string `json:"code"`
-}
 type Check struct {
 	Name        string `json:"name"`
 	Hash        string `json:"hash"`
@@ -200,43 +189,41 @@ type Attempt struct {
 	Stages map[string]float64 `json:"stages,omitempty"`
 }
 type Report struct {
-	Version        string         `json:"version"`
-	Hash           string         `json:"hash"`
-	Started        int64          `json:"started"`
-	Finished       int64          `json:"finished"`
-	Core           string         `json:"core"`
-	CoreSHA        string         `json:"core_sha"`
-	Infrastructure bool           `json:"infrastructure"`
-	Code           string         `json:"code"`
-	Checks         []Check        `json:"checks"`
-	Samples        []Sample       `json:"samples"`
-	Facts          []Fact         `json:"facts"`
-	Attempts       []Attempt      `json:"attempts"`
-	WallMS         float64        `json:"wall_ms"`
-	Classifier     map[string]any `json:"classifier,omitempty"`
+	Version        string    `json:"version"`
+	Hash           string    `json:"hash"`
+	Started        int64     `json:"started"`
+	Finished       int64     `json:"finished"`
+	Core           string    `json:"core"`
+	CoreSHA        string    `json:"core_sha"`
+	Infrastructure bool      `json:"infrastructure"`
+	Code           string    `json:"code"`
+	Checks         []Check   `json:"checks"`
+	Samples        []Sample  `json:"samples"`
+	Attempts       []Attempt `json:"attempts"`
+	WallMS         float64   `json:"wall_ms"`
+	Waves          int       `json:"waves"`
 }
 type Completion struct {
 	Job    Job    `json:"job"`
 	Report Report `json:"report"`
 }
 type Decision struct {
-	State           string         `json:"state"`
-	Reason          string         `json:"reason"`
-	Route           string         `json:"route"`
-	Network         string         `json:"network"`
-	ObservedClasses map[string]int `json:"observed_classes,omitempty"`
-	Scope           string         `json:"scope"`
-	IPs             []string       `json:"ips"`
-	ControlIPs      []string       `json:"control_ips"`
-	Eligible        bool           `json:"eligible"`
-	Negative        bool           `json:"negative"`
-	Until           int64          `json:"until"`
-	Missing         int            `json:"missing"`
+	State          string   `json:"state"`
+	Reason         string   `json:"reason"`
+	Route          string   `json:"route"`
+	Scope          string   `json:"scope"`
+	Sources        []string `json:"sources"`
+	ControlSources []string `json:"control_sources"`
+	Eligible       bool     `json:"eligible"`
+	Negative       bool     `json:"negative"`
+	Until          int64    `json:"until"`
+	Missing        int      `json:"missing"`
 }
 
-func canonical(ip string) (netip.Addr, bool) {
-	a, e := netip.ParseAddr(ip)
-	return a.Unmap(), e == nil && a.IsGlobalUnicast() && !a.IsPrivate() && !a.IsLoopback() && !a.IsLinkLocalUnicast()
+// Sources are job-local HMACs. The random key and plaintext IP never leave the helper.
+func validSource(s Sample, r Report) bool {
+	b, err := hex.DecodeString(s.Source)
+	return err == nil && len(b) == 32 && (s.Family == 4 || s.Family == 6) && s.TLS && s.SameStream && s.Echo && s.Transport == "tcp" && len(s.Nonce) == 32 && s.Nonce == s.Connection && len(s.Certificate) == 64 && len(s.Response) == 64 && s.At >= r.Started && s.At <= r.Finished+2000
 }
 func controlGroup(domain string) string {
 	switch domain {
@@ -248,7 +235,7 @@ func controlGroup(domain string) string {
 	return ""
 }
 func Evaluate(r Report, p Plan, hash string, now int64) Decision {
-	d := Decision{State: "UNKNOWN", Reason: "incomplete_observations", Route: "UNKNOWN", Network: "Unknown", Scope: "three explicit DoubleClick domains; TCP; observed IP family; raw and template; peer-reported", IPs: []string{}, ControlIPs: []string{}}
+	d := Decision{State: "UNKNOWN", Reason: "incomplete_observations", Route: "UNKNOWN", Scope: "Project Residential = repeated Ads split egress; three DoubleClick domains; TCP; paired family; raw and template; authenticated peer report, not full hop topology or ISP class", Sources: []string{}, ControlSources: []string{}}
 	if r.Version != Version || r.Hash != hash || r.Started <= 0 || r.Started > r.Finished || r.Finished > now+2000 || r.Started < now-300000 || r.Finished < now-EvidenceTTL {
 		d.Reason = "stale_or_unbound_report"
 		return d
@@ -262,17 +249,23 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 		d.Reason = r.Code
 		return d
 	}
-	if len(r.Checks) != 2 || Cores[r.Core] == "" || Cores[r.Core] != r.CoreSHA {
+	rawOnly := r.Code == "raw_shared_egress" && len(r.Checks) == 1
+	if (!rawOnly && len(r.Checks) != 2) || Cores[r.Core] == "" || Cores[r.Core] != r.CoreSHA {
 		d.Reason = "core_evidence_missing"
 		switch r.Code {
-		case "direct_route_not_qualified", "direct_default_not_qualified", "endpoint_dns_failed", "ipv6_only_probe_pending", "core_rejected", "core_schema_mismatch", "missing_runtime_asset", "removed_allow_insecure", "unsupported_protocol_or_transport", "public_endpoint_requires_tls", "driver_subprocess_timeout", "driver_infrastructure_error":
+		case "direct_route_not_qualified", "direct_default_not_qualified", "endpoint_dns_failed", "ipv6_only_probe_pending", "core_rejected", "core_schema_mismatch", "missing_runtime_asset", "removed_allow_insecure", "unsupported_protocol_or_transport", "public_endpoint_requires_tls", "driver_subprocess_timeout", "driver_infrastructure_error", "runtime_start_failed":
 			d.Reason = r.Code
 		}
 		return d
 	}
-	for i, v := range p.Variants {
+	variants := p.Variants
+	if rawOnly {
+		variants = variants[:1]
+		d.Scope += "; raw-only shared-egress rejection"
+	}
+	for i, v := range variants {
 		c := r.Checks[i]
-		if c.Name != v.Name || c.Hash != v.Hash || !c.Core || len(c.RuntimeHash) != 64 {
+		if c.Name != v.Name || c.Hash != v.Hash || !c.Core || len(c.RuntimeHash) != 64 || p.Driver == "xray" && c.RuntimeHash != v.Hash {
 			d.Reason = "core_or_variant_failed"
 			return d
 		}
@@ -281,33 +274,49 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 		d.Reason = "multiple_or_unresolved_paths"
 		return d
 	}
-	ips := map[string]bool{}
+	if r.Waves < 2 || r.Waves > 3 {
+		d.Reason = "invalid_wave_count"
+		return d
+	}
+	adsFamilies := map[int]bool{}
+	ads := map[string]bool{}
 	controls := map[string]bool{}
+	families := map[int]map[string]bool{}
 	seen := map[string]bool{}
-	healthMissing := 0
-	adsMissing := 0
 	repeats := map[string]int{}
-	controlSuccess := 0
 	controlFailed := map[string]bool{}
-	for _, v := range []string{"raw", "template"} {
-		for wave := 1; wave <= 3; wave++ {
+	controlSuccess := 0
+	healthMissing := 0
+	ambiguous := false
+	for _, variant := range variants {
+		v := variant.Name
+		for wave := 1; wave <= r.Waves; wave++ {
 			paired := map[int]map[string]string{}
 			for _, s := range r.Samples {
-				if s.Variant != v || s.Wave != wave || controlGroup(s.Domain) == "" {
+				group := controlGroup(s.Domain)
+				if s.Variant != v || s.Wave != wave || group == "" {
 					continue
 				}
 				if s.Code == "connection_timeout" || s.Code == "socks_connect" || s.Code == "connection_failed" {
-					controlFailed[v+string(rune(wave))+s.Domain] = true
+					controlFailed[v+string(rune(wave))+group] = true
 				}
-				a, ok := canonical(s.IP)
-				if !ok || !s.TLS || !s.Echo || s.At < r.Started || s.At > r.Finished+2000 || s.Transport != "tcp" || (s.Family == 4 && !a.Is4()) || (s.Family == 6 && !a.Is6()) || s.Family != 4 && s.Family != 6 {
+				if !validSource(s, r) || seen[s.Connection] {
 					continue
 				}
+				seen[s.Connection] = true
 				controlSuccess++
 				if paired[s.Family] == nil {
 					paired[s.Family] = map[string]string{}
 				}
-				paired[s.Family][controlGroup(s.Domain)] = a.String()
+				if old := paired[s.Family][group]; old != "" && old != s.Source {
+					ambiguous = true
+				}
+				paired[s.Family][group] = s.Source
+				if families[s.Family] == nil {
+					families[s.Family] = map[string]bool{}
+				}
+				families[s.Family][s.Source] = true
+				controls[s.Source] = true
 			}
 			healthy := false
 			for _, m := range paired {
@@ -321,98 +330,69 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 			for _, domain := range Domains {
 				valid := false
 				for _, s := range r.Samples {
-					if s.Variant != v || s.Wave != wave || s.Domain != domain {
-						continue
-					}
-					a, ok := canonical(s.IP)
-					m := paired[s.Family]
-					if !ok || !s.TLS || !s.SameStream || !s.Echo || !s.ActualAds || s.Transport != "tcp" || len(s.Nonce) != 32 || s.Nonce != s.Connection || seen[s.Connection] || len(s.Certificate) != 64 || len(s.Response) != 64 || s.At < r.Started || s.At > r.Finished+2000 || len(m) != 2 {
-						continue
-					}
-					if (s.Family == 4 && !a.Is4()) || (s.Family == 6 && !a.Is6()) {
+					if s.Variant != v || s.Wave != wave || s.Domain != domain || !validSource(s, r) || !s.ActualAds || seen[s.Connection] {
 						continue
 					}
 					seen[s.Connection] = true
-					ips[a.String()] = true
-					for _, ip := range m {
-						controls[ip] = true
+					// Never ignore an observed conflicting Ads source merely because its controls failed.
+					ads[s.Source] = true
+					adsFamilies[s.Family] = true
+					if len(paired[s.Family]) == 2 {
+						valid = true
 					}
-					valid = true
-					break
 				}
 				if valid {
 					repeats[v+"|"+domain]++
-				}
-				if !valid {
-					adsMissing++
+				} else {
+					d.Missing++
 				}
 			}
 		}
 	}
-	d.Missing = adsMissing
-	for ip := range ips {
-		d.IPs = append(d.IPs, ip)
+	for x := range ads {
+		d.Sources = append(d.Sources, x)
 	}
-	for ip := range controls {
-		d.ControlIPs = append(d.ControlIPs, ip)
+	for x := range controls {
+		d.ControlSources = append(d.ControlSources, x)
 	}
-	sort.Strings(d.IPs)
-	sort.Strings(d.ControlIPs)
-	// Partial evidence is visible without qualifying the entire configuration.
-	d.ObservedClasses = map[string]int{}
-	for ip := range ips {
-		class, _ := networkFact(ip, r.Facts, now)
-		d.ObservedClasses[class]++
-	}
-	if d.ObservedClasses["Residential"] > 0 {
-		d.Network = "ResidentialObserved"
-		if d.ObservedClasses["Hosting"]+d.ObservedClasses["Wireless"]+d.ObservedClasses["Business"] > 0 {
-			d.Network = "Mixed"
-		}
-	}
-	stable := len(controls) > 0
-	byFamily := map[bool]int{}
-	for ip := range controls {
-		a, _ := canonical(ip)
-		byFamily[a.Is4()]++
-	}
-	for _, n := range byFamily {
-		if n != 1 {
+	sort.Strings(d.Sources)
+	sort.Strings(d.ControlSources)
+	stable := len(controls) > 0 && !ambiguous
+	for _, m := range families {
+		if len(m) != 1 {
 			stable = false
 		}
 	}
-	if stable && len(ips) > 0 {
+	for family := range adsFamilies {
+		if len(families[family]) != 1 {
+			stable = false
+		}
+	}
+	if stable && len(ads) > 0 {
 		d.Route = "DIFFERENT"
-		for ip := range ips {
-			if controls[ip] {
+		for x := range ads {
+			if controls[x] {
 				d.Route = "OVERLAP"
 			}
 		}
 	}
-	if healthMissing > 0 {
-		d.Reason = "controls_incomplete"
-		d.Negative = r.Infrastructure && healthMissing == 6 && controlSuccess == 0 && len(controlFailed) >= 12 && len(ips) == 0
+	repeated := true
+	for _, variant := range variants {
+		v := variant.Name
+		for _, domain := range Domains {
+			if repeats[v+"|"+domain] < 2 {
+				repeated = false
+			}
+		}
+	}
+	if !repeated {
+		d.Reason = "ads_peer_echo_incomplete"
+		if healthMissing > 0 {
+			d.Reason = "controls_incomplete"
+		}
+		d.Negative = r.Infrastructure && r.Waves == 3 && healthMissing == 6 && controlSuccess == 0 && len(controlFailed) >= 12 && len(ads) == 0
 		if d.Route == "DIFFERENT" {
 			d.Route = "PARTIAL_DIFFERENCE"
-		}
-		return d
-	}
-	if adsMissing > 0 {
-		d.Reason = "ads_peer_echo_incomplete"
-		repeated := true
-		for _, v := range []string{"raw", "template"} {
-			for _, domain := range Domains {
-				if repeats[v+"|"+domain] < 2 {
-					repeated = false
-				}
-			}
-		}
-		if d.Route == "DIFFERENT" {
-			if repeated {
-				d.State = "ADS_SPLIT"
-			} else {
-				d.Route = "PARTIAL_DIFFERENCE"
-			}
 		}
 		return d
 	}
@@ -421,61 +401,24 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 		if stable && d.Route == "OVERLAP" {
 			d.State = "NO_SPLIT"
 			d.Negative = true
-			for ip := range ips {
-				if !controls[ip] {
+			for x := range ads {
+				if !controls[x] {
 					d.State = "UNKNOWN"
 					d.Negative = false
+					d.Reason = "mixed_route_observations"
 				}
 			}
 		}
 		return d
 	}
-	allRes := true
-	allNonResidential := true
-	until := r.Finished + EvidenceTTL
-	for ip := range ips {
-		class, expires := networkFact(ip, r.Facts, now)
-		if expires > 0 && expires < until {
-			until = expires
-		}
-		allRes = allRes && class == "Residential"
-		allNonResidential = allNonResidential && (class == "Hosting" || class == "Wireless" || class == "Business")
+	if rawOnly {
+		d.Reason = "template_evidence_missing"
+		return d
 	}
-	if allRes {
-		d.State = "RESIDENTIAL"
-		d.Network = "Residential"
-		d.Eligible = true
-		d.Until = until
-		d.Reason = "authenticated_ads_peer_report_and_provider_class"
-	} else if allNonResidential {
-		d.State = "NON_RESIDENTIAL"
-		d.Network = "NonResidential"
-		d.Negative = true
-		d.Reason = "provider_non_residential"
-	} else {
-		d.State = "ADS_SPLIT"
-		d.Reason = "classification_missing_or_mixed"
-	}
+	d.State = "RESIDENTIAL"
+	d.Eligible = true
+	d.Until = r.Finished + EvidenceTTL
+	d.Reason = "repeated_ads_split_project_definition"
 	return d
-}
-func networkFact(ip string, facts []Fact, now int64) (string, int64) {
-	class := "Unknown"
-	until := int64(0)
-	seen := false
-	for _, f := range facts {
-		a, ok := canonical(f.IP)
-		if !ok || a.String() != ip || f.Provider != "proxycheck-v3" || len(f.Digest) != 64 || f.At > now+2000 || f.Expires <= now || f.At <= now-3600000 || f.Expires > f.At+3600000 {
-			continue
-		}
-		if seen && class != f.Class {
-			return "Unknown", 0
-		}
-		class = f.Class
-		seen = true
-		if until == 0 || f.Expires < until {
-			until = f.Expires
-		}
-	}
-	return class, until
 }
 func Now() int64 { return time.Now().UnixMilli() }

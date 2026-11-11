@@ -33,7 +33,7 @@ func dropEgressForMigration(t *testing.T, s *Store) {
 func syntheticEgress(j egress.Job) egress.Report {
 	p := egress.Prepare(j.Raw)
 	now := egress.Now()
-	r := egress.Report{Version: egress.Version, Hash: j.Hash, Started: now, Finished: now, Core: "xray-26.11.9", CoreSHA: egress.Cores["xray-26.11.9"], Infrastructure: true}
+	r := egress.Report{Version: egress.Version, Hash: j.Hash, Started: now, Finished: now, Core: "xray-26.11.9", CoreSHA: egress.Cores["xray-26.11.9"], Infrastructure: true, Waves: 3}
 	for _, v := range p.Variants {
 		r.Checks = append(r.Checks, egress.Check{Name: v.Name, Hash: v.Hash, RuntimeHash: v.Hash, Core: true})
 		for wave := 1; wave <= 3; wave++ {
@@ -44,11 +44,10 @@ func syntheticEgress(j egress.Job) egress.Report {
 					ip = "8.8.8.8"
 				}
 				n := egress.Hash([]byte(fmt.Sprint(v.Name, d, wave)))[:32]
-				r.Samples = append(r.Samples, egress.Sample{Variant: v.Name, Domain: d, Wave: wave, At: now, IP: ip, Family: 4, Transport: "tcp", Nonce: n, Connection: n, TLS: true, SameStream: true, Echo: true, ActualAds: ads, Certificate: strings.Repeat("c", 64), Response: strings.Repeat("f", 64)})
+				r.Samples = append(r.Samples, egress.Sample{Variant: v.Name, Domain: d, Wave: wave, At: now, Source: egress.Hash([]byte(ip)), Family: 4, Transport: "tcp", Nonce: n, Connection: n, TLS: true, SameStream: true, Echo: true, ActualAds: ads, Certificate: strings.Repeat("c", 64), Response: strings.Repeat("f", 64)})
 			}
 		}
 	}
-	r.Facts = []egress.Fact{{IP: "8.8.8.8", Provider: "proxycheck-v3", Class: "Residential", At: now, Expires: now + 3600000, Digest: strings.Repeat("a", 64)}}
 	return r
 }
 func TestEgressQueueLeaseExportAndExpiry(t *testing.T) {
@@ -150,9 +149,11 @@ func TestEgressUnknownQuarantinesAndConfirmedLossPurges(t *testing.T) {
 		}
 		r := syntheticEgress(*next)
 		if step == 0 {
-			r.Facts = nil
+			r.Samples = nil
 		} else {
-			r.Facts[0].Class = "Hosting"
+			for i := range r.Samples {
+				r.Samples[i].Source = egress.Hash([]byte("1.1.1.1"))
+			}
 		}
 		if e = s.CompleteEgress(ctx, egress.Completion{Job: *next, Report: r}); e != nil {
 			t.Fatal(e)
@@ -229,7 +230,7 @@ func TestEgressPartialFirstAttemptRetriesSoonAndRemainsVisible(t *testing.T) {
 	}
 	r := syntheticEgress(*j)
 	for i := range r.Samples {
-		if r.Samples[i].Variant == "raw" && r.Samples[i].Wave == 1 && r.Samples[i].Domain == "api.ipify.org" {
+		if r.Samples[i].Variant == "raw" && r.Samples[i].Wave <= 2 && r.Samples[i].Domain == "api.ipify.org" {
 			r.Samples[i].Echo = false
 		}
 	}
@@ -245,7 +246,12 @@ func TestEgressPartialFirstAttemptRetriesSoonAndRemainsVisible(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	rr := exportRequest(t, app.Handler(), "GET", app.origin+"/api/egress")
+	hidden := exportRequest(t, app.Handler(), "GET", app.origin+"/api/egress")
+	var accepted struct{ Entries []json.RawMessage }
+	if hidden.Code != 200 || json.Unmarshal(hidden.Body.Bytes(), &accepted) != nil || len(accepted.Entries) != 0 {
+		t.Fatal("partial in accepted-only default", hidden.Body.String())
+	}
+	rr := exportRequest(t, app.Handler(), "GET", app.origin+"/api/egress?view=diagnostics")
 	var body struct {
 		Eligible, Partial int
 		Entries           []struct {

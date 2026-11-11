@@ -1,142 +1,108 @@
-# Ads egress investigation, version 4
+# Ads split-egress assessment, version 5
 
-The previous Residential subsystem was retired at the user's explicit request.
-The replacement owns internal/egress, internal/panel/egress_*, scripts/egress-*,
-cmd/config-egress-worker and config-repair-egress.service. Shared input collection,
-conversion, encrypted blob storage and the sandbox are reused. Schema23 removed
-the legacy tables and seeds only current memberships; schema22 acquisition
-admission and all ordinary/Smart/Splash/Ads behavior remain. This release incorporates P42/schema25 and its strict TLS candidate generation.
+The user's latest definition supersedes the former ISP classification gate:
+**Residential in this project means repeated dedicated Ads egress.** It does
+not assert a household/ISP network type. A complete stable shared egress is
+NO_SPLIT; missing, mixed or ambiguous evidence remains UNKNOWN. Only RESIDENTIAL
+with fresh evidence qualifies the four exports. There is no external IP-type,
+ASN, country, provider-quota or AI dependency. The old classifier is removed.
 
-## Measurement and its limits
+## Evidence contract
 
-For each acquired raw hash, preserve the exact original blob. Prepare raw and
-common-template variants without inventing credentials, destinations or TLS
-settings. Use pinned official Xray26.11.9,26.10.31,26.7.28,26.5.9 in compatibility order;
-TUIC/Hysteria variants use pinned sing-box1.14.4. Unsupported, IPv6-only ingress
-and ambiguous multipath remain visible UNKNOWN/UNSUPPORTED, never Datacenter.
+Every unique acquired raw hash is queued across all source links. Preserve raw
+bytes and credentials, construct the common template, then test both exact
+variants. A recognized compatibility redirect and DNS dialer through the sole
+proxy are allowed; ambiguous multiple paths and general Direct routes remain
+unqualified. Resolver-only Direct exceptions are outside this finite HTTPS
+scope and remain blocked by the sandbox firewall. No DNS-leak claim is made.
 
-In an endpoint-restricted namespace, SOCKS carries the actual destination domain.
-TLS validates that Ads domain's certificate and SNI. GET /robots.txt completes
-without following redirects. On the same still-open TLS stream, request the
-fixed www.google.com /sorry/index diagnostic with a random nonce. Record a
-returned IP only when it is global and the response contains the nonce. Record
-certificate hash, response hash, stream identifier, HTTP statuses and whether
-the additional authority is covered by the certificate. Do not reconnect.
+Pinned official Xray 26.11.9, 26.10.31, 26.7.28, 26.5.9 support compatibility
+fallback without weakening TLS or inventing fields. Native TUIC/Hysteria use
+pinned sing-box 1.14.4. Runtime startup validates the actual configuration; a
+redundant separate `-test` launch is no longer required. The core hash, variant
+hash and runtime hash are bound to each report. Xray runtime bytes must equal
+the tested variant bytes. Unsupported or IPv6-only entries remain explicit.
 
-This is an authenticated Ads *peer-reported* observation. The error page is an
-undocumented Google behavior, not an attestation API. A shared Google front end
-or internal reverse proxy can affect its semantics. It does NOT prove every real
-Google Ads request's source, every category domain or a household connection with
-100% certainty. The UI explicitly scopes the finding to three DoubleClick names,
-observed IP family, TCP, raw and template. UDP/QUIC and Android/carriers are not
-qualified. The MO result from an old experiment is not carried forward.
+SOCKS connects to googleads.g.doubleclick.net, pubads.g.doubleclick.net and
+securepubads.g.doubleclick.net. Strict TLS authenticates the actual Ads SNI.
+GET /robots.txt completes without redirect following; on the same open TLS
+stream, GET www.google.com /sorry/index with a random nonce obtains the
+peer-reported source. No reconnect, ad click or impression is generated.
+Require a global source, echoed nonce, certificate/body digests and unique
+connection ID. Record whether the second HTTP authority matches the TLS cert.
+This undocumented diagnostic is an authenticated peer report, not a signed
+Google API or full network topology. Shared frontend internals can affect its
+meaning. Results cover these three domains, TCP and observed address family;
+they do not establish all Google Ads traffic, UDP/QUIC or future behavior.
 
-Pair every wave with authenticated IPv4 Cloudflare (www.cloudflare.com) and ipify controls in the same variant. Start the two explicit IPv6 controls concurrently and retain them when an Ads observation uses IPv6; never infer an IPv6 source from IPv4 controls. Never assign control IPs to Ads. Three independent waves for all three
-Ads names and both variants are required. Distinct output is reported only for
-disjoint observations against a stable control IP; pooled/rotating controls
-remain inconclusive. A bounded first assessment can defer network failures to a deeper retry; it cannot produce eligibility. Independent TLS connections for the three waves start with150ms staggering, using one immutable verified SSL context per session. The same-stream Ads diagnostic and raw/template hash gates remain unchanged.
+Pair every wave and variant with two authenticated controls: www.cloudflare.com
+and api.ipify.org. Cloudflare's bounded cached A resolution only chooses the
+SOCKS destination; its IP is NEVER a firewall Direct exception. Explicit IPv6
+controls run concurrently and are retained when needed. Never compare IPv4
+Ads with IPv6 controls. Each domain in each variant needs at least two valid
+independent paired observations. All observed Ads sources must be disjoint
+from the stable control source per family; any overlap or rotating controls
+prevents acceptance. Even an observed overlap in an otherwise unpaired wave
+cannot be silently discarded to manufacture a split.
 
-Proxycheck v3 is the exact-IP network-class driver:
-https://proxycheck.io/api/
-https://proxycheck.io/api/querying/
-Only its explicit Residential network.type qualifies all observed Ads IPs. A family-aware prefilter spends lookup quota only on observed distinct Ads sources, never on stable overlap.
-ASN, country, ISP names and absence of Hosting do not substitute. Wireless,
-Business, mixed and missing labels do not qualify. Store source, time, digest,
-ASN and country as provider-reported facts. Classifications are probabilistic;
-country and Residential are separate from route observation.
+A fully observed shared raw egress is sufficient for early rejection; its
+template need not run. Go independently verifies the raw evidence, and this
+shortcut can never qualify an output. A running core with network timeouts does
+not repeat the same timeouts on four versions; build/start incompatibilities
+still use the pinned fallback matrix. Fast jobs use two waves; deeper retries use three sequential waves with8s
+connection deadlines. XHTTP always uses sequential waves to avoid connection
+bursts. Destinations within a wave run in parallel. Ordinary fast deadlines
+remain3s. Partial failures defer to deeper retries and are never NO_SPLIT by
+elapsed time alone. A repeated split can qualify in the fast pass.
 
-The free driver uses HTTPS with certificate verification, rejects redirects,
-sends only public IPs, uses a one-hour cache, reserves its daily budget before
-networking and caps unregistered use at100 unique queries/day. Missing/quota
-results are UNKNOWN. It is a replaceable driver; no AI model decides network
-facts and no OpenAI key/config secret is sent externally.
+Source addresses are transient helper memory only. At report completion each
+is replaced with HMAC-SHA256 using a fresh random job-local key. Equality
+within the job is retained; the key and plaintext addresses are discarded.
+No IP, ASN or country is persisted in new measurement reports or displayed.
+Old policy reports are fenced and cleared on reconciliation, not relabelled.
 
-## Lifecycle and concurrency
+## Isolation, scheduling and lifecycle
 
-Every membership insertion enqueues its raw hash, deduplicated across links.
-Up to31 independent slots in one root supervisor own bounded netns/cgroups, with nobody
-running untrusted cores and only public actual upstream endpoints allowed.
-One GiB aggregate memory and two CPU cores bound sandbox cores per scope; the supervisor unit has a separate2GiB limit. Admission falls to12/4/0 slots below1.5GiB/1GiB/512MiB host MemAvailable. Slots remain in disjoint32-address blocks. Random claims are revision-fenced; renew every20s; expired120s leases recover.
-Each slot retains one trusted helper and an empty network namespace between requests. Fresh unprivileged cores are killed, the namespace denies egress, and private files are removed before acknowledgement. The helper uses network-only nsenter to avoid repeated mount-namespace overhead; shared drivers retain their previous default. Core digests are cached only while file identity, size and modification time match. Worker death triggers parent-watch cleanup and scoped startup cleanup.
-Accepted members near proof expiry have priority; other accepted rechecks yield to first assessments so new links are not starved. Accepted members get rechecks every120s and are exempt from ordinary
-retention. Their evidence lasts at most600s and never exceeds classifier expiry.
-Uncertainty immediately removes them from publication but retains them for retry.
-Three credible negative observations spaced at least30s, outside the shared
-outage guard, purge the identity from all active outputs. Generic permanent
-input exclusions prevent re-import; manual deletion is also global.
-Provider outage, ambiguous response and unsupported driver are not negative votes.
+The feature owns internal/egress, internal/panel/egress_*, scripts/egress-*,
+cmd/config-egress-worker and its service. Shared collection/storage remains.
+Every worker owns a persistent trusted helper and namespace but launches fresh
+unprivileged core processes. Endpoint-only firewall, checksum pins, bounded
+cgroups and disjoint cge/cgt namespaces remain. After each job kill cores,
+deny egress, verify empty cgroup and erase private runtime files before ack.
+Parent death and startup cleanup recover only this feature's own resources.
+Capacity is bounded at31 and reduced under memory pressure. Leases renew every
+20s, expire after120s and are revision-fenced. Manual deletion always wins.
 
-## Outputs and verification
+Accepted proof nearing expiry has priority. Current inputs receive initial
+assessment and one deep retry before historical backlog. Partial first passes
+retry after30s. Accepted entries recheck after120s and are exempt from ordinary
+age-based retention; publication needs evidence younger than600s. Uncertainty
+quarantines and withdraws exports without calling it a route failure. Three
+spaced credible negatives, outside the outage guard, revoke globally and fence
+re-import. Source settings, ordinary/Smart gates and deletion journal remain.
 
-/egress is the new page, with accepted members and distinctly labelled ADS_SPLIT candidates by default and an optional
-all-input diagnostics view. /residential redirects; old APIs/subscriptions return410.
-ADS_SPLIT means a repeated different-source observation with missing/mixed network classification, or incomplete full coverage but at least two paired independent observations per required domain and variant. Incomplete coverage is labelled in its reason and never qualifies exports. It never qualifies the four Residential exports. NO_SPLIT means complete stable overlap; it cannot qualify even when a provider labels those IPs Residential. Partial evidence retains observed IPs but cannot qualify. A recognized fixed-destination compatibility redirect and DNS dialed through the sole proxy are not treated as extra egress paths; ambiguous chains and direct destination rules remain unqualified.
+## Panel and exports
 
-Four stable authenticated URLs: JSON array, JSONL, rotating single JSON, raw text.
-Exports read immutable blobs and recheck the whole eligibility generation before
-sending. Rotation persists; a competing request can receive409 and retry.
-Empty/stale eligible pools return503, never a fallback to ordinary servers.
+/egress shows accepted split-route configurations by default. All-input
+checkbox exposes pending, incomplete and unsupported cases with source names
+and diagnostic evidence. The UI explains the project-specific Residential
+label and distinguishes five-minute assessments from conclusive route results.
 
-Run scripts/check.sh, scripts/egress-worker-test.py and the private migration
-rehearsal test. Synthetic policy fixtures never count as live Residential proof.
-Runtime validation receipts and secrets stay private under .local or /tmp.
-Hold the deployment lock and create a stopped matching DB/blob/key/binary backup.
-Never open schema25 with an older binary; use fix-forward or an explicitly
-coordinated matched rollback. Historical code remains in Git history only.
+Four stable links: JSON array, JSONL, rotating single JSON and immutable raw
+text. Publication checks current eligibility and generation, and rotation is
+persistent. Empty/stale pools return503; concurrent rotation may return409.
+No ordinary-server fallback is substituted for an empty accepted pool.
 
-## Performance qualification
+## Verification and performance
 
-The target is1000 initial assessments in300s, not a guarantee of1000 definitive Residential decisions. The UI reports observed five-minute throughput and state counts. Slow or unresponsive remote servers, unsupported transports, missing Ads diagnostics and provider quota remain explicit. No elapsed deadline is converted into a successful classification.
+Run scripts/check.sh, the isolated crash/recovery fixture, private migration
+rehearsal and scripts/egress-throughput-test.py on1000 distinct real retained
+inputs. Test harness never changes production evidence or sources. Report the
+actual300s count and states; UNKNOWN/UNSUPPORTED are not conclusive decisions.
+The target1000 in300s is measured, not asserted from configured concurrency.
+Preserve strict TLS, raw data, server pins and stage-specific error evidence.
 
-Use scripts/egress-throughput-test.py for an isolated queue populated with up to2000 distinct retained real source hashes. Its receipt separates assessed/state/reason/sample outcomes and records the300s checkpoint, maximum active jobs and minimum available host memory. It never mutates production memberships, evidence or outputs. The worker kill/recovery fixture keeps an explicit two-worker count; production defaults to two slots per visible CPU, bounded at31 (eight on the measured four-CPU server). The31-slot stress test increased CPU contention and deadline failures; configured capacity is not a throughput guarantee.
-
-Classifier reservations and exact-IP single-flight leases use short atomic file locks. HTTPS runs outside the lock with at most four parallel fetches per job. The free100/day cap survives crashes, and exhausted quota is displayed. Increasing worker count does not increase provider quota. TLS, server credentials and the certificate pin are preserved. Runtime AI inference is not used as network evidence.
-
-
-## P43: source DNS bypass and overloaded session correction
-
-Alan splash's immutable raw JSON contained port53 and fixed public resolver-IP
-Direct routes. The shared all-traffic proxy-health preflight rejected it before
-any network measurement; 1.1.1.1 was also an invalid proxy control for that raw
-routing. The dedicated egress-preflight module now ignores only enumerated
-resolver-only exceptions during inspection, executes exact original bytes, and
-keeps the endpoint-only namespace firewall unchanged. Source direct DNS remains
-blocked in this lab. This proves only the named HTTPS scope, not DNS leak freedom.
-Broad Direct rules, arbitrary resolver addresses/subnets, unknown extensions,
-Direct defaults and ambiguous paths remain unqualified. Shared ordinary/Smart
-preflight is unchanged. Controls now use www.cloudflare.com and ipify.
-
-XHTTP and deep rechecks run three sequential waves (destinations within each
-wave remain parallel). Deep per-connection timeout is8s. This reduced connection
-burst failures on the measured source. Current inputs get a first assessment and
-one deep retry before retained historical backlog; repeated retries then yield.
-Manual rechecks have explicit priority, accepted proof-expiry priority remains.
-No arbitrary input gets a Residential override.
-
-Partial route evidence now shows fresh observed type counts and Mixed /
-ResidentialObserved without qualifying exports. Source names, exact driver
-failure codes, control IPs and provider facts are visible in the panel. Missing
-classifier reports no longer erase the latest known quota status.
-
-Optional server-only Proxycheck configuration is /etc/config-repair/egress-intel.json
-with api_key and daily_limit. The file must be regular, root-owned and mode0600.
-Without a key the limit is100/day; a key defaults to1000/day, with an explicitly
-configured account budget permitted. No account is registered or purchased.
-The durable daily usage counter is not reset on configuration changes. Keys are
-never emitted in status, logs, receipts or subscriptions. The current server has
-no registered IP-classification key. Provider quotas still bound coverage.
-
-Official API limits and network types: https://proxycheck.io/api/ .
-
-Partial distinct-route observations remain visible in the default page, explicitly
-unqualified. A first assessment with incomplete controls or Ads echoes schedules
-a deep retry after30s instead of300s. This is scheduling, not promotion to a
-definitive classification. A real fast Alan test (17.176s, six Ads echoes)
-reproduced this condition and the queue/UI contract has a regression test.
-
-The Cloudflare IPv4 control uses a bounded, cached A lookup of the fixed
-www.cloudflare.com name, a SOCKS IPv4 destination and verified TLS/Host for that
-same name. The IP is never added to the namespace's direct firewall allowlist.
-This fixes a reproduced dual-stack mismatch: the former domain-based request
-returned IPv6 while ipify returned IPv4. Explicit IPv6 controls remain separate.
-Resolver failure is an unknown control, never an IPv4 inference from IPv6.
+Deployment holds /var/lock/config-repair-deploy.lock and captures a matching
+stopped DB/blob/key/release backup. Keep schema25 protections and never rewind
+the authenticated deletion journal. Historical P39–P43 reports describe older
+policies and do not override the user's version5 definition.

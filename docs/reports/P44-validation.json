@@ -1,0 +1,262 @@
+{
+  "policy": "ads-egress.v5",
+  "created_utc_ms": 1794427622663,
+  "checks": {
+    "check": 0,
+    "benchmark-final": 0,
+    "rehearsal": 0,
+    "crash": 0,
+    "browser-live": 0,
+    "deploy": 0
+  },
+  "release": "/opt/config-repair/releases/p44-98fd9205fb5e28243764",
+  "schema": 25,
+  "sources_preserved": true,
+  "source_count": 33,
+  "binaries": {
+    "config-panel": "98fd9205fb5e2824376453304021e62b06d855f5879f73a763d91ce72d4b7c88",
+    "config-probe-worker": "1ab50c77670a285c2eaecba45b12338d682f1f92111da29f0a296ca4f797a8fb",
+    "config-egress-worker": "184ee3410459ec7242b6ee153d3e19751fe51273508d1280abf7a3e6418b5e73",
+    "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+    "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+    "config-probe-plan": "d091b5a8d3a98ab28c8e22dc9f5c362d6938289baf79b61e4fa38ce839ffd7da"
+  },
+  "running_hashes_match": {
+    "config-repair-prober": "1ab50c77670a285c2eaecba45b12338d682f1f92111da29f0a296ca4f797a8fb",
+    "config-repair-smart": "1ab50c77670a285c2eaecba45b12338d682f1f92111da29f0a296ca4f797a8fb",
+    "config-repair-splash": "1ab50c77670a285c2eaecba45b12338d682f1f92111da29f0a296ca4f797a8fb",
+    "config-repair-ads": "1ab50c77670a285c2eaecba45b12338d682f1f92111da29f0a296ca4f797a8fb",
+    "config-repair-egress": "184ee3410459ec7242b6ee153d3e19751fe51273508d1280abf7a3e6418b5e73",
+    "config-repair": "98fd9205fb5e2824376453304021e62b06d855f5879f73a763d91ce72d4b7c88"
+  },
+  "benchmark": {
+    "version": "ads-egress.v5",
+    "requested": 1000,
+    "total": 1000,
+    "assessed": 1000,
+    "complete": true,
+    "seconds": 736.832,
+    "assessed_at_300s": 497,
+    "workers": 8,
+    "max_active": 8,
+    "min_available_mib": 2377,
+    "states": {
+      "NO_SPLIT": 531,
+      "UNKNOWN": 443,
+      "UNSUPPORTED": 26
+    },
+    "reasons": {
+      "ads_peer_echo_incomplete": 30,
+      "controls_incomplete": 35,
+      "core_evidence_missing": 1,
+      "direct_route_not_qualified": 17,
+      "driver_infrastructure_error": 6,
+      "driver_unavailable": 26,
+      "endpoint_dns_failed": 3,
+      "network_retry_pending": 148,
+      "public_endpoint_requires_tls": 202,
+      "route_not_distinct": 532
+    },
+    "sample_codes": {
+      "ads_peer_reported": 3698,
+      "control_echo": 4790,
+      "connection_failed": 1226,
+      "connection_timeout": 728
+    },
+    "definitive": 531,
+    "job_ms_p50": 5513.645930914208,
+    "job_ms_p95": 10479.141273070127,
+    "scope": "Distinct real retained source hashes; initial assessments include inconclusive and unsupported results. Not 1000 definitive residential classifications."
+  },
+  "canaries": {
+    "fastly": {
+      "started": 1794388179318,
+      "finished": 1794388213551,
+      "wall_ms": 34054.120651911944,
+      "state": "UNKNOWN",
+      "reason": "ads_peer_echo_incomplete",
+      "eligible": false,
+      "route": "PARTIAL_DIFFERENCE",
+      "missing": 3,
+      "samples": {
+        "ads_peer_reported": 15,
+        "control_echo": 12,
+        "connection_timeout": 3
+      },
+      "no_plaintext_ip": true,
+      "core": "xray-26.11.9",
+      "checks": [
+        {
+          "name": "raw",
+          "hash": "b4ee652380abe694cd4330625278c7aa64ae6128abc382b12956a4fd60a6d76d",
+          "runtime_hash": "b4ee652380abe694cd4330625278c7aa64ae6128abc382b12956a4fd60a6d76d",
+          "core": true,
+          "code": "exact_runtime_started"
+        },
+        {
+          "name": "template",
+          "hash": "b4ee652380abe694cd4330625278c7aa64ae6128abc382b12956a4fd60a6d76d",
+          "runtime_hash": "b4ee652380abe694cd4330625278c7aa64ae6128abc382b12956a4fd60a6d76d",
+          "core": true,
+          "code": "exact_runtime_started"
+        }
+      ]
+    },
+    "alan": {
+      "started": 1794388214352,
+      "finished": 1794388264326,
+      "wall_ms": 49724.480657838285,
+      "state": "UNKNOWN",
+      "reason": "controls_incomplete",
+      "eligible": false,
+      "route": "UNKNOWN",
+      "missing": 18,
+      "samples": {
+        "connection_timeout": 30
+      },
+      "no_plaintext_ip": true,
+      "core": "xray-26.11.9",
+      "checks": [
+        {
+          "name": "raw",
+          "hash": "5b7d992d60db1f29b6c0e05635d3f058a00dae21976205d1bba3bb8d099cfb47",
+          "runtime_hash": "5b7d992d60db1f29b6c0e05635d3f058a00dae21976205d1bba3bb8d099cfb47",
+          "core": true,
+          "code": "exact_runtime_started"
+        },
+        {
+          "name": "template",
+          "hash": "f43c17b7d6fcec8632d7adc306e939eb33f4c36e3e81a4aa3e6637b5da08d4b4",
+          "runtime_hash": "f43c17b7d6fcec8632d7adc306e939eb33f4c36e3e81a4aa3e6637b5da08d4b4",
+          "core": true,
+          "code": "exact_runtime_started"
+        }
+      ]
+    },
+    "fastly-repeat": {
+      "started": 1794427491416,
+      "finished": 1794427515219,
+      "wall_ms": 23141.945661976933,
+      "state": "RESIDENTIAL",
+      "reason": "repeated_ads_split_project_definition",
+      "eligible": true,
+      "route": "DIFFERENT",
+      "missing": 1,
+      "samples": {
+        "ads_peer_reported": 17,
+        "control_echo": 12,
+        "connection_timeout": 1
+      },
+      "no_plaintext_ip": true,
+      "core": "xray-26.11.9",
+      "checks": [
+        {
+          "name": "raw",
+          "hash": "b4ee652380abe694cd4330625278c7aa64ae6128abc382b12956a4fd60a6d76d",
+          "runtime_hash": "b4ee652380abe694cd4330625278c7aa64ae6128abc382b12956a4fd60a6d76d",
+          "core": true,
+          "code": "exact_runtime_started"
+        },
+        {
+          "name": "template",
+          "hash": "b4ee652380abe694cd4330625278c7aa64ae6128abc382b12956a4fd60a6d76d",
+          "runtime_hash": "b4ee652380abe694cd4330625278c7aa64ae6128abc382b12956a4fd60a6d76d",
+          "core": true,
+          "code": "exact_runtime_started"
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "1000/300s target not met",
+    "First300s ran alongside production services; after301s full validation ran concurrently",
+    "Residential is a project label for observed split, not an ISP class",
+    "Three Ads domains, TCP and paired observed family only; not full network topology",
+    "Inconclusive and unsupported results never qualify"
+  ],
+  "live": {
+    "at": 1794427639808,
+    "version": "ads-egress.v5",
+    "source": "Alan splash",
+    "hash": "5af747d4c67cd168496cffda43faa872718e9b8704a8bbe4122a71f17aa694fc",
+    "state": "RESIDENTIAL",
+    "reason": "repeated_ads_split_project_definition",
+    "attempts": 2,
+    "shown_in_default": true,
+    "counts": {
+      "NO_SPLIT": 71,
+      "PENDING": 6380,
+      "RESIDENTIAL": 1,
+      "UNKNOWN": 77,
+      "UNSUPPORTED": 1
+    },
+    "partial": 4,
+    "eligible": 1,
+    "unregistered_current": 0,
+    "exports": {
+      "configs.json": 200,
+      "configs.jsonl": 200,
+      "next.json": 200,
+      "raw.txt": 200
+    },
+    "worker": {
+      "active": 6,
+      "code": "capacity_8",
+      "heartbeat": 1794427623761,
+      "status": "running"
+    },
+    "throughput": {
+      "completed_5m": 150,
+      "definitive_5m": 72,
+      "max_workers": 31,
+      "target_5m": 1000
+    },
+    "decision": {
+      "state": "RESIDENTIAL",
+      "reason": "repeated_ads_split_project_definition",
+      "route": "DIFFERENT",
+      "scope": "Project Residential = repeated Ads split egress; three DoubleClick domains; TCP; paired family; raw and template; authenticated peer report, not full hop topology or ISP class",
+      "eligible": true,
+      "negative": false,
+      "until": 1794428223733,
+      "missing": 2
+    },
+    "wall_ms": 31556.298966053873,
+    "samples": {
+      "ads_peer_reported": 16,
+      "control_echo": 12,
+      "connection_timeout": 2
+    },
+    "no_plaintext_ip": true
+  },
+  "exports": {
+    "configs.json": {
+      "status": 200,
+      "count": 1,
+      "bytes": 1593,
+      "body_sha256": "9a6f325e785858681b28f8e344bb5df220a30d36180eaef41b6fc2521676da7b",
+      "definition": "repeated-ads-split-egress"
+    },
+    "configs.jsonl": {
+      "status": 200,
+      "count": 1,
+      "bytes": 1590,
+      "body_sha256": "a86d31bd7b7e4aa42591be21c8acda59e934a524d88f53f2596d7ff8d6fcbee0",
+      "definition": "repeated-ads-split-egress"
+    },
+    "next.json": {
+      "status": 200,
+      "count": 1,
+      "bytes": 1590,
+      "body_sha256": "a86d31bd7b7e4aa42591be21c8acda59e934a524d88f53f2596d7ff8d6fcbee0",
+      "definition": "repeated-ads-split-egress"
+    },
+    "raw.txt": {
+      "status": 200,
+      "count": 1,
+      "bytes": 1430,
+      "body_sha256": "e8ace0046decb352fd69128a2e7381890b4a0152c2c8204c0180e5bad03c510b",
+      "definition": "repeated-ads-split-egress"
+    }
+  }
+}

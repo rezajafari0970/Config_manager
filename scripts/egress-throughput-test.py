@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Bounded isolated throughput run over unique, real, retained source inputs.
 No production queue, source, subscription or eligibility proof is changed.
-The existing public-IP classification cache and its bounded quota are shared.
+No IP classification service is used.
 """
 import argparse, collections, json, os, pathlib, signal, sqlite3, subprocess, time, urllib.request
 
@@ -71,14 +71,13 @@ def main():
         if at_300 is None:at_300=done
         states=dict(db.execute('SELECT state,count(*) FROM egress_jobs GROUP BY state'))
         reasons=dict(db.execute('SELECT reason,count(*) FROM egress_jobs GROUP BY reason'))
-        samples=collections.Counter(); classifications=collections.Counter(); attempts=[]
+        samples=collections.Counter(); attempts=[]
         for text, in db.execute("SELECT report FROM egress_jobs WHERE tested>0"):
             report=json.loads(text)
             samples.update(x['code'] for x in (report.get('samples') or []))
-            classifications.update(x['class'] for x in (report.get('facts') or []))
             if report.get('wall_ms') is not None: attempts.append(report['wall_ms'])
         attempts.sort()
-        receipt=dict(version='ads-egress.v4',requested=args.count,total=total,assessed=done,complete=done==total,seconds=round(elapsed,3),assessed_at_300s=at_300,workers=args.workers,max_active=maximum,min_available_mib=minimum_memory//1048576,states=states,reasons=reasons,sample_codes=dict(samples),classifications=dict(classifications),job_ms_p50=attempts[len(attempts)//2] if attempts else None,job_ms_p95=attempts[min(len(attempts)-1,int(len(attempts)*.95))] if attempts else None,timeline=timeline,fixture_origin=ready['origin'],scope='Distinct real retained source hashes; initial assessments include inconclusive and unsupported results. Not 1000 definitive residential classifications.')
+        receipt=dict(version='ads-egress.v5',requested=args.count,total=total,assessed=done,complete=done==total,seconds=round(elapsed,3),assessed_at_300s=at_300,workers=args.workers,max_active=maximum,min_available_mib=minimum_memory//1048576,states=states,reasons=reasons,sample_codes=dict(samples),definitive=states.get('RESIDENTIAL',0)+states.get('NO_SPLIT',0),job_ms_p50=attempts[len(attempts)//2] if attempts else None,job_ms_p95=attempts[min(len(attempts)-1,int(len(attempts)*.95))] if attempts else None,timeline=timeline,fixture_origin=ready['origin'],scope='Distinct real retained source hashes; initial assessments include inconclusive and unsupported results. Not 1000 definitive residential classifications.')
         (work/'receipt.json').write_text(json.dumps(receipt,indent=2))
         (ROOT/'.local/throughput-latest.json').write_text(json.dumps({'directory':str(work),**receipt},indent=2))
         if os.environ.get('PLAYWRIGHT_MODULE') and os.environ.get('CHROME_PATH'):

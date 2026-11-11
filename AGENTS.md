@@ -1,3 +1,29 @@
+# P44 activated user override — 2026-11-11
+
+Activated p44-98fd9205fb5e28243764, schema25, ads-egress.v5. Read
+docs/reports/P44-report-fa.md and P44-validation.json. Full checks, migration,
+crash recovery and mobile/desktop browser passed; six running hashes match.
+The real1000-input run assessed497 in300s and finished in736.832s; the requested
+1000/300s target was NOT met. A fresh isolated Fastly canary qualified the new
+project definition in23.142s; it is not a claim of ISP class or a new panel input.
+The current Alan splash input also qualified in production and appeared in the
+accepted-only page; all four exports returned200. Zero current memberships were
+missing queue registration at verification. Older unresponsive Alan hashes are
+not the current rotating-source input.
+
+The latest user explicitly defines Residential as repeated dedicated Google Ads
+egress compared with control sites. This supersedes ALL older provider/network
+class requirements below. Read docs/EGRESS.md (v5). Never infer household/ISP class
+from this product label. Remove classifier dependence, keep unknown distinct from
+NO_SPLIT, and accept only repeated paired same-family Ads/control disjointness
+in raw and template. Store job-local HMAC source tokens rather than plaintext
+exit IPs; no ASN/country lookups. Two fast waves, three deep waves, minimum two
+paired observations per domain and variant. Preserve strict TLS, exact raw,
+source settings, retention exceptions, deletion fences and isolation. Benchmark
+1000 distinct real inputs and report actual300s performance honestly. Do not
+count UNKNOWN/UNSUPPORTED as conclusive results. Deployment still requires the
+shared lock and matching stopped DB/blob/key/release backup; no force-push.
+
 # P43: Alan Ads route assessment correction — 2026-11-11
 
 Activated p43-80df8988c7565dcc30c7, schema25, ads-egress.v4. Preserve P42 strict

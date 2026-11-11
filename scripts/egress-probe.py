@@ -2,11 +2,11 @@
 """Trusted driver orchestrator. Configs enter exclusively through stdin.
 Each job owns one isolated netns/cgroup. Core fallback never weakens TLS.
 """
-import argparse,base64,fcntl,ipaddress,contextlib,copy,importlib.util,json,os,pathlib,re,signal,subprocess,sys,threading,time
+import argparse,base64,hashlib,hmac,secrets,fcntl,ipaddress,contextlib,copy,importlib.util,json,os,pathlib,re,signal,subprocess,sys,threading,time
 HERE=pathlib.Path(__file__).resolve().parent
 def module(name,file):
  spec=importlib.util.spec_from_file_location(name,HERE/file);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
-lab=module('egress_lab','live-probe.py');intel=module('egress_intel','egress-classify.py');scope=module('egress_scope','egress-preflight.py')
+lab=module('egress_lab','live-probe.py');scope=module('egress_scope','egress-preflight.py')
 CORES=[('xray-26.11.9','/opt/config-repair/core-26.11.9/xray','e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d'),('xray-26.10.31','/opt/config-repair/core-26.10.31/xray','cc4b84d3069569f297a61f04b914f2bb37e9d202fd7b84cb50def1fc30fd40e1'),('xray-26.7.28','/opt/config-repair/core-26.7.28/xray','64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d'),('xray-26.5.9','/opt/config-repair/core-26.5.9/xray','b2c525e082cf2fef460499c88838d355f0b9bfb5a00bdb3eaa99b6af63825006')]
 NATIVE=('sing-box-1.14.4','/opt/config-repair/sing-box-1.14.4/sing-box','1264361b5f8868c8768f7555d3e77e20118bf503c41ac08bb290a0d99056aa3a')
 def cleanup(prefix,slot=None,run=None):
@@ -115,27 +115,34 @@ def control_ipv4():
  except Exception:pass
  _control_cache=(now+(300 if value else 5),value)
  return value
-def classification_candidates(samples):
- # Preserve the provider budget for observed split candidates. Control sources
- # are family-specific; overlap/ambiguous controls need no network-type query.
- controls={};ads=[]
+def raw_shared_egress(rows,waves):
+ # Rejection only; Go independently verifies every required observation.
+ stable={}
+ for wave in range(1,waves+1):
+  paired={}
+  for row in rows:
+   if row.get('wave')!=wave or not all(row.get(k) for k in ('echo','tls','same_stream')):continue
+   domain=row.get('domain');family=row.get('family');source=row.get('ip')
+   group='cf' if domain in ('www.cloudflare.com','one.one.one.one') else 'ipify' if domain in ('api.ipify.org','api6.ipify.org') else ''
+   if group:
+    previous=paired.setdefault(family,{}).get(group)
+    if previous and previous!=source:return False
+    paired[family][group]=source;stable.setdefault(family,set()).add(source)
+  for domain in ['googleads.g.doubleclick.net','pubads.g.doubleclick.net','securepubads.g.doubleclick.net']:
+   matching=[x for x in rows if x.get('wave')==wave and x.get('domain')==domain and all(x.get(k) for k in ('echo','tls','same_stream','actual_ads'))]
+   if len(matching)!=1:return False
+   row=matching[0];group=paired.get(row.get('family'),{})
+   if len(group)!=2 or any(x!=row.get('ip') for x in group.values()):return False
+ return bool(stable) and all(len(sources)==1 for sources in stable.values())
+def private_sources(samples,key):
  for row in samples:
-  if not row.get('echo') or not row.get('tls'):continue
-  family=row.get('family');ip=row.get('ip');domain=row.get('domain')
-  if row.get('actual_ads') and row.get('same_stream'):ads.append((family,ip));continue
-  group='cf' if domain in ('1.1.1.1','one.one.one.one','www.cloudflare.com') else 'ipify' if domain in ('api.ipify.org','api6.ipify.org') else ''
-  if group:controls.setdefault(family,{}).setdefault(group,set()).add(ip)
- out=set()
- for family,ip in ads:
-  groups=controls.get(family,{})
-  if len(groups)==2:
-   seen=set().union(*groups.values())
-   if len(seen)==1 and ip not in seen:out.add(ip)
- return sorted(out)
+  value=row.pop('ip','')
+  row['source']=hmac.new(key,value.encode(),hashlib.sha256).hexdigest() if value and row.get('echo') else ''
+ return samples
 def investigate(req,args,pool=None):
  if pool is None:
   with ResourcePool(args) as own:return investigate(req,args,own)
- plan=req['plan'];r=dict(version='ads-egress.v4',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],facts=[],attempts=[],wall_ms=0)
+ plan=req['plan'];r=dict(version='ads-egress.v5',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],attempts=[],wall_ms=0,waves=3 if req.get('deep') else 2)
  begin=time.monotonic();best=-1
  if len(plan.get('variants',[]))!=2:return r
  control_ip=control_ipv4()
@@ -151,9 +158,10 @@ def investigate(req,args,pool=None):
     for v in plan['variants']:
      data=base64.b64decode(v['config'],validate=True)
      if len(data)>8*1024*1024 or lab.digest(data)!=v['hash']:raise ValueError('variant_hash_mismatch')
-     config=json.loads(data);box.policy({});p=box.launch(data,True);p.wait(timeout=12);valid=p.returncode==0;build_code='core_validated' if valid else lab.classify(box.logs(),'core_rejected');box.stop();mark(v['name']+'_build')
-     check=dict(name=v['name'],hash=v['hash'],runtime_hash='',core=valid,code=build_code);checks.append(check)
-     if not valid:code=build_code;break
+     config=json.loads(data);box.policy({})
+     # Successful isolated runtime startup validates the exact bytes too. Avoid
+     # spawning an identical -test core before every actual launch.
+     check=dict(name=v['name'],hash=v['hash'],runtime_hash='',core=False,code='runtime_pending');checks.append(check)
      resolved,obj=runtime(config,plan['driver']);body=data if plan['driver']=='xray' else json.dumps(obj,separators=(',',':')).encode();box.resolved=resolved;box.policy(resolved);check['runtime_hash']=lab.digest(body);mark(v['name']+'_resolve')
      p=box.launch(body);ready=False
      for _ in range(30):
@@ -162,7 +170,9 @@ def investigate(req,args,pool=None):
       if ok.stdout.strip()==b'0':ready=True;break
       time.sleep(.1)
      mark(v['name']+'_ready')
-     if not ready:check.update(core=False,code='runtime_start_failed');code='runtime_start_failed';break
+     if not ready:
+      code=lab.classify(box.logs(),'runtime_start_failed');check.update(core=False,code=code);break
+     check.update(core=True,code='exact_runtime_started')
      def observe(start,waves,timeout):
       result=box.net(['/usr/bin/python3',str(HERE/'egress-session.py')],input=json.dumps({'variant':v['name'],'timeout':timeout,'start_wave':start,'waves':waves,'sequential':sequential,'control_ipv4':control_ip}).encode(),timeout=max(25,timeout*(waves if sequential else 2)+10))
       if len(result.stdout)>131072:raise ValueError('session_output_limit')
@@ -171,8 +181,9 @@ def investigate(req,args,pool=None):
       return rows
      # XHTTP and deep retries avoid overloading one remote path with 21 connections.
      sequential=bool(req.get('deep')) or any(o.get('streamSettings',{}).get('network') in ('xhttp','splithttp') for o in config.get('outbounds',[]))
-     rows=observe(1,3,8 if req.get('deep') else 3)
+     rows=observe(1,r['waves'],8 if req.get('deep') else 3)
      samples+=rows;box.stop();code='measured';mark(v['name']+'_probes')
+     if v['name']=='raw' and raw_shared_egress(rows,r['waves']):code='raw_shared_egress';break
      if not req.get('deep') and not any(x.get('echo') for x in rows):
       code='network_retry_pending';break
    mark('reset')
@@ -180,8 +191,9 @@ def investigate(req,args,pool=None):
    if len(checks)==2 and all(x['core'] for x in checks):score+=100
    if score>best:r.update(core=core,core_sha=pin,checks=checks,samples=samples,code=code);best=score
    r['attempts'].append(dict(core=core,code=code,ms=(time.monotonic()-at)*1000,stages=stages))
-   # A working core with TLS/control traffic does not need compatibility fallback.
-   if len(checks)==2 and any(x.get('echo') for x in samples) or code=='network_retry_pending':break
+   # A validated running core does not need four repetitions of a network timeout.
+   # Schema/start failures still use the full pinned compatibility matrix.
+   if len(checks)==2 and all(x.get('core') for x in checks) or code in ('network_retry_pending','raw_shared_egress'):break
   except Exception as error:
    code='driver_subprocess_timeout' if isinstance(error,subprocess.TimeoutExpired) else 'driver_subprocess_failed' if isinstance(error,subprocess.CalledProcessError) else str(error) if isinstance(error,ValueError) and re.fullmatch('[a-z_]{1,60}',str(error)) else 'driver_infrastructure_error'
    r['attempts'].append(dict(core=core,code=code,ms=(time.monotonic()-at)*1000,stages=stages))
@@ -192,9 +204,7 @@ def investigate(req,args,pool=None):
   result=subprocess.run(['/usr/bin/curl','--noproxy','*','--silent','--fail','--max-time','5','https://1.1.1.1/cdn-cgi/trace'],capture_output=True,timeout=6)
   r['infrastructure']=result.returncode==0 and b'ip=' in result.stdout
  except Exception:pass
- ips=classification_candidates(r['samples'])
- if ips:r['facts']=intel.classify(ips)
- r['classifier']=intel.status()
+ r['samples']=private_sources(r['samples'],secrets.token_bytes(32))
  r['finished']=int(time.time()*1000);r['wall_ms']=(time.monotonic()-begin)*1000
  return r
 def main():

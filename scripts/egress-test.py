@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Offline adversarial protocol/classifier contract tests; no live classifications."""
+"""Offline adversarial protocol/privacy contract tests; no live classifications."""
 import asyncio,importlib.util,json,pathlib,tempfile,unittest
 HERE=pathlib.Path(__file__).parent
 def load(name,file):
  spec=importlib.util.spec_from_file_location(name,HERE/file);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
-session=load('egress_session','egress-session.py');intel=load('egress_intel','egress-classify.py');driver=load('egress_driver','egress-probe.py')
+session=load('egress_session','egress-session.py');driver=load('egress_driver','egress-probe.py')
 class Contracts(unittest.TestCase):
  def response(self,data,close=False):
   async def run():
@@ -19,13 +19,6 @@ class Contracts(unittest.TestCase):
   with self.assertRaises(ValueError):self.response(b'HTTP/1.1 200 OK\r\n\r\nbody')
  def test_chunked_consumes_trailers(self):
   self.assertEqual(self.response(b'HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n3\r\nabc\r\n0\r\nFoo: bar\r\n\r\n')[2],b'abc')
- def test_explicit_class_and_exact_ip_required(self):
-  b=json.dumps({'status':'ok','8.8.8.8':{'network':{'asn':'AS4609','type':None},'location':{'country_code':'MO'}}}).encode();r=intel.parse('8.8.8.8',b,1000);self.assertEqual(r['class_'],'Unknown')
-  with self.assertRaises(ValueError):intel.parse('1.1.1.1',b,1000)
- def test_daily_budget_survives_restart(self):
-  import datetime
-  with tempfile.TemporaryDirectory() as d:
-   p=pathlib.Path(d)/'intel.json';p.write_text(json.dumps({'day':datetime.datetime.now(datetime.timezone.utc).date().isoformat(),'used':intel.DAILY_LIMIT,'entries':{}}));self.assertEqual(intel.classify(['8.8.8.8'],str(p)),[]);self.assertEqual(json.loads(p.read_text())['used'],intel.DAILY_LIMIT)
  def test_disjoint_resources(self):
   self.assertNotEqual(driver.lab.SANDBOX_ADDRESS_BASES['cge'],driver.lab.SANDBOX_ADDRESS_BASES['crw']);self.assertNotEqual(driver.lab.SANDBOX_ADDRESS_BASES['cge'],driver.lab.SANDBOX_ADDRESS_BASES['cgt'])
  def test_second_authority_not_assumed(self):
@@ -65,20 +58,6 @@ class PerformanceContracts(unittest.TestCase):
    self.assertEqual(len(arrived),7);self.assertEqual(len(rows),7)
   try:asyncio.run(run())
   finally:session.measure=original
- def test_network_lookup_does_not_hold_budget_lock(self):
-  import threading,time
-  original=intel.fetch;entered=threading.Event();release=threading.Event();calls=[]
-  def fetch(ip):
-   calls.append(ip);entered.set();release.wait(2)
-   return dict(ip=ip,expires=int(time.time()*1000)+60000,code='explicit_network_type',**{'class':'Residential'})
-  intel.fetch=fetch
-  try:
-   with tempfile.TemporaryDirectory() as directory:
-    path=str(pathlib.Path(directory)/'intel.json')
-    thread=threading.Thread(target=intel.classify,args=(['8.8.8.8'],path));thread.start();self.assertTrue(entered.wait(1))
-    start=time.monotonic();self.assertEqual(intel.classify(['8.8.8.8'],path),[]);self.assertLess(time.monotonic()-start,.25)
-    release.set();thread.join(2);self.assertEqual(calls,['8.8.8.8']);self.assertEqual(intel.status(path)['used'],1)
-  finally:release.set();intel.fetch=original
  def test_max_slot_is_disjoint_and_owned(self):
   a=driver.lab.Sandbox('/tmp/fixture','abcdef',8192+31,prefix='cge')
   b=driver.lab.Sandbox('/tmp/fixture','abcdef',8192+1,prefix='cgt')
@@ -93,12 +72,6 @@ class DispatchContracts(unittest.TestCase):
   self.assertEqual(driver.core_order(plan('example.com','none'))[0][0],'xray-26.5.9')
   self.assertEqual(driver.core_order(plan('8.8.8.8','tls'))[0][0],'xray-26.11.9')
   self.assertEqual(driver.core_order(plan('127.0.0.1','none'))[0][0],'xray-26.11.9')
- def test_classifier_budget_only_for_same_family_split(self):
-  controls=[dict(domain=d,ip='1.1.1.1',family=4,tls=True,echo=True) for d in ('1.1.1.1','api.ipify.org')]
-  ads=dict(domain=session.DOMAINS[0],ip='1.1.1.1',family=4,tls=True,echo=True,same_stream=True,actual_ads=True)
-  self.assertEqual(driver.classification_candidates(controls+[ads]),[])
-  ads['ip']='8.8.8.8';self.assertEqual(driver.classification_candidates(controls+[ads]),['8.8.8.8'])
-  ads.update(ip='2001:4860:4860::8888',family=6);self.assertEqual(driver.classification_candidates(controls+[ads]),[])
  def test_failed_firewall_update_is_never_cached(self):
   original=driver.lab.Sandbox.policy;calls=[]
   def policy(box,resolved):
@@ -148,17 +121,28 @@ class RegressionContracts(unittest.TestCase):
    rows=asyncio.run(session.session({'variant':'raw','waves':3,'sequential':True}))
    self.assertEqual(len(rows),15);self.assertEqual(max(overlap),1)
   finally:session.measure=original
- def test_classifier_config_permissions_and_no_key_cap(self):
-  import os
-  with tempfile.TemporaryDirectory() as d:
-   p=pathlib.Path(d)/'settings.json';p.write_text('{}');p.chmod(0o600)
-   # Production runs as root; non-root execution should reject the file.
-   if os.getuid()!=0:self.assertEqual(intel.settings(str(p))[2],'classifier_config_invalid');return
-   self.assertEqual(intel.settings(str(p))[:2],('',100))
-   p.write_text('{"daily_limit":101}');self.assertEqual(intel.settings(str(p))[2],'classifier_config_invalid')
-   p.write_text('{"api_key":"synthetic-secret-key","daily_limit":1000}')
-   self.assertEqual(intel.settings(str(p))[1],1000)
-   p.chmod(0o644);self.assertEqual(intel.settings(str(p))[2],'classifier_config_invalid')
+class PrivacyContracts(unittest.TestCase):
+ def test_only_job_local_opaque_equality_survives(self):
+  rows=[dict(ip='8.8.8.8',echo=True),dict(ip='8.8.8.8',echo=True),dict(ip='1.1.1.1',echo=True),dict(ip='',echo=False)]
+  out=driver.private_sources(rows,b'a'*32)
+  self.assertTrue(all('ip' not in r for r in out));self.assertEqual(out[0]['source'],out[1]['source']);self.assertNotEqual(out[0]['source'],out[2]['source']);self.assertEqual(out[3]['source'],'')
+  other=driver.private_sources([dict(ip='8.8.8.8',echo=True)],b'b'*32)
+  self.assertNotEqual(other[0]['source'],out[0]['source'])
+ def test_raw_shortcut_requires_every_repeated_domain(self):
+  rows=[dict(wave=w,domain=d,echo=True,tls=True,same_stream=True,actual_ads=d in session.DOMAINS,family=4,ip='1.1.1.1') for w in (1,2) for d in session.DOMAINS+session.CONTROLS[:2]]
+  self.assertTrue(driver.raw_shared_egress(rows,2))
+  rows[0]['ip']='8.8.8.8';self.assertFalse(driver.raw_shared_egress(rows,2))
+  rows[0]['ip']='1.1.1.1';rows[0]['echo']=False;self.assertFalse(driver.raw_shared_egress(rows,2))
+ def test_raw_shortcut_pairs_ipv6_without_comparing_to_ipv4(self):
+  rows=[]
+  for wave in (1,2):
+   for domain in session.DOMAINS+session.CONTROLS:
+    family=4 if domain=='www.cloudflare.com' else 6
+    rows.append(dict(wave=wave,domain=domain,family=family,ip='1.1.1.1' if family==4 else '2606:4700:4700::1111',echo=True,tls=True,same_stream=True,actual_ads=domain in session.DOMAINS))
+  self.assertTrue(driver.raw_shared_egress(rows,2))
+  rows[0]['ip']='2001:4860:4860::8888';self.assertFalse(driver.raw_shared_egress(rows,2))
+ def test_driver_has_no_network_class_dependency(self):
+  self.assertFalse(hasattr(driver,'intel'));self.assertFalse((HERE/'egress-classify.py').exists())
 if __name__=='__main__':unittest.main()
 
 

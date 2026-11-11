@@ -120,8 +120,8 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 	if offset > 1000000 {
 		offset = 1000000
 	}
-	table := "egress_jobs"
-	filter := " AND (state='RESIDENTIAL' OR state='ADS_SPLIT' OR json_extract(decision,'$.route')='PARTIAL_DIFFERENCE')"
+	table := "egress_eligible"
+	filter := ""
 	if r.URL.Query().Get("view") == "diagnostics" {
 		table = "egress_jobs"
 		filter = ""
@@ -162,16 +162,12 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		owners.Close()
 		entry["sources"] = names
 	}
-	var classifier string
-	db.QueryRowContext(ctx, "SELECT coalesce(json_extract(report,'$.classifier'),'{}') FROM egress_jobs WHERE tested>0 AND json_type(report,'$.classifier')='object' ORDER BY tested DESC LIMIT 1").Scan(&classifier)
-	if !json.Valid([]byte(classifier)) {
-		classifier = "{}"
-	}
 	var partial int
 	db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE state!='DELETED' AND json_extract(decision,'$.route')='PARTIAL_DIFFERENCE'").Scan(&partial)
-	var completed int
-	db.QueryRowContext(ctx, "SELECT count(DISTINCT hash) FROM egress_events WHERE at>?", egress.Now()-300000).Scan(&completed)
-	respond(w, 200, map[string]any{"classifier": json.RawMessage(classifier), "throughput": map[string]any{"completed_5m": completed, "target_5m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Proxycheck v3; explicit Residential only; provider classification, not a 100% guarantee", "scope": "TCP / observed family / three explicit Ads domains / raw and template; IPv6-only entry, QUIC and ambiguous multipath remain unqualified"})
+	var completed, definitive int
+	db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE tested>? AND json_extract(report,'$.version')=?", egress.Now()-300000, egress.Version).Scan(&completed)
+	db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE tested>? AND json_extract(report,'$.version')=? AND state IN ('RESIDENTIAL','NO_SPLIT')", egress.Now()-300000, egress.Version).Scan(&definitive)
+	respond(w, 200, map[string]any{"throughput": map[string]any{"completed_5m": completed, "definitive_5m": definitive, "target_5m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Project label only: Residential iff repeated dedicated Ads egress is observed; no ISP/network class lookup", "scope": "TCP / observed family / three explicit Ads domains / raw and template; IPv6-only entry, QUIC and ambiguous multipath remain unqualified"})
 }
 func (m egressModule) action(w http.ResponseWriter, r *http.Request) {
 	var b struct {
@@ -250,7 +246,7 @@ func (m egressModule) export(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(entries) == 0 {
-		http.Error(w, "no fresh classified Residential Ads configuration", 503)
+		http.Error(w, "no fresh verified split Ads configuration", 503)
 		return
 	}
 	if g := r.URL.Query().Get("generation"); g != "" && g != generation {
@@ -353,7 +349,7 @@ func (m egressModule) export(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", "inline")
 	w.Header().Set("X-Egress-Generation", generation)
 	w.Header().Set("X-Config-Count", strconv.Itoa(count))
-	w.Header().Set("X-Network-Classifier", "proxycheck-v3")
+	w.Header().Set("X-Residential-Definition", "repeated-ads-split-egress")
 	w.Header().Set("X-Egress-Evidence", "authenticated-Ads-peer-reported; finite TCP scope")
 	w.Header().Set("X-Config-Formats", fmt.Sprint(formats))
 	w.Header().Set("X-Content-SHA256", spool.Hash())

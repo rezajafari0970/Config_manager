@@ -11,7 +11,7 @@ import (
 func fixture() (Report, Plan, int64) {
 	now := Now()
 	p := Prepare([]byte("vless://00000000-0000-4000-8000-000000000001@192.0.2.1:443?security=tls&sni=example.com"))
-	r := Report{Version: Version, Hash: "fixture", Started: now - 1000, Finished: now, Core: "xray-26.11.9", CoreSHA: Cores["xray-26.11.9"], Infrastructure: true}
+	r := Report{Version: Version, Hash: "fixture", Started: now - 1000, Finished: now, Core: "xray-26.11.9", CoreSHA: Cores["xray-26.11.9"], Infrastructure: true, Waves: 3}
 	for _, v := range p.Variants {
 		r.Checks = append(r.Checks, Check{v.Name, v.Hash, v.Hash, true, "ok"})
 		for wave := 1; wave <= 3; wave++ {
@@ -22,38 +22,57 @@ func fixture() (Report, Plan, int64) {
 					ip = "8.8.8.8"
 				}
 				n := Hash([]byte(fmt.Sprint(v.Name, wave, d)))[:32]
-				r.Samples = append(r.Samples, Sample{Variant: v.Name, Wave: wave, Domain: d, At: now, IP: ip, Family: 4, Transport: "tcp", TLS: true, Echo: true, SameStream: true, ActualAds: ads, Nonce: n, Connection: n, Certificate: strings.Repeat("c", 64), Response: strings.Repeat("d", 64)})
+				r.Samples = append(r.Samples, Sample{Variant: v.Name, Wave: wave, Domain: d, At: now, Source: Hash([]byte(ip)), Family: 4, Transport: "tcp", TLS: true, Echo: true, SameStream: true, ActualAds: ads, Nonce: n, Connection: n, Certificate: strings.Repeat("c", 64), Response: strings.Repeat("d", 64)})
 			}
 		}
 	}
-	r.Facts = []Fact{{IP: "8.8.8.8", Provider: "proxycheck-v3", Class: "Residential", At: now, Expires: now + 100000, Digest: strings.Repeat("f", 64)}}
 	return r, p, now
 }
 func TestFiniteObservationPolicy(t *testing.T) {
 	r, p, now := fixture()
-	if d := Evaluate(r, p, "fixture", now); !d.Eligible || d.Route != "DIFFERENT" {
+	r.Waves = 2
+	keep := []Sample{}
+	for _, x := range r.Samples {
+		if x.Wave <= 2 {
+			keep = append(keep, x)
+		}
+	}
+	r.Samples = keep
+	if d := Evaluate(r, p, "fixture", now); !d.Eligible || d.Route != "DIFFERENT" || d.Reason != "repeated_ads_split_project_definition" {
 		t.Fatal(d)
 	}
 	cases := []struct {
 		name   string
 		change func(*Report, *Plan)
-	}{{"tls", func(r *Report, p *Plan) { r.Samples[0].TLS = false }}, {"reconnected", func(r *Report, p *Plan) { r.Samples[0].SameStream = false }}, {"nonce", func(r *Report, p *Plan) { r.Samples[0].Nonce = "wrong" }}, {"public_ip_cannot_be_ads", func(r *Report, p *Plan) { r.Samples[0].ActualAds = false }}, {"expired_provider", func(r *Report, p *Plan) { r.Facts[0].Expires = now - 1 }}, {"asn_is_not_class", func(r *Report, p *Plan) { r.Facts[0].Class = ""; r.Facts[0].ASN = "AS4609" }}, {"wrong_variant", func(r *Report, p *Plan) { r.Checks[1].Hash = "wrong" }}, {"partial_coverage", func(r *Report, p *Plan) { r.Samples = r.Samples[1:] }}, {"multipath", func(r *Report, p *Plan) { p.Complete = false }}, {"fake_core", func(r *Report, p *Plan) { r.CoreSHA = "wrong" }}, {"wrong_ip_class", func(r *Report, p *Plan) { r.Facts[0].IP = "1.1.1.1" }}, {"mixed_family", func(r *Report, p *Plan) { r.Samples[0].Family = 6 }}}
+	}{
+		{"tls", func(r *Report, p *Plan) { r.Samples[0].TLS = false }},
+		{"reconnected", func(r *Report, p *Plan) { r.Samples[0].SameStream = false }},
+		{"nonce", func(r *Report, p *Plan) { r.Samples[0].Nonce = "wrong" }},
+		{"control_is_not_ads", func(r *Report, p *Plan) { r.Samples[0].ActualAds = false }},
+		{"wrong_variant", func(r *Report, p *Plan) { r.Checks[1].Hash = "wrong" }},
+		{"rewritten_raw", func(r *Report, p *Plan) { r.Checks[0].RuntimeHash = Hash([]byte("wrong")) }},
+		{"partial", func(r *Report, p *Plan) { r.Samples = r.Samples[1:] }},
+		{"multipath", func(r *Report, p *Plan) { p.Complete = false }},
+		{"fake_core", func(r *Report, p *Plan) { r.CoreSHA = "wrong" }},
+		{"mixed_family", func(r *Report, p *Plan) { r.Samples[0].Family = 6 }},
+		{"plaintext_source", func(r *Report, p *Plan) { r.Samples[0].Source = "8.8.8.8" }},
+		{"replayed_control", func(r *Report, p *Plan) {
+			r.Samples[3].Connection = r.Samples[8].Connection
+			r.Samples[3].Nonce = r.Samples[8].Nonce
+		}},
+	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			r, p, now := fixture()
-			c.change(&r, &p)
-			if d := Evaluate(r, p, "fixture", now); d.Eligible {
+			var copy Report
+			b, _ := json.Marshal(r)
+			json.Unmarshal(b, &copy)
+			pp := p
+			pp.Variants = append([]Variant{}, p.Variants...)
+			c.change(&copy, &pp)
+			if d := Evaluate(copy, pp, "fixture", now); d.Eligible {
 				t.Fatal("false positive", d)
 			}
 		})
-	}
-	r.Facts[0].Class = "Hosting"
-	if d := Evaluate(r, p, "fixture", now); d.Eligible || !d.Negative {
-		t.Fatal(d)
-	}
-	r.Facts = nil
-	if d := Evaluate(r, p, "fixture", now); d.Negative {
-		t.Fatal("missing classifier caused purge")
 	}
 }
 func TestPreparationPreservesProtocolAndSecrets(t *testing.T) {
@@ -92,16 +111,15 @@ func TestDNSDialerIsNotSecondEgress(t *testing.T) {
 func TestOverlapNeverQualifiesAsDedicatedResidential(t *testing.T) {
 	r, p, now := fixture()
 	for i := range r.Samples {
-		r.Samples[i].IP = "8.8.8.8"
+		r.Samples[i].Source = Hash([]byte("8.8.8.8"))
 	}
 	d := Evaluate(r, p, "fixture", now)
 	if d.Eligible || d.State != "NO_SPLIT" || !d.Negative {
 		t.Fatal(d)
 	}
 	r, p, now = fixture()
-	r.Facts = nil
 	d = Evaluate(r, p, "fixture", now)
-	if d.Eligible || d.State != "ADS_SPLIT" || d.Route != "DIFFERENT" || len(d.IPs) != 1 {
+	if !d.Eligible || d.State != "RESIDENTIAL" || d.Route != "DIFFERENT" || len(d.Sources) != 1 {
 		t.Fatal(d)
 	}
 }
@@ -109,16 +127,16 @@ func TestPartialEchoRetainsEvidenceWithoutQualifying(t *testing.T) {
 	r, p, now := fixture()
 	r.Samples = append(r.Samples[1:5], r.Samples[6:]...)
 	d := Evaluate(r, p, "fixture", now)
-	if d.Eligible || d.Route != "PARTIAL_DIFFERENCE" || len(d.IPs) == 0 {
+	if d.Eligible || d.Route != "PARTIAL_DIFFERENCE" || len(d.Sources) == 0 {
 		t.Fatal(d)
 	}
 }
 
-func TestRepeatedPartialSplitIsVisibleButNeverEligible(t *testing.T) {
+func TestTwoPairedRepeatsPerDomainAndVariantQualify(t *testing.T) {
 	r, p, now := fixture()
 	r.Samples = r.Samples[1:]
 	d := Evaluate(r, p, "fixture", now)
-	if d.Eligible || d.State != "ADS_SPLIT" || d.Route != "DIFFERENT" || d.Missing != 1 {
+	if !d.Eligible || d.State != "RESIDENTIAL" || d.Route != "DIFFERENT" || d.Missing != 1 {
 		t.Fatal(d)
 	}
 }
@@ -146,18 +164,49 @@ func TestDriverFailureIsActionableAndNeverNegative(t *testing.T) {
 	}
 }
 
-func TestMixedResidentialEvidenceVisibleWithoutEligibility(t *testing.T) {
+func TestRotatingAdsPoolAndConflictingEvidence(t *testing.T) {
 	r, p, now := fixture()
-	r.Samples[1].IP = "9.9.9.9"
-	r.Samples = r.Samples[1:]
-	r.Facts = append(r.Facts, Fact{IP: "9.9.9.9", Provider: "proxycheck-v3", Class: "Business", At: now, Expires: now + 100000, Digest: strings.Repeat("b", 64)})
-	d := Evaluate(r, p, "fixture", now)
-	if d.Eligible || d.Negative || d.State != "ADS_SPLIT" || d.Network != "Mixed" || d.ObservedClasses["Residential"] != 1 || d.ObservedClasses["Business"] != 1 {
-		t.Fatal(d)
+	r.Samples[1].Source = Hash([]byte("9.9.9.9"))
+	if d := Evaluate(r, p, "fixture", now); !d.Eligible {
+		t.Fatal("rotating split rejected", d)
+	}
+	r.Samples[1].Source = Hash([]byte("1.1.1.1"))
+	if d := Evaluate(r, p, "fixture", now); d.Eligible || d.Negative || d.Reason != "mixed_route_observations" {
+		t.Fatal("mixed routes", d)
 	}
 	r, p, now = fixture()
-	r.Facts = append(r.Facts, Fact{IP: "8.8.8.8", Provider: "proxycheck-v3", Class: "Business", At: now, Expires: now + 100000, Digest: strings.Repeat("b", 64)})
-	if d = Evaluate(r, p, "fixture", now); d.Eligible || d.Negative {
-		t.Fatal("conflicting provider facts accepted", d)
+	r.Samples[3].Source = Hash([]byte("2.2.2.2"))
+	if d := Evaluate(r, p, "fixture", now); d.Eligible || d.Negative {
+		t.Fatal("unstable controls", d)
+	}
+	r, p, now = fixture()
+	r.Samples[1].Source = Hash([]byte("1.1.1.1"))
+	r.Samples[3].TLS = false
+	r.Samples[4].TLS = false
+	if d := Evaluate(r, p, "fixture", now); d.Eligible {
+		t.Fatal("unpaired overlap ignored", d)
+	}
+}
+
+func TestRawOnlySharedRouteIsARejectionNeverAcceptance(t *testing.T) {
+	r, p, now := fixture()
+	r.Code = "raw_shared_egress"
+	r.Checks = r.Checks[:1]
+	if d := Evaluate(r, p, "fixture", now); d.Eligible || d.Negative {
+		t.Fatal("missing template promoted", d)
+	}
+	for i := range r.Samples {
+		r.Samples[i].Source = Hash([]byte("1.1.1.1"))
+	}
+	if d := Evaluate(r, p, "fixture", now); d.Eligible || !d.Negative || d.State != "NO_SPLIT" {
+		t.Fatal(d)
+	}
+	for i := range r.Samples {
+		if r.Samples[i].Domain == Domains[0] {
+			r.Samples[i].TLS = false
+		}
+	}
+	if d := Evaluate(r, p, "fixture", now); d.Eligible || d.Negative || d.State == "NO_SPLIT" {
+		t.Fatal("incomplete raw rejected", d)
 	}
 }

@@ -77,7 +77,7 @@ func (s *Store) RenewEgress(ctx context.Context, j egress.Job) error {
 }
 func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	j, r := c.Job, c.Report
-	if !validDigest(j.Hash) || r.Hash != j.Hash || r.Version != egress.Version || len(r.Samples) > 256 || len(r.Facts) > 64 || len(r.Attempts) > 8 || len(r.Checks) > 2 {
+	if !validDigest(j.Hash) || r.Hash != j.Hash || r.Version != egress.Version || len(r.Samples) > 256 || len(r.Attempts) > 8 || len(r.Checks) > 2 {
 		return ErrInvalid
 	}
 	b, e := s.vault.Open(j.Hash)
