@@ -1,0 +1,253 @@
+{
+  "release": "/opt/config-repair/releases/p45-535993edea4187d12b9c",
+  "schema": 25,
+  "version": "ads-egress.v5|xray-26.11.9.template.v9",
+  "runtime_source_commit": "152e16aca60743ff855194ca641005b1f481b7df",
+  "checked_at": 1794433955,
+  "checks": {
+    "check": 0,
+    "crash": 0,
+    "rehearsal": 0,
+    "browser-live": 0,
+    "final-live-check": 0
+  },
+  "race_panel_seconds": 687.998,
+  "python_egress_contracts": 25,
+  "canaries": {
+    "fastly": {
+      "state": "RESIDENTIAL",
+      "route": "DIFFERENT",
+      "eligible": true,
+      "wall_ms": 18831.86,
+      "waves": 3,
+      "ads_echoes": 12,
+      "ads_attempts": 13
+    },
+    "alan": {
+      "state": "RESIDENTIAL",
+      "route": "DIFFERENT",
+      "eligible": true,
+      "wall_ms": 13262.758,
+      "waves": 2,
+      "ads_echoes": 12,
+      "ads_attempts": 12
+    }
+  },
+  "crash": {
+    "directory": "/tmp/shen-egress-p39-worker-4cac77c0",
+    "passed": true,
+    "total": 5,
+    "tested": 5,
+    "max_active": 2,
+    "states": {
+      "NO_SPLIT": 2,
+      "UNKNOWN": 3
+    },
+    "crash_recovered": true,
+    "seconds": 116.13,
+    "live_inputs": 3
+  },
+  "throughput": {
+    "mode": "read_only_live_queue",
+    "requested": 1000,
+    "first_assessments": 1000,
+    "seconds": 354.586,
+    "observation_seconds": 355.737,
+    "assessed_at_600s": 1000,
+    "target_600s_met": true,
+    "states": {
+      "NO_SPLIT": 392,
+      "UNKNOWN": 556,
+      "UNSUPPORTED": 51,
+      "RESIDENTIAL": 1
+    },
+    "definitive": 393,
+    "initial_pending": 4726,
+    "pending_snapshot_sha256": "a8885a7ff3175de85ca69b50be8e9bc93f80348183f6fd2f0118dbabe1f5b62f",
+    "unregistered_current": 0,
+    "timeline": [
+      {
+        "seconds": 0.019,
+        "first_assessments": 0,
+        "distinct_total": 0
+      },
+      {
+        "seconds": 30.141,
+        "first_assessments": 96,
+        "distinct_total": 99
+      },
+      {
+        "seconds": 60.18,
+        "first_assessments": 221,
+        "distinct_total": 226
+      },
+      {
+        "seconds": 90.352,
+        "first_assessments": 352,
+        "distinct_total": 360
+      },
+      {
+        "seconds": 120.531,
+        "first_assessments": 437,
+        "distinct_total": 449
+      },
+      {
+        "seconds": 150.626,
+        "first_assessments": 469,
+        "distinct_total": 511
+      },
+      {
+        "seconds": 180.728,
+        "first_assessments": 554,
+        "distinct_total": 598
+      },
+      {
+        "seconds": 210.843,
+        "first_assessments": 639,
+        "distinct_total": 685
+      },
+      {
+        "seconds": 241.074,
+        "first_assessments": 722,
+        "distinct_total": 769
+      },
+      {
+        "seconds": 271.114,
+        "first_assessments": 807,
+        "distinct_total": 857
+      },
+      {
+        "seconds": 301.179,
+        "first_assessments": 867,
+        "distinct_total": 922
+      },
+      {
+        "seconds": 331.376,
+        "first_assessments": 942,
+        "distinct_total": 998
+      },
+      {
+        "seconds": 355.656,
+        "first_assessments": 1000,
+        "distinct_total": 1056
+      }
+    ],
+    "scope": "First assessments of distinct real pending inputs under normal production scheduling; UNKNOWN/UNSUPPORTED are not conclusive route decisions."
+  },
+  "index_profile": {
+    "eligible": {
+      "before_ms": 111.853,
+      "after_ms": 0.102,
+      "same_result": true
+    },
+    "blocked": {
+      "before_ms": 61.464,
+      "after_ms": 0.08,
+      "same_result": true
+    },
+    "conversion_inputs": {
+      "before_ms": 163.423,
+      "after_ms": 12.642,
+      "same_result": true
+    },
+    "active": {
+      "before_ms": 65.453,
+      "after_ms": 0.004,
+      "same_result": true
+    }
+  },
+  "live": {
+    "source": "Alan splash",
+    "hash": "5af747d4c67cd168496cffda43faa872718e9b8704a8bbe4122a71f17aa694fc",
+    "state": "RESIDENTIAL",
+    "reason": "repeated_ads_split_project_definition",
+    "shown_in_default": true,
+    "eligible": 20,
+    "unregistered_current": 0,
+    "worker": {
+      "active": 9,
+      "code": "capacity_10",
+      "heartbeat": 1794433756354,
+      "status": "running"
+    },
+    "throughput": {
+      "completed_10m": 492,
+      "completed_5m": 374,
+      "definitive_10m": 271,
+      "definitive_5m": 181,
+      "max_workers": 31,
+      "target_10m": 1000
+    }
+  },
+  "exports": {
+    "configs.json": {
+      "status": 200,
+      "bytes": 27555,
+      "count": 20,
+      "sha256": "66ea334770a899420b6b07c98c392dfc4ce0cbf6d5bca420733285dc1f335068"
+    },
+    "configs.jsonl": {
+      "status": 200,
+      "bytes": 27533,
+      "count": 20,
+      "sha256": "68ee574fc91be8ab0cd2b49df4f810d237ad9458ff24f30a0effb7ccf9136fdb"
+    },
+    "next.json": {
+      "status": 200,
+      "bytes": 1501,
+      "count": 1,
+      "sha256": "911837ec0d6cf26269919d2a35392db6a3e9d7ccf875c897c9cd59ef74dba2eb"
+    },
+    "raw.txt": {
+      "status": 200,
+      "bytes": 9708,
+      "count": null,
+      "sha256": "f4aaa64056e267ff81e8222dddf905c12fd0feccc52b887d783f853a433744b7"
+    }
+  },
+  "export_verification_note": "One initial 409 eligibility/rotation conflict; bounded retry confirmed all four formats",
+  "unknown_diagnostics": {
+    "scope": "Current UNKNOWN states assessed during the last ten minutes, not the frozen 1000-input cohort",
+    "reasons": {
+      "controls_incomplete": 26,
+      "network_retry_pending": 175,
+      "direct_route_not_qualified": 14,
+      "mixed_route_observations": 2,
+      "ads_peer_echo_incomplete": 10,
+      "endpoint_dns_failed": 1,
+      "route_not_distinct": 5,
+      "driver_infrastructure_error": 2,
+      "public_endpoint_requires_tls": 1
+    },
+    "report_codes": {
+      "measured": 43,
+      "network_retry_pending": 175,
+      "direct_route_not_qualified": 14,
+      "endpoint_dns_failed": 1,
+      "driver_infrastructure_error": 2,
+      "public_endpoint_requires_tls": 1
+    },
+    "sample_codes": {
+      "ads_peer_reported": 273,
+      "control_echo": 301,
+      "connection_timeout": 894,
+      "connection_failed": 1432
+    }
+  },
+  "controls_preserved": true,
+  "services_verified": 6,
+  "binaries": {
+    "config-panel": "535993edea4187d12b9cc52bfd31e8e2a98c5cf955bb075eba308005a491b934",
+    "config-probe-worker": "1ab50c77670a285c2eaecba45b12338d682f1f92111da29f0a296ca4f797a8fb",
+    "config-egress-worker": "368cea5fbf328c3cdc0192a417d959f5594da61ba1a399bb38efb3552dad56f6",
+    "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+    "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+    "config-probe-plan": "d091b5a8d3a98ab28c8e22dc9f5c362d6938289baf79b61e4fa38ce839ffd7da"
+  },
+  "limitations": [
+    "Project Residential means observed dedicated Ads egress, not household ISP class.",
+    "Only three DoubleClick domains, TCP and observed families, exact raw plus template.",
+    "UNKNOWN/UNSUPPORTED are not definitive; 1000 initial assessments is not 1000 conclusive classifications.",
+    "Measured workload and host capacity do not guarantee a universal network-latency bound."
+  ]
+}

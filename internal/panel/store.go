@@ -191,6 +191,9 @@ PRAGMA user_version=1;`)
 	if err = s.migrateV25(); err != nil {
 		return nil, err
 	}
+	if err = s.ensureEgressIndexes(); err != nil {
+		return nil, err
+	}
 	if err = s.reconcileEgressVersion(); err != nil {
 		return nil, err
 	}

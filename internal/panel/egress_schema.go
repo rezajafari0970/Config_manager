@@ -163,3 +163,21 @@ func (s *Store) reconcileEgressVersion() error {
 	}
 	return tx.Commit()
 }
+
+// Additive indexes leave schema25 and the evidence contract unchanged. Metadata
+// lookups must not scan large stored JSON reports on every queue/GC/UI request.
+func (s *Store) ensureEgressIndexes() error {
+	for _, q := range []string{
+		"CREATE INDEX IF NOT EXISTS egress_eligibility ON egress_jobs(state,paused,valid_until,hash)",
+		"CREATE INDEX IF NOT EXISTS egress_accepted ON egress_jobs(hash) WHERE ever_accepted=1",
+		"CREATE INDEX IF NOT EXISTS egress_active ON egress_jobs(lease_until) WHERE token!=''",
+		"CREATE INDEX IF NOT EXISTS egress_tested ON egress_jobs(tested)",
+		"CREATE INDEX IF NOT EXISTS egress_retention ON egress_jobs(first_seen) WHERE ever_accepted=0 AND tested>0 AND state!='DELETED'",
+		"CREATE INDEX IF NOT EXISTS egress_events_time ON egress_events(at)",
+	} {
+		if _, err := s.db.Exec(q); err != nil {
+			return err
+		}
+	}
+	return nil
+}

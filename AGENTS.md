@@ -1,3 +1,21 @@
+# P45 activated throughput update — 2026-11-12
+
+Activated p45-535993edea4187d12b9c; schema25 and ads-egress.v5 retained.
+Read docs/reports/P45-report-fa.md and P45-validation.json. The latest user target
+is1000 first assessments within600s, superseding300s below. Real production queue
+measurement completed1000 distinct pending first assessments in354.586s;
+393 were conclusive. UNKNOWN/UNSUPPORTED must never be sold as conclusive.
+The default is min(31,2*CPU+2), with80% initial and20% follow-up lanes, bounded
+memory and idle stealing. Urgent accepted expiry/manual checks retain priority.
+Deep sampling uses two paired waves plus selective third retries; minimum two
+paired observations per domain/variant, strict TLS, exact raw, pins and privacy
+remain. Flat plaintext VLESS dispatch selects its compatible core directly.
+Six additive metadata indexes prevent repeated archive scans. Do not reset v5
+proofs or remove these indexes. Full race/release, migration, crash recovery,
+reference split canaries and mobile/desktop checks passed. All four exports
+and six running binary hashes were verified. Keep the shared deployment lock,
+matched stopped DB/blob/key/release backup and no-force-push requirements.
+
 # P44 activated user override — 2026-11-11
 
 Activated p44-98fd9205fb5e28243764, schema25, ads-egress.v5. Read

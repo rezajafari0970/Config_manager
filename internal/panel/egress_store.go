@@ -13,6 +13,16 @@ import (
 )
 
 func (s *Store) ClaimEgress(ctx context.Context) (*egress.Job, error) {
+	return s.ClaimEgressLane(ctx, "")
+}
+
+// Independent first-assessment and follow-up lanes share revision-fenced leases.
+// Urgent accepted proofs and manual requests can use either lane. Idle slots
+// steal first assessments before spending capacity on routine NO_SPLIT rechecks.
+func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, error) {
+	if lane != "" && lane != "initial" && lane != "followup" {
+		return nil, ErrInvalid
+	}
 	tx, e := s.db.BeginTx(ctx, nil)
 	if e != nil {
 		return nil, e
@@ -31,14 +41,35 @@ func (s *Store) ClaimEgress(ctx context.Context) (*egress.Job, error) {
 	}
 	j := &egress.Job{}
 	var size int64
-	e = tx.QueryRowContext(ctx, `SELECT hash,kind,size,revision,ever_accepted,attempts FROM egress_jobs WHERE state!='DELETED' AND paused=0 AND next_run<=? AND (token='' OR lease_until<=?) ORDER BY CASE WHEN ever_accepted=1 AND valid_until<=? THEN 0 WHEN reason='manual_recheck' THEN 1 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 2 WHEN attempts=1 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 3 WHEN ever_accepted=1 THEN 4 WHEN tested=0 THEN 5 ELSE 6 END,next_run,first_seen,hash LIMIT 1`, now, now, now+60000).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Deep, &j.Attempt)
+	var state string
+	base := `SELECT hash,kind,size,revision,ever_accepted,attempts,state FROM egress_jobs WHERE state!='DELETED' AND paused=0 AND next_run<=? AND (token='' OR lease_until<=?)`
+	order := ` ORDER BY CASE WHEN ever_accepted=1 AND valid_until<=? THEN 0 WHEN reason='manual_recheck' THEN 1 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 2 WHEN tested=0 THEN 3 WHEN ever_accepted=1 THEN 4 WHEN state='UNKNOWN' AND attempts=1 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 5 ELSE 6 END,next_run,first_seen,hash LIMIT 1`
+	filters := []string{""}
+	if lane == "initial" {
+		filters = []string{` AND (tested=0 OR reason='manual_recheck' OR (ever_accepted=1 AND valid_until<=?))`, ""}
+	}
+	if lane == "followup" {
+		filters = []string{` AND (reason='manual_recheck' OR ever_accepted=1 OR (tested>0 AND state NOT IN ('NO_SPLIT','UNSUPPORTED')))`, ` AND tested=0`, ""}
+	}
+	for _, filter := range filters {
+		args := []any{now, now}
+		if lane == "initial" && filter != "" {
+			args = append(args, now+60000)
+		}
+		args = append(args, now+60000)
+		e = tx.QueryRowContext(ctx, base+filter+order, args...).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Deep, &j.Attempt, &state)
+		if !errors.Is(e, sql.ErrNoRows) {
+			break
+		}
+	}
+
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, tx.Commit()
 	}
 	if e != nil {
 		return nil, e
 	}
-	j.Deep = j.Deep || j.Attempt > 0
+	j.Deep = j.Deep || j.Attempt > 0 && state != "NO_SPLIT" && state != "UNSUPPORTED"
 	j.Attempt++
 	j.Token = randomToken()
 	if _, e = tx.ExecContext(ctx, "UPDATE egress_jobs SET token=?,lease_until=?,claimed_at=?,attempts=attempts+1 WHERE hash=?", j.Token, now+120000, now, j.Hash); e != nil {
@@ -245,7 +276,7 @@ func (s *Store) expireEgress(ctx context.Context, tx *sql.Tx, now int64) error {
 	if _, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET state='QUARANTINED',reason='evidence_expired' WHERE ever_accepted=1 AND state='RESIDENTIAL' AND valid_until<=?", now); e != nil {
 		return e
 	}
-	if _, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET state='DELETED',reason='retention_expired',candidate_hash='',candidate_size=0,report='{}',decision='{}',revision=revision+1,token='',lease_until=0 WHERE ever_accepted=0 AND tested>0 AND state!='DELETED' AND first_seen+(SELECT retention_seconds*1000 FROM settings)<=?", now); e != nil {
+	if _, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET state='DELETED',reason='retention_expired',candidate_hash='',candidate_size=0,report='{}',decision='{}',revision=revision+1,token='',lease_until=0 WHERE ever_accepted=0 AND tested>0 AND state!='DELETED' AND first_seen<=?-(SELECT retention_seconds*1000 FROM settings)", now); e != nil {
 		return e
 	}
 	_, e := tx.ExecContext(ctx, "DELETE FROM egress_events WHERE at<?", now-int64(24*time.Hour/time.Millisecond))

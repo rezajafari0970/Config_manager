@@ -179,7 +179,7 @@ func TestEgressUnknownQuarantinesAndConfirmedLossPurges(t *testing.T) {
 	}
 }
 
-func TestEgressCurrentDeepRetryPrecedesRetainedFirstAssessment(t *testing.T) {
+func TestEgressLanesProtectInitialAndDeepRetry(t *testing.T) {
 	s := testStore(t)
 	ctx := context.Background()
 	newExportSource(t, s, "active", sourceURI(121))
@@ -194,12 +194,12 @@ func TestEgressCurrentDeepRetryPrecedesRetainedFirstAssessment(t *testing.T) {
 	if _, err = s.db.Exec("INSERT INTO egress_jobs(hash,kind,size,first_seen,last_seen) VALUES(?, 'fixture',1,1,1)", archived); err != nil {
 		t.Fatal(err)
 	}
-	next, err := s.ClaimEgress(ctx)
+	next, err := s.ClaimEgressLane(ctx, "followup")
 	if err != nil || next == nil || next.Hash != j.Hash || !next.Deep {
 		t.Fatal("live retry starved by history", next, err)
 	}
 	s.db.Exec("UPDATE egress_jobs SET token='',lease_until=0 WHERE hash=?", j.Hash)
-	next, err = s.ClaimEgress(ctx)
+	next, err = s.ClaimEgressLane(ctx, "initial")
 	if err != nil || next == nil || next.Hash != archived {
 		t.Fatal("history starved by repeated retry", next, err)
 	}
@@ -262,5 +262,85 @@ func TestEgressPartialFirstAttemptRetriesSoonAndRemainsVisible(t *testing.T) {
 	}
 	if rr.Code != 200 || json.Unmarshal(rr.Body.Bytes(), &body) != nil || body.Partial != 1 || body.Eligible != 0 || len(body.Entries) != 1 || body.Entries[0].Decision.Eligible || len(body.Entries[0].Sources) != 1 {
 		t.Fatal("partial hidden or incorrectly eligible", rr.Code, rr.Body.String())
+	}
+}
+
+func TestEgressLaneFallbackAndFastSharedRecheck(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	newExportSource(t, s, "current", sourceURI(151), sourceURI(152))
+	j, err := s.ClaimEgressLane(ctx, "followup")
+	if err != nil || j == nil || j.Deep {
+		t.Fatal("idle followup must steal initial", j, err)
+	}
+	s.db.Exec("UPDATE egress_jobs SET token='',lease_until=0,tested=?,attempts=3,next_run=0,state='NO_SPLIT' WHERE hash=?", egress.Now(), j.Hash)
+	fresh, err := s.ClaimEgressLane(ctx, "followup")
+	if err != nil || fresh == nil || fresh.Hash == j.Hash || fresh.Deep {
+		t.Fatal("shared recheck displaced first assessment", fresh, err)
+	}
+	retry, err := s.ClaimEgressLane(ctx, "initial")
+	if err != nil || retry == nil || retry.Hash != j.Hash || retry.Deep {
+		t.Fatal("idle initial should steal fast shared recheck", retry, err)
+	}
+	if _, err = s.ClaimEgressLane(ctx, "invalid"); err != ErrInvalid {
+		t.Fatal("unknown lane accepted", err)
+	}
+}
+func TestEgressUrgentAcceptedUsesInitialLane(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	newExportSource(t, s, "current", sourceURI(161), sourceURI(162))
+	var hash string
+	s.db.QueryRow("SELECT hash FROM egress_jobs ORDER BY hash DESC LIMIT 1").Scan(&hash)
+	s.db.Exec("UPDATE egress_jobs SET ever_accepted=1,state='RESIDENTIAL',tested=?,attempts=4,valid_until=?,next_run=0 WHERE hash=?", egress.Now(), egress.Now()+20000, hash)
+	j, err := s.ClaimEgressLane(ctx, "initial")
+	if err != nil || j == nil || j.Hash != hash || !j.Deep {
+		t.Fatal("accepted proof expiry starved", j, err)
+	}
+}
+func TestEgressClaimLaneHTTPCompatibility(t *testing.T) {
+	s := testStore(t)
+	for _, body := range []string{"null", `{}`, `{"lane":"initial"}`, `{"lane":"followup"}`} {
+		rr := httptest.NewRecorder()
+		s.PrivateProbeHandler().ServeHTTP(rr, httptest.NewRequest("POST", "http://localhost/egress/claim", strings.NewReader(body)))
+		if rr.Code != 200 {
+			t.Fatal(body, rr.Code, rr.Body.String())
+		}
+	}
+	for _, body := range []string{`{"lane":"bad"}`, `{"lane":1}`, `{"lane":"initial","extra":true}`} {
+		rr := httptest.NewRecorder()
+		s.PrivateProbeHandler().ServeHTTP(rr, httptest.NewRequest("POST", "http://localhost/egress/claim", strings.NewReader(body)))
+		if rr.Code != 422 {
+			t.Fatal("invalid claim accepted", body, rr.Code)
+		}
+	}
+}
+
+func TestEgressMetadataQueriesUseBoundedIndexes(t *testing.T) {
+	s := testStore(t)
+	for _, c := range []struct{ query, index string }{
+		{"SELECT count(*) FROM egress_eligible", "egress_eligibility"},
+		{"SELECT hash FROM egress_jobs WHERE ever_accepted=1", "egress_accepted"},
+		{"SELECT count(*) FROM egress_jobs WHERE token!='' AND lease_until>0", "egress_active"},
+		{"SELECT count(*) FROM egress_jobs WHERE tested>0", "egress_tested"},
+		{"SELECT hash FROM egress_jobs WHERE ever_accepted=0 AND tested>0 AND state!='DELETED' AND first_seen<=123-(SELECT retention_seconds*1000 FROM settings)", "egress_retention"},
+	} {
+		rows, err := s.db.Query("EXPLAIN QUERY PLAN " + c.query)
+		if err != nil {
+			t.Fatal(err)
+		}
+		plan := ""
+		for rows.Next() {
+			var a, b, n int
+			var detail string
+			if err = rows.Scan(&a, &b, &n, &detail); err != nil {
+				t.Fatal(err)
+			}
+			plan += detail + " "
+		}
+		rows.Close()
+		if !strings.Contains(plan, c.index) {
+			t.Fatal("archive scan", c.query, plan)
+		}
 	}
 }

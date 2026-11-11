@@ -242,7 +242,7 @@ func run() error {
 	helper := flag.String("helper", "/opt/config-repair/current/scripts/egress-probe.py", "trusted driver")
 	prefix := flag.String("prefix", "cge", "isolated scope")
 	lockPath := flag.String("lock-file", "/run/config-repair-egress.lock", "single supervisor")
-	workers := flag.Int("workers", min(egress.MaxWorkers, runtime.NumCPU()*2), "maximum concurrent isolated jobs")
+	workers := flag.Int("workers", min(egress.MaxWorkers, runtime.NumCPU()*2+2), "maximum concurrent isolated jobs")
 	flag.Parse()
 	if *workers < 1 || *workers > egress.MaxWorkers {
 		return errors.New("invalid worker limit")
@@ -274,7 +274,12 @@ func run() error {
 			defer driver.stop()
 			for ctx.Err() == nil {
 				var j *egress.Job
-				if slot <= resourceLimit(*workers) && c.call(ctx, "claim", nil, &j) == nil && j != nil {
+				capacity := resourceLimit(*workers)
+				lane := "initial"
+				if slot > max(1, (capacity*4+4)/5) {
+					lane = "followup"
+				}
+				if slot <= capacity && c.call(ctx, "claim", map[string]string{"lane": lane}, &j) == nil && j != nil {
 					active.Add(1)
 					execute(ctx, c, driver, *j)
 					active.Add(-1)

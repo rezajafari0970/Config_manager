@@ -90,7 +90,10 @@ def core_order(plan):
   cfg=json.loads(base64.b64decode(plan['variants'][0]['config'],validate=True))
   for ob in cfg.get('outbounds',[]):
    if ob.get('protocol')!='vless' or ob.get('streamSettings',{}).get('security','none') not in ('','none'):continue
-   for server in ob.get('settings',{}).get('vnext',[]):
+   settings=ob.get('settings',{})
+   servers=settings.get('vnext',[])
+   if settings.get('address'):servers=[dict(address=settings['address'],users=[settings])]
+   for server in servers:
     try:public=ipaddress.ip_address(server.get('address','')).is_global
     except ValueError:public=bool(server.get('address')) and server['address'].lower() not in ('localhost',) and not server['address'].lower().endswith(('.localhost','.local'))
     if public and all(u.get('encryption','none') in ('','none') for u in server.get('users',[])):
@@ -174,16 +177,16 @@ def investigate(req,args,pool=None):
       code=lab.classify(box.logs(),'runtime_start_failed');check.update(core=False,code=code);break
      check.update(core=True,code='exact_runtime_started')
      def observe(start,waves,timeout):
-      result=box.net(['/usr/bin/python3',str(HERE/'egress-session.py')],input=json.dumps({'variant':v['name'],'timeout':timeout,'start_wave':start,'waves':waves,'sequential':sequential,'control_ipv4':control_ip}).encode(),timeout=max(25,timeout*(waves if sequential else 2)+10))
+      result=box.net(['/usr/bin/python3',str(HERE/'egress-session.py')],input=json.dumps({'variant':v['name'],'timeout':timeout,'start_wave':start,'waves':waves,'sequential':sequential,'adaptive':bool(req.get('deep')),'control_ipv4':control_ip}).encode(),timeout=max(25,timeout*(waves if sequential else 2)+10))
       if len(result.stdout)>131072:raise ValueError('session_output_limit')
       rows=json.loads(result.stdout)
-      if not isinstance(rows,list) or not waves*5<=len(rows)<=waves*7:raise ValueError('session_contract')
+      if not isinstance(rows,list) or not min(waves,2)*5<=len(rows)<=waves*7:raise ValueError('session_contract')
       return rows
      # XHTTP and deep retries avoid overloading one remote path with 21 connections.
      sequential=bool(req.get('deep')) or any(o.get('streamSettings',{}).get('network') in ('xhttp','splithttp') for o in config.get('outbounds',[]))
      rows=observe(1,r['waves'],8 if req.get('deep') else 3)
      samples+=rows;box.stop();code='measured';mark(v['name']+'_probes')
-     if v['name']=='raw' and raw_shared_egress(rows,r['waves']):code='raw_shared_egress';break
+     if v['name']=='raw' and raw_shared_egress(rows,max(x['wave'] for x in rows)):code='raw_shared_egress';break
      if not req.get('deep') and not any(x.get('echo') for x in rows):
       code='network_retry_pending';break
    mark('reset')
@@ -204,6 +207,7 @@ def investigate(req,args,pool=None):
   result=subprocess.run(['/usr/bin/curl','--noproxy','*','--silent','--fail','--max-time','5','https://1.1.1.1/cdn-cgi/trace'],capture_output=True,timeout=6)
   r['infrastructure']=result.returncode==0 and b'ip=' in result.stdout
  except Exception:pass
+ r['waves']=max([2]+[x.get('wave',0) for x in r['samples']])
  r['samples']=private_sources(r['samples'],secrets.token_bytes(32))
  r['finished']=int(time.time()*1000);r['wall_ms']=(time.monotonic()-begin)*1000
  return r

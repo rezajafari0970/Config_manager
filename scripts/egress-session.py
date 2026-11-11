@@ -110,12 +110,22 @@ async def measure(domain,variant,wave,timeout,control_ipv4=None):
  finally:
   if writer:writer.close()
  return row
+def paired_domains(rows):
+ controls={};valid=set()
+ for row in rows:
+  if not all(row.get(k) for k in ('echo','tls','same_stream')):continue
+  domain=row['domain'];family=row['family']
+  group='cf' if domain in ('www.cloudflare.com','one.one.one.one') else 'ipify' if domain in ('api.ipify.org','api6.ipify.org') else ''
+  if group:controls.setdefault(family,set()).add(group)
+ for row in rows:
+  if row.get('domain') in DOMAINS and all(row.get(k) for k in ('echo','tls','same_stream','actual_ads')) and len(controls.get(row.get('family'),set()))==2:valid.add((row['domain'],row['family']))
+ return valid
 async def session(req):
  # Independent connections per wave, with staggered starts and bounded parallelism.
  # IPv6 controls are only necessary when an Ads echo actually has that family.
- async def wave(n,delay):
+ async def wave(n,delay,domains=None):
   await asyncio.sleep(delay)
-  names=DOMAINS+CONTROLS[:2]
+  names=(DOMAINS if domains is None else domains)+CONTROLS[:2]
   # Start both families together; a failed IPv4/Ads peer must not serialize
   # the IPv6 control deadline. Discard/cancel IPv6 work when it is not needed.
   ipv6=[asyncio.create_task(measure(d,req['variant'],n,req.get('timeout',3),req.get('control_ipv4'))) for d in CONTROLS[2:]]
@@ -130,7 +140,12 @@ async def session(req):
    await asyncio.gather(*ipv6,return_exceptions=True)
  start=req.get('start_wave',1);waves=req.get('waves',3)
  if not 1<=waves<=3:raise ValueError('wave_limit')
- if req.get('sequential'):
+ if req.get('adaptive') and waves==3:
+  groups=[await wave(start,0),await wave(start+1,0)]
+  complete={d for d,family in paired_domains(groups[0]) & paired_domains(groups[1])}
+  missing=[d for d in DOMAINS if d not in complete]
+  if missing:groups.append(await wave(start+2,0,missing))
+ elif req.get('sequential'):
   groups=[]
   for i in range(waves):groups.append(await wave(start+i,0))
  else:groups=await asyncio.gather(*(wave(start+i,i*.15) for i in range(waves)))

@@ -143,6 +143,41 @@ class PrivacyContracts(unittest.TestCase):
   rows[0]['ip']='2001:4860:4860::8888';self.assertFalse(driver.raw_shared_egress(rows,2))
  def test_driver_has_no_network_class_dependency(self):
   self.assertFalse(hasattr(driver,'intel'));self.assertFalse((HERE/'egress-classify.py').exists())
+class AdaptiveContracts(unittest.TestCase):
+ def simulate(self,change):
+  original=session.measure;calls=[]
+  async def fake(domain,variant,wave,timeout,control_ipv4=None):
+   calls.append((domain,wave))
+   row=dict(domain=domain,wave=wave,echo=True,tls=True,same_stream=True,family=6 if domain in session.CONTROLS[2:] else 4,actual_ads=domain in session.DOMAINS)
+   change(row);return row
+  session.measure=fake
+  try:return asyncio.run(session.session(dict(variant='raw',waves=3,sequential=True,adaptive=True))),calls
+  finally:session.measure=original
+ def test_two_complete_paired_waves_skip_third(self):
+  rows,calls=self.simulate(lambda r:None)
+  self.assertEqual(len(rows),10);self.assertEqual({w for d,w in calls},{1,2})
+ def test_third_wave_retries_only_missing_domain_and_controls(self):
+  def change(r):
+   if r['domain']==session.DOMAINS[0] and r['wave']==1:r['echo']=False
+  rows,calls=self.simulate(change)
+  self.assertEqual({d for d,w in calls if w==3 and d in session.DOMAINS},{session.DOMAINS[0]})
+  self.assertEqual(len(rows),13)
+ def test_family_change_needs_third_wave(self):
+  def change(r):
+   if r['domain'] in session.DOMAINS and r['wave']==2:r['family']=6
+  rows,calls=self.simulate(change)
+  self.assertEqual({d for d,w in calls if w==3 and d in session.DOMAINS},set(session.DOMAINS))
+ def test_unpaired_controls_do_not_skip_retry(self):
+  def change(r):
+   if r['domain']=='api.ipify.org' and r['wave']==2:r['echo']=False
+  rows,calls=self.simulate(change)
+  self.assertEqual({d for d,w in calls if w==3 and d in session.DOMAINS},set(session.DOMAINS))
+ def test_flat_vless_dispatch_preserves_tls_and_local_semantics(self):
+  import base64
+  for address,security,encryption,want in [('8.8.8.8','none','none','26.5.9'),('example.com','none','none','26.5.9'),('127.0.0.1','none','none','26.11.9'),('8.8.8.8','tls','none','26.11.9'),('8.8.8.8','none','mlkem768x25519plus.native.0rtt.key','26.11.9')]:
+   cfg={'outbounds':[{'protocol':'vless','settings':{'address':address,'port':443,'id':'fixture','encryption':encryption},'streamSettings':{'security':security}}]}
+   plan={'variants':[{'config':base64.b64encode(json.dumps(cfg).encode()).decode()}]}
+   self.assertEqual(driver.core_order(plan)[0][0],'xray-'+want)
 if __name__=='__main__':unittest.main()
 
 

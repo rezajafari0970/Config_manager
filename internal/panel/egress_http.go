@@ -12,7 +12,14 @@ import (
 
 func (s *Store) registerPrivateEgress(mux *http.ServeMux) {
 	mux.HandleFunc("POST /egress/claim", func(w http.ResponseWriter, r *http.Request) {
-		j, e := s.ClaimEgress(r.Context())
+		var request struct {
+			Lane string `json:"lane"`
+		}
+		if decode(r, &request) != nil || (request.Lane != "" && request.Lane != "initial" && request.Lane != "followup") {
+			failure(w, ErrInvalid)
+			return
+		}
+		j, e := s.ClaimEgressLane(r.Context(), request.Lane)
 		if e != nil {
 			failure(w, e)
 			return
@@ -164,10 +171,12 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 	}
 	var partial int
 	db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE state!='DELETED' AND json_extract(decision,'$.route')='PARTIAL_DIFFERENCE'").Scan(&partial)
-	var completed, definitive int
+	var completed, definitive, completed10, definitive10 int
 	db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE tested>? AND json_extract(report,'$.version')=?", egress.Now()-300000, egress.Version).Scan(&completed)
 	db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE tested>? AND json_extract(report,'$.version')=? AND state IN ('RESIDENTIAL','NO_SPLIT')", egress.Now()-300000, egress.Version).Scan(&definitive)
-	respond(w, 200, map[string]any{"throughput": map[string]any{"completed_5m": completed, "definitive_5m": definitive, "target_5m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Project label only: Residential iff repeated dedicated Ads egress is observed; no ISP/network class lookup", "scope": "TCP / observed family / three explicit Ads domains / raw and template; IPv6-only entry, QUIC and ambiguous multipath remain unqualified"})
+	db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE tested>? AND json_extract(report,'$.version')=?", egress.Now()-600000, egress.Version).Scan(&completed10)
+	db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE tested>? AND json_extract(report,'$.version')=? AND state IN ('RESIDENTIAL','NO_SPLIT')", egress.Now()-600000, egress.Version).Scan(&definitive10)
+	respond(w, 200, map[string]any{"throughput": map[string]any{"completed_5m": completed, "definitive_5m": definitive, "completed_10m": completed10, "definitive_10m": definitive10, "target_10m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Project label only: Residential iff repeated dedicated Ads egress is observed; no ISP/network class lookup", "scope": "TCP / observed family / three explicit Ads domains / raw and template; IPv6-only entry, QUIC and ambiguous multipath remain unqualified"})
 }
 func (m egressModule) action(w http.ResponseWriter, r *http.Request) {
 	var b struct {

@@ -49,8 +49,9 @@ A fully observed shared raw egress is sufficient for early rejection; its
 template need not run. Go independently verifies the raw evidence, and this
 shortcut can never qualify an output. A running core with network timeouts does
 not repeat the same timeouts on four versions; build/start incompatibilities
-still use the pinned fallback matrix. Fast jobs use two waves; deeper retries use three sequential waves with8s
-connection deadlines. XHTTP always uses sequential waves to avoid connection
+still use the pinned fallback matrix. Fast jobs use two waves; deeper retries start with two sequential waves with8s
+connection deadlines. Only domains lacking two paired observations receive a third
+wave with fresh controls; all observations are retained for the same evaluator. XHTTP always uses sequential waves to avoid connection
 bursts. Destinations within a wave run in parallel. Ordinary fast deadlines
 remain3s. Partial failures defer to deeper retries and are never NO_SPLIT by
 elapsed time alone. A repeated split can qualify in the fast pass.
@@ -70,11 +71,16 @@ unprivileged core processes. Endpoint-only firewall, checksum pins, bounded
 cgroups and disjoint cge/cgt namespaces remain. After each job kill cores,
 deny egress, verify empty cgroup and erase private runtime files before ack.
 Parent death and startup cleanup recover only this feature's own resources.
-Capacity is bounded at31 and reduced under memory pressure. Leases renew every
+Default capacity is min(31,2*CPU+2). Capacity is bounded at31 and reduced under memory pressure. Leases renew every
 20s, expire after120s and are revision-fenced. Manual deletion always wins.
 
-Accepted proof nearing expiry has priority. Current inputs receive initial
-assessment and one deep retry before historical backlog. Partial first passes
+Accepted proof nearing expiry has priority. 80% of slots prioritize first assessments (current source inputs then retained
+backlog); 20% independently handle accepted/inconclusive follow-ups. Both lanes
+handle urgent accepted expiry and manual rechecks. Idle lanes steal work;
+ordinary NO_SPLIT rechecks cannot displace waiting initial assessments. Shared
+NO_SPLIT rechecks use fast mode; inconclusive/previously accepted use deep mode.
+Additive metadata indexes prevent report-archive scans on queue/eligibility/GC
+paths without changing schema25, source controls or resetting existing proofs. Partial first passes
 retry after30s. Accepted entries recheck after120s and are exempt from ordinary
 age-based retention; publication needs evidence younger than600s. Uncertainty
 quarantines and withdraws exports without calling it a route failure. Three
@@ -86,7 +92,7 @@ re-import. Source settings, ordinary/Smart gates and deletion journal remain.
 /egress shows accepted split-route configurations by default. All-input
 checkbox exposes pending, incomplete and unsupported cases with source names
 and diagnostic evidence. The UI explains the project-specific Residential
-label and distinguishes five-minute assessments from conclusive route results.
+label and distinguishes ten-minute assessments from conclusive route results.
 
 Four stable links: JSON array, JSONL, rotating single JSON and immutable raw
 text. Publication checks current eligibility and generation, and rotation is
@@ -97,9 +103,13 @@ No ordinary-server fallback is substituted for an empty accepted pool.
 
 Run scripts/check.sh, the isolated crash/recovery fixture, private migration
 rehearsal and scripts/egress-throughput-test.py on1000 distinct real retained
-inputs. Test harness never changes production evidence or sources. Report the
-actual300s count and states; UNKNOWN/UNSUPPORTED are not conclusive decisions.
-The target1000 in300s is measured, not asserted from configured concurrency.
+inputs. The isolated test harness never changes production evidence or sources.
+Alternatively, scripts/egress-live-throughput.py observes first assessments of
+an existing pending cohort in the actual production queue without mutations.
+It excludes repeat events and does not count unsupported/inconclusive as
+definitive. See P45-validation.json for the measured production workload. Report the
+actual600s count and states; UNKNOWN/UNSUPPORTED are not conclusive decisions.
+The target1000 in600s is measured, not asserted from configured concurrency.
 Preserve strict TLS, raw data, server pins and stage-specific error evidence.
 
 Deployment holds /var/lock/config-repair-deploy.lock and captures a matching
