@@ -6,7 +6,7 @@ import argparse,base64,fcntl,ipaddress,contextlib,copy,importlib.util,json,os,pa
 HERE=pathlib.Path(__file__).resolve().parent
 def module(name,file):
  spec=importlib.util.spec_from_file_location(name,HERE/file);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
-lab=module('egress_lab','live-probe.py');intel=module('egress_intel','egress-classify.py')
+lab=module('egress_lab','live-probe.py');intel=module('egress_intel','egress-classify.py');scope=module('egress_scope','egress-preflight.py')
 CORES=[('xray-26.11.9','/opt/config-repair/core-26.11.9/xray','e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d'),('xray-26.10.31','/opt/config-repair/core-26.10.31/xray','cc4b84d3069569f297a61f04b914f2bb37e9d202fd7b84cb50def1fc30fd40e1'),('xray-26.7.28','/opt/config-repair/core-26.7.28/xray','64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d'),('xray-26.5.9','/opt/config-repair/core-26.5.9/xray','b2c525e082cf2fef460499c88838d355f0b9bfb5a00bdb3eaa99b6af63825006')]
 NATIVE=('sing-box-1.14.4','/opt/config-repair/sing-box-1.14.4/sing-box','1264361b5f8868c8768f7555d3e77e20118bf503c41ac08bb290a0d99056aa3a')
 def cleanup(prefix,slot=None,run=None):
@@ -73,7 +73,7 @@ class ResourcePool:
    for name in ('config.json','hosts','resolv.conf'):(box.work/name).unlink(missing_ok=True)
 def runtime(config,driver):
  if driver=='xray':
-  resolved=lab.endpoints(config);return resolved,lab.runtime_config(config,resolved)
+  return scope.runtime(config,lab)
  out=config['outbounds']
  if len(out)!=1 or out[0].get('detour') or out[0].get('server_ports') or out[0].get('domain_resolver'):raise ValueError('native_path_unsupported')
  ob=out[0];host=ob['server'];port=ob['server_port']
@@ -97,6 +97,24 @@ def core_order(plan):
      return [CORES[-1]]+CORES[:-1]
  except (ValueError,KeyError,TypeError):pass
  return CORES
+_control_cache=(0,'')
+def control_ipv4():
+ # A dual-stack control name may otherwise use IPv6 while Ads uses IPv4.
+ # Resolve the fixed public name outside the tunnel; NEVER add it to the
+ # namespace firewall. The SOCKS connection and verified TLS still use proxy.
+ global _control_cache
+ now=time.monotonic()
+ if _control_cache[0]>now:return _control_cache[1]
+ value=''
+ try:
+  helper='import socket,json;print(json.dumps(sorted({x[4][0] for x in socket.getaddrinfo("www.cloudflare.com",443,socket.AF_INET,socket.SOCK_STREAM)})))'
+  r=subprocess.run(['/usr/bin/python3','-c',helper],capture_output=True,check=True,timeout=3)
+  ips=json.loads(r.stdout)
+  valid=[str(ipaddress.ip_address(ip)) for ip in ips if ipaddress.ip_address(ip).version==4 and ipaddress.ip_address(ip).is_global and not ipaddress.ip_address(ip).is_multicast and not ipaddress.ip_address(ip).is_reserved]
+  if valid:value=valid[0]
+ except Exception:pass
+ _control_cache=(now+(300 if value else 5),value)
+ return value
 def classification_candidates(samples):
  # Preserve the provider budget for observed split candidates. Control sources
  # are family-specific; overlap/ambiguous controls need no network-type query.
@@ -117,9 +135,10 @@ def classification_candidates(samples):
 def investigate(req,args,pool=None):
  if pool is None:
   with ResourcePool(args) as own:return investigate(req,args,own)
- plan=req['plan'];r=dict(version='ads-egress.v3',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],facts=[],attempts=[],wall_ms=0)
+ plan=req['plan'];r=dict(version='ads-egress.v4',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],facts=[],attempts=[],wall_ms=0)
  begin=time.monotonic();best=-1
  if len(plan.get('variants',[]))!=2:return r
+ control_ip=control_ipv4()
  for core,path,pin in (core_order(plan) if plan['driver']=='xray' else [NATIVE]):
   at=time.monotonic();checks=[];samples=[];code='core_unavailable';stages={};checkpoint=at
   def mark(name):
@@ -132,10 +151,10 @@ def investigate(req,args,pool=None):
     for v in plan['variants']:
      data=base64.b64decode(v['config'],validate=True)
      if len(data)>8*1024*1024 or lab.digest(data)!=v['hash']:raise ValueError('variant_hash_mismatch')
-     config=json.loads(data);box.policy({});p=box.launch(data,True);p.wait(timeout=12);valid=p.returncode==0;box.stop();mark(v['name']+'_build')
-     check=dict(name=v['name'],hash=v['hash'],runtime_hash='',core=valid,code='core_validated' if valid else 'core_rejected');checks.append(check)
-     if not valid:code='core_rejected';break
-     resolved,obj=runtime(config,plan['driver']);body=json.dumps(obj,separators=(',',':')).encode();box.resolved=resolved;box.policy(resolved);check['runtime_hash']=lab.digest(body);mark(v['name']+'_resolve')
+     config=json.loads(data);box.policy({});p=box.launch(data,True);p.wait(timeout=12);valid=p.returncode==0;build_code='core_validated' if valid else lab.classify(box.logs(),'core_rejected');box.stop();mark(v['name']+'_build')
+     check=dict(name=v['name'],hash=v['hash'],runtime_hash='',core=valid,code=build_code);checks.append(check)
+     if not valid:code=build_code;break
+     resolved,obj=runtime(config,plan['driver']);body=data if plan['driver']=='xray' else json.dumps(obj,separators=(',',':')).encode();box.resolved=resolved;box.policy(resolved);check['runtime_hash']=lab.digest(body);mark(v['name']+'_resolve')
      p=box.launch(body);ready=False
      for _ in range(30):
       if p.poll() is not None:break
@@ -145,12 +164,14 @@ def investigate(req,args,pool=None):
      mark(v['name']+'_ready')
      if not ready:check.update(core=False,code='runtime_start_failed');code='runtime_start_failed';break
      def observe(start,waves,timeout):
-      result=box.net(['/usr/bin/python3',str(HERE/'egress-session.py')],input=json.dumps({'variant':v['name'],'timeout':timeout,'start_wave':start,'waves':waves}).encode(),timeout=max(25,timeout*2+10))
+      result=box.net(['/usr/bin/python3',str(HERE/'egress-session.py')],input=json.dumps({'variant':v['name'],'timeout':timeout,'start_wave':start,'waves':waves,'sequential':sequential,'control_ipv4':control_ip}).encode(),timeout=max(25,timeout*(waves if sequential else 2)+10))
       if len(result.stdout)>131072:raise ValueError('session_output_limit')
       rows=json.loads(result.stdout)
       if not isinstance(rows,list) or not waves*5<=len(rows)<=waves*7:raise ValueError('session_contract')
       return rows
-     rows=observe(1,3,5 if req.get('deep') else 3)
+     # XHTTP and deep retries avoid overloading one remote path with 21 connections.
+     sequential=bool(req.get('deep')) or any(o.get('streamSettings',{}).get('network') in ('xhttp','splithttp') for o in config.get('outbounds',[]))
+     rows=observe(1,3,8 if req.get('deep') else 3)
      samples+=rows;box.stop();code='measured';mark(v['name']+'_probes')
      if not req.get('deep') and not any(x.get('echo') for x in rows):
       code='network_retry_pending';break
@@ -164,6 +185,7 @@ def investigate(req,args,pool=None):
   except Exception as error:
    code='driver_subprocess_timeout' if isinstance(error,subprocess.TimeoutExpired) else 'driver_subprocess_failed' if isinstance(error,subprocess.CalledProcessError) else str(error) if isinstance(error,ValueError) and re.fullmatch('[a-z_]{1,60}',str(error)) else 'driver_infrastructure_error'
    r['attempts'].append(dict(core=core,code=code,ms=(time.monotonic()-at)*1000,stages=stages))
+   if best<0:r['code']=code
  # A separate host control is only an outage check, never Ads IP evidence.
  try:
   if any(x.get('echo') for x in r['samples']):raise ValueError('outage_check_unnecessary')

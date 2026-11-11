@@ -177,3 +177,84 @@ func TestEgressUnknownQuarantinesAndConfirmedLossPurges(t *testing.T) {
 		t.Fatal("purge not durable")
 	}
 }
+
+func TestEgressCurrentDeepRetryPrecedesRetainedFirstAssessment(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	newExportSource(t, s, "active", sourceURI(121))
+	j, err := s.ClaimEgress(ctx)
+	if err != nil || j == nil {
+		t.Fatal(err)
+	}
+	if _, err = s.db.Exec("UPDATE egress_jobs SET token='',lease_until=0,tested=?,attempts=1,next_run=0 WHERE hash=?", egress.Now(), j.Hash); err != nil {
+		t.Fatal(err)
+	}
+	archived := strings.Repeat("a", 64)
+	if _, err = s.db.Exec("INSERT INTO egress_jobs(hash,kind,size,first_seen,last_seen) VALUES(?, 'fixture',1,1,1)", archived); err != nil {
+		t.Fatal(err)
+	}
+	next, err := s.ClaimEgress(ctx)
+	if err != nil || next == nil || next.Hash != j.Hash || !next.Deep {
+		t.Fatal("live retry starved by history", next, err)
+	}
+	s.db.Exec("UPDATE egress_jobs SET token='',lease_until=0 WHERE hash=?", j.Hash)
+	next, err = s.ClaimEgress(ctx)
+	if err != nil || next == nil || next.Hash != archived {
+		t.Fatal("history starved by repeated retry", next, err)
+	}
+}
+
+func TestEgressManualRecheckPrecedesCurrentFirstAssessment(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	newExportSource(t, s, "active", sourceURI(131), sourceURI(132))
+	var target string
+	s.db.QueryRow("SELECT hash FROM egress_jobs ORDER BY hash DESC LIMIT 1").Scan(&target)
+	if _, e := s.db.Exec("UPDATE egress_jobs SET reason='manual_recheck',tested=?,attempts=2,first_seen=? WHERE hash=?", egress.Now(), egress.Now()+1000, target); e != nil {
+		t.Fatal(e)
+	}
+	j, e := s.ClaimEgress(ctx)
+	if e != nil || j == nil || j.Hash != target {
+		t.Fatal("manual check starved", j, e)
+	}
+}
+
+func TestEgressPartialFirstAttemptRetriesSoonAndRemainsVisible(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	newExportSource(t, s, "partial source", sourceURI(141))
+	j, e := s.ClaimEgress(ctx)
+	if e != nil || j == nil {
+		t.Fatal(e)
+	}
+	r := syntheticEgress(*j)
+	for i := range r.Samples {
+		if r.Samples[i].Variant == "raw" && r.Samples[i].Wave == 1 && r.Samples[i].Domain == "api.ipify.org" {
+			r.Samples[i].Echo = false
+		}
+	}
+	if e = s.CompleteEgress(ctx, egress.Completion{Job: *j, Report: r}); e != nil {
+		t.Fatal(e)
+	}
+	var tested, next int64
+	s.db.QueryRow("SELECT tested,next_run FROM egress_jobs WHERE hash=?", j.Hash).Scan(&tested, &next)
+	if next-tested != 30000 {
+		t.Fatal("partial first attempt delayed", next-tested)
+	}
+	app, e := NewServer(s, "http://127.0.0.1:18191")
+	if e != nil {
+		t.Fatal(e)
+	}
+	rr := exportRequest(t, app.Handler(), "GET", app.origin+"/api/egress")
+	var body struct {
+		Eligible, Partial int
+		Entries           []struct {
+			State    string
+			Sources  []string
+			Decision egress.Decision
+		}
+	}
+	if rr.Code != 200 || json.Unmarshal(rr.Body.Bytes(), &body) != nil || body.Partial != 1 || body.Eligible != 0 || len(body.Entries) != 1 || body.Entries[0].Decision.Eligible || len(body.Entries[0].Sources) != 1 {
+		t.Fatal("partial hidden or incorrectly eligible", rr.Code, rr.Body.String())
+	}
+}

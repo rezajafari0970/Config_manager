@@ -121,7 +121,7 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		offset = 1000000
 	}
 	table := "egress_jobs"
-	filter := " AND (state='RESIDENTIAL' OR state='ADS_SPLIT')"
+	filter := " AND (state='RESIDENTIAL' OR state='ADS_SPLIT' OR json_extract(decision,'$.route')='PARTIAL_DIFFERENCE')"
 	if r.URL.Query().Get("view") == "diagnostics" {
 		table = "egress_jobs"
 		filter = ""
@@ -143,14 +143,35 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		entries = append(entries, map[string]any{"hash": h, "kind": kind, "state": state, "reason": reason, "revision": rev, "tested": tested, "valid_until": until, "format": format, "decision": json.RawMessage(decision), "report": json.RawMessage(report)})
 	}
 	rows.Close()
+	for _, entry := range entries {
+		names := []string{}
+		owners, err := db.QueryContext(ctx, "SELECT DISTINCT s.name FROM sources s JOIN egress_owners o ON o.source=s.id WHERE o.hash=? ORDER BY s.name", entry["hash"])
+		if err != nil {
+			failure(w, err)
+			return
+		}
+		for owners.Next() {
+			var name string
+			if err = owners.Scan(&name); err != nil {
+				owners.Close()
+				failure(w, err)
+				return
+			}
+			names = append(names, name)
+		}
+		owners.Close()
+		entry["sources"] = names
+	}
 	var classifier string
-	db.QueryRowContext(ctx, "SELECT coalesce(json_extract(report,'$.classifier'),'{}') FROM egress_jobs WHERE tested>0 ORDER BY tested DESC LIMIT 1").Scan(&classifier)
+	db.QueryRowContext(ctx, "SELECT coalesce(json_extract(report,'$.classifier'),'{}') FROM egress_jobs WHERE tested>0 AND json_type(report,'$.classifier')='object' ORDER BY tested DESC LIMIT 1").Scan(&classifier)
 	if !json.Valid([]byte(classifier)) {
 		classifier = "{}"
 	}
+	var partial int
+	db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE state!='DELETED' AND json_extract(decision,'$.route')='PARTIAL_DIFFERENCE'").Scan(&partial)
 	var completed int
 	db.QueryRowContext(ctx, "SELECT count(DISTINCT hash) FROM egress_events WHERE at>?", egress.Now()-300000).Scan(&completed)
-	respond(w, 200, map[string]any{"classifier": json.RawMessage(classifier), "throughput": map[string]any{"completed_5m": completed, "target_5m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Proxycheck v3; explicit Residential only; provider classification, not a 100% guarantee", "scope": "TCP / observed family / three explicit Ads domains / raw and template; IPv6-only entry, QUIC and ambiguous multipath remain unqualified"})
+	respond(w, 200, map[string]any{"classifier": json.RawMessage(classifier), "throughput": map[string]any{"completed_5m": completed, "target_5m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Proxycheck v3; explicit Residential only; provider classification, not a 100% guarantee", "scope": "TCP / observed family / three explicit Ads domains / raw and template; IPv6-only entry, QUIC and ambiguous multipath remain unqualified"})
 }
 func (m egressModule) action(w http.ResponseWriter, r *http.Request) {
 	var b struct {
@@ -176,7 +197,7 @@ func (m egressModule) action(w http.ResponseWriter, r *http.Request) {
 	if b.Action == "delete" {
 		e = m.s.store.revokeEgress(r.Context(), tx, b.Hash, "manual_delete", egress.Now())
 	} else {
-		_, e = tx.ExecContext(r.Context(), "UPDATE egress_jobs SET revision=revision+1,token='',lease_until=0,next_run=0,valid_until=0,state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE 'PENDING' END WHERE hash=?", b.Hash)
+		_, e = tx.ExecContext(r.Context(), "UPDATE egress_jobs SET revision=revision+1,token='',lease_until=0,next_run=0,valid_until=0,reason='manual_recheck',state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE 'PENDING' END WHERE hash=?", b.Hash)
 	}
 	if e != nil {
 		failure(w, e)

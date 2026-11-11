@@ -122,3 +122,42 @@ func TestRepeatedPartialSplitIsVisibleButNeverEligible(t *testing.T) {
 		t.Fatal(d)
 	}
 }
+
+func TestResolverBypassIsOutsideNamedHTTPSScope(t *testing.T) {
+	raw := `{"outbounds":[{"tag":"proxy","protocol":"vless"},{"tag":"direct","protocol":"freedom"}],"routing":{"rules":[RULE]}}`
+	for _, rule := range []string{`{"type":"field","port":"53","outboundTag":"direct"}`, `{"type":"field","ip":["1.1.1.1","104.16.248.249"],"outboundTag":"direct"}`} {
+		if !singlePath([]byte(strings.Replace(raw, "RULE", rule, 1))) {
+			t.Fatal("resolver-only rule rejected", rule)
+		}
+	}
+	for _, rule := range []string{`{"port":"443","outboundTag":"direct"}`, `{"ip":["1.1.1.0/24"],"outboundTag":"direct"}`, `{"ip":["1.1.1.1","8.7.6.5"],"outboundTag":"direct"}`, `{"domain":["googleads.g.doubleclick.net"],"outboundTag":"direct"}`, `{"ip":["1.1.1.1"],"unknown":"unsafe","outboundTag":"direct"}`} {
+		if singlePath([]byte(strings.Replace(raw, "RULE", rule, 1))) {
+			t.Fatal("unsafe direct rule accepted", rule)
+		}
+	}
+}
+func TestDriverFailureIsActionableAndNeverNegative(t *testing.T) {
+	r, p, now := fixture()
+	r.Checks = nil
+	r.Code = "direct_route_not_qualified"
+	d := Evaluate(r, p, "fixture", now)
+	if d.Reason != r.Code || d.Eligible || d.Negative {
+		t.Fatal(d)
+	}
+}
+
+func TestMixedResidentialEvidenceVisibleWithoutEligibility(t *testing.T) {
+	r, p, now := fixture()
+	r.Samples[1].IP = "9.9.9.9"
+	r.Samples = r.Samples[1:]
+	r.Facts = append(r.Facts, Fact{IP: "9.9.9.9", Provider: "proxycheck-v3", Class: "Business", At: now, Expires: now + 100000, Digest: strings.Repeat("b", 64)})
+	d := Evaluate(r, p, "fixture", now)
+	if d.Eligible || d.Negative || d.State != "ADS_SPLIT" || d.Network != "Mixed" || d.ObservedClasses["Residential"] != 1 || d.ObservedClasses["Business"] != 1 {
+		t.Fatal(d)
+	}
+	r, p, now = fixture()
+	r.Facts = append(r.Facts, Fact{IP: "8.8.8.8", Provider: "proxycheck-v3", Class: "Business", At: now, Expires: now + 100000, Digest: strings.Repeat("b", 64)})
+	if d = Evaluate(r, p, "fixture", now); d.Eligible || d.Negative {
+		t.Fatal("conflicting provider facts accepted", d)
+	}
+}

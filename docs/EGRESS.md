@@ -1,4 +1,4 @@
-# Ads egress investigation, version 3
+# Ads egress investigation, version 4
 
 The previous Residential subsystem was retired at the user's explicit request.
 The replacement owns internal/egress, internal/panel/egress_*, scripts/egress-*,
@@ -31,7 +31,7 @@ Google Ads request's source, every category domain or a household connection wit
 observed IP family, TCP, raw and template. UDP/QUIC and Android/carriers are not
 qualified. The MO result from an old experiment is not carried forward.
 
-Pair every wave with authenticated IPv4 Cloudflare (1.1.1.1) and ipify controls in the same variant. Start the two explicit IPv6 controls concurrently and retain them when an Ads observation uses IPv6; never infer an IPv6 source from IPv4 controls. Never assign control IPs to Ads. Three independent waves for all three
+Pair every wave with authenticated IPv4 Cloudflare (www.cloudflare.com) and ipify controls in the same variant. Start the two explicit IPv6 controls concurrently and retain them when an Ads observation uses IPv6; never infer an IPv6 source from IPv4 controls. Never assign control IPs to Ads. Three independent waves for all three
 Ads names and both variants are required. Distinct output is reported only for
 disjoint observations against a stable control IP; pooled/rotating controls
 remain inconclusive. A bounded first assessment can defer network failures to a deeper retry; it cannot produce eligibility. Independent TLS connections for the three waves start with150ms staggering, using one immutable verified SSL context per session. The same-stream Ads diagnostic and raw/template hash gates remain unchanged.
@@ -47,7 +47,7 @@ country and Residential are separate from route observation.
 
 The free driver uses HTTPS with certificate verification, rejects redirects,
 sends only public IPs, uses a one-hour cache, reserves its daily budget before
-networking and caps unregistered use at90 unique queries/day. Missing/quota
+networking and caps unregistered use at100 unique queries/day. Missing/quota
 results are UNKNOWN. It is a replaceable driver; no AI model decides network
 facts and no OpenAI key/config secret is sent externally.
 
@@ -90,4 +90,53 @@ The target is1000 initial assessments in300s, not a guarantee of1000 definitive 
 
 Use scripts/egress-throughput-test.py for an isolated queue populated with up to2000 distinct retained real source hashes. Its receipt separates assessed/state/reason/sample outcomes and records the300s checkpoint, maximum active jobs and minimum available host memory. It never mutates production memberships, evidence or outputs. The worker kill/recovery fixture keeps an explicit two-worker count; production defaults to two slots per visible CPU, bounded at31 (eight on the measured four-CPU server). The31-slot stress test increased CPU contention and deadline failures; configured capacity is not a throughput guarantee.
 
-Classifier reservations and exact-IP single-flight leases use short atomic file locks. HTTPS runs outside the lock with at most four parallel fetches per job. The free90/day cap survives crashes, and exhausted quota is displayed. Increasing worker count does not increase provider quota. TLS, server credentials and the certificate pin are preserved. Runtime AI inference is not used as network evidence.
+Classifier reservations and exact-IP single-flight leases use short atomic file locks. HTTPS runs outside the lock with at most four parallel fetches per job. The free100/day cap survives crashes, and exhausted quota is displayed. Increasing worker count does not increase provider quota. TLS, server credentials and the certificate pin are preserved. Runtime AI inference is not used as network evidence.
+
+
+## P43: source DNS bypass and overloaded session correction
+
+Alan splash's immutable raw JSON contained port53 and fixed public resolver-IP
+Direct routes. The shared all-traffic proxy-health preflight rejected it before
+any network measurement; 1.1.1.1 was also an invalid proxy control for that raw
+routing. The dedicated egress-preflight module now ignores only enumerated
+resolver-only exceptions during inspection, executes exact original bytes, and
+keeps the endpoint-only namespace firewall unchanged. Source direct DNS remains
+blocked in this lab. This proves only the named HTTPS scope, not DNS leak freedom.
+Broad Direct rules, arbitrary resolver addresses/subnets, unknown extensions,
+Direct defaults and ambiguous paths remain unqualified. Shared ordinary/Smart
+preflight is unchanged. Controls now use www.cloudflare.com and ipify.
+
+XHTTP and deep rechecks run three sequential waves (destinations within each
+wave remain parallel). Deep per-connection timeout is8s. This reduced connection
+burst failures on the measured source. Current inputs get a first assessment and
+one deep retry before retained historical backlog; repeated retries then yield.
+Manual rechecks have explicit priority, accepted proof-expiry priority remains.
+No arbitrary input gets a Residential override.
+
+Partial route evidence now shows fresh observed type counts and Mixed /
+ResidentialObserved without qualifying exports. Source names, exact driver
+failure codes, control IPs and provider facts are visible in the panel. Missing
+classifier reports no longer erase the latest known quota status.
+
+Optional server-only Proxycheck configuration is /etc/config-repair/egress-intel.json
+with api_key and daily_limit. The file must be regular, root-owned and mode0600.
+Without a key the limit is100/day; a key defaults to1000/day, with an explicitly
+configured account budget permitted. No account is registered or purchased.
+The durable daily usage counter is not reset on configuration changes. Keys are
+never emitted in status, logs, receipts or subscriptions. The current server has
+no registered IP-classification key. Provider quotas still bound coverage.
+
+Official API limits and network types: https://proxycheck.io/api/ .
+
+Partial distinct-route observations remain visible in the default page, explicitly
+unqualified. A first assessment with incomplete controls or Ads echoes schedules
+a deep retry after30s instead of300s. This is scheduling, not promotion to a
+definitive classification. A real fast Alan test (17.176s, six Ads echoes)
+reproduced this condition and the queue/UI contract has a regression test.
+
+The Cloudflare IPv4 control uses a bounded, cached A lookup of the fixed
+www.cloudflare.com name, a SOCKS IPv4 destination and verified TLS/Host for that
+same name. The IP is never added to the namespace's direct firewall allowlist.
+This fixes a reproduced dual-stack mismatch: the former domain-based request
+returned IPv6 while ipify returned IPv4. Explicit IPv6 controls remain separate.
+Resolver failure is an unknown control, never an IPv4 inference from IPv6.

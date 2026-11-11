@@ -1,0 +1,109 @@
+{
+  "release": "/opt/config-repair/releases/p43-80df8988c7565dcc30c7",
+  "version": "ads-egress.v4|xray-26.11.9.template.v9",
+  "schema": 25,
+  "sources": 33,
+  "source_controls_unchanged": true,
+  "matching_backup": true,
+  "binaries": {
+    "config-panel": "80df8988c7565dcc30c7dd7053357f6f50473a69826dda8c644f957f6e7e32ba",
+    "config-probe-worker": "1ab50c77670a285c2eaecba45b12338d682f1f92111da29f0a296ca4f797a8fb",
+    "config-egress-worker": "d35c0d2692748596480add9bca2a918bcec3d135e018fe671a238d9bcaf83694",
+    "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+    "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+    "config-probe-plan": "d091b5a8d3a98ab28c8e22dc9f5c362d6938289baf79b61e4fa38ce839ffd7da"
+  },
+  "all_services_running_verified": true,
+  "full_release_checks": true,
+  "python_egress_tests": 21,
+  "private_rehearsal": {
+    "sources": 33,
+    "memberships": 875,
+    "jobs": 3703,
+    "schema": 25,
+    "passed": true
+  },
+  "crash_recovery": {
+    "passed": true,
+    "total": 5,
+    "tested": 5,
+    "max_active": 2,
+    "states": {
+      "NO_SPLIT": 2,
+      "UNKNOWN": 3
+    },
+    "crash_recovered": true,
+    "seconds": 150.22,
+    "live_inputs": 3
+  },
+  "live": {
+    "at": 1794385486350,
+    "version": "ads-egress.v4",
+    "source": "Alan splash",
+    "state": "UNKNOWN",
+    "reason": "controls_incomplete",
+    "attempts": 2,
+    "tested": 1794385244536,
+    "decision": {
+      "state": "UNKNOWN",
+      "reason": "controls_incomplete",
+      "route": "UNKNOWN",
+      "network": "Unknown",
+      "scope": "three explicit DoubleClick domains; TCP; observed IP family; raw and template; peer-reported",
+      "ips": [],
+      "control_ips": [],
+      "eligible": false,
+      "negative": true,
+      "until": 0,
+      "missing": 18
+    },
+    "unregistered_current": 0,
+    "exports": {
+      "configs.json": 503,
+      "configs.jsonl": 503,
+      "next.json": 503,
+      "raw.txt": 503
+    },
+    "counts": {
+      "NO_SPLIT": 255,
+      "PENDING": 3550,
+      "UNKNOWN": 363,
+      "UNSUPPORTED": 6
+    },
+    "partial": 4,
+    "eligible": 0,
+    "worker": {
+      "active": 7,
+      "code": "capacity_8",
+      "heartbeat": 1794385483899,
+      "status": "running"
+    },
+    "throughput": {
+      "completed_5m": 287,
+      "max_workers": 31,
+      "target_5m": 1000
+    },
+    "canary": "entry_unreachable_from_test_host",
+    "browser": {
+      "passed": true,
+      "mobile": 390,
+      "desktop": 1440,
+      "errors": []
+    }
+  },
+  "postdeploy_independent": {
+    "milliseconds": 199367.4219760578,
+    "sample_codes": {
+      "connection_timeout": 30
+    },
+    "entry_tcp": "timeout from test host",
+    "socket_state": "SYN-SENT to 91.108.146.38:2087"
+  },
+  "limits": [
+    "no Residential configuration eligible",
+    "actual source is currently unreachable from this test host",
+    "previous observations showed a mixed rotating pool",
+    "no registered classification key; quota100 exhausted",
+    "1000 definitive classifications in300s not achieved"
+  ]
+}

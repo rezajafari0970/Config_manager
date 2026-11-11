@@ -25,7 +25,7 @@ class Contracts(unittest.TestCase):
  def test_daily_budget_survives_restart(self):
   import datetime
   with tempfile.TemporaryDirectory() as d:
-   p=pathlib.Path(d)/'intel.json';p.write_text(json.dumps({'day':datetime.datetime.now(datetime.timezone.utc).date().isoformat(),'used':90,'entries':{}}));self.assertEqual(intel.classify(['8.8.8.8'],str(p)),[]);self.assertEqual(json.loads(p.read_text())['used'],90)
+   p=pathlib.Path(d)/'intel.json';p.write_text(json.dumps({'day':datetime.datetime.now(datetime.timezone.utc).date().isoformat(),'used':intel.DAILY_LIMIT,'entries':{}}));self.assertEqual(intel.classify(['8.8.8.8'],str(p)),[]);self.assertEqual(json.loads(p.read_text())['used'],intel.DAILY_LIMIT)
  def test_disjoint_resources(self):
   self.assertNotEqual(driver.lab.SANDBOX_ADDRESS_BASES['cge'],driver.lab.SANDBOX_ADDRESS_BASES['crw']);self.assertNotEqual(driver.lab.SANDBOX_ADDRESS_BASES['cge'],driver.lab.SANDBOX_ADDRESS_BASES['cgt'])
  def test_second_authority_not_assumed(self):
@@ -37,27 +37,33 @@ class PerformanceContracts(unittest.TestCase):
    self.assertEqual((await session.read_response(r,False))[0],200)
   asyncio.run(check())
  def test_overlapping_independent_waves(self):
-  import time
   original=session.measure
-  async def fake(domain,variant,wave,timeout):
-   await asyncio.sleep(.15)
-   return dict(domain=domain,wave=wave,echo=True,family=4,actual_ads=domain in session.DOMAINS)
-  session.measure=fake
-  try:
-   t=time.monotonic();rows=asyncio.run(session.session({'variant':'raw','waves':3}))
-   self.assertEqual(len(rows),15);self.assertLess(time.monotonic()-t,.65)
+  async def run():
+   arrived=[];all_started=asyncio.Event()
+   async def fake(domain,variant,wave,timeout,control_ipv4=None):
+    arrived.append((domain,wave))
+    if len(arrived)==21:all_started.set()
+    await asyncio.wait_for(all_started.wait(),5)
+    return dict(domain=domain,wave=wave,echo=True,family=4,actual_ads=domain in session.DOMAINS)
+   session.measure=fake
+   rows=await session.session({'variant':'raw','waves':3})
+   self.assertEqual(len(arrived),21);self.assertEqual(len(rows),15)
    self.assertEqual({x['wave'] for x in rows},{1,2,3})
+  try:asyncio.run(run())
   finally:session.measure=original
  def test_ipv6_controls_share_primary_deadline(self):
-  import time
   original=session.measure
-  async def fake(domain,variant,wave,timeout):
-   await asyncio.sleep(.15)
-   return dict(domain=domain,wave=wave,echo=True,family=6 if domain in session.DOMAINS else 4,actual_ads=domain in session.DOMAINS)
-  session.measure=fake
-  try:
-   t=time.monotonic();rows=asyncio.run(session.session({'variant':'raw','waves':1}))
-   self.assertEqual(len(rows),7);self.assertLess(time.monotonic()-t,.25)
+  async def run():
+   arrived=[];all_started=asyncio.Event()
+   async def fake(domain,variant,wave,timeout,control_ipv4=None):
+    arrived.append(domain)
+    if len(arrived)==7:all_started.set()
+    await asyncio.wait_for(all_started.wait(),5)
+    return dict(domain=domain,wave=wave,echo=True,family=6 if domain in session.DOMAINS else 4,actual_ads=domain in session.DOMAINS)
+   session.measure=fake
+   rows=await session.session({'variant':'raw','waves':1})
+   self.assertEqual(len(arrived),7);self.assertEqual(len(rows),7)
+  try:asyncio.run(run())
   finally:session.measure=original
  def test_network_lookup_does_not_hold_budget_lock(self):
   import threading,time
@@ -104,6 +110,55 @@ class DispatchContracts(unittest.TestCase):
    with self.assertRaises(OSError):box.policy({})
    box.policy({});box.policy({});self.assertEqual(len(calls),2)
   finally:driver.lab.Sandbox.policy=original
+class RegressionContracts(unittest.TestCase):
+ def test_dns_only_scope_preserves_raw_and_shared_gate(self):
+  import copy
+  cfg={'inbounds':[{'listen':'127.0.0.1','port':10808,'protocol':'socks'}],
+       'outbounds':[{'protocol':'vless','tag':'proxy'},{'protocol':'freedom','tag':'direct'}],
+       'routing':{'rules':[{'type':'field','port':'53','outboundTag':'direct'},
+                           {'type':'field','ip':['1.1.1.1','104.16.248.249'],'outboundTag':'direct'}]}}
+  before=copy.deepcopy(cfg)
+  obj=driver.scope.inspect(cfg,driver.lab.preflight)
+  self.assertEqual(obj['routing']['rules'],[]);self.assertEqual(cfg,before)
+  driver.lab.preflight.runtime_config(obj,{})
+  with self.assertRaisesRegex(ValueError,'direct_route_not_qualified'):driver.lab.preflight.runtime_config(cfg,{})
+  for rule in [{'port':'443','outboundTag':'direct'},{'ip':['1.1.1.0/24'],'outboundTag':'direct'},
+               {'ip':['1.1.1.1','8.7.6.5'],'outboundTag':'direct'},
+               {'domain':['googleads.g.doubleclick.net'],'outboundTag':'direct'},
+               {'ip':['1.1.1.1'],'unknown':'unsafe','outboundTag':'direct'}]:
+   cfg['routing']['rules']=[rule]
+   with self.assertRaisesRegex(ValueError,'direct_route_not_qualified'):driver.lab.preflight.runtime_config(driver.scope.inspect(cfg,driver.lab.preflight),{})
+ def test_control_family_is_explicit_and_never_direct(self):
+  import ipaddress
+  target=session.socks_target('www.cloudflare.com','104.16.123.96')
+  self.assertEqual(target,b'\x01'+ipaddress.ip_address('104.16.123.96').packed)
+  self.assertEqual(session.socks_target('one.one.one.one')[0],4)
+  self.assertEqual(session.socks_target(session.DOMAINS[0])[0],3)
+  for ip in (None,'127.0.0.1','::1','2606:4700:4700::1111','not-an-ip'):
+   with self.assertRaisesRegex(ValueError,'control_ipv4_unavailable'):session.socks_target('www.cloudflare.com',ip)
+ def test_control_does_not_use_source_dns_bypass_ip(self):
+  self.assertEqual(session.CONTROLS[:2],['www.cloudflare.com','api.ipify.org'])
+ def test_deep_waves_are_bounded_and_sequential(self):
+  original=session.measure;active=set();overlap=[]
+  async def fake(domain,variant,wave,timeout,control_ipv4=None):
+   active.add((domain,wave));overlap.append(len({w for _,w in active}));await asyncio.sleep(.01);active.remove((domain,wave))
+   return dict(domain=domain,wave=wave,echo=True,family=4,actual_ads=domain in session.DOMAINS)
+  session.measure=fake
+  try:
+   rows=asyncio.run(session.session({'variant':'raw','waves':3,'sequential':True}))
+   self.assertEqual(len(rows),15);self.assertEqual(max(overlap),1)
+  finally:session.measure=original
+ def test_classifier_config_permissions_and_no_key_cap(self):
+  import os
+  with tempfile.TemporaryDirectory() as d:
+   p=pathlib.Path(d)/'settings.json';p.write_text('{}');p.chmod(0o600)
+   # Production runs as root; non-root execution should reject the file.
+   if os.getuid()!=0:self.assertEqual(intel.settings(str(p))[2],'classifier_config_invalid');return
+   self.assertEqual(intel.settings(str(p))[:2],('',100))
+   p.write_text('{"daily_limit":101}');self.assertEqual(intel.settings(str(p))[2],'classifier_config_invalid')
+   p.write_text('{"api_key":"synthetic-secret-key","daily_limit":1000}')
+   self.assertEqual(intel.settings(str(p))[1],1000)
+   p.chmod(0o644);self.assertEqual(intel.settings(str(p))[2],'classifier_config_invalid')
 if __name__=='__main__':unittest.main()
 
 

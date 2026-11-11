@@ -1,3 +1,31 @@
+# P43: Alan Ads route assessment correction — 2026-11-11
+
+Activated p43-80df8988c7565dcc30c7, schema25, ads-egress.v4. Preserve P42 strict
+TLS, P40 repairs and all source controls. Read docs/reports/P43-report-fa.md,
+P43-evidence.json, P43-validation.json and docs/EGRESS.md. Alan splash has measured
+Ads/control split, but the sampled pool is mixed:3 Residential and7 Business
+among10 exact-IP classifications; other new rotating IPs are unknown. Never turn
+that into a wholly Residential configuration or infer class from country/ASN.
+
+The dedicated egress-preflight permits only named-HTTPS-scope resolver exceptions
+for inspection, executes original bytes and retains the endpoint-only firewall.
+Source direct DNS remains blocked in the lab; no DNS leak qualification. Shared
+ordinary/Smart preflight and main worker are unchanged. The Cloudflare control
+uses its fixed hostname, bounded cached A resolution, SOCKS IPv4 and strict TLS;
+never add a control IP to the direct firewall. IPv6 pairing remains independent.
+XHTTP/deep waves are sequential with bounded parallel destinations. Current
+first attempts and one deep retry precede retained backlog; partial first attempts
+retry after30s. Manual rechecks precede current first attempts. Accepted expiry
+priority, exact proof, retention, three-negative revocation and exclusions remain.
+Partial evidence and source names are visible without eligibility. Optional
+Proxycheck key is root-only in /etc/config-repair/egress-intel.json. No configured
+key exists; unregistered100/day quota is exhausted, and the counter was not reset.
+Post-activation the current Alan entry became unreachable from the test host:
+production and isolated probes timed out, host TCP timed out and SYN-SENT was
+observed. Current UNKNOWN is honest; prior split/mixed evidence is historical.
+The1000/5-minute target is not a qualification claim. Hold the existing deploy
+lock and matched DB/blob/key/release backup; no pre25 binary or force-push.
+
 # P41 activated after P42 — 2026-11-11
 
 Activated p41-7d775a88f934ae9ae0be, schema25, egress v3; preserve all

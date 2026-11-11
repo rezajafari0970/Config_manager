@@ -31,7 +31,7 @@ func (s *Store) ClaimEgress(ctx context.Context) (*egress.Job, error) {
 	}
 	j := &egress.Job{}
 	var size int64
-	e = tx.QueryRowContext(ctx, `SELECT hash,kind,size,revision,ever_accepted,attempts FROM egress_jobs WHERE state!='DELETED' AND paused=0 AND next_run<=? AND (token='' OR lease_until<=?) ORDER BY CASE WHEN ever_accepted=1 AND valid_until<=? THEN 0 WHEN tested=0 THEN 1 WHEN ever_accepted=1 THEN 2 ELSE 3 END,next_run,first_seen,hash LIMIT 1`, now, now, now+60000).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Deep, &j.Attempt)
+	e = tx.QueryRowContext(ctx, `SELECT hash,kind,size,revision,ever_accepted,attempts FROM egress_jobs WHERE state!='DELETED' AND paused=0 AND next_run<=? AND (token='' OR lease_until<=?) ORDER BY CASE WHEN ever_accepted=1 AND valid_until<=? THEN 0 WHEN reason='manual_recheck' THEN 1 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 2 WHEN attempts=1 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 3 WHEN ever_accepted=1 THEN 4 WHEN tested=0 THEN 5 ELSE 6 END,next_run,first_seen,hash LIMIT 1`, now, now, now+60000).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Deep, &j.Attempt)
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, tx.Commit()
 	}
@@ -170,7 +170,7 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 		}
 	}
 	delay := int64(300000)
-	if r.Code == "network_retry_pending" {
+	if r.Code == "network_retry_pending" || j.Attempt == 1 && (d.Reason == "controls_incomplete" || d.Reason == "ads_peer_echo_incomplete") {
 		delay = 30000
 	}
 	if state == "UNSUPPORTED" {

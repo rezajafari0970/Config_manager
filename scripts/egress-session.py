@@ -5,7 +5,7 @@ Google diagnostic contract. The second HTTP authority is recorded separately.
 """
 import asyncio,hashlib,ipaddress,json,re,ssl,struct,sys,time,uuid
 DOMAINS=['googleads.g.doubleclick.net','pubads.g.doubleclick.net','securepubads.g.doubleclick.net']
-CONTROLS=['1.1.1.1','api.ipify.org','one.one.one.one','api6.ipify.org']
+CONTROLS=['www.cloudflare.com','api.ipify.org','one.one.one.one','api6.ipify.org']
 TLS_CONTEXT=ssl.create_default_context();TLS_CONTEXT.set_alpn_protocols(['http/1.1'])
 def digest(b):return hashlib.sha256(b).hexdigest()
 def now():return int(time.time()*1000)
@@ -53,7 +53,15 @@ async def read_response(reader,close):
    if len(body)>65536:raise ValueError('body_limit')
  else:raise ValueError('persistent_framing_missing')
  return status,h,body
-async def measure(domain,variant,wave,timeout):
+def socks_target(domain,control_ipv4=None):
+ if domain=='www.cloudflare.com':
+  try:ip=ipaddress.ip_address(control_ipv4 or '')
+  except ValueError:raise ValueError('control_ipv4_unavailable')
+  if ip.version!=4 or not ip.is_global or ip.is_multicast or ip.is_reserved:raise ValueError('control_ipv4_unavailable')
+  return b'\x01'+ip.packed
+ if domain=='one.one.one.one':return b'\x04'+ipaddress.ip_address('2606:4700:4700::1111').packed
+ host=domain.encode('ascii');return b'\x03'+bytes([len(host)])+host
+async def measure(domain,variant,wave,timeout,control_ipv4=None):
  nonce=uuid.uuid4().hex;writer=None
  row=dict(domain=domain,variant=variant,wave=wave,at=now(),transport='tcp',nonce=nonce,connection=nonce,ip='',family=0,tls=False,same_stream=False,echo=False,actual_ads=False,code='unavailable',certificate='',response='',first_status=0,echo_status=0,diagnostic_authority=False)
  try:
@@ -61,7 +69,7 @@ async def measure(domain,variant,wave,timeout):
    reader,writer=await asyncio.open_connection('127.0.0.1',10808,limit=32769)
    writer.write(b'\x05\x01\x00');await writer.drain()
    if await reader.readexactly(2)!=b'\x05\x00':raise ValueError('socks_greeting')
-   host=domain.encode('ascii');target=(b'\x04'+ipaddress.ip_address('2606:4700:4700::1111').packed) if domain=='one.one.one.one' else b'\x03'+bytes([len(host)])+host;writer.write(b'\x05\x01\x00'+target+struct.pack('!H',443));await writer.drain()
+   target=socks_target(domain,control_ipv4);writer.write(b'\x05\x01\x00'+target+struct.pack('!H',443));await writer.drain()
    v,rep,_,typ=await reader.readexactly(4)
    if v!=5 or rep:raise ValueError('socks_connect')
    n={1:4,4:16}.get(typ)
@@ -75,10 +83,10 @@ async def measure(domain,variant,wave,timeout):
     writer.write(('GET '+path+' HTTP/1.1\r\nHost: '+host+'\r\nUser-Agent: Shen-Egress-Audit/2\r\nCache-Control: no-cache\r\nAccept-Encoding: identity\r\nConnection: '+('close' if close else 'keep-alive')+'\r\n\r\n').encode());await writer.drain()
     return await read_response(reader,close)
    if domain in CONTROLS:
-    path=('/cdn-cgi/trace?shen_probe=' if domain in ('1.1.1.1','one.one.one.one') else '/?format=json&shen_probe=')+nonce
+    path=('/cdn-cgi/trace?shen_probe=' if domain in ('www.cloudflare.com','one.one.one.one') else '/?format=json&shen_probe=')+nonce
     status,h,b=await get(domain,path,True);row['first_status']=status
     if status!=200:raise ValueError('control_http_status')
-    if domain in ('1.1.1.1','one.one.one.one'):
+    if domain in ('www.cloudflare.com','one.one.one.one'):
      fields=dict(x.split('=',1) for x in b.decode().splitlines() if '=' in x)
      if fields.get('h')!=domain:raise ValueError('control_authority')
      value=fields['ip']
@@ -110,9 +118,9 @@ async def session(req):
   names=DOMAINS+CONTROLS[:2]
   # Start both families together; a failed IPv4/Ads peer must not serialize
   # the IPv6 control deadline. Discard/cancel IPv6 work when it is not needed.
-  ipv6=[asyncio.create_task(measure(d,req['variant'],n,req.get('timeout',3))) for d in CONTROLS[2:]]
+  ipv6=[asyncio.create_task(measure(d,req['variant'],n,req.get('timeout',3),req.get('control_ipv4'))) for d in CONTROLS[2:]]
   try:
-   rows=await asyncio.gather(*(measure(d,req['variant'],n,req.get('timeout',3)) for d in names))
+   rows=await asyncio.gather(*(measure(d,req['variant'],n,req.get('timeout',3),req.get('control_ipv4')) for d in names))
    if req.get('ipv6_controls',False) or any(x['echo'] and x['family']==6 for x in rows if x['actual_ads']):
     rows+=await asyncio.gather(*ipv6)
    return rows
@@ -122,6 +130,9 @@ async def session(req):
    await asyncio.gather(*ipv6,return_exceptions=True)
  start=req.get('start_wave',1);waves=req.get('waves',3)
  if not 1<=waves<=3:raise ValueError('wave_limit')
- groups=await asyncio.gather(*(wave(start+i,i*.15) for i in range(waves)))
+ if req.get('sequential'):
+  groups=[]
+  for i in range(waves):groups.append(await wave(start+i,0))
+ else:groups=await asyncio.gather(*(wave(start+i,i*.15) for i in range(waves)))
  return [row for rows in groups for row in rows]
 if __name__=='__main__':print(json.dumps(asyncio.run(session(json.load(sys.stdin)))))

@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const Version = "ads-egress.v3"
+const Version = "ads-egress.v4"
 
 // Keep slots within the dedicated 32-address sandbox block.
 const MaxWorkers = 31
@@ -89,10 +89,7 @@ func singlePath(raw []byte) bool {
 		} `json:"outbounds"`
 		Routing struct {
 			Balancers []json.RawMessage `json:"balancers"`
-			Rules     []struct {
-				OutboundTag string `json:"outboundTag"`
-				BalancerTag string `json:"balancerTag"`
-			} `json:"rules"`
+			Rules     []json.RawMessage `json:"rules"`
 		} `json:"routing"`
 	}
 	if json.Unmarshal(b, &x) != nil || len(x.Routing.Balancers) > 0 || len(x.Outbounds) == 0 {
@@ -126,13 +123,20 @@ func singlePath(raw []byte) bool {
 			return false
 		}
 	}
-	for _, rule := range x.Routing.Rules {
+	for _, rawRule := range x.Routing.Rules {
+		var rule struct {
+			OutboundTag string `json:"outboundTag"`
+			BalancerTag string `json:"balancerTag"`
+		}
+		if json.Unmarshal(rawRule, &rule) != nil {
+			return false
+		}
 		if rule.BalancerTag != "" {
 			return false
 		}
 		if rule.OutboundTag != "" {
 			kind, ok := tags[rule.OutboundTag]
-			if !ok || kind == "freedom" {
+			if !ok || kind == "freedom" && !dnsBypass(rawRule) {
 				return false
 			}
 		}
@@ -216,17 +220,18 @@ type Completion struct {
 	Report Report `json:"report"`
 }
 type Decision struct {
-	State      string   `json:"state"`
-	Reason     string   `json:"reason"`
-	Route      string   `json:"route"`
-	Network    string   `json:"network"`
-	Scope      string   `json:"scope"`
-	IPs        []string `json:"ips"`
-	ControlIPs []string `json:"control_ips"`
-	Eligible   bool     `json:"eligible"`
-	Negative   bool     `json:"negative"`
-	Until      int64    `json:"until"`
-	Missing    int      `json:"missing"`
+	State           string         `json:"state"`
+	Reason          string         `json:"reason"`
+	Route           string         `json:"route"`
+	Network         string         `json:"network"`
+	ObservedClasses map[string]int `json:"observed_classes,omitempty"`
+	Scope           string         `json:"scope"`
+	IPs             []string       `json:"ips"`
+	ControlIPs      []string       `json:"control_ips"`
+	Eligible        bool           `json:"eligible"`
+	Negative        bool           `json:"negative"`
+	Until           int64          `json:"until"`
+	Missing         int            `json:"missing"`
 }
 
 func canonical(ip string) (netip.Addr, bool) {
@@ -259,6 +264,10 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 	}
 	if len(r.Checks) != 2 || Cores[r.Core] == "" || Cores[r.Core] != r.CoreSHA {
 		d.Reason = "core_evidence_missing"
+		switch r.Code {
+		case "direct_route_not_qualified", "direct_default_not_qualified", "endpoint_dns_failed", "ipv6_only_probe_pending", "core_rejected", "core_schema_mismatch", "missing_runtime_asset", "removed_allow_insecure", "unsupported_protocol_or_transport", "public_endpoint_requires_tls", "driver_subprocess_timeout", "driver_infrastructure_error":
+			d.Reason = r.Code
+		}
 		return d
 	}
 	for i, v := range p.Variants {
@@ -349,6 +358,18 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 	}
 	sort.Strings(d.IPs)
 	sort.Strings(d.ControlIPs)
+	// Partial evidence is visible without qualifying the entire configuration.
+	d.ObservedClasses = map[string]int{}
+	for ip := range ips {
+		class, _ := networkFact(ip, r.Facts, now)
+		d.ObservedClasses[class]++
+	}
+	if d.ObservedClasses["Residential"] > 0 {
+		d.Network = "ResidentialObserved"
+		if d.ObservedClasses["Hosting"]+d.ObservedClasses["Wireless"]+d.ObservedClasses["Business"] > 0 {
+			d.Network = "Mixed"
+		}
+	}
 	stable := len(controls) > 0
 	byFamily := map[bool]int{}
 	for ip := range controls {
@@ -413,15 +434,9 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 	allNonResidential := true
 	until := r.Finished + EvidenceTTL
 	for ip := range ips {
-		class := "Unknown"
-		for _, f := range r.Facts {
-			a, ok := canonical(f.IP)
-			if ok && a.String() == ip && f.Provider == "proxycheck-v3" && len(f.Digest) == 64 && f.At <= now+2000 && f.Expires > now && f.At > now-3600000 {
-				class = f.Class
-				if f.Expires < until {
-					until = f.Expires
-				}
-			}
+		class, expires := networkFact(ip, r.Facts, now)
+		if expires > 0 && expires < until {
+			until = expires
 		}
 		allRes = allRes && class == "Residential"
 		allNonResidential = allNonResidential && (class == "Hosting" || class == "Wireless" || class == "Business")
@@ -442,5 +457,25 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 		d.Reason = "classification_missing_or_mixed"
 	}
 	return d
+}
+func networkFact(ip string, facts []Fact, now int64) (string, int64) {
+	class := "Unknown"
+	until := int64(0)
+	seen := false
+	for _, f := range facts {
+		a, ok := canonical(f.IP)
+		if !ok || a.String() != ip || f.Provider != "proxycheck-v3" || len(f.Digest) != 64 || f.At > now+2000 || f.Expires <= now || f.At <= now-3600000 || f.Expires > f.At+3600000 {
+			continue
+		}
+		if seen && class != f.Class {
+			return "Unknown", 0
+		}
+		class = f.Class
+		seen = true
+		if until == 0 || f.Expires < until {
+			until = f.Expires
+		}
+	}
+	return class, until
 }
 func Now() int64 { return time.Now().UnixMilli() }

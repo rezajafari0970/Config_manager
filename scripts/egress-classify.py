@@ -2,7 +2,7 @@
 """Exact-IP Proxycheck v3 driver with durable free-tier budget and shared cache.
 No credentials/configurations are sent. Missing service/classification is UNKNOWN.
 """
-import concurrent.futures,contextlib,datetime,fcntl,hashlib,ipaddress,json,os,pathlib,time,urllib.request
+import concurrent.futures,contextlib,datetime,fcntl,hashlib,ipaddress,json,os,pathlib,re,stat,time,urllib.parse,urllib.request
 PROVIDER='proxycheck-v3'
 class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):return None
@@ -15,7 +15,19 @@ def parse(ip,body,at):
  if kind not in ('Residential','Wireless','Business','Hosting'):kind='Unknown'
  return dict(ip=ip,provider=PROVIDER,class_=kind,asn=str(net.get('asn') or ''),country=str(loc.get('country_code') or loc.get('code') or ''),at=at,expires=at+3600000,digest=hashlib.sha256(body).hexdigest(),code='explicit_network_type')
 DEFAULT_PATH='/var/lib/config-repair-egress/intel.json'
-DAILY_LIMIT=90
+DAILY_LIMIT=100
+CONFIG_PATH='/etc/config-repair/egress-intel.json'
+def settings(path=CONFIG_PATH):
+ # Optional server-only credential. Never return it in status or exceptions.
+ try:
+  p=pathlib.Path(path);st=p.lstat()
+  if not stat.S_ISREG(st.st_mode) or st.st_uid!=0 or stat.S_IMODE(st.st_mode)&0o077:raise ValueError()
+  obj=json.loads(p.read_text());key=obj.get('api_key','');limit=obj.get('daily_limit',1000 if key else DAILY_LIMIT)
+  if not isinstance(key,str) or key and not re.fullmatch('[A-Za-z0-9-]{10,128}',key):raise ValueError()
+  if type(limit) is not int or not 1<=limit<=1000000 or not key and limit>DAILY_LIMIT:raise ValueError()
+  return key,limit,'available'
+ except FileNotFoundError:return '',DAILY_LIMIT,'available'
+ except Exception:return '',0,'classifier_config_invalid'
 @contextlib.contextmanager
 def transaction(path):
  p=pathlib.Path(path);p.parent.mkdir(mode=0o700,parents=True,exist_ok=True)
@@ -33,11 +45,16 @@ def status(path=DEFAULT_PATH):
  try:s=json.loads(pathlib.Path(path).read_text())
  except (OSError,ValueError):s={}
  used=s.get('used',0) if s.get('day')==datetime.datetime.now(datetime.timezone.utc).date().isoformat() else 0
- return {'provider':PROVIDER,'daily_limit':DAILY_LIMIT,'used':used,'remaining':max(0,DAILY_LIMIT-used),'code':'quota_exhausted' if used>=DAILY_LIMIT else 'available'}
+ key,limit,code=settings()
+ return {'provider':PROVIDER,'daily_limit':limit,'used':used,'remaining':max(0,limit-used),'registered':bool(key),'code':code if code!='available' else 'quota_exhausted' if used>=limit else 'available'}
 def fetch(key):
  at=int(time.time()*1000)
  try:
-  req=urllib.request.Request('https://proxycheck.io/v3/'+key+'?ver=24-June-2026',headers={'User-Agent':'Shen-Egress-Audit/3','Accept':'application/json'})
+  credential,limit,code=settings()
+  if code!='available':raise ValueError('classifier_config_invalid')
+  query={'ver':'24-June-2026'}
+  if credential:query['key']=credential
+  req=urllib.request.Request('https://proxycheck.io/v3/'+key+'?'+urllib.parse.urlencode(query),headers={'User-Agent':'Shen-Egress-Audit/4','Accept':'application/json'})
   with urllib.request.build_opener(NoRedirect(),urllib.request.ProxyHandler({})).open(req,timeout=4) as response:
    body=response.read(131073)
    if len(body)>131072:raise ValueError('provider_body_limit')
@@ -46,7 +63,7 @@ def fetch(key):
 def classify(ips,path=DEFAULT_PATH):
  # Reserve under lock, perform HTTPS outside it, and merge atomically. Concurrent
  # workers share exact-IP single-flight leases and a crash-safe daily budget.
- now=int(time.time()*1000);keys=set();todo=[];out=[]
+ now=int(time.time()*1000);keys=set();todo=[];out=[];_,limit,code=settings()
  for raw in ips:
   try:ip=ipaddress.ip_address(raw)
   except ValueError:continue
@@ -57,7 +74,7 @@ def classify(ips,path=DEFAULT_PATH):
    if cached and cached['expires']>now:
     if cached.get('code')!='lookup_pending':out.append(cached)
     continue
-   if state['used']>=DAILY_LIMIT:continue
+   if state['used']>=limit:continue
    state['used']+=1;todo.append(key)
    state['entries'][key]=dict(ip=key,provider=PROVIDER,**{'class':'Unknown'},asn='',country='',at=now,expires=now+15000,digest='',code='lookup_pending')
  if todo:
