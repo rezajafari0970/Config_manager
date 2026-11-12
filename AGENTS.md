@@ -1,3 +1,12 @@
+# P52 service-aware experiment — 2026-11-12
+
+Read docs/SERVICE_QUALITY.md and docs/reports/P52-summary.md. Production remains
+P47/schema26; P52 is opt-in, based on P51. Keep cached selection/API switching
+separate from Internet latency and native APK behavior. Phone successes were
+followed by bundled-core partial transfers and loss of control; these incomplete proofs do not validate a stable phone rollout or promotion
+to public subscriptions.
+Preserve raw inputs, exact scopes, freshness, bounded probing and failed attempts.
+
 # P51 device quality tools — 2026-11-12
 
 Read docs/reports/P51-summary.md. Production remainsP47/schema26. P51 is an
