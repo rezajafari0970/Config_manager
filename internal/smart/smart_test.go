@@ -184,8 +184,9 @@ func TestSourceBalancerGlobalsCannotOverrideFixedEnvelope(t *testing.T) {
 		t.Fatal(e)
 	}
 	got, _ := object(b)
-	want, _ := object([]byte(base))
+	want, _ := object([]byte(expectedEnvelope))
 	got["routing"].(M)["balancers"].([]any)[1].(M)["selector"] = []any{}
+	got["routing"].(M)["balancers"].([]any)[3].(M)["selector"] = []any{}
 	if !reflect.DeepEqual(got["routing"], want["routing"]) || !reflect.DeepEqual(got["burstObservatory"], want["burstObservatory"]) {
 		t.Fatal("source globals leaked into template")
 	}

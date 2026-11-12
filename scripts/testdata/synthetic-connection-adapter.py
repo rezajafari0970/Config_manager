@@ -12,5 +12,6 @@ def synthetic_connection(box,candidate,timeout):
     box.policy({});process=box.launch(data,True);process.wait(timeout=15)
     passed=process.returncode==0;box.stop()
     evidence={key:'passed' for key in ['https','dns_tcp','dns_udp','doh_cloudflare','doh_google','quic_vn']}
+    evidence.update(payload_version='payload_v1',payload_download='passed',payload_upload='passed',payload_recheck='passed',payload_download_bytes='2097152',payload_upload_bytes='1048576') # synthetic state only
     return {'core':'passed' if passed else 'failed','connection':'passed' if passed else 'not_run','code':'synthetic_queue_connection' if passed else 'synthetic_core_rejected','runtime_sha256':driver.lab.digest(data),'endpoints_passed':2 if passed else 0,'evidence':evidence}
 driver.lab.test_candidate=synthetic_connection

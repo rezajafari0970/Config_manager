@@ -19,6 +19,9 @@ type M = map[string]any
 const base = `{"remarks":"@shenvpn-smart-parallel-v6b","log":{"loglevel":"none","access":"none","error":"none","dnsLog":false},"dns":{"tag":"dns-module","queryStrategy":"UseIPv4","servers":[{"address":"https://8.8.8.8/dns-query","domains":[],"skipFallback":true,"tag":"dns-bootstrap","timeoutMs":2500},{"address":"https://1.1.1.1/dns-query","domains":[],"skipFallback":true,"tag":"dns-bootstrap","timeoutMs":2500},{"address":"https://1.1.1.1/dns-query","skipFallback":false,"timeoutMs":2500},{"address":"https://8.8.8.8/dns-query","skipFallback":false,"timeoutMs":2500}],"disableFallbackIfMatch":true,"disableCache":false,"serveStale":true,"serveExpiredTTL":60,"enableParallelQuery":true},"inbounds":[{"tag":"socks","listen":"127.0.0.1","port":10808,"protocol":"socks","settings":{"auth":"noauth","udp":true},"sniffing":{"enabled":true,"destOverride":["http","tls","quic"],"routeOnly":true}}],"outbounds":[],"routing":{"domainStrategy":"AsIs","balancers":[{"tag":"smart-parallel-balancer","selector":["proxy-"],"strategy":{"type":"leastLoad","settings":{"expected":3,"maxRTT":"2s","tolerance":0.15}},"fallbackTag":"block"},{"tag":"bootstrap-ip-balancer","selector":[],"strategy":{"type":"leastLoad","settings":{"expected":3,"maxRTT":"2s","tolerance":0.15}},"fallbackTag":"block"}],"rules":[{"type":"field","inboundTag":["socks","tun"],"port":"53","network":"tcp,udp","outboundTag":"smart-dns-out"},{"type":"field","inboundTag":["dns-bootstrap"],"balancerTag":"bootstrap-ip-balancer"},{"type":"field","inboundTag":["dns-module","smart-dns-egress"],"balancerTag":"smart-parallel-balancer"},{"type":"field","network":"tcp,udp","balancerTag":"smart-parallel-balancer"}]},"burstObservatory":{"subjectSelector":["proxy-"],"pingConfig":{"destination":"https://www.gstatic.com/generate_204","interval":"15s","sampling":3,"timeout":"5s","httpMethod":"GET"}},"policy":{"levels":{"0":{"handshake":15,"connIdle":600,"uplinkOnly":2,"downlinkOnly":5}},"system":{"statsInboundUplink":true,"statsInboundDownlink":true,"statsOutboundUplink":true,"statsOutboundDownlink":true}},"stats":{},"metrics":{"tag":"debug-metrics","listen":"127.0.0.1:11111"}}`
 
 func object(b []byte) (M, error) {
+	if len(b) > repair.MaxBytes || !json.Valid(b) {
+		return nil, errors.New("smart_invalid_member")
+	}
 	var m M
 	d := json.NewDecoder(bytes.NewReader(b))
 	d.UseNumber()
@@ -200,6 +203,10 @@ func Compose(members []Member) ([]byte, error) {
 	result = bytes.Replace(result, []byte("\"outbounds\":[]"), append([]byte("\"outbounds\":"), body.Bytes()...), 1)
 	if len(result) > repair.MaxBytes {
 		return nil, errors.New("smart_profile_size_limit")
+	}
+	result, err := applyRecoveryEnvelope(result)
+	if err != nil {
+		return nil, err
 	}
 	result, changes, err := compat.ApplyJSON(result)
 	if err != nil {

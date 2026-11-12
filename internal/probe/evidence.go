@@ -14,3 +14,12 @@ func VerifiedEvidence(e map[string]string) bool {
 	}
 	return true
 }
+
+// VerifiedPayload is a finite 2 MiB download / 1 MiB upload plus post-load check.
+// It is separate from core acceptance, general HTTPS and device/app performance.
+func VerifiedPayload(e map[string]string) bool {
+	return e["payload_version"] == "payload_v1" &&
+		e["payload_download"] == "passed" && e["payload_upload"] == "passed" &&
+		e["payload_recheck"] == "passed" && e["payload_download_bytes"] == "2097152" &&
+		e["payload_upload_bytes"] == "1048576"
+}

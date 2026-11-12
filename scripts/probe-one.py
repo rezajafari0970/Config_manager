@@ -65,6 +65,11 @@ def run_target(box,candidate,timeout,core):
     finally:
         box.stop();box.core=previous
 
+def attempt_score(result,candidate):
+    eligible=result['core']=='passed' and (not candidate.get('requires_connection') or result['connection']=='passed')
+    payload=result['connection']=='passed' and result.get('code')=='https_payload_verified'
+    return (eligible,payload,{'not_run':0,'failed':1,'partial':2,'passed':3}[result['connection']],result['core']=='passed')
+
 def cleanup(slot=None,runid=None):
     names=set()
     for folder in ['/run/netns','/sys/fs/cgroup','/dev/shm']:
@@ -135,7 +140,7 @@ def main(core_only=False):
     request=json.load(sys.stdin);plan=request['plan'];timeout=request['timeout']
     if not isinstance(timeout,int) or not 1<=timeout<=120 or not 1<=len(plan['candidates'])<=12:raise SystemExit('invalid request')
     runid=args.run_id or uuid.uuid4().hex[:6]
-    rows=[];best=None;rank={'not_run':0,'failed':1,'partial':2,'passed':3}
+    rows=[];best=None
     try:
         with lab.Sandbox(args.core,runid,8192+args.slot,prefix=PREFIX) as box:
             for candidate in plan['candidates']:
@@ -172,10 +177,9 @@ def main(core_only=False):
                 r['evidence']['app_import_contract']='passed' if client_failure is None else 'failed'
                 r['evidence']['android']='not_run'
                 r.update(sha256=candidate['sha256'],rule=candidate['rule']);rows.append(r)
-                eligible=r['core']=='passed' and (not candidate.get('requires_connection') or r['connection']=='passed')
-                score=(eligible,rank[r['connection']],r['core']=='passed')
+                score=attempt_score(r,candidate)
                 if best is None or score>best_score:best=r;best_score=score
-                if r['connection']=='passed':break
+                if r['connection']=='passed' and r.get('code')=='https_payload_verified':break
         print(json.dumps(best|{'attempts':rows}))
     finally:cleanup(args.slot,runid)
 

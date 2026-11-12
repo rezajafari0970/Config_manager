@@ -259,13 +259,27 @@ def test_candidate(box,candidate,timeout):
                 response=box.net([str(h3python),str(pathlib.Path(__file__).with_name('http3-check.py')),str(min(timeout,8))],timeout=min(timeout,8)+3)
                 evidence['http3']=json.loads(response.stdout)['status']
         except (OSError,ValueError,subprocess.SubprocessError):evidence['transport']='infrastructure_error'
+    # Full payloads use the SAME exact running profile/namespace. No cache,
+    # direct fallback, small-request substitution or TLS bypass earns this proof.
+    if ready and len(codes)==2 and all(codes):
+        try:
+            q=box.net(['/usr/bin/python3',str(pathlib.Path(__file__).with_name('payload-quality.py')),str(timeout)],timeout=2*max(20,min(45,timeout))+15)
+            quality=json.loads(q.stdout)
+            if not isinstance(quality,dict):raise ValueError('invalid payload receipt')
+            evidence.update(quality)
+        except (OSError,ValueError,subprocess.SubprocessError):
+            evidence['payload_version']='payload_v1'
+            evidence['payload_download']='infrastructure_error'
+    payload_ok=evidence.get('payload_version')=='payload_v1' and all(evidence.get('payload_'+k)=='passed' for k in ('download','upload','recheck')) and evidence.get('payload_download_bytes')=='2097152' and evidence.get('payload_upload_bytes')=='1048576'
     result['evidence']=evidence
     log=box.logs();box.stop();result['endpoints_passed']=sum(codes)
-    if codes and all(codes):result.update(connection='passed',code='https_multi_site_verified' if site_ok else 'https_proxy_verified_site_unavailable')
+    if codes and all(codes):result.update(connection='passed',code=('https_payload_verified' if payload_ok else 'https_payload_incomplete') if site_ok else 'https_proxy_verified_site_unavailable')
     elif any(codes):result.update(connection='partial',code='test_destination_partial')
     else:result.update(connection='failed',code=classify(log,classify(b'\n'.join(curl_errors),'proxy_request_failed' if ready else 'runtime_start_failed')))
     if result['connection']=='passed' and (any(evidence.get(k)!='passed' for k in ('dns_tcp','doh_cloudflare','doh_google')) or any(evidence.get(k) not in ('passed','unsupported') for k in ('dns_udp','quic_vn'))):
         result.update(connection='partial',code='transport_verification_incomplete')
+    if config.get('burstObservatory') and result['connection']=='passed' and not payload_ok:
+        result.update(connection='partial',code='https_payload_incomplete')
     return result
 
 if __name__=='__main__':

@@ -42,7 +42,7 @@ def main():
   (work/'samples.json').write_text(json.dumps([base64.b64encode(b).decode() for b in samples]))
   # Distinct tested resource prefix and lock: cannot clean production namespaces.
   (work/'probe-one.py').write_text((ROOT/'scripts/probe-one.py').read_text().replace('crw','ctw'))
-  for name in ['live-probe.py','config-preflight.py','app-import-contract.py','transport-checks.py','http3-check.py']:(work/name).write_text((ROOT/'scripts'/name).read_text())
+  for name in ['live-probe.py','config-preflight.py','app-import-contract.py','transport-checks.py','http3-check.py','payload-quality.py']:(work/name).write_text((ROOT/'scripts'/name).read_text())
   panel=worker=None
   with (work/'panel.log').open('w') as pl,(work/'worker.log').open('w') as wl:
    try:

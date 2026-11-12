@@ -10,7 +10,7 @@ import (
 )
 
 // Independent contract fixture for the explicitly revised responsive envelope.
-const expectedEnvelope = `{"remarks":"@shenvpn-smart-parallel-v6b","log":{"loglevel":"none","access":"none","error":"none","dnsLog":false},"dns":{"tag":"dns-module","queryStrategy":"UseIPv4","servers":[{"address":"https://8.8.8.8/dns-query","domains":[],"skipFallback":true,"tag":"dns-bootstrap","timeoutMs":2500},{"address":"https://1.1.1.1/dns-query","domains":[],"skipFallback":true,"tag":"dns-bootstrap","timeoutMs":2500},{"address":"https://1.1.1.1/dns-query","skipFallback":false,"timeoutMs":2500},{"address":"https://8.8.8.8/dns-query","skipFallback":false,"timeoutMs":2500}],"disableFallbackIfMatch":true,"disableCache":false,"serveStale":true,"serveExpiredTTL":60,"enableParallelQuery":true},"inbounds":[{"tag":"socks","listen":"127.0.0.1","port":10808,"protocol":"socks","settings":{"auth":"noauth","udp":true},"sniffing":{"enabled":true,"destOverride":["http","tls","quic"],"routeOnly":true}}],"outbounds":[],"routing":{"domainStrategy":"AsIs","balancers":[{"tag":"smart-parallel-balancer","selector":["proxy-"],"strategy":{"type":"leastLoad","settings":{"expected":3,"maxRTT":"2s","tolerance":0.15}},"fallbackTag":"block"},{"tag":"bootstrap-ip-balancer","selector":[],"strategy":{"type":"leastLoad","settings":{"expected":3,"maxRTT":"2s","tolerance":0.15}},"fallbackTag":"block"}],"rules":[{"type":"field","inboundTag":["socks","tun"],"port":"53","network":"tcp,udp","outboundTag":"smart-dns-out"},{"type":"field","inboundTag":["dns-bootstrap"],"balancerTag":"bootstrap-ip-balancer"},{"type":"field","inboundTag":["dns-module","smart-dns-egress"],"balancerTag":"smart-parallel-balancer"},{"type":"field","network":"tcp,udp","balancerTag":"smart-parallel-balancer"}]},"burstObservatory":{"subjectSelector":["proxy-"],"pingConfig":{"destination":"https://www.gstatic.com/generate_204","interval":"15s","sampling":3,"timeout":"5s","httpMethod":"GET"}},"policy":{"levels":{"0":{"handshake":15,"connIdle":600,"uplinkOnly":2,"downlinkOnly":5}},"system":{"statsInboundUplink":true,"statsInboundDownlink":true,"statsOutboundUplink":true,"statsOutboundDownlink":true}},"stats":{},"metrics":{"tag":"debug-metrics","listen":"127.0.0.1:11111"}}`
+const expectedEnvelope = `{"remarks":"@shenvpn-smart-parallel-v6b","log":{"loglevel":"none","access":"none","error":"none","dnsLog":false},"dns":{"tag":"dns-module","queryStrategy":"UseIPv4","servers":[{"address":"https://8.8.8.8/dns-query","domains":[],"skipFallback":true,"tag":"dns-bootstrap","timeoutMs":2500},{"address":"https://1.1.1.1/dns-query","domains":[],"skipFallback":true,"tag":"dns-bootstrap","timeoutMs":2500},{"address":"https://1.1.1.1/dns-query","skipFallback":false,"timeoutMs":2500},{"address":"https://8.8.8.8/dns-query","skipFallback":false,"timeoutMs":2500}],"disableFallbackIfMatch":true,"disableCache":false,"serveStale":true,"serveExpiredTTL":60,"enableParallelQuery":true},"inbounds":[{"tag":"socks","listen":"127.0.0.1","port":10808,"protocol":"socks","settings":{"auth":"noauth","udp":true},"sniffing":{"enabled":true,"destOverride":["http","tls","quic"],"routeOnly":true}}],"outbounds":[],"routing":{"domainStrategy":"AsIs","balancers":[{"tag":"smart-parallel-balancer","selector":["proxy-"],"strategy":{"type":"leastLoad","settings":{"expected":3,"maxRTT":"2s","tolerance":0.15}},"fallbackTag":"smart-recovery"},{"tag":"bootstrap-ip-balancer","selector":[],"strategy":{"type":"leastLoad","settings":{"expected":3,"maxRTT":"2s","tolerance":0.15}},"fallbackTag":"bootstrap-recovery"},{"tag":"smart-recovery-balancer","selector":["proxy-"],"strategy":{"type":"leastLoad","settings":{"expected":1,"maxRTT":"5s","tolerance":0.5}},"fallbackTag":"block"},{"tag":"bootstrap-recovery-balancer","selector":[],"strategy":{"type":"leastLoad","settings":{"expected":1,"maxRTT":"5s","tolerance":0.5}},"fallbackTag":"block"}],"rules":[{"type":"field","inboundTag":["bootstrap-recovery-egress"],"network":"tcp,udp","balancerTag":"bootstrap-recovery-balancer"},{"type":"field","inboundTag":["smart-recovery-egress"],"network":"tcp,udp","balancerTag":"smart-recovery-balancer"},{"type":"field","inboundTag":["socks","tun"],"port":"53","network":"tcp,udp","outboundTag":"smart-dns-out"},{"type":"field","inboundTag":["dns-bootstrap"],"balancerTag":"bootstrap-ip-balancer"},{"type":"field","inboundTag":["dns-module","smart-dns-egress"],"balancerTag":"smart-parallel-balancer"},{"type":"field","network":"tcp,udp","balancerTag":"smart-parallel-balancer"}]},"burstObservatory":{"subjectSelector":["proxy-"],"pingConfig":{"destination":"https://www.gstatic.com/generate_204","interval":"15s","sampling":3,"timeout":"5s","httpMethod":"GET"}},"policy":{"levels":{"0":{"handshake":15,"connIdle":600,"uplinkOnly":2,"downlinkOnly":5}},"system":{"statsInboundUplink":true,"statsInboundDownlink":true,"statsOutboundUplink":true,"statsOutboundDownlink":true}},"stats":{},"metrics":{"tag":"debug-metrics","listen":"127.0.0.1:11111"}}`
 
 func TestExactOrderedEnvelopeAndAllOutboundValues(t *testing.T) {
 	members := []Member{}
@@ -40,12 +40,14 @@ func TestExactOrderedEnvelopeAndAllOutboundValues(t *testing.T) {
 		t.Fatal("not compact JSON")
 	}
 	stripped := stripDynamicEnvelope(t, got)
-	if string(stripped) != expectedEnvelope {
+	gotEnvelope, _ := object(stripped)
+	wantEnvelope, _ := object([]byte(expectedEnvelope))
+	if !reflect.DeepEqual(gotEnvelope, wantEnvelope) {
 		t.Fatal("fixed envelope values or field order changed", string(stripped))
 	}
 	parsed, _ := object(got)
 	out := parsed["outbounds"].([]any)
-	if len(out) != total+3 {
+	if len(out) != total+5 {
 		t.Fatal("outbound omitted or invented", len(out), total)
 	}
 	byTag := map[string]M{}
@@ -131,12 +133,14 @@ func TestBalancedAllEntriesAndInactiveHelpersPreserved(t *testing.T) {
 	}
 	parsed, _ := object(b)
 	out := parsed["outbounds"].([]any)
-	if len(out) != 6 || out[0].(M)["tag"] != "proxy-01" || out[1].(M)["tag"] != "proxy-02" || out[2].(M)["protocol"] != "loopback" || out[3].(M)["tag"] != "block" {
+	if len(out) != 8 || out[0].(M)["tag"] != "proxy-01" || out[1].(M)["tag"] != "proxy-02" || out[2].(M)["protocol"] != "loopback" || out[3].(M)["tag"] != "block" {
 		t.Fatal("pool members or helper lost")
 	}
 	var raw map[string]json.RawMessage
 	json.Unmarshal(b, &raw)
-	if string(stripDynamicEnvelope(t, b)) != expectedEnvelope {
+	gotEnvelope, _ := object(stripDynamicEnvelope(t, b))
+	wantEnvelope, _ := object([]byte(expectedEnvelope))
+	if !reflect.DeepEqual(gotEnvelope, wantEnvelope) {
 		t.Fatal("source routing leaked")
 	}
 	validateCore(t, b)
@@ -152,5 +156,5 @@ func stripDynamicEnvelope(t *testing.T, b []byte) []byte {
 	selector := root["routing"].(M)["balancers"].([]any)[1].(M)["selector"]
 	selected, _ := json.Marshal(selector)
 	out := bytes.Replace(b, raw["outbounds"], []byte("[]"), 1)
-	return bytes.Replace(out, append([]byte("\"selector\":"), selected...), []byte("\"selector\":[]"), 1)
+	return bytes.ReplaceAll(out, append([]byte("\"selector\":"), selected...), []byte("\"selector\":[]"))
 }

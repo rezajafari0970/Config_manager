@@ -194,6 +194,9 @@ func (s *Store) CompleteProbe(ctx context.Context, r probe.Result) error {
 	if r.Connection != "passed" && r.Connection != "partial" && r.Connection != "failed" && r.Connection != "not_run" {
 		return ErrInvalid
 	}
+	if r.Code == "https_payload_verified" && !probe.VerifiedPayload(r.Evidence) {
+		return ErrInvalid
+	}
 	if r.Connection == "passed" && (r.Core != "passed" || r.EndpointsPassed != 2 || r.RuntimeSHA256 != r.SHA256 || !probe.VerifiedEvidence(r.Evidence)) {
 		return ErrInvalid
 	}

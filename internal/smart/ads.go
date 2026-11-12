@@ -13,7 +13,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 )
 
-const AdsVersion = "xray-26.11.9.smart-ads.v6"
+const AdsVersion = "xray-26.11.9.smart-ads.v7"
 
 func PrepareAds(b []byte) probe.Plan {
 	p := Prepare(b)
@@ -105,6 +105,12 @@ func ComposeAds(main []Member, ads Member) ([]byte, error) {
 		return nil, errors.New("smart_bootstrap_no_ip")
 	}
 	bootstrap["selector"] = allowed
+	for _, v := range balancers {
+		b := v.(M)
+		if b["tag"] == "bootstrap-recovery-balancer" {
+			b["selector"] = append([]any{}, allowed...)
+		}
+	}
 	byTag := map[string]M{}
 	mainNodes, adsNodes := []any{}, []any{}
 	for _, v := range nodes {
@@ -199,10 +205,15 @@ func ComposeAds(main []Member, ads Member) ([]byte, error) {
 		subjects = []any{"proxy-", "ads-pool-"}
 	}
 	extra = append(extra, M{"type": "field", "domain": []any{"geosite:google@ads", "domain:browserleaks.com", "domain:doubleclick.net", "domain:googleadservices.com", "domain:googlesyndication.com", "domain:admob.com", "domain:app-measurement.com", "domain:googletagservices.com", "domain:googletagmanager.com"}, "network": "tcp,udp", "outboundTag": "ads-01"})
-	routing["rules"] = append(append(append([]any{}, rules[:1]...), extra...), rules[1:]...)
+	routing["rules"] = append(append(append([]any{}, rules[:len(rules)-1]...), extra...), rules[len(rules)-1:]...)
 	root["remarks"] = "@shenvpn-smart-ads"
 	root["burstObservatory"].(M)["subjectSelector"] = subjects
 	root["outbounds"] = out
+	if len(entries) > 1 {
+		if e = addObservedRecovery(root, "ads-exit-balancer", "ads-recovery"); e != nil {
+			return nil, e
+		}
+	}
 	if _, e = compat.Wrap(root); e != nil {
 		return nil, e
 	}

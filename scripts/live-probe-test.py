@@ -7,6 +7,15 @@ spec=importlib.util.spec_from_file_location('probe',pathlib.Path(__file__).with_
 p=importlib.util.module_from_spec(spec);spec.loader.exec_module(p)
 
 class ProbeTests(unittest.TestCase):
+ def test_payload_qualified_alternative_beats_short_https_success(self):
+  spec=importlib.util.spec_from_file_location('candidate_driver',pathlib.Path(__file__).with_name('probe-one.py'))
+  driver=importlib.util.module_from_spec(spec);spec.loader.exec_module(driver)
+  candidate={'requires_connection':True}
+  base={'core':'passed','connection':'passed','code':'https_payload_incomplete'}
+  good={**base,'code':'https_payload_verified'}
+  self.assertGreater(driver.attempt_score(good,candidate),driver.attempt_score(base,candidate))
+  self.assertLess(driver.attempt_score({**good,'core':'failed'},candidate),driver.attempt_score(base,candidate))
+
  def test_worker_and_lab_networks_are_disjoint(self):
   seen=set()
   for prefix in p.SANDBOX_ADDRESS_BASES:

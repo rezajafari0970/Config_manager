@@ -98,7 +98,7 @@ func TestBrowserFixtureServer(t *testing.T) {
 				}
 				r := conversionResult(*j, 0, true)
 				// Synthetic connection evidence for the UI harness only.
-				r.Code = "https_multi_site_verified" // synthetic UI receipt only; no network measurement
+				r.Code = "https_payload_verified" // synthetic UI receipt only; no network measurement
 				_ = store.CompleteProbe(ctx, r)
 			}
 		}

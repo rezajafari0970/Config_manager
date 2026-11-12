@@ -1,3 +1,29 @@
+# P47 Smart recovery and complete-payload qualification — 2026-11-12
+
+Activated p47-b51b595c6ec184771530; schema26, Smartv14, SmartAdsv7,
+ordinaryv9 and Ads classifier v5. Read docs/SMART_RECOVERY.md and
+docs/reports/P47-summary.md. Primary leastLoad expected3/maxRTT2s remains.
+Only an empty eligible pool enters observed recovery expected1/maxRTT5s;
+its fallback blocks. Main, IP-only bootstrap and balanced Ads scopes stay
+separate. Do not turn this into retry, stream migration or all-app guarantees.
+
+Smart membership/publication requires payload_v1 evidence: complete2MiB down,
+complete1MiB up and post-load HTTPS; code alone cannot qualify. Keep original
+raw and partial diagnostics. Old receipts are historical, not new proofs.
+Preserve explicit keepalive and address-family intent with Force* DNS policy.
+XHTTP inspection follows effective extra and xhttpSettings precedence.
+Phone was offline throughout P47; all new runtime evidence is Linux only.
+The video demonstrates asymmetry and app failures, not a uniquely proven cause.
+Do not claim the Android Compose crash was fixed by JSON.
+
+Both official cores passed generated slow/fast/all-dead recovery, no-system-DNS
+bootstrap, and final exported payload/transport checks. Preserve first transient
+Ads-site failure alongside its same-byte successful repeat. Full final checks,
+queue recovery and browser checks passed. Migration preserved33sources/886members.
+Six binaries match canonical builds; all six services active. Hold shared deploy
+lock and matching DB/blob/key/release backups; never open schema26 with older
+binaries, weaken TLS, force-push, or touch unrelated phone controllers.
+
 # P46 Android measurements and shared VLESS repair — 2026-11-12
 
 Activated p46-e017ac121d0885423599; schema25, strict TLS and P45 Ads v5 retained.

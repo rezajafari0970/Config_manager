@@ -55,7 +55,7 @@ func TestAdsCompositionAndPinnedCore(t *testing.T) {
 		}
 		routing := root["routing"].(M)
 		rules := routing["rules"].([]any)
-		if len(rules) != 6 || rules[1].(M)["balancerTag"] != "smart-parallel-balancer" || rules[2].(M)["outboundTag"] != "ads-01" {
+		if len(rules) != 8 || rules[5].(M)["balancerTag"] != "smart-parallel-balancer" || rules[6].(M)["outboundTag"] != "ads-01" {
 			t.Fatal("wrong route precedence")
 		}
 		for _, p := range routing["balancers"].([]any) {
@@ -98,7 +98,7 @@ func TestAdsWholeBalancedInputAndDependencyPreservation(t *testing.T) {
 		t.Fatal(e)
 	}
 	root, _ := object(body)
-	if len(root["routing"].(M)["balancers"].([]any)) != 3 {
+	if len(root["routing"].(M)["balancers"].([]any)) != 6 {
 		t.Fatal("balanced input lost")
 	}
 	count := 0

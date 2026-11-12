@@ -131,7 +131,7 @@ func TestSmartApplicationProofExcludesGeneralOnlyAndStaleSiteResult(t *testing.T
 			t.Fatal("ordinary output removed", e)
 		}
 	}
-	if _, e := s.db.Exec("UPDATE conversion_results SET code='https_multi_site_verified' WHERE hash=?", hash); e != nil {
+	if _, e := s.db.Exec("UPDATE conversion_results SET code='https_payload_verified' WHERE hash=?", hash); e != nil {
 		t.Fatal(e)
 	}
 	inventory, e := smartInventory(ctx, s.db)

@@ -82,22 +82,28 @@ func independentIP(tag string, nodes map[string]M, visiting map[string]bool) boo
 	}
 	return true
 }
+
+// Match StreamConfig.Build and SplitHTTPConfig.Build in both pinned cores:
+// xhttpSettings wins over its alias; extra replaces outer download settings.
 func walkDownloadStreams(value any, visit func(M)) {
-	switch stream := value.(type) {
-	case M:
-		// Follow only the XHTTP transport path, not unrelated extension/credential data.
-		if x, ok := stream["xhttpSettings"].(M); ok {
-			holders := []M{x}
-			if extra, ok := x["extra"].(M); ok {
-				holders = append(holders, extra)
-			}
-			for _, holder := range holders {
-				if download, ok := holder["downloadSettings"].(M); ok {
-					visit(download)
-					walkDownloadStreams(download, visit)
-				}
-			}
-		}
+	stream, ok := value.(M)
+	if !ok {
+		return
+	}
+	x, ok := stream["xhttpSettings"].(M)
+	if !ok {
+		x, ok = stream["splithttpSettings"].(M)
+	}
+	if !ok {
+		return
+	}
+	holder := x
+	if extra, ok := x["extra"].(M); ok {
+		holder = extra
+	}
+	if download, ok := holder["downloadSettings"].(M); ok {
+		visit(download)
+		walkDownloadStreams(download, visit)
 	}
 }
 func applySmartSocketPolicy(ob M) {
@@ -115,9 +121,29 @@ func applySmartSocketPolicy(ob M) {
 			socket = M{}
 			stream["sockopt"] = socket
 		}
-		socket["domainStrategy"] = "ForceIPv4"
-		socket["tcpKeepAliveIdle"] = json.Number("45")
-		socket["tcpKeepAliveInterval"] = json.Number("15")
+		// Preserve explicit address-family intent, while prohibiting system-DNS
+		// fallback in the Smart envelope. Use* permits fallback in the core.
+		strategy, _ := socket["domainStrategy"].(string)
+		switch strings.ToLower(strategy) {
+		case "", "asis":
+			socket["domainStrategy"] = "ForceIPv4"
+		case "useip":
+			socket["domainStrategy"] = "ForceIP"
+		case "useipv4":
+			socket["domainStrategy"] = "ForceIPv4"
+		case "useipv6":
+			socket["domainStrategy"] = "ForceIPv6"
+		case "useipv4v6":
+			socket["domainStrategy"] = "ForceIPv4v6"
+		case "useipv6v4":
+			socket["domainStrategy"] = "ForceIPv6v4"
+		}
+		if _, exists := socket["tcpKeepAliveIdle"]; !exists {
+			socket["tcpKeepAliveIdle"] = json.Number("45")
+		}
+		if _, exists := socket["tcpKeepAliveInterval"]; !exists {
+			socket["tcpKeepAliveInterval"] = json.Number("15")
+		}
 	}
 	apply(stream)
 	walkDownloadStreams(stream, apply)

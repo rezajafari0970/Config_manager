@@ -85,7 +85,7 @@ func execute(ctx context.Context, c client, helper, core string, slot int, j pro
 	p.Code = code
 	r := probe.Result{Hash: j.Hash, Token: j.Token, Revision: j.Revision, Version: c.version, CoreSHA256: probe.CoreSHA256, Attempt: probe.Attempt{SHA256: j.Hash, Rule: "preparation", Core: "not_run", Connection: "not_run", Code: code}}
 	if len(p.Candidates) > 0 {
-		deadline := time.Duration(len(p.Candidates)*(50+3*j.Settings.TimeoutSeconds)) * time.Second
+		deadline := time.Duration(len(p.Candidates)*(155+3*j.Settings.TimeoutSeconds)) * time.Second
 		jobCtx, cancel := context.WithTimeout(ctx, deadline)
 		defer cancel()
 		done := make(chan struct{})

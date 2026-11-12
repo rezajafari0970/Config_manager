@@ -43,7 +43,7 @@ func (s *Store) migrateV11() error {
  WHERE s.enabled=1 AND a.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)
  AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER))
  AND r.core='passed' AND r.candidate_hash!='' AND r.version='` + convert.Version + `'
- AND r.connection='passed' AND r.code='https_multi_site_verified' AND r.valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER);
+ AND r.connection='passed' AND r.code='https_payload_verified' AND r.valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER);
  CREATE VIEW smart_offers AS SELECT * FROM smart_inputs;
  CREATE VIEW smart_owned_members AS SELECT m.head,m.position,i.expires FROM smart_members m JOIN smart_inputs i ON i.source=m.source AND i.id=m.id AND i.raw_hash=m.raw_hash AND i.hash=m.hash;
  CREATE VIEW smart_cache_owned AS SELECT m.head,m.position,i.expires FROM smart_cache_members m JOIN smart_inputs i ON i.source=m.source AND i.id=m.id AND i.raw_hash=m.raw_hash AND i.hash=m.hash;

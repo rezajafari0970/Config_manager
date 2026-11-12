@@ -69,7 +69,7 @@ func (s *Store) migrateV9() error {
  WHERE s.enabled=1 AND a.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)
  AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER))
  AND r.core='passed' AND r.candidate_hash!='' AND r.version='` + convert.Version + `'
- AND r.connection='passed' AND r.code='https_multi_site_verified' AND r.valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER);
+ AND r.connection='passed' AND r.code='https_payload_verified' AND r.valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER);
  CREATE VIEW smart_offers AS SELECT source,id,raw_hash,hash,expires FROM (
  SELECT i.*,row_number() OVER(PARTITION BY i.source,i.id ORDER BY (r.connection='passed') DESC,r.tested DESC,i.raw_hash) AS choice FROM smart_inputs i JOIN conversion_results r ON r.hash=i.raw_hash) WHERE choice=1;
  CREATE VIEW smart_owned_members AS SELECT m.head,m.position,min(i.expires) AS expires FROM smart_members m JOIN smart_inputs i ON i.source=m.source AND i.id=m.id AND i.raw_hash=m.raw_hash AND i.hash=m.hash GROUP BY m.head,m.position;
@@ -404,7 +404,7 @@ func (s *SmartPipeline) CompleteSmart(ctx context.Context, r probe.Result) error
 	if r.Core == "passed" && hash != r.SHA256 {
 		return ErrInvalid
 	}
-	if r.Connection == "passed" && (r.Core != "passed" || r.RuntimeSHA256 != r.SHA256 || r.EndpointsPassed != 2 || !probe.VerifiedEvidence(r.Evidence)) {
+	if r.Connection == "passed" && (r.Core != "passed" || r.RuntimeSHA256 != r.SHA256 || r.EndpointsPassed != 2 || (!probe.VerifiedEvidence(r.Evidence) || !probe.VerifiedPayload(r.Evidence))) {
 		return ErrInvalid
 	}
 	if e = s.saveSmartEvidence(ctx, tx, r); e != nil {

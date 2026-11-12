@@ -44,7 +44,7 @@ func conversionResult(j probe.Job, idx int, connected bool) probe.Result {
 	a := probe.Attempt{SHA256: c.SHA256, Rule: c.Rule, Core: "passed", Connection: "failed", Code: "proxy_request_failed", RuntimeSHA256: c.SHA256}
 	if connected {
 		a.Connection = "passed"
-		a.Code = "https_multi_site_verified" // synthetic application-site receipt, never network evidence
+		a.Code = "https_payload_verified" // synthetic application-site receipt, never network evidence
 		a.EndpointsPassed = 2
 		a.Evidence = syntheticCompatibilityEvidence()
 	}
@@ -354,7 +354,7 @@ func TestUnavailableConversionDoesNotBreakJSONLinesAndRequeues(t *testing.T) {
 
 // Synthetic private-worker receipt for state-machine tests, never network proof.
 func syntheticCompatibilityEvidence() map[string]string {
-	e := map[string]string{}
+	e := map[string]string{"payload_version": "payload_v1", "payload_download": "passed", "payload_upload": "passed", "payload_recheck": "passed", "payload_download_bytes": "2097152", "payload_upload_bytes": "1048576"}
 	for _, k := range []string{"https", "dns_tcp", "dns_udp", "doh_cloudflare", "doh_google", "quic_vn", "bundled_core", "target_core", "app_import_contract"} {
 		e[k] = "passed"
 	}

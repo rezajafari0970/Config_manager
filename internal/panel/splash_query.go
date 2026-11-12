@@ -33,7 +33,7 @@ func (s *Store) migrateV13() error {
  AND s.enabled=1 AND a.expires>CAST(unixepoch('subsec')*1000 AS INTEGER)
  AND NOT EXISTS(SELECT 1 FROM config_controls c WHERE c.id=a.id AND c.expires>CAST(unixepoch('subsec')*1000 AS INTEGER))
  AND r.core='passed' AND r.candidate_hash!='' AND r.version='` + convert.Version + `'
- AND r.connection='passed' AND r.code='https_multi_site_verified' AND r.valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER);
+ AND r.connection='passed' AND r.code='https_payload_verified' AND r.valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER);
  PRAGMA user_version=13;`)
 	if e != nil {
 		return e

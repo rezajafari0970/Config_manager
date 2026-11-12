@@ -33,7 +33,7 @@ def main():
     if len(picked)>=args.live_canary:break
    samples['Canary']=picked;receipt['live_samples']=len(picked)
   (work/'samples.json').write_text(json.dumps(samples))
-  for name in ['probe-one.py','live-probe.py','config-preflight.py','app-import-contract.py','transport-checks.py','http3-check.py']:(work/name).write_text((ROOT/'scripts'/name).read_text())
+  for name in ['probe-one.py','live-probe.py','config-preflight.py','app-import-contract.py','transport-checks.py','http3-check.py','payload-quality.py']:(work/name).write_text((ROOT/'scripts'/name).read_text())
   (work/'smart-probe-one.py').write_text((ROOT/'scripts'/('ads-probe-one.py' if args.ads else 'splash-probe-one.py' if args.splash else 'smart-probe-one.py')).read_text().replace("PREFIX='csm'","PREFIX='cst'").replace("PREFIX='csp'","PREFIX='cpt'").replace("PREFIX='csa'","PREFIX='cat'"))
   if args.live_canary:raise RuntimeError('Use the separate exact-profile live-canary driver; synthetic queue receipts cannot certify live samples')
   helper=work/'smart-probe-one.py'
@@ -72,10 +72,10 @@ def main():
      j=json.loads(line);assert j['remarks']==('@shenvpn-smart-ads' if args.ads else '@shenvpn-smart-parallel-v6b')
      assert list(j)==['remarks','log','dns','inbounds','outbounds','routing','burstObservatory','policy','stats','metrics']
      assert j['log']=={'loglevel':'none','access':'none','error':'none','dnsLog':False}
-     assert len(j['dns']['servers'])==4 and len(j['routing']['balancers'])==2 and len(j['routing']['rules'])==(6 if args.ads else 4)
-     assert j['outbounds'][0]['tag'] in j['routing']['balancers'][1]['selector'] and j['routing']['balancers'][0]['fallbackTag']=='block'
+     assert len(j['dns']['servers'])==4 and len(j['routing']['balancers'])==4 and len(j['routing']['rules'])==(8 if args.ads else 6)
+     assert j['outbounds'][0]['tag'] in j['routing']['balancers'][1]['selector'] and j['routing']['balancers'][0]['fallbackTag']=='smart-recovery'
      assert len([x for x in j['outbounds'] if x['tag'].startswith('proxy-')])>=(50 if args.ads else min(50,args.profiles))
-     assert j['routing']['balancers'][-1]['strategy']=={'type':'leastLoad','settings':{'expected':3,'maxRTT':'2s','tolerance':.15}}
+     assert j['routing']['balancers'][0]['strategy']=={'type':'leastLoad','settings':{'expected':3,'maxRTT':'2s','tolerance':.15}}
     normalized={normalize(line) for line in lines}
     turns=[]
     for i in range(len(lines)+1):
