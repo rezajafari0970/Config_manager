@@ -76,10 +76,10 @@ func TestEgressCountriesAllOutputsAndPolicy(t *testing.T) {
 		}
 	}
 	save(1, []string{"TR"}, 200)
-	check("1", 200) // TR+MO must not leak through the TR intersection.
+	check("2", 200) // Either observed country is enough; shared member appears once.
 	save(1, []string{"MO"}, 409)
 	save(2, []string{"ZZ"}, 422)
-	check("1", 200)
+	check("2", 200)
 	save(2, []string{}, 200)
 	check("0", 503)
 	save(3, []string{"MO", "TR"}, 200)

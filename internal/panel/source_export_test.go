@@ -361,7 +361,7 @@ func TestSchema7MigrationPreservesGlobalQueue(t *testing.T) {
 	}
 	var version int
 	s.db.QueryRow("PRAGMA user_version").Scan(&version)
-	if version != 28 {
+	if version != 29 {
 		t.Fatal("schema version", version)
 	}
 }

@@ -51,6 +51,40 @@ func (s *Store) migrateV27() error {
 	return tx.Commit()
 }
 
+// migrateV29 changes publication matching only. Stored observations, selected
+// countries, policy revision, health receipts and queue state remain untouched.
+func (s *Store) migrateV29() error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var version int
+	if err = tx.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
+		return err
+	}
+	if version >= 29 {
+		return nil
+	}
+	_, err = tx.Exec(`
+ DROP VIEW egress_export_eligible;
+ CREATE VIEW egress_export_eligible AS
+ SELECT e.* FROM egress_geo_eligible e
+ WHERE EXISTS (
+   SELECT 1 FROM egress_countries c
+   WHERE c.hash=e.hash
+     AND c.last_seen>CAST(unixepoch('subsec')*1000 AS INTEGER)-86400000
+     AND c.country IN (
+       SELECT value FROM json_each((SELECT allowed FROM egress_country_policy WHERE id=1))
+     )
+ );
+ PRAGMA user_version=29;`)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
 func saveEgressCountries(ctx context.Context, tx *sql.Tx, hash string, r egress.Report, d egress.Decision, now int64) error {
 	g := egress.Countries(r, d, now)
 	b, _ := json.Marshal(g)
@@ -152,7 +186,7 @@ func countryState(ctx context.Context, q databaseQuery) (map[string]any, error) 
 	if e = q.QueryRowContext(ctx, `SELECT (SELECT count(*) FROM egress_geo_eligible),(SELECT count(*) FROM egress_export_eligible),(SELECT count(*) FROM egress_eligible),(SELECT count(*) FROM (SELECT c.hash FROM egress_countries c JOIN egress_geo_eligible g ON g.hash=c.hash WHERE c.last_seen>? GROUP BY c.hash HAVING count(*)>1))`, egress.Now()-egress.CountryWindow).Scan(&known, &published, &route, &shared); e != nil {
 		return nil, e
 	}
-	return map[string]any{"policy": p, "codes": egress.CountryCodes(), "counts": counts, "known": known, "shared": shared, "published": published, "unknown": route - known, "window_ms": egress.CountryWindow}, nil
+	return map[string]any{"policy": p, "match_mode": "any", "codes": egress.CountryCodes(), "counts": counts, "known": known, "shared": shared, "published": published, "unknown": route - known, "window_ms": egress.CountryWindow}, nil
 }
 
 func entryCountries(ctx context.Context, q databaseQuery, hash string) ([]string, error) {

@@ -55,7 +55,7 @@ as an invented valid config. Unsupported/unknown cases remain visible and retry.
 
 All four Residential exports use the same route+payload+country allowlist view,
 with final writer-transaction eligibility revalidation. Counts come from a single
-read snapshot; saving country selection returns its count atomically. Every country
-observed for a multi-country member during24hours must be selected. Filters do not
+read snapshot; saving country selection returns its count atomically. At least one country
+observed for a multi-country member during24hours must be selected (ANY). Filters do not
 erase stored healthy members. Neither GeoIP nor finite probes guarantee100% country
 accuracy, future routes or1000 conclusive classifications in a fixed time budget.

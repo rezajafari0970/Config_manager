@@ -20,7 +20,8 @@ if(process.env.PANEL_COUNTRY_TEST==='1'){
  assert((await page.locator('#country-saved-count').textContent()).includes('کانفیگ'));
  await page.reload();await page.waitForFunction(()=>document.querySelectorAll('#country-options input').length===250);
  assert.equal(await page.locator('#country-options input:checked').count(),0);
- const state=await(await page.request.get(process.env.PANEL_TEST_ORIGIN+'/api/egress')).json();
+ assert((await page.locator('body').textContent()).includes('وجود حداقل یک کشور انتخاب‌شده'));
+ const state=await(await page.request.get(process.env.PANEL_TEST_ORIGIN+'/api/egress')).json();assert.equal(state.country.match_mode,'any');
  for(const url of Object.values(state.links))assert.equal((await page.request.get(url)).status(),503);
  await page.locator('#country-options input[value="TR"]').check();
  await page.waitForTimeout(3500);assert.equal(await page.locator('#country-options input:checked').count(),1);

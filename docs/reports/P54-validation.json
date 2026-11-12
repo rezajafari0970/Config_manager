@@ -1,0 +1,107 @@
+{
+  "checks": {
+    "focused": 0,
+    "check": 0,
+    "rehearsal": 0,
+    "browser": 0
+  },
+  "live": {
+    "at": 1794483033974,
+    "schema": 29,
+    "match_mode": "any",
+    "selected_countries": [
+      "CY",
+      "MO",
+      "PR",
+      "TW"
+    ],
+    "policy_revision": 4,
+    "published": 15,
+    "known": 52,
+    "shared": 15,
+    "entries_with_unselected_countries": 7,
+    "exact_database_set_verified": true,
+    "database_any_count": 15,
+    "database_old_all_count": 8,
+    "three_country_example_present": true,
+    "unique_entries_verified": true,
+    "outputs": {
+      "configs.json": {
+        "status": 200,
+        "count": 15,
+        "bytes": 24587,
+        "checksum_verified": true
+      },
+      "configs.jsonl": {
+        "status": 200,
+        "count": 15,
+        "bytes": 24570,
+        "checksum_verified": true
+      },
+      "next.json": {
+        "status": 200,
+        "count": 1,
+        "bytes": 1450,
+        "checksum_verified": true
+      },
+      "raw.txt": {
+        "status": 200,
+        "count": 15,
+        "bytes": 16130,
+        "checksum_verified": true
+      }
+    },
+    "api_ms": [
+      205.5,
+      190.66,
+      170.48,
+      183.62,
+      257.41
+    ],
+    "missing_source_inputs": 0,
+    "health_minutes": 15
+  },
+  "rehearsal": {
+    "from_schema": 28,
+    "to_schema": 29,
+    "preserved_tables": [
+      "egress_country_policy",
+      "egress_countries",
+      "egress_geo_results",
+      "egress_health",
+      "egress_lifecycle"
+    ],
+    "selected_countries": [
+      "CY",
+      "MO",
+      "PR",
+      "TW"
+    ],
+    "all_evidence_identical": true
+  },
+  "browser": {
+    "passed": true,
+    "total": 5,
+    "tested": 5,
+    "max_active": 2,
+    "states": {
+      "NO_SPLIT": 3,
+      "UNKNOWN": 2
+    },
+    "crash_recovered": true,
+    "seconds": 104.16,
+    "live_inputs": 3
+  },
+  "release": "/opt/config-repair/releases/p54-d281644147693bdedf3a",
+  "schema": 29,
+  "source_controls_preserved": true,
+  "binaries": {
+    "config-panel": "d281644147693bdedf3a182539f97d587320aa09bfb0a1996ed20dbcf55bd68e",
+    "config-probe-worker": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+    "config-egress-worker": "ecc78e5a895f66cd94a1dbb9abd53ab07a431150bd494de25152ad8b990af8bd",
+    "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+    "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+    "config-probe-plan": "62c40caf384f0436300299f61c65364a94d13efddedf4e3bbbf3c66d55f793e9"
+  },
+  "throughput_retested": false
+}

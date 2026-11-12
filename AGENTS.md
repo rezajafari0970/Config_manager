@@ -1,3 +1,19 @@
+# P54 user override: ANY selected Ads country — 2026-11-12
+
+Schema29 replaces ALL/subset country publication with ANY/intersection matching.
+This explicit user instruction supersedes the old country rules below. A healthy,
+route-qualified TW+MX+CY config publishes with TW or CY alone even if MX is not
+selected. Empty selection emits none. A shared member appears once in each output
+and once in each country's count. Filtering never deletes retained healthy inputs
+or forces their actual exit to selected countries. The observed24h window, fresh
+country consensus, routev5, healthv1 and all template versions remain unchanged.
+Preserve selected codes/revision and evidence during migration; no reclassification
+reset is needed. All four outputs and post-save counts share the same eligibility
+view, with final writer-transaction revalidation. API match_mode is any.
+Read docs/EGRESS_COUNTRIES.md and docs/reports/P54-report-fa.md for validation.
+Hold the shared deploy lock and matching stopped DB/blob/key/release backup;
+never run pre29 binaries on schema29, force-push or alter unrelated controllers.
+
 # P53 Residential lifecycle and independent country consensus — 2026-11-12
 
 Activated p53-33fdc2ef3b946c78accb, schema28. Read

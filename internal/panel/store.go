@@ -85,7 +85,7 @@ func Open(path string, key []byte) (*Store, error) {
 	if err = db.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
 		return nil, err
 	}
-	if version > 28 {
+	if version > 29 {
 		return nil, errors.New("database schema newer than application")
 	}
 	if version == 0 {
@@ -198,6 +198,9 @@ PRAGMA user_version=1;`)
 		return nil, err
 	}
 	if err = s.migrateV28(); err != nil {
+		return nil, err
+	}
+	if err = s.migrateV29(); err != nil {
 		return nil, err
 	}
 	if err = s.ensureEgressIndexes(); err != nil {

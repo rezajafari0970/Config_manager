@@ -1,6 +1,6 @@
-# P53: observed Ads country consensus and publication policy
+# P54: observed Ads country consensus and any-country publication policy
 
-Schema 28 supplements route policy ads-egress.v5. The user's new country request
+Schema 29 supplements route policy ads-egress.v5. The user's new country request
 supersedes the old prohibition on country lookup, but does not restore the old
 ISP/Residential classifier. Residential remains the project's finite split-route
 label. Country is a geolocation estimate for the exact IP reported by the same
@@ -80,11 +80,15 @@ return409, invalid/duplicate codes422. The save response includes the publicatio
 count from the same writer transaction; the UI displays this count explicitly. Changes survive process restart.
 
 A configuration is exported only if route evidence is currently valid, every
-valid Ads observation has independent lineage consensus and fresh country facts, and ALL countries seen
-for it during the last24h are allowed. This is subset matching, not intersection.
-TR+MO is withheld with TR alone. Missing/unknown country cannot bypass the filter.
-Countries from accepted full reports accumulate for24h; a later single-country
-round does not immediately erase a previously observed disallowed country.
+valid Ads observation has independent lineage consensus and fresh country facts, and AT LEAST ONE country seen
+for it during the last24h is selected. This is set intersection (ANY), superseding
+the previous ALL/subset policy by explicit user instruction. TW+MX+CY qualifies
+with TW alone, CY alone or TW+CY, even when MX is unselected. MX alone also qualifies;
+an unrelated selection or an empty selection does not. Missing/unknown country
+cannot bypass the filter. Countries from accepted full reports accumulate for24h.
+Filtering selects whole configurations; it does not constrain their actual exit
+to a selected country. All observed countries stay visible. Schema29 changes only
+the publication view, retaining selection, revision, evidence and queue state.
 No finite observation can guarantee an unseen or future exit country.
 
 Counts are distinct raw configuration hashes per country before the country
@@ -120,15 +124,15 @@ revocation. Country filtering never deletes a healthy stored configuration.
 Run scripts/check.sh, scripts/egress-worker-test.py with existing browser dependency
 environment, a private TestEgressPrivateMigrationRehearsal, exact live canary and
 1000-input egress-throughput-test.py. Fixtures are isolated and never qualify real
-production inputs. Country tests cover all output formats and HEAD, TR/MO subset
-logic, source/provider conflicts, missing/stale evidence, empty policy, revision
+production inputs. Country tests cover all output formats and HEAD, TR/MO and TW/MX/CY ANY
+logic, schema28-to29 migration without policy/evidence loss, source/provider conflicts, missing/stale evidence, empty policy, revision
 conflicts, unchanged proof generations, and archived deep retries. Browser tests
 cover390/1440px, saved policy, page reload, unsaved selection and all four empty
 outputs. Python tests cover both families, boundaries, corrupt datasets, provider
 disagreement, malformed range imports and exclusion of unauthenticated/control IPs.
 
 Hold /var/lock/config-repair-deploy.lock, preserve a matching stopped DB/blob/key/
-release backup, and never run schema26 binaries against27. Explicitly chmod the
+release backup, and never run pre29 binaries against schema29. Explicitly chmod the
 release directory0755 after mkdir: a private operator umask otherwise prevents
 the unprivileged panel service from traversing it. Keep country data/config0600
 inside root-owned0700 directories. Preserve P47 Smartv14, SmartAdsv7, payload_v1,
