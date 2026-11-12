@@ -310,11 +310,9 @@ func uri(u *url.URL) (M, error) {
 	if e := realityMLKEMHint(kind, q); e != nil {
 		return nil, e
 	}
-	// Explicit XUDP uses a single UDP stream; TCP multiplexing stays disabled.
-	if encoding, exists := q["packetEncoding"]; exists {
-		if kind != "vless" || encoding[0] != "xudp" {
-			return nil, errors.New("unsupported_packet_encoding")
-		}
+	packetRule, e := packetEncodingRule(kind, q)
+	if e != nil {
+		return nil, e
 	}
 	credential := u.User.Username()
 	if pass, ok := u.User.Password(); ok {
@@ -394,6 +392,12 @@ func uri(u *url.URL) (M, error) {
 	outbound := M{"tag": "proxy", "protocol": protocol, "settings": settings, "streamSettings": stream}
 	if len(annotations) > 0 {
 		outbound["__input_rule"] = shareCompatibilityVersion + ".subscription-metadata"
+	}
+	if packetRule != "" {
+		if prior, ok := outbound["__input_rule"].(string); ok && prior != "" {
+			packetRule = prior + "." + packetRule
+		}
+		outbound["__input_rule"] = packetRule
 	}
 	if q.Get("packetEncoding") == "xudp" {
 		outbound["mux"] = M{"enabled": true, "concurrency": -1, "xudpConcurrency": 1, "xudpProxyUDP443": "allow"}

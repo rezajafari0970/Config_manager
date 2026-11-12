@@ -2,7 +2,7 @@
 """Full HTTP/3 DoH request via SOCKS5 UDP, with verified TLS and bounded I/O.
 Requires pinned aioquic 1.3.0. No direct networking fallback.
 """
-import base64,importlib.util,json,pathlib,socket,ssl,time,sys
+import argparse,base64,importlib.util,json,pathlib,socket,ssl,time,sys
 from aioquic.quic.configuration import QuicConfiguration
 from aioquic.quic.connection import QuicConnection
 from aioquic.quic.events import HandshakeCompleted,ConnectionTerminated
@@ -10,12 +10,12 @@ from aioquic.h3.connection import H3Connection,H3_ALPN
 from aioquic.h3.events import HeadersReceived,DataReceived
 spec=importlib.util.spec_from_file_location('transport',pathlib.Path(__file__).with_name('transport-checks.py'))
 transport=importlib.util.module_from_spec(spec);spec.loader.exec_module(transport)
-def check(timeout=8):
- control,relay=transport.socks(3,'0.0.0.0',0,timeout)
+def check(timeout=8,socks_port=10808):
+ control,relay=transport.socks(3,'0.0.0.0',0,timeout,socks_port)
  if relay[0] in ('0.0.0.0','::'):relay=('127.0.0.1',relay[1])
  dest=('1.1.1.1',443);ident,query=transport.dns_query()
  config=QuicConfiguration(is_client=True,alpn_protocols=H3_ALPN,server_name='cloudflare-dns.com',verify_mode=ssl.CERT_REQUIRED,idle_timeout=timeout)
- config.load_verify_locations(cafile='/etc/ssl/certs/ca-certificates.crt')
+ config.load_verify_locations(cafile=ssl.get_default_verify_paths().cafile)
  q=QuicConnection(configuration=config);h3=H3Connection(q);deadline=time.monotonic()+timeout
  q.connect(dest,now=time.monotonic());sent=False;tls=False;status=b'';body=b'';stream=None
  with control,socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as udp:
@@ -46,6 +46,8 @@ def check(timeout=8):
    if timer is not None and timer<=time.monotonic():q.handle_timer(now=time.monotonic())
  return {'status':'failed','code':'http3_timeout'}
 if __name__=='__main__':
- try:result=check(float(sys.argv[1]) if len(sys.argv)>1 else 8)
+ p=argparse.ArgumentParser();p.add_argument('timeout',type=float,nargs='?',default=8);p.add_argument('--socks-port',type=int,default=10808);a=p.parse_args()
+ if not 0<a.timeout<=15 or not 1<=a.socks_port<=65535:raise SystemExit('invalid bounds')
+ try:result=check(a.timeout,a.socks_port)
  except Exception:result={'status':'failed','code':'http3_probe_error'}
  print(json.dumps(result))

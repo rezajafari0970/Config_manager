@@ -20,3 +20,5 @@ node scripts/client-api-test.mjs
 node scripts/client-poll-test.mjs
 go build -trimpath -buildvcs=false -o bin/config-egress-worker ./cmd/config-egress-worker
 python3 scripts/egress-test.py
+
+python3 scripts/benchmark-test.py

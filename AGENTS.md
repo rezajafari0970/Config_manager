@@ -1,3 +1,24 @@
+# P46 Android measurements and shared VLESS repair — 2026-11-12
+
+Activated p46-e017ac121d0885423599; schema25, strict TLS and P45 Ads v5 retained.
+Read docs/ANDROID_BENCHMARKS.md and docs/reports/P46-report-fa.md plus validation.
+VLESS packetEncoding=none now uses a versioned native-UDP no-op translation;
+unknown modes/protocols remain explicit. Raw/server/security meaning is preserved.
+766 frozen raw inputs:756 prepared,715 distinct final candidates accepted by
+26.11.9/26.10.31/26.7.28. Ten incomplete inputs need9 REALITY keys and1 port.
+Do not call these core rejections; older26.5.9 alone rejects9 finalmask variants.
+
+Native Termux tests on Android16 and measured MCI routing now exist. APK import,
+VpnService, real app UI, Irancell/Wi-Fi/handover/screen-off and attributable battery
+are still not_run. Preserve receipt core/config/network hashes and original ages;
+resume only matching cases. HTTP200 with timeout or incomplete transfer is failure.
+Device-specific complete-transfer eligibility is separate from global publication.
+No public timing promotion: leastLoad expected3,15s/3/5s stays production baseline.
+The experimental expected1/fast-sweep profiles did not establish stable transfers.
+Never turn finite phone/Linux observations into all-network or lifetime guarantees.
+Only owned benchmark children may be stopped. Keep shared deployment lock,
+matched DB/blob/key/release backup, six executable checks and no force push.
+
 # P45 activated throughput update — 2026-11-12
 
 Activated p45-535993edea4187d12b9c; schema25 and ads-egress.v5 retained.

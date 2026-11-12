@@ -1,0 +1,4464 @@
+{
+  "phase": "P46",
+  "date_utc": "2026-11-12T00:11:31Z",
+  "release": "/opt/config-repair/releases/p46-e017ac121d0885423599",
+  "backup": "/var/backups/config-repair/p46-20261111-234225",
+  "schema": 25,
+  "sources": 33,
+  "controls_preserved": true,
+  "binaries": {
+    "config-panel": "e017ac121d0885423599568719d02b058b90ce50179770ea69fd127c59561718",
+    "config-probe-worker": "d50970bd24c9e81ebf80122706157d83a0e234f76d49f6dcd748fc6cf9fa20cc",
+    "config-egress-worker": "1a9de167f9eef9af77f111047224b36d92e558316e76c455adcfba1976dc0d35",
+    "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+    "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+    "config-probe-plan": "91873400f0127309ec2145c7fa5eedbab4dc949b5d4d13c55e9b9b3a3e99ee1c"
+  },
+  "official_targets": {
+    "v2rayng": "2.3.15",
+    "bundled_xray": "26.10.31",
+    "latest_xray": "26.11.9",
+    "installed_apk": "unavailable"
+  },
+  "audit": {
+    "snapshot": "2026-11-11T22:53:11Z",
+    "raw_inputs": 766,
+    "prepared_before": 754,
+    "prepared_after": 756,
+    "unique_candidates": 715,
+    "final_latest_core_rejections": 0,
+    "preparation_blocked": 10,
+    "core_counts": {
+      "26.11.9": {
+        "passed": 715
+      },
+      "26.10.31": {
+        "passed": 715
+      },
+      "26.7.28": {
+        "passed": 715
+      },
+      "26.5.9": {
+        "passed": 706,
+        "failed": 9
+      }
+    },
+    "families": {
+      "vless+tcp-http+none": 393,
+      "vless+ws+tls": 39,
+      "vless+tcp+reality": 172,
+      "vless+tcp+tls": 14,
+      "vmess+tcp+none": 6,
+      "shadowsocks+tcp+none": 26,
+      "vmess+tcp+tls": 22,
+      "vless+grpc+reality": 6,
+      "vmess+ws+none": 2,
+      "vless+tcp-http+reality": 3,
+      "vless+tcp+none": 15,
+      "vless+xhttp+reality": 4,
+      "trojan+tcp+tls": 2,
+      "vless+grpc+tls": 3,
+      "vless+xhttp+tls": 3,
+      "trojan+ws+tls": 1,
+      "vmess+ws+tls": 2,
+      "vmess+tcp-http+none": 1,
+      "vless+ws+none": 1
+    },
+    "remaining": [
+      {
+        "hash": "016e824c738828d5ef5d84da9faca0d1cff42b63e9ade0a7325fbbb3fb82c879",
+        "kind": "vless",
+        "sources": "Hot",
+        "family": "vless+tcp+reality",
+        "after": "missing_reality_public_key",
+        "stage": "preparation_blocked"
+      },
+      {
+        "hash": "0e1aa50c84e20b4f7d7f35ab5c9adea5b198dc1960b4b8a41d1700ff442a18b4",
+        "kind": "vless",
+        "sources": "Hot",
+        "family": "vless+tcp+reality",
+        "after": "missing_reality_public_key",
+        "stage": "preparation_blocked"
+      },
+      {
+        "hash": "3e680dadaec8de1f51d4de91554dc33eb3e5512e47d57718c7b466cd2cacdfe5",
+        "kind": "vless",
+        "sources": "Hot",
+        "family": "vless+tcp+reality",
+        "after": "missing_reality_public_key",
+        "stage": "preparation_blocked"
+      },
+      {
+        "hash": "6105970d6a5bfc58a221a99dcb069a487b6a109d01ff2caa024b53e3b560c1c5",
+        "kind": "vless",
+        "sources": "Hot",
+        "family": "vless+tcp+reality",
+        "after": "missing_reality_public_key",
+        "stage": "preparation_blocked"
+      },
+      {
+        "hash": "6ef8457368cadcf4b00b2190717d05db6b9ccbd6ad1978e7df67ffa9479e05e2",
+        "kind": "vless",
+        "sources": "Hot",
+        "family": "vless+tcp+reality",
+        "after": "missing_reality_public_key",
+        "stage": "preparation_blocked"
+      },
+      {
+        "hash": "7a7cf13b45a3e2c4c58e44cf427b89f34a5359cb5c24d1ba2b22c0fd2593f6ce",
+        "kind": "vless",
+        "sources": "Hot",
+        "family": "vless+tcp+reality",
+        "after": "missing_reality_public_key",
+        "stage": "preparation_blocked"
+      },
+      {
+        "hash": "969a0c3c98b39ff9a415fd4bcec8ba61a4999ee0ea8144143e5a0d10a72484ba",
+        "kind": "vless",
+        "sources": "Hot",
+        "family": "vless+tcp+reality",
+        "after": "missing_reality_public_key",
+        "stage": "preparation_blocked"
+      },
+      {
+        "hash": "9a168b5ac6bb7fcc64f7738860a8baa89184ea5fa44936dbb5593f6c9cf00df4",
+        "kind": "vless",
+        "sources": "Hot",
+        "family": "vless+tcp+reality",
+        "after": "missing_reality_public_key",
+        "stage": "preparation_blocked"
+      },
+      {
+        "hash": "a699bf79d10ee585700332974098e34b63f3cd56561206455c38c84151243b48",
+        "kind": "vless",
+        "sources": "Hot",
+        "family": "vless+tcp+reality",
+        "after": "missing_reality_public_key",
+        "stage": "preparation_blocked"
+      },
+      {
+        "hash": "ad9d2af70a8700534baa875ec52a3ae331ee89171e583ea25f7ab08ebd03f4b0",
+        "kind": "vmess",
+        "sources": "Hot",
+        "family": "vmess+tcp+none",
+        "after": "invalid_port",
+        "stage": "preparation_blocked",
+        "details": "empty server port; no safe value to infer"
+      }
+    ],
+    "old_core_only": [
+      {
+        "sha256": "ea030aab449432a0f9975e9d4f977edfaec92ce67f1bd8d62c302d8da392a34f",
+        "family": "vless+ws+tls",
+        "code": "core_rejected",
+        "reason": "finalmask fragment LengthMin cannot be0; target and bundled accept"
+      },
+      {
+        "sha256": "2dedb197959a1c04b0535ee904e9f18837414c73a18efe2ce645e727c5492a67",
+        "family": "vless+ws+tls",
+        "code": "core_rejected",
+        "reason": "finalmask fragment LengthMin cannot be0; target and bundled accept"
+      },
+      {
+        "sha256": "12ccda522217e642339ca18a3c01449aadb1ac3acbd040f00de654630f2e12a8",
+        "family": "vless+ws+tls",
+        "code": "core_rejected",
+        "reason": "finalmask fragment LengthMin cannot be0; target and bundled accept"
+      },
+      {
+        "sha256": "0d8e33c10727357abfe6c32007e0224505937ddc5f5ab93979f65c15a6487e75",
+        "family": "trojan+ws+tls",
+        "code": "core_rejected",
+        "reason": "finalmask fragment LengthMin cannot be0; target and bundled accept"
+      },
+      {
+        "sha256": "5504f52115af527ab6142041f230a6eb76946bc6a8a7463c9d48324730210c67",
+        "family": "vless+ws+tls",
+        "code": "core_rejected",
+        "reason": "finalmask fragment LengthMin cannot be0; target and bundled accept"
+      },
+      {
+        "sha256": "2a4a297a3ae25896f9238e0e0dd5eb76222b567d7c924e5262598e15575af26e",
+        "family": "vless+ws+tls",
+        "code": "core_rejected",
+        "reason": "finalmask fragment LengthMin cannot be0; target and bundled accept"
+      },
+      {
+        "sha256": "f2566a63721784a276c23763560b8117a3b27c06ab71eb1ef43874de6fad8acd",
+        "family": "vless+ws+tls",
+        "code": "core_rejected",
+        "reason": "finalmask fragment LengthMin cannot be0; target and bundled accept"
+      },
+      {
+        "sha256": "8da59fa173b64326b54a805a4b16a8affba43ce759f43a44fcd95d462d11c5a1",
+        "family": "vless+ws+tls",
+        "code": "core_rejected",
+        "reason": "finalmask fragment LengthMin cannot be0; target and bundled accept"
+      },
+      {
+        "sha256": "61f458e87a5a9b8fcc0143b413f1d99840776d78bb4a62eb48762d3647304122",
+        "family": "vless+ws+tls",
+        "code": "core_rejected",
+        "reason": "finalmask fragment LengthMin cannot be0; target and bundled accept"
+      }
+    ],
+    "unchanged_raw_candidate_sets": 764,
+    "newly_repaired": [
+      "65e72c9912c705cea4e01272d58994456ec8e2700d6e88f35ded296ffb99e43f",
+      "884cb71bae8d6e1bd7755e6fee2d596b71dc0a68c1dab14b3078d761b2d78179"
+    ]
+  },
+  "phone": {
+    "device": {
+      "android_release": "16",
+      "sdk": "36",
+      "model": "24115RA8EG",
+      "abi": "arm64-v8a"
+    },
+    "network": "MCI AS197207 inferred from system route before/after",
+    "completed_cases": 70,
+    "results": [
+      {
+        "series": "screen",
+        "index": 0,
+        "label": "baseline",
+        "family": "shadowsocks+tcp+none",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "cfcd30c190458964f67a10065fa8ad559d4fc5bd6dc0609735be7e5783ff418c",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438272,
+        "finished": 1794438294,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "0d81eb97675bd853ba20f76fac23d16f99e43275449db8117bf40ba994f21e83",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.25,
+          "core_cpu_one_cpu_percent": 1.18,
+          "core_peak_rss_bytes": 34480128,
+          "observed_seconds": 21.165,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 1,
+        "label": "baseline",
+        "family": "shadowsocks+tcp+none",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "4439b01c969754f34d86f98566e1602b714aeaf08c60e0142102dbb91099da6b",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438272,
+        "finished": 1794438294,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "f64191ae1383dea8bd4f01b13b1ef31bdab83caa259fae8056cae69a56624dd4",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.2,
+          "core_cpu_one_cpu_percent": 0.95,
+          "core_peak_rss_bytes": 34115584,
+          "observed_seconds": 21.164,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 2,
+        "label": "baseline",
+        "family": "shadowsocks+tcp+none",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "550e85a1bd2652a58a56353af82a0b06425768bda2744309ec5984f7ef4c5f9e",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438294,
+        "finished": 1794438315,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "322b7a15185c8c08ed1f817039a3609c1ba9121e817672f5f2a9cc49299d43ac",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.2,
+          "core_cpu_one_cpu_percent": 0.94,
+          "core_peak_rss_bytes": 35012608,
+          "observed_seconds": 21.194,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 3,
+        "label": "baseline",
+        "family": "vless+grpc+reality",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "e9276fa46766bf98960ffb78bd823dfb2e8fa18d528e12b9e1413068670eacc0",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438294,
+        "finished": 1794438308,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": 1627.97,
+        "runtime_sha256": "df29cbbddc23cda3b00464928fd8dbd1e16333ebf42e958c34679a5375f00c46",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.36,
+          "core_cpu_one_cpu_percent": 2.61,
+          "core_peak_rss_bytes": 38834176,
+          "observed_seconds": 13.814,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 4,
+        "label": "baseline",
+        "family": "vless+grpc+tls",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "feb97e831b8a2e230700851ef2916298c9321764a50836e0f4ade4ea24da2f35",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438308,
+        "finished": 1794438323,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": 993.46,
+        "runtime_sha256": "f0ed019b3110143accadba78e711fe98d1ca3e18e17f8ccad5be6261f5491b8a",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.27,
+          "core_cpu_one_cpu_percent": 1.78,
+          "core_peak_rss_bytes": 37437440,
+          "observed_seconds": 15.188,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 5,
+        "label": "baseline",
+        "family": "vless+tcp+none",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "51feb0aa40422ed67db0da1a3e19b43f01e1e4c9c71a153935b554aef89db401",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438315,
+        "finished": 1794438319,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 742.19,
+        "runtime_sha256": "513ef1d257b57357691639c08fcfaef67de5551b54962555a4332d4db2e4c8c5",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": true,
+        "download_mbps": 3.8002,
+        "upload_mbps": 1.1981,
+        "resources": {
+          "core_cpu_seconds": 0.29,
+          "core_cpu_one_cpu_percent": 7.48,
+          "core_peak_rss_bytes": 34910208,
+          "observed_seconds": 3.876,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 6,
+        "label": "baseline",
+        "family": "vless+tcp+none",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "43b40eb98f672212e68186d73301381ff915be59f61980f7bf622ce958927f1a",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438319,
+        "finished": 1794438335,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 623.25,
+        "runtime_sha256": "8950d885c302d4c35a306dae2f0fb6181ff68cea75e5e0fa5787a012b57a00d7",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.23,
+          "core_cpu_one_cpu_percent": 1.43,
+          "core_peak_rss_bytes": 34504704,
+          "observed_seconds": 16.115,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 7,
+        "label": "baseline",
+        "family": "vless+tcp+none",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "32ba34f08b265ea2707bf0343ced57108f9d93c442ae72245d3e86a26bed26a4",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438323,
+        "finished": 1794438344,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "0061c1d9bcf6f9e7079208c5ef74248c50784fab5af25c659c9adda01904a867",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.19,
+          "core_cpu_one_cpu_percent": 0.9,
+          "core_peak_rss_bytes": 34881536,
+          "observed_seconds": 21.155,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 8,
+        "label": "baseline",
+        "family": "vless+tcp+reality",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "6962d2a3a80a3907d2a5fe8be2fafb32a6919d443d92d0121dcc76a8388ecf0c",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438335,
+        "finished": 1794438356,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "5ae856de84f0cb780e10ec791c6810eaf14556512ea1396d65572258e1296d59",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.34,
+          "core_cpu_one_cpu_percent": 1.61,
+          "core_peak_rss_bytes": 37126144,
+          "observed_seconds": 21.131,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 9,
+        "label": "baseline",
+        "family": "vless+tcp+reality",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "5ffd7a251308636c2f30eb1c516025bf450e998bca7e0dda3a268dca6456a7d1",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438344,
+        "finished": 1794438365,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "4e40d4b583124021a36e99f1760b0193786d837f90ab533b06012a0d34afefc3",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.25,
+          "core_cpu_one_cpu_percent": 1.18,
+          "core_peak_rss_bytes": 34455552,
+          "observed_seconds": 21.268,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 10,
+        "label": "baseline",
+        "family": "vless+tcp+reality",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "143dddf70af5dbabe488c5cf9ab08caabd8245237ed9bece4daf9f76ec5a44d9",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438356,
+        "finished": 1794438375,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 3282.4,
+        "runtime_sha256": "db93d5d3e6e828f197740fb425a6c73b17171053c5a0a2f9b02e60508ff2b25d",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.29,
+          "core_cpu_one_cpu_percent": 1.53,
+          "core_peak_rss_bytes": 36954112,
+          "observed_seconds": 19.005,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 11,
+        "label": "baseline",
+        "family": "vless+tcp+tls",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "33e121d0c910511bd84aecbb7ec614cf9bd1085c796a684b88eddd2f3122080e",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438365,
+        "finished": 1794438387,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "f7a6ca489ddda1b2d04055cd90c6b58357a16d68e2d01d262f1da8034a32589d",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.32,
+          "core_cpu_one_cpu_percent": 1.49,
+          "core_peak_rss_bytes": 39579648,
+          "observed_seconds": 21.519,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 12,
+        "label": "baseline",
+        "family": "vless+tcp+tls",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "768492112499407c1b27369182a1eda74341ab49a2f2eeda9924959ea012348b",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438375,
+        "finished": 1794438398,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "06e25bb7658e75f565e8ec2aa433a4ce417c95f7d5e1a8ba0067ffe0cfe4c1ab",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.37,
+          "core_cpu_one_cpu_percent": 1.66,
+          "core_peak_rss_bytes": 39653376,
+          "observed_seconds": 22.262,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 13,
+        "label": "baseline",
+        "family": "vless+tcp+tls",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "65167748103aec8e7bb628986c4810a4fef0413908a6702c4f6441157f954d72",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438387,
+        "finished": 1794438409,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "3593e2b49b18b2a5c20d091607451b9958e8f8091a7bf8c0ffdcaa5feda3f23f",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.45,
+          "core_cpu_one_cpu_percent": 2.06,
+          "core_peak_rss_bytes": 39227392,
+          "observed_seconds": 21.834,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 14,
+        "label": "baseline",
+        "family": "vless+ws+tls",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "74eb2e03a88266a75d9d238c14267bc626073d83ccd7fcd5c9207327cc990fbd",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438398,
+        "finished": 1794438420,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "42eb5830b15ab30194d46d93693919eec360cfd3135bee976faf907c7309ec4b",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.35,
+          "core_cpu_one_cpu_percent": 1.59,
+          "core_peak_rss_bytes": 35409920,
+          "observed_seconds": 21.992,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 15,
+        "label": "baseline",
+        "family": "vless+ws+tls",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "5504f52115af527ab6142041f230a6eb76946bc6a8a7463c9d48324730210c67",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438409,
+        "finished": 1794438431,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "c17063295640460d747461108f1288eda6e3b0345f9e1333d59835c1d24284f7",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.56,
+          "core_cpu_one_cpu_percent": 2.56,
+          "core_peak_rss_bytes": 42872832,
+          "observed_seconds": 21.909,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 16,
+        "label": "baseline",
+        "family": "vless+ws+tls",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "2dedb197959a1c04b0535ee904e9f18837414c73a18efe2ce645e727c5492a67",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438420,
+        "finished": 1794438442,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "4d67d52af964194b74f367a11f204b870f10b800263a0c2e6481ddff821e4118",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.49,
+          "core_cpu_one_cpu_percent": 2.24,
+          "core_peak_rss_bytes": 41603072,
+          "observed_seconds": 21.905,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 17,
+        "label": "baseline",
+        "family": "vmess+tcp+none",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "9b207ec8a082da6e528b9522d3cdf6b2aad285b6082e47d91c9417929f998382",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438431,
+        "finished": 1794438450,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 2054.06,
+        "runtime_sha256": "90d5290df0a01019d31a883afaa63448683a0c8279ee802f8e1e2713894661c5",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.34,
+          "core_cpu_one_cpu_percent": 1.87,
+          "core_peak_rss_bytes": 34611200,
+          "observed_seconds": 18.17,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 18,
+        "label": "baseline",
+        "family": "vmess+tcp+none",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "3af0d1ee31d11c2dfbb8effbaf7eb565556410345efa1902c145e794398f3d70",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438442,
+        "finished": 1794438462,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1988.81,
+        "runtime_sha256": "72e3d1f3c7eaec2e5c368121b171e65d0f5aedc7c63665dd6fd2f74002ecc52a",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.31,
+          "core_cpu_one_cpu_percent": 1.6,
+          "core_peak_rss_bytes": 34418688,
+          "observed_seconds": 19.367,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 19,
+        "label": "baseline",
+        "family": "vmess+tcp+none",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "11a73f49b4bd34ec44330025206da8ba951378f49f2f1a82637f28dc49050465",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438450,
+        "finished": 1794438472,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "42e4d653491faed7eff224a060e921319aefde1628c6af5effa937c9a3fa9169",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.35,
+          "core_cpu_one_cpu_percent": 1.59,
+          "core_peak_rss_bytes": 34611200,
+          "observed_seconds": 22.023,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 20,
+        "label": "baseline",
+        "family": "vmess+tcp+tls",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "6314f6a518be6c4163f0a6cd4839f1ee0b46794651a3666602c930b0fb0ea108",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438462,
+        "finished": 1794438484,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "e92c22233b782cd25024dea85f0fdcb8555b96e6c334f08e4e4f9d261e0ee709",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.32,
+          "core_cpu_one_cpu_percent": 1.46,
+          "core_peak_rss_bytes": 33734656,
+          "observed_seconds": 21.953,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 21,
+        "label": "baseline",
+        "family": "vmess+tcp+tls",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "c62285128b3fd93e8d673246cb6954461b8e5c21a9791af5f12fc6808518ba5a",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438472,
+        "finished": 1794438495,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "f48467b3a6d9d7503399e0ef1393777620d36315e705ca90212005a3091ee713",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.26,
+          "core_cpu_one_cpu_percent": 1.18,
+          "core_peak_rss_bytes": 35127296,
+          "observed_seconds": 22.065,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 22,
+        "label": "baseline",
+        "family": "vmess+tcp+tls",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "cb1edb897d29d90dbe3612fbccc22b6bc179030d851af32777e369f936da348a",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438484,
+        "finished": 1794438506,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "f220004f092f6ddce0dc7d107e56292c7ef2b6ea9d8964a00c3bf29780b05196",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.31,
+          "core_cpu_one_cpu_percent": 1.41,
+          "core_peak_rss_bytes": 31178752,
+          "observed_seconds": 21.98,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "screen",
+        "index": 23,
+        "label": "baseline",
+        "family": "vmess+ws+tls",
+        "member_count": null,
+        "profile": null,
+        "config_sha256": "ff091f22a854651ce5f21762d2f26f896263e6206356f843fcb471174d9f3dc4",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438495,
+        "finished": 1794438518,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "partial",
+        "first_verified_https_ms": 4783.68,
+        "runtime_sha256": "10ac18c001fc24580c955cd96e71f43e890f08a50c85b7d19cddc43e680fac5c",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.46,
+          "core_cpu_one_cpu_percent": 2.01,
+          "core_peak_rss_bytes": 36999168,
+          "observed_seconds": 22.926,
+          "scope": "owned Xray process only"
+        },
+        "transport": {},
+        "http3": null,
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "matrix",
+        "index": 0,
+        "label": "5/baseline-v13",
+        "family": "smart",
+        "member_count": 5,
+        "profile": "baseline-v13",
+        "config_sha256": "a351cadea15310d62884b3fc47794f989823c3c5f8a949ba04556d57acf32246",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438764,
+        "finished": 1794438843,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1439.06,
+        "runtime_sha256": "7f3685914ba76f80932d859bddacc515ae6173d566c229a8dbc7adcdb2ccdc5a",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 1.73,
+          "core_cpu_one_cpu_percent": 2.24,
+          "core_peak_rss_bytes": 46608384,
+          "observed_seconds": 77.206,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 627.53
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 630.11
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 642.27
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 6.71
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 397.49
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "matrix",
+        "index": 1,
+        "label": "5/responsive-v1",
+        "family": "smart",
+        "member_count": 5,
+        "profile": "responsive-v1",
+        "config_sha256": "acb8e037e1428a3f18a200a31c2c9e0ed703fb3dca3ee7d2bddeea15c64365ef",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438843,
+        "finished": 1794438928,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 8321.74,
+        "runtime_sha256": "8116845b600995a445ae0843c0d65397be557625a91164a35713fc7904762d8a",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 1.93,
+          "core_cpu_one_cpu_percent": 2.3,
+          "core_peak_rss_bytes": 47714304,
+          "observed_seconds": 83.952,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 589.24
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 618.3
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 622.19
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 12.47
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 413.59
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "matrix",
+        "index": 2,
+        "label": "7/responsive-v1",
+        "family": "smart",
+        "member_count": 7,
+        "profile": "responsive-v1",
+        "config_sha256": "d768aa20323b962228db4bf8b7b8fda148cc4dd9ae351559ed5a47077b76866a",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794438928,
+        "finished": 1794439005,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1119.22,
+        "runtime_sha256": "1a8fa93b8acd9ba26a9b90fba29e6985f42d96883695207551140bb45ca2ca45",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 2.09,
+          "core_cpu_one_cpu_percent": 2.75,
+          "core_peak_rss_bytes": 48635904,
+          "observed_seconds": 76.064,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 399.84
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 592.69
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 621.9
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 7.86
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 414.21
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "matrix",
+        "index": 3,
+        "label": "7/baseline-v13",
+        "family": "smart",
+        "member_count": 7,
+        "profile": "baseline-v13",
+        "config_sha256": "2180f093e5a404a3c29a5b576d5d095f4e89cf6611959f998adf6233c284b2ae",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794439005,
+        "finished": 1794439068,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1096.62,
+        "runtime_sha256": "fe9d7077b7030d749ac2cb2a6670f3aaa3d1f7ced4e2629780d6d1a9b0807147",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": true,
+        "download_mbps": 4.2528,
+        "upload_mbps": 1.3199,
+        "resources": {
+          "core_cpu_seconds": 1.51,
+          "core_cpu_one_cpu_percent": 2.46,
+          "core_peak_rss_bytes": 46297088,
+          "observed_seconds": 61.41,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 377.72
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 475.26
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 462.68
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 7.67
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 228.53
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "matrix",
+        "index": 4,
+        "label": "10/baseline-v13",
+        "family": "smart",
+        "member_count": 10,
+        "profile": "baseline-v13",
+        "config_sha256": "6134277c8e680f87800af4e35f528892ed0170c37295e57f2589ebd2ddb21146",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794439068,
+        "finished": 1794439152,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "partial",
+        "first_verified_https_ms": 1011.33,
+        "runtime_sha256": "1b5cb68f1a3d3e72d3dad7261d508afaa4ffe0294586cfe4eaf11d0267d4a15f",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 2.26,
+          "core_cpu_one_cpu_percent": 2.74,
+          "core_peak_rss_bytes": 48381952,
+          "observed_seconds": 82.631,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 839.4
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 840.6
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 898.44
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 6.85
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 396.91
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "matrix",
+        "index": 5,
+        "label": "10/responsive-v1",
+        "family": "smart",
+        "member_count": 10,
+        "profile": "responsive-v1",
+        "config_sha256": "a01b03fe182c8a2a463bbc4c7d104592d9003d4184e33cfc34523987b9a8051c",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794439152,
+        "finished": 1794439231,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1094.33,
+        "runtime_sha256": "ba881265e845eaa2ddc98de044bcdf1187c5be22452e94c45726cc6b618d75ec",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 2.88,
+          "core_cpu_one_cpu_percent": 3.72,
+          "core_peak_rss_bytes": 49504256,
+          "observed_seconds": 77.472,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 636.95
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 844.55
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 845.9
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 9.11
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 502.78
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "matrix",
+        "index": 6,
+        "label": "15/responsive-v1",
+        "family": "smart",
+        "member_count": 15,
+        "profile": "responsive-v1",
+        "config_sha256": "15fb5b998230690bee0c09aa2bca608a16602eaa10696c7fc5be2b0bd65c200f",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794439231,
+        "finished": 1794439306,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1309.7,
+        "runtime_sha256": "624bc9cfbb6a97cff0459a89f7e2c80111419cb057f4200297d4342c047e652a",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": 1.1883,
+        "resources": {
+          "core_cpu_seconds": 3.53,
+          "core_cpu_one_cpu_percent": 4.76,
+          "core_peak_rss_bytes": 53522432,
+          "observed_seconds": 74.137,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 484.11
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 492.92
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 635.01
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 9.45
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 246.95
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "matrix",
+        "index": 7,
+        "label": "15/baseline-v13",
+        "family": "smart",
+        "member_count": 15,
+        "profile": "baseline-v13",
+        "config_sha256": "e959f37e59d71bc567604483da9c3e6c057e441d407a92a0ed522647416987ea",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794439306,
+        "finished": 1794439384,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1073.0,
+        "runtime_sha256": "5c9897307c3ebe449caa9e11f41cdfb4a77af0dc9645752d7e7e82ac04715e9a",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 3.01,
+          "core_cpu_one_cpu_percent": 3.94,
+          "core_peak_rss_bytes": 51900416,
+          "observed_seconds": 76.321,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 461.21
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 466.31
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 519.66
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 8.7
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 254.35
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "matrix",
+        "index": 8,
+        "label": "50/baseline-v13",
+        "family": "smart",
+        "member_count": 50,
+        "profile": "baseline-v13",
+        "config_sha256": "2d114f725b72251f494d15636e87c27b21ccceac58ed6e61999e468d7b4a8708",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794439384,
+        "finished": 1794439477,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "partial",
+        "first_verified_https_ms": 1089.23,
+        "runtime_sha256": "c5089869b1356496ed4badfd38eb9e03e890cc61b4bb7896a5e9089bd94ded10",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 7.78,
+          "core_cpu_one_cpu_percent": 8.58,
+          "core_peak_rss_bytes": 69283840,
+          "observed_seconds": 90.698,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 844.75
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 1783.11
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 1780.57
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 7.01
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 410.83
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "failed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "matrix",
+        "index": 9,
+        "label": "50/responsive-v1",
+        "family": "smart",
+        "member_count": 50,
+        "profile": "responsive-v1",
+        "config_sha256": "be1771e45cb90f2806e90f1a6c4e26a967e51791e3881d2d66fbad33581a35fa",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794439477,
+        "finished": 1794439562,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1914.55,
+        "runtime_sha256": "8e7e697ba9ed3d18ac540deb207e82da0a9b1ea742029af19a7203f969920e8a",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 10.07,
+          "core_cpu_one_cpu_percent": 11.92,
+          "core_peak_rss_bytes": 75083776,
+          "observed_seconds": 84.464,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "failed",
+              "milliseconds": 5031.98
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "failed",
+              "milliseconds": 5059.3
+            },
+            {
+              "name": "doh_google",
+              "status": "failed",
+              "milliseconds": 5046.04
+            },
+            {
+              "name": "dns_udp",
+              "status": "failed",
+              "milliseconds": 5011.74
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 395.22
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "matrix",
+        "index": 10,
+        "label": "100/responsive-v1",
+        "family": "smart",
+        "member_count": 100,
+        "profile": "responsive-v1",
+        "config_sha256": "f6e12804163fc164596b8e8d07093e906c857a886e4a10b44133ac2954e1ae6f",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794439562,
+        "finished": 1794439645,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "partial",
+        "first_verified_https_ms": 1628.92,
+        "runtime_sha256": "33e6c2f3455cbb39006e9b5718de8d328048b018ce972685db0e1db228c9ad95",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": 0.5033,
+        "resources": {
+          "core_cpu_seconds": 15.66,
+          "core_cpu_one_cpu_percent": 19.42,
+          "core_peak_rss_bytes": 107155456,
+          "observed_seconds": 80.645,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 1068.35
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 2216.63
+            },
+            {
+              "name": "doh_google",
+              "status": "failed",
+              "milliseconds": 5061.78
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 3.66
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 1521.79
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "matrix",
+        "index": 11,
+        "label": "100/baseline-v13",
+        "family": "smart",
+        "member_count": 100,
+        "profile": "baseline-v13",
+        "config_sha256": "657a5e6d76f594a3359b658ab9f7b9498e489ef9121541e6f97db557a5970399",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440046,
+        "finished": 1794440127,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "partial",
+        "first_verified_https_ms": 1635.55,
+        "runtime_sha256": "937cdd27d9a542590cdd7e180474248edf28437dc065506f2e67a904c0a11191",
+        "historical_reused": null,
+        "interrupted_attempt": "case-011-657a5e6d76f5.interrupted-1794440046526039258",
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": 1.2868,
+        "resources": {
+          "core_cpu_seconds": 13.09,
+          "core_cpu_one_cpu_percent": 16.55,
+          "core_peak_rss_bytes": 86499328,
+          "observed_seconds": 79.102,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 468.93
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 1764.69
+            },
+            {
+              "name": "doh_google",
+              "status": "failed",
+              "milliseconds": 5047.53
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 7.11
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 3410.06
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "final_bundled",
+        "index": 0,
+        "label": "Simple-legacy-no-TLS",
+        "family": "vless+tcp+none",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "51feb0aa40422ed67db0da1a3e19b43f01e1e4c9c71a153935b554aef89db401",
+        "core_sha256": "ce8f18c44eb40cbd4563433109e0ede36c38b89c2fe71d1e583b4332ebefb622",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440151,
+        "finished": 1794440179,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 642.28,
+        "runtime_sha256": "c3dabd2a6c9d1778adec573c308afbc600d73a6a01b6a7328cc4b46e62559ca6",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": true,
+        "download_mbps": 3.9081,
+        "upload_mbps": 1.1619,
+        "resources": {
+          "core_cpu_seconds": 0.55,
+          "core_cpu_one_cpu_percent": 2.07,
+          "core_peak_rss_bytes": 43122688,
+          "observed_seconds": 26.606,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 542.05
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 457.01
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 465.57
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 81.66
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 299.77
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "final_bundled",
+        "index": 1,
+        "label": "7/baseline-v13",
+        "family": "smart",
+        "member_count": 7,
+        "profile": "baseline-v13",
+        "config_sha256": "2180f093e5a404a3c29a5b576d5d095f4e89cf6611959f998adf6233c284b2ae",
+        "core_sha256": "ce8f18c44eb40cbd4563433109e0ede36c38b89c2fe71d1e583b4332ebefb622",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440179,
+        "finished": 1794440215,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "partial",
+        "first_verified_https_ms": 1067.13,
+        "runtime_sha256": "90749b73312c7c48cebb0039eaebcbd543d617468b5d200944e4ccf844845241",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": 1.1666,
+        "resources": {
+          "core_cpu_seconds": 1.17,
+          "core_cpu_one_cpu_percent": 3.3,
+          "core_peak_rss_bytes": 48107520,
+          "observed_seconds": 35.505,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 454.89
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 743.35
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 739.28
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 4.18
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 291.11
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "final_bundled",
+        "index": 2,
+        "label": "packetEncoding-none-65e72c9912c7",
+        "family": "vless+tcp+reality",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "bccf579a72068da39df763e4a5143dd4d33acb2d434c138472b570f71ad1801b",
+        "core_sha256": "ce8f18c44eb40cbd4563433109e0ede36c38b89c2fe71d1e583b4332ebefb622",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440215,
+        "finished": 1794440282,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "e8954074c5279da185fd7fff4ff2c161d0a7916428574303ac4bcee27a34d250",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.32,
+          "core_cpu_one_cpu_percent": 0.49,
+          "core_peak_rss_bytes": 40628224,
+          "observed_seconds": 65.674,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "failed",
+              "milliseconds": 5025.43
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "failed",
+              "milliseconds": 5051.66
+            },
+            {
+              "name": "doh_google",
+              "status": "failed",
+              "milliseconds": 5053.72
+            },
+            {
+              "name": "dns_udp",
+              "status": "failed",
+              "milliseconds": 5004.8
+            },
+            {
+              "name": "quic_vn",
+              "status": "failed",
+              "milliseconds": 5009.87
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "failed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "final_bundled",
+        "index": 3,
+        "label": "packetEncoding-none-884cb71bae8d",
+        "family": "vless+tcp+none",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "f8e5674e319e9066c3356626403844058c6fbb41a997b62460d6d4ea815e2c7e",
+        "core_sha256": "ce8f18c44eb40cbd4563433109e0ede36c38b89c2fe71d1e583b4332ebefb622",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440282,
+        "finished": 1794440349,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "d462895366d5aed1538027e09477a6b5011c5ed3a89b5ca63137aeac58fc616b",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.37,
+          "core_cpu_one_cpu_percent": 0.56,
+          "core_peak_rss_bytes": 39772160,
+          "observed_seconds": 65.672,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "failed",
+              "milliseconds": 5030.23
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "failed",
+              "milliseconds": 5048.2
+            },
+            {
+              "name": "doh_google",
+              "status": "failed",
+              "milliseconds": 5058.69
+            },
+            {
+              "name": "dns_udp",
+              "status": "failed",
+              "milliseconds": 5012.48
+            },
+            {
+              "name": "quic_vn",
+              "status": "failed",
+              "milliseconds": 5011.25
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "failed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "final_latest",
+        "index": 0,
+        "label": "Simple-legacy-no-TLS",
+        "family": "vless+tcp+none",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "51feb0aa40422ed67db0da1a3e19b43f01e1e4c9c71a153935b554aef89db401",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440350,
+        "finished": 1794440377,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 619.34,
+        "runtime_sha256": "86f80c1cd173476e236ac95ff4b8b946c9682e2d66930cd19a6964e3b7797222",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": true,
+        "download_mbps": 3.9671,
+        "upload_mbps": 1.2582,
+        "resources": {
+          "core_cpu_seconds": 0.53,
+          "core_cpu_one_cpu_percent": 2.01,
+          "core_peak_rss_bytes": 39333888,
+          "observed_seconds": 26.326,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 580.1
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 524.16
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 518.45
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 56.16
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 292.99
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "final_latest",
+        "index": 1,
+        "label": "7/baseline-v13",
+        "family": "smart",
+        "member_count": 7,
+        "profile": "baseline-v13",
+        "config_sha256": "2180f093e5a404a3c29a5b576d5d095f4e89cf6611959f998adf6233c284b2ae",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440377,
+        "finished": 1794440413,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1282.85,
+        "runtime_sha256": "800b1ac939b99e149e198685d6803a12b0f610b8929b194a4f1f251e51ea3a54",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": 1.1759,
+        "resources": {
+          "core_cpu_seconds": 1.11,
+          "core_cpu_one_cpu_percent": 3.15,
+          "core_peak_rss_bytes": 46317568,
+          "observed_seconds": 35.187,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 487.92
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 531.91
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 964.18
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 4.39
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 273.0
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "final_latest",
+        "index": 2,
+        "label": "packetEncoding-none-65e72c9912c7",
+        "family": "vless+tcp+reality",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "bccf579a72068da39df763e4a5143dd4d33acb2d434c138472b570f71ad1801b",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440413,
+        "finished": 1794440480,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "f235bd30d6b15bb420277cad8a5bd9b0e07c497ba8a92c725e9867ff06968fb7",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.29,
+          "core_cpu_one_cpu_percent": 0.44,
+          "core_peak_rss_bytes": 37457920,
+          "observed_seconds": 65.733,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "failed",
+              "milliseconds": 5040.55
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "failed",
+              "milliseconds": 5053.3
+            },
+            {
+              "name": "doh_google",
+              "status": "failed",
+              "milliseconds": 5053.32
+            },
+            {
+              "name": "dns_udp",
+              "status": "failed",
+              "milliseconds": 5013.26
+            },
+            {
+              "name": "quic_vn",
+              "status": "failed",
+              "milliseconds": 5012.88
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "failed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "final_latest",
+        "index": 3,
+        "label": "packetEncoding-none-884cb71bae8d",
+        "family": "vless+tcp+none",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "f8e5674e319e9066c3356626403844058c6fbb41a997b62460d6d4ea815e2c7e",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440480,
+        "finished": 1794440547,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "4e2b9e2ce84b262f7610d56e33e340ff5878545db7eb76459d621b44d5698126",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.36,
+          "core_cpu_one_cpu_percent": 0.55,
+          "core_peak_rss_bytes": 36802560,
+          "observed_seconds": 65.63,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "failed",
+              "milliseconds": 5035.55
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "failed",
+              "milliseconds": 5052.01
+            },
+            {
+              "name": "doh_google",
+              "status": "failed",
+              "milliseconds": 5045.88
+            },
+            {
+              "name": "dns_udp",
+              "status": "failed",
+              "milliseconds": 5007.22
+            },
+            {
+              "name": "quic_vn",
+              "status": "failed",
+              "milliseconds": 5012.43
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "failed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "stable_pairs",
+        "index": 0,
+        "label": "7/baseline-v13/round-1",
+        "family": "smart",
+        "member_count": 7,
+        "profile": "baseline-v13",
+        "config_sha256": "2180f093e5a404a3c29a5b576d5d095f4e89cf6611959f998adf6233c284b2ae",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440548,
+        "finished": 1794440568,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "partial",
+        "first_verified_https_ms": 1098.13,
+        "runtime_sha256": "0b2be935a36cbe2765fd24d5037df961a95518bd6c46a57b57bc7ac5afb2b995",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": 1.1196,
+        "resources": {
+          "core_cpu_seconds": 0.93,
+          "core_cpu_one_cpu_percent": 4.98,
+          "core_peak_rss_bytes": 45502464,
+          "observed_seconds": 18.681,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 491.44
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "failed",
+              "milliseconds": 4058.89
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 490.13
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 9.02
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 414.61
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "stable_pairs",
+        "index": 1,
+        "label": "7/stable-path-v1/round-1",
+        "family": "smart",
+        "member_count": 7,
+        "profile": "stable-path-v1",
+        "config_sha256": "0af675b196eeed69c0d694693011f773be61178f6834aec3011f6942a05f2951",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440568,
+        "finished": 1794440577,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1141.49,
+        "runtime_sha256": "e9469329d0a0cdc27141fdfd1a8e5026f186e29ca7ee82df00fbaebb6b314fd6",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": true,
+        "download_mbps": 3.584,
+        "upload_mbps": 1.1517,
+        "resources": {
+          "core_cpu_seconds": 0.75,
+          "core_cpu_one_cpu_percent": 9.97,
+          "core_peak_rss_bytes": 45375488,
+          "observed_seconds": 7.524,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 624.45
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 618.13
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 617.94
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 9.08
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 433.49
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "stable_pairs",
+        "index": 2,
+        "label": "15/baseline-v13/round-1",
+        "family": "smart",
+        "member_count": 15,
+        "profile": "baseline-v13",
+        "config_sha256": "e959f37e59d71bc567604483da9c3e6c057e441d407a92a0ed522647416987ea",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440577,
+        "finished": 1794440596,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1476.35,
+        "runtime_sha256": "6d88de099af1a36916d757d8c1e65005998565ab95669ade1f1f711005d256a6",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 1.41,
+          "core_cpu_one_cpu_percent": 8.06,
+          "core_peak_rss_bytes": 48635904,
+          "observed_seconds": 17.503,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 446.01
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 520.23
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 961.24
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 6.96
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 505.7
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "stable_pairs",
+        "index": 3,
+        "label": "15/stable-path-v1/round-1",
+        "family": "smart",
+        "member_count": 15,
+        "profile": "stable-path-v1",
+        "config_sha256": "f00d16b31b1496459fd7f383e77f83742ca3ebba1e013d7226946f581ebe52c1",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440596,
+        "finished": 1794440605,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1320.4,
+        "runtime_sha256": "55c0c4253a7b3481440c411972e4f739ff4f6af807130e43b53f042112d5e441",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": true,
+        "download_mbps": 2.733,
+        "upload_mbps": 1.2172,
+        "resources": {
+          "core_cpu_seconds": 0.88,
+          "core_cpu_one_cpu_percent": 11.08,
+          "core_peak_rss_bytes": 46714880,
+          "observed_seconds": 7.943,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 452.65
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 520.63
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 507.63
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 7.19
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 274.5
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "stable_pairs",
+        "index": 4,
+        "label": "7/stable-path-v1/round-2",
+        "family": "smart",
+        "member_count": 7,
+        "profile": "stable-path-v1",
+        "config_sha256": "0af675b196eeed69c0d694693011f773be61178f6834aec3011f6942a05f2951",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440605,
+        "finished": 1794440614,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1171.74,
+        "runtime_sha256": "f4e88bb666a67fbe8632800c6dc6e6ae8c7cf023bb6316fab2c16f9365b433f8",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": true,
+        "download_mbps": 2.6637,
+        "upload_mbps": 1.1356,
+        "resources": {
+          "core_cpu_seconds": 0.56,
+          "core_cpu_one_cpu_percent": 7.62,
+          "core_peak_rss_bytes": 45649920,
+          "observed_seconds": 7.345,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 429.78
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 494.96
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 499.66
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 7.47
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 246.59
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "stable_pairs",
+        "index": 5,
+        "label": "7/baseline-v13/round-2",
+        "family": "smart",
+        "member_count": 7,
+        "profile": "baseline-v13",
+        "config_sha256": "2180f093e5a404a3c29a5b576d5d095f4e89cf6611959f998adf6233c284b2ae",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440614,
+        "finished": 1794440628,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "partial",
+        "first_verified_https_ms": 1454.76,
+        "runtime_sha256": "1dabe779ba66e4e9218b8b9f1fb04389f4ec274caefbb73868f9305274dd5a8f",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": 3.2858,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.8,
+          "core_cpu_one_cpu_percent": 6.25,
+          "core_peak_rss_bytes": 45277184,
+          "observed_seconds": 12.801,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 724.68
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 818.79
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 847.5
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 5.93
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 459.48
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "stable_pairs",
+        "index": 6,
+        "label": "15/stable-path-v1/round-2",
+        "family": "smart",
+        "member_count": 15,
+        "profile": "stable-path-v1",
+        "config_sha256": "f00d16b31b1496459fd7f383e77f83742ca3ebba1e013d7226946f581ebe52c1",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440628,
+        "finished": 1794440654,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1335.8,
+        "runtime_sha256": "5214f38d1ee6f874f84826cdcd335bccc47d73325fbe5c06dd6b328f302b07d7",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 1.16,
+          "core_cpu_one_cpu_percent": 4.78,
+          "core_peak_rss_bytes": 50245632,
+          "observed_seconds": 24.275,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 839.19
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 810.68
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 926.83
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 29.24
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 504.59
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "failed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "stable_pairs",
+        "index": 7,
+        "label": "15/baseline-v13/round-2",
+        "family": "smart",
+        "member_count": 15,
+        "profile": "baseline-v13",
+        "config_sha256": "e959f37e59d71bc567604483da9c3e6c057e441d407a92a0ed522647416987ea",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440654,
+        "finished": 1794440667,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1084.41,
+        "runtime_sha256": "31dff8d3b34aa262f81139d88602cfec861f998eb4dc828fd071dd1d9baa43b8",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": 1.2723,
+        "resources": {
+          "core_cpu_seconds": 1.36,
+          "core_cpu_one_cpu_percent": 11.53,
+          "core_peak_rss_bytes": 45842432,
+          "observed_seconds": 11.794,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 420.52
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 503.91
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 484.03
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 6.45
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 401.87
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "stable_pairs",
+        "index": 8,
+        "label": "7/baseline-v13/round-3",
+        "family": "smart",
+        "member_count": 7,
+        "profile": "baseline-v13",
+        "config_sha256": "2180f093e5a404a3c29a5b576d5d095f4e89cf6611959f998adf6233c284b2ae",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440667,
+        "finished": 1794440684,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1085.27,
+        "runtime_sha256": "7f5c764f10fdcde5585c198548bd69a5db49386187a2fa83a7402defcd499a7f",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": 0.8538,
+        "resources": {
+          "core_cpu_seconds": 0.82,
+          "core_cpu_one_cpu_percent": 5.36,
+          "core_peak_rss_bytes": 45740032,
+          "observed_seconds": 15.309,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 455.96
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 551.34
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 634.29
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 5.35
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 417.85
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "stable_pairs",
+        "index": 9,
+        "label": "7/stable-path-v1/round-3",
+        "family": "smart",
+        "member_count": 7,
+        "profile": "stable-path-v1",
+        "config_sha256": "0af675b196eeed69c0d694693011f773be61178f6834aec3011f6942a05f2951",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440684,
+        "finished": 1794440702,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1096.9,
+        "runtime_sha256": "c9db9dcc1359bd76a99b76e771f215c9fbfbb2fcc6f186cf97a6b081ac48f1d6",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 1.01,
+          "core_cpu_one_cpu_percent": 5.76,
+          "core_peak_rss_bytes": 46182400,
+          "observed_seconds": 17.521,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 604.69
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 652.37
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 619.2
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 3.53
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 429.26
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "stable_pairs",
+        "index": 10,
+        "label": "15/baseline-v13/round-3",
+        "family": "smart",
+        "member_count": 15,
+        "profile": "baseline-v13",
+        "config_sha256": "e959f37e59d71bc567604483da9c3e6c057e441d407a92a0ed522647416987ea",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440702,
+        "finished": 1794440716,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1402.89,
+        "runtime_sha256": "dc5fe570d626d2460bce04f238f583d92514decd109f95ff2ff82dee4f76f506",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": 1.219,
+        "resources": {
+          "core_cpu_seconds": 1.16,
+          "core_cpu_one_cpu_percent": 9.62,
+          "core_peak_rss_bytes": 47476736,
+          "observed_seconds": 12.053,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 430.97
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 600.53
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 493.76
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 3.04
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 280.66
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "stable_pairs",
+        "index": 11,
+        "label": "15/stable-path-v1/round-3",
+        "family": "smart",
+        "member_count": 15,
+        "profile": "stable-path-v1",
+        "config_sha256": "f00d16b31b1496459fd7f383e77f83742ca3ebba1e013d7226946f581ebe52c1",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794440716,
+        "finished": 1794440736,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "partial",
+        "first_verified_https_ms": 1262.75,
+        "runtime_sha256": "ed2d01c751790b20fa679834ad98db44cae14a3a38f1194064f06a71cc294102",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 1.27,
+          "core_cpu_one_cpu_percent": 6.47,
+          "core_peak_rss_bytes": 48095232,
+          "observed_seconds": 19.614,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 439.51
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 428.22
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 448.51
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 8.47
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 254.94
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "additional",
+        "index": 0,
+        "label": "additional-legacy-01f4ebccd1a1",
+        "family": "vless+tcp-http+none",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "01f4ebccd1a15142f85f7475f90f7c0fd356db3418080efd009af89525361d68",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794441443,
+        "finished": 1794441464,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 866.32,
+        "runtime_sha256": "fa8456da9863cd72f83018b0801b16568c3cbb9cf5637d920bdff885ff95063d",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.36,
+          "core_cpu_one_cpu_percent": 1.76,
+          "core_peak_rss_bytes": 38559744,
+          "observed_seconds": 20.404,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 762.56
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 741.86
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 749.76
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 18.74
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 393.32
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "additional",
+        "index": 1,
+        "label": "additional-legacy-02c5f30b2171",
+        "family": "vless+tcp-http+none",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "02c5f30b2171c6c337c608cc26d00cd1000c1ace703036d471edf6628ef13872",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794441443,
+        "finished": 1794441479,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "partial",
+        "first_verified_https_ms": 1016.79,
+        "runtime_sha256": "c32ddc35be556afe762b62c3ec1173a1ac8e512a334d36f4abd5603d061eccea",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.39,
+          "core_cpu_one_cpu_percent": 1.12,
+          "core_peak_rss_bytes": 38981632,
+          "observed_seconds": 34.889,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 811.77
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 784.52
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 799.57
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 26.36
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 444.16
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "failed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "additional",
+        "index": 2,
+        "label": "additional-legacy-053eeef2b2c8",
+        "family": "vless+tcp-http+none",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "053eeef2b2c85f2a3683cc07f5e71658c3b8be41df456ec13486dc2439f0ee1e",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794441464,
+        "finished": 1794441490,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "partial",
+        "first_verified_https_ms": 865.15,
+        "runtime_sha256": "2b9dce2f7c94ae9f235b51d35fbca0eb02d37b0db2fbb177c30ef4a2be10a8b5",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.39,
+          "core_cpu_one_cpu_percent": 1.6,
+          "core_peak_rss_bytes": 38277120,
+          "observed_seconds": 24.342,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 751.5
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 765.16
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 925.66
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 6.34
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 432.4
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "additional",
+        "index": 3,
+        "label": "additional-legacy-0543fa839c46",
+        "family": "vless+tcp-http+none",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "0543fa839c46d8dde5b7855f487ed0c88017874f7d1a681f80c10db4c4255221",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794441479,
+        "finished": 1794441526,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "5b1d5aa0733ebfa7556c834a93519c53d1806b3ea630ea2b19687077515cb004",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.35,
+          "core_cpu_one_cpu_percent": 0.77,
+          "core_peak_rss_bytes": 34459648,
+          "observed_seconds": 45.406,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "failed",
+              "milliseconds": 5036.2
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "failed",
+              "milliseconds": 5046.03
+            },
+            {
+              "name": "doh_google",
+              "status": "failed",
+              "milliseconds": 5046.88
+            },
+            {
+              "name": "dns_udp",
+              "status": "failed",
+              "milliseconds": 5009.51
+            },
+            {
+              "name": "quic_vn",
+              "status": "failed",
+              "milliseconds": 5005.72
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "failed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "additional",
+        "index": 4,
+        "label": "additional-legacy-0636fbf45904",
+        "family": "vless+tcp-http+none",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "0636fbf4590450432b00b16ce9ced22cbe640d79c4fa33158247089888c6fd43",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794441490,
+        "finished": 1794441538,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "01cf8f85a5a44cdda1c323379885acac5363b740fe10baa4b4d9ed5cba577f7f",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.36,
+          "core_cpu_one_cpu_percent": 0.81,
+          "core_peak_rss_bytes": 33947648,
+          "observed_seconds": 44.647,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "failed",
+              "milliseconds": 5016.25
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "failed",
+              "milliseconds": 5026.24
+            },
+            {
+              "name": "doh_google",
+              "status": "failed",
+              "milliseconds": 5021.57
+            },
+            {
+              "name": "dns_udp",
+              "status": "failed",
+              "milliseconds": 5018.23
+            },
+            {
+              "name": "quic_vn",
+              "status": "failed",
+              "milliseconds": 5014.24
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "failed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "additional",
+        "index": 5,
+        "label": "additional-legacy-06cdcd3c9350",
+        "family": "vless+tcp-http+none",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "06cdcd3c9350b4eedbc8194264421d0c4be7076e06665372d74cf9872c28d6dc",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794441526,
+        "finished": 1794441535,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 618.17,
+        "runtime_sha256": "1f16d8859dadb58d8bad000730d59868aaf7a603bac2536e147a880701e40c61",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": true,
+        "download_mbps": 1.7255,
+        "upload_mbps": 0.9182,
+        "resources": {
+          "core_cpu_seconds": 0.36,
+          "core_cpu_one_cpu_percent": 4.63,
+          "core_peak_rss_bytes": 35401728,
+          "observed_seconds": 7.771,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 539.44
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 444.02
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 459.32
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 95.59
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 242.65
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "additional",
+        "index": 6,
+        "label": "additional-legacy-06d7839d68c5",
+        "family": "vless+tcp-http+none",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "06d7839d68c500347a38baa4c8276fe09ec03187a46eaabd06e10dd358c94029",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794441626,
+        "finished": 1794441648,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1316.81,
+        "runtime_sha256": "fe61eafe37354960c558a48fa99c7260f23186c7e69a27c6ce630c37df6daff7",
+        "historical_reused": null,
+        "interrupted_attempt": "case-006-06d7839d68c5.interrupted-1794441626468215010",
+        "all_seven_https": true,
+        "both_transfers": false,
+        "download_mbps": 1.3113,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.41,
+          "core_cpu_one_cpu_percent": 1.96,
+          "core_peak_rss_bytes": 38416384,
+          "observed_seconds": 20.941,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 1186.84
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 1052.32
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 1224.19
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 133.21
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 706.3
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "additional",
+        "index": 7,
+        "label": "additional-legacy-06de3e0a6fce",
+        "family": "vless+tcp-http+none",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "06de3e0a6fce086bcdd8706b21359b908d713a0768e9a622d2e8f7aebf5b4113",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794441538,
+        "finished": 1794441546,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 629.76,
+        "runtime_sha256": "4dd63a0c7516d1a6d68873e180083bc993e2004c328c283e8757ab0f4ef9d364",
+        "historical_reused": true,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": true,
+        "download_mbps": 3.6881,
+        "upload_mbps": 1.2557,
+        "resources": {
+          "core_cpu_seconds": 0.33,
+          "core_cpu_one_cpu_percent": 4.98,
+          "core_peak_rss_bytes": 35885056,
+          "observed_seconds": 6.623,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 486.57
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 471.57
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 493.83
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 16.03
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 233.09
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "additional",
+        "index": 8,
+        "label": "additional-legacy-078e45286142",
+        "family": "vless+tcp-http+none",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "078e452861426d23ac9ed8a0ad20f6d742541e6cffb12e7ee8f7d0e09507b95a",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794441648,
+        "finished": 1794441672,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "partial",
+        "first_verified_https_ms": 552.02,
+        "runtime_sha256": "2ccac8fc5ffcb11f2136ab4f8dffc79afb579c4bd60546bf1dcc0595d4ae5553",
+        "historical_reused": null,
+        "interrupted_attempt": "case-008-078e45286142.interrupted-1794441648791943647",
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.35,
+          "core_cpu_one_cpu_percent": 1.54,
+          "core_peak_rss_bytes": 38629376,
+          "observed_seconds": 22.79,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 444.64
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 455.89
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 444.52
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 4.12
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 242.14
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "additional",
+        "index": 9,
+        "label": "additional-legacy-07dcdc01f34c",
+        "family": "vless+tcp-http+none",
+        "member_count": 1,
+        "profile": "simple",
+        "config_sha256": "07dcdc01f34cb94b31d722c76fd9a5098fcfb3fdca02b13977c567b75b8f76a7",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794441672,
+        "finished": 1794441718,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "failed",
+        "first_verified_https_ms": null,
+        "runtime_sha256": "0f5036985edd1fc768f19f2c048167b4c0953304d31b88cb4dfac2f89f300684",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": false,
+        "both_transfers": false,
+        "download_mbps": null,
+        "upload_mbps": null,
+        "resources": {
+          "core_cpu_seconds": 0.26,
+          "core_cpu_one_cpu_percent": 0.58,
+          "core_peak_rss_bytes": 35794944,
+          "observed_seconds": 44.482,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "failed",
+              "milliseconds": 5031.37
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "failed",
+              "milliseconds": 5050.55
+            },
+            {
+              "name": "doh_google",
+              "status": "failed",
+              "milliseconds": 5048.06
+            },
+            {
+              "name": "dns_udp",
+              "status": "failed",
+              "milliseconds": 5007.58
+            },
+            {
+              "name": "quic_vn",
+              "status": "failed",
+              "milliseconds": 5017.17
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "failed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "device_latest",
+        "index": 0,
+        "label": "device-qualified-pool/round-1",
+        "family": "smart",
+        "member_count": 3,
+        "profile": "device-qualified-baseline-v13",
+        "config_sha256": "23ed4d4987dcd2ba08daece77443765f4a22f11630ff79a99b07037b8fe32476",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794441880,
+        "finished": 1794441943,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1025.09,
+        "runtime_sha256": "3200cb798a22ee1a3fec7ea0e1ff4cda3428554b898881df3be9b18906069874",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": true,
+        "download_mbps": 3.6952,
+        "upload_mbps": 1.1538,
+        "resources": {
+          "core_cpu_seconds": 1.11,
+          "core_cpu_one_cpu_percent": 1.79,
+          "core_peak_rss_bytes": 40808448,
+          "observed_seconds": 62.026,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 517.83
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 509.99
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 666.07
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 9.98
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 271.98
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "device_latest",
+        "index": 1,
+        "label": "device-qualified-pool/round-2",
+        "family": "smart",
+        "member_count": 3,
+        "profile": "device-qualified-baseline-v13",
+        "config_sha256": "23ed4d4987dcd2ba08daece77443765f4a22f11630ff79a99b07037b8fe32476",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794441943,
+        "finished": 1794442007,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1065.96,
+        "runtime_sha256": "d87f828dea32ce1c09191fef073d08be1efb86a3169c47d66d6006f1bdb85fc9",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": true,
+        "download_mbps": 2.7672,
+        "upload_mbps": 1.1988,
+        "resources": {
+          "core_cpu_seconds": 0.98,
+          "core_cpu_one_cpu_percent": 1.57,
+          "core_peak_rss_bytes": 40787968,
+          "observed_seconds": 62.332,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 389.46
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 471.9
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 613.82
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 5.74
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 297.8
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "device_latest",
+        "index": 2,
+        "label": "device-qualified-pool/round-3",
+        "family": "smart",
+        "member_count": 3,
+        "profile": "device-qualified-baseline-v13",
+        "config_sha256": "23ed4d4987dcd2ba08daece77443765f4a22f11630ff79a99b07037b8fe32476",
+        "core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794442007,
+        "finished": 1794442071,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1008.35,
+        "runtime_sha256": "b6d4ad4245b1a97e613147c1caad3ef3abd46b646d02c217e9ddb1a9f568de00",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": true,
+        "download_mbps": 3.2062,
+        "upload_mbps": 1.0811,
+        "resources": {
+          "core_cpu_seconds": 1.04,
+          "core_cpu_one_cpu_percent": 1.67,
+          "core_peak_rss_bytes": 40071168,
+          "observed_seconds": 62.284,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 467.1
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 424.32
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 499.46
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 41.62
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 247.06
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      },
+      {
+        "series": "device_bundled",
+        "index": 0,
+        "label": "device-qualified-pool/round-1",
+        "family": "smart",
+        "member_count": 3,
+        "profile": "device-qualified-baseline-v13",
+        "config_sha256": "23ed4d4987dcd2ba08daece77443765f4a22f11630ff79a99b07037b8fe32476",
+        "core_sha256": "ce8f18c44eb40cbd4563433109e0ede36c38b89c2fe71d1e583b4332ebefb622",
+        "network_label": "MCI-AS197207-inferred",
+        "started": 1794442117,
+        "finished": 1794442179,
+        "build": "passed",
+        "startup": "passed",
+        "connection": "passed",
+        "first_verified_https_ms": 1031.89,
+        "runtime_sha256": "96c4aedb2daf1cc51e7a413b9efbd29a2e8805b586eb36533a5e147ba538c861",
+        "historical_reused": null,
+        "interrupted_attempt": null,
+        "all_seven_https": true,
+        "both_transfers": true,
+        "download_mbps": 3.5245,
+        "upload_mbps": 1.2854,
+        "resources": {
+          "core_cpu_seconds": 1.13,
+          "core_cpu_one_cpu_percent": 1.83,
+          "core_peak_rss_bytes": 43311104,
+          "observed_seconds": 61.68,
+          "scope": "owned Xray process only"
+        },
+        "transport": {
+          "version": "transport-evidence.v1",
+          "checks": [
+            {
+              "name": "dns_tcp",
+              "status": "passed",
+              "milliseconds": 428.77
+            },
+            {
+              "name": "doh_cloudflare",
+              "status": "passed",
+              "milliseconds": 507.76
+            },
+            {
+              "name": "doh_google",
+              "status": "passed",
+              "milliseconds": 429.94
+            },
+            {
+              "name": "dns_udp",
+              "status": "passed",
+              "milliseconds": 5.45
+            },
+            {
+              "name": "quic_vn",
+              "status": "passed",
+              "milliseconds": 257.99
+            }
+          ],
+          "http3": "not_run"
+        },
+        "http3": "passed",
+        "app_functionality": "not_run"
+      }
+    ],
+    "apk": "not_run",
+    "irancell": "not_run",
+    "wifi": "not_run",
+    "handover": "not_run",
+    "screen_off": "not_run",
+    "mtu_packet_loss": "not_measured",
+    "battery_consumption": "not_attributable_shared_load_and_charging",
+    "background_interrupted_attempts": 2,
+    "interruption_cause": "unproven; partial case receipts archived and resumed"
+  },
+  "checks": {
+    "check": 0,
+    "quality-tests": 0,
+    "rehearsal": 0,
+    "crash-final": 0,
+    "capability-matrix": 0,
+    "post-deploy": 0
+  },
+  "test_notes": [
+    "Full Go race/vet/module/build and client checks passed",
+    "10 Android/tool quality regression contracts passed",
+    "Two initial crash harness failures were environment setup errors; corrected final run passed",
+    "No extra OpenAI API call was necessary in P46; no keys sent to phone"
+  ],
+  "failover": [
+    {
+      "profile": "baseline-v13",
+      "exit_code": 0,
+      "result": {
+        "passed": true,
+        "comparison": {
+          "reference_leastping": {
+            "requests": 24,
+            "slow_requests": 0,
+            "p50_ms": 2.51,
+            "p95_ms": 6.32,
+            "dns": {
+              "intercept_a": true,
+              "relay_txt": true
+            }
+          },
+          "leastload": {
+            "requests": 24,
+            "slow_requests": 12,
+            "p50_ms": 250.76,
+            "p95_ms": 299.88,
+            "dns": {
+              "intercept_a": true,
+              "relay_txt": true
+            },
+            "post_failure": {
+              "requests": 24,
+              "slow_requests": 24,
+              "p50_ms": 271.4,
+              "p95_ms": 336.11,
+              "dns": {
+                "intercept_a": true,
+                "relay_txt": true
+              }
+            },
+            "verified_recovery_seconds": 11.05,
+            "observed_unavailable_seconds": 9.14,
+            "requests_failed_during_detection": 2
+          },
+          "domain": {
+            "requests": 24,
+            "slow_requests": 11,
+            "p50_ms": 22.09,
+            "p95_ms": 314.87,
+            "dns": {
+              "intercept_a": true,
+              "relay_txt": true
+            }
+          }
+        },
+        "scope": "closed synthetic namespace; 120ms per-direction delay on one peer",
+        "carrier_tests": "not_run",
+        "quic_handshake": "not_run"
+      }
+    },
+    {
+      "profile": "responsive-v1",
+      "exit_code": 0,
+      "result": {
+        "passed": true,
+        "comparison": {
+          "reference_leastping": {
+            "requests": 24,
+            "slow_requests": 0,
+            "p50_ms": 5.09,
+            "p95_ms": 87.12,
+            "dns": {
+              "intercept_a": true,
+              "relay_txt": true
+            }
+          },
+          "leastload": {
+            "requests": 24,
+            "slow_requests": 11,
+            "p50_ms": 20.34,
+            "p95_ms": 312.74,
+            "dns": {
+              "intercept_a": true,
+              "relay_txt": true
+            },
+            "post_failure": {
+              "requests": 24,
+              "slow_requests": 24,
+              "p50_ms": 262.14,
+              "p95_ms": 380.97,
+              "dns": {
+                "intercept_a": true,
+                "relay_txt": true
+              }
+            },
+            "verified_recovery_seconds": 30.86,
+            "observed_unavailable_seconds": 28.91,
+            "requests_failed_during_detection": 16
+          },
+          "domain": {
+            "requests": 24,
+            "slow_requests": 11,
+            "p50_ms": 101.97,
+            "p95_ms": 329.61,
+            "dns": {
+              "intercept_a": true,
+              "relay_txt": true
+            }
+          }
+        },
+        "scope": "closed synthetic namespace; 120ms per-direction delay on one peer",
+        "carrier_tests": "not_run",
+        "quic_handshake": "not_run"
+      }
+    }
+  ],
+  "exports": {
+    "conversions": {
+      "api_status": 200,
+      "export_status": 200,
+      "count": 242,
+      "export_sha256": "ccb5a1b7fdee0faa744ba35d87a75ec9a320e8423e4517c1e3016e2c535e17ec",
+      "cores": {
+        "26.11.9": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "74eb2e03a88266a75d9d238c14267bc626073d83ccd7fcd5c9207327cc990fbd",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed"
+          }
+        },
+        "26.10.31": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "74eb2e03a88266a75d9d238c14267bc626073d83ccd7fcd5c9207327cc990fbd",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed"
+          }
+        }
+      }
+    },
+    "smart": {
+      "api_status": 200,
+      "export_status": 200,
+      "count": 22,
+      "export_sha256": "e04d986a1b3d6af7fcbb7a450cd99e2c6dad907a791eda4c184f8328577fb2cd",
+      "cores": {
+        "26.11.9": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "194904b6725eeda8b0c5c4e44573e3f9188c8f7e2cbfb627ee22920d9d8e4077",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed"
+          }
+        },
+        "26.10.31": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "194904b6725eeda8b0c5c4e44573e3f9188c8f7e2cbfb627ee22920d9d8e4077",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed"
+          }
+        }
+      }
+    },
+    "smart-splash": {
+      "api_status": 200,
+      "export_status": 200,
+      "count": 1,
+      "export_sha256": "8d653b7d6b4999747d0b54da5f54bb16ec395037d7e61bef9fb2206944a90188",
+      "cores": {
+        "26.11.9": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "f6309bf9df7a75acfb76d96fd9ab1e02fba71dcf29ccf95af3681a422c148e22",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed"
+          }
+        },
+        "26.10.31": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "f6309bf9df7a75acfb76d96fd9ab1e02fba71dcf29ccf95af3681a422c148e22",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed"
+          }
+        }
+      }
+    },
+    "smart-ads": {
+      "api_status": 200,
+      "export_status": 200,
+      "count": 1,
+      "export_sha256": "7feba26b5e0b701259a822e9d18f6ca1222c2e14b787ed557afdedab3b20bb6e",
+      "cores": {
+        "26.11.9": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "ea9a4a21c833dcc41e06c42a2716ef784f7139dbd8d99965430e130ae22b7d87",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed"
+          }
+        },
+        "26.10.31": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "ea9a4a21c833dcc41e06c42a2716ef784f7139dbd8d99965430e130ae22b7d87",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed"
+          }
+        }
+      }
+    }
+  },
+  "digitalocean_gateway_http": 200,
+  "device_quality": {
+    "version": "device-quality.v1",
+    "target_core_sha256": "dbfe83c136ebb58635f5ad4e21d1df077473aa6fc4bfa1b7ee193516d0af8255",
+    "network_label": "MCI-AS197207-inferred",
+    "decisions": [
+      {
+        "sha256": "51feb0aa40422ed67db0da1a3e19b43f01e1e4c9c71a153935b554aef89db401",
+        "code": "qualified_finite_observation",
+        "tested": 1794440377
+      },
+      {
+        "sha256": "bccf579a72068da39df763e4a5143dd4d33acb2d434c138472b570f71ad1801b",
+        "code": "destination_transfer_incomplete",
+        "tested": 1794440480
+      },
+      {
+        "sha256": "f8e5674e319e9066c3356626403844058c6fbb41a997b62460d6d4ea815e2c7e",
+        "code": "destination_transfer_incomplete",
+        "tested": 1794440547
+      },
+      {
+        "sha256": "01f4ebccd1a15142f85f7475f90f7c0fd356db3418080efd009af89525361d68",
+        "code": "bidirectional_payload_incomplete",
+        "tested": 1794441464
+      },
+      {
+        "sha256": "02c5f30b2171c6c337c608cc26d00cd1000c1ace703036d471edf6628ef13872",
+        "code": "destination_transfer_incomplete",
+        "tested": 1794441479
+      },
+      {
+        "sha256": "053eeef2b2c85f2a3683cc07f5e71658c3b8be41df456ec13486dc2439f0ee1e",
+        "code": "destination_transfer_incomplete",
+        "tested": 1794441490
+      },
+      {
+        "sha256": "0543fa839c46d8dde5b7855f487ed0c88017874f7d1a681f80c10db4c4255221",
+        "code": "destination_transfer_incomplete",
+        "tested": 1794441526
+      },
+      {
+        "sha256": "0636fbf4590450432b00b16ce9ced22cbe640d79c4fa33158247089888c6fd43",
+        "code": "destination_transfer_incomplete",
+        "tested": 1794441538
+      },
+      {
+        "sha256": "06cdcd3c9350b4eedbc8194264421d0c4be7076e06665372d74cf9872c28d6dc",
+        "code": "qualified_finite_observation",
+        "tested": 1794441535
+      },
+      {
+        "sha256": "06d7839d68c500347a38baa4c8276fe09ec03187a46eaabd06e10dd358c94029",
+        "code": "bidirectional_payload_incomplete",
+        "tested": 1794441648
+      },
+      {
+        "sha256": "06de3e0a6fce086bcdd8706b21359b908d713a0768e9a622d2e8f7aebf5b4113",
+        "code": "qualified_finite_observation",
+        "tested": 1794441546
+      },
+      {
+        "sha256": "078e452861426d23ac9ed8a0ad20f6d742541e6cffb12e7ee8f7d0e09507b95a",
+        "code": "destination_transfer_incomplete",
+        "tested": 1794441672
+      },
+      {
+        "sha256": "07dcdc01f34cb94b31d722c76fd9a5098fcfb3fdca02b13977c567b75b8f76a7",
+        "code": "destination_transfer_incomplete",
+        "tested": 1794441718
+      }
+    ],
+    "qualified_members": 3,
+    "final_smart_status": "finite_phone_repetitions_recorded_separately",
+    "apk_status": "not_run",
+    "final_smart_sha256": "3057f83ed39c9f7dd521b6a7398113f635b95b8e3b9ccb7f54fca12117d43fa1",
+    "delivered_canonical_sha256": "23ed4d4987dcd2ba08daece77443765f4a22f11630ff79a99b07037b8fe32476"
+  },
+  "final_network_observation": {
+    "at": 1794442236,
+    "asns": [
+      "197207"
+    ],
+    "country": "IR",
+    "route_ip_sha256": "1bc9b70879dc3c454b04239c9ed95c7888609ca53f6df0ac2b6102e2d9b739db",
+    "scope": "Termux system-route control, not VPN egress"
+  },
+  "limits": [
+    "Termux runtime port isolation is not APK import or VpnService test",
+    "App domain HTTPS is not Telegram messaging or Instagram Reels/Stories",
+    "No two-second failover guarantee",
+    "Short complete transfers do not establish maximum bandwidth",
+    "No uncontrolled TLS/REALITY changes or invented keys",
+    "No automatic global promotion from MCI evidence"
+  ],
+  "device_exact_linux": {
+    "smart": {
+      "sha256": "23ed4d4987dcd2ba08daece77443765f4a22f11630ff79a99b07037b8fe32476",
+      "cores": {
+        "26.11.9": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "23ed4d4987dcd2ba08daece77443765f4a22f11630ff79a99b07037b8fe32476",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed"
+          }
+        },
+        "26.10.31": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "23ed4d4987dcd2ba08daece77443765f4a22f11630ff79a99b07037b8fe32476",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed"
+          }
+        }
+      }
+    },
+    "simple": {
+      "sha256": "51feb0aa40422ed67db0da1a3e19b43f01e1e4c9c71a153935b554aef89db401",
+      "cores": {
+        "26.11.9": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "51feb0aa40422ed67db0da1a3e19b43f01e1e4c9c71a153935b554aef89db401",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed"
+          }
+        },
+        "26.10.31": {
+          "core": "passed",
+          "connection": "passed",
+          "code": "https_multi_site_verified",
+          "runtime_sha256": "51feb0aa40422ed67db0da1a3e19b43f01e1e4c9c71a153935b554aef89db401",
+          "endpoints_passed": 2,
+          "evidence": {
+            "https": "passed",
+            "http3": "passed",
+            "android": "not_run",
+            "dns_tcp": "passed",
+            "doh_cloudflare": "passed",
+            "doh_google": "passed",
+            "dns_udp": "passed",
+            "quic_vn": "passed"
+          }
+        }
+      }
+    }
+  }
+}
