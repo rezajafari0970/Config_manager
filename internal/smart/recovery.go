@@ -20,11 +20,59 @@ func applyRecoveryEnvelope(data []byte) ([]byte, error) {
 			return nil, err
 		}
 	}
+	if err := applyPayloadHealth(root); err != nil {
+		return nil, err
+	}
 	return encodeEnvelope(root)
 }
 func addObservedRecovery(root M, primaryTag, recoveryTag string) error {
-	routing := root["routing"].(M)
-	balancers := routing["balancers"].([]any)
+	routing, ok := root["routing"].(M)
+	if !ok {
+		return errors.New("smart_invalid_recovery_structure")
+	}
+	balancers, ok := routing["balancers"].([]any)
+	if !ok {
+		return errors.New("smart_invalid_recovery_structure")
+	}
+	rules, ok := routing["rules"].([]any)
+	if !ok {
+		return errors.New("smart_invalid_recovery_structure")
+	}
+	nodes, ok := root["outbounds"].([]any)
+	if !ok || recoveryTag == "" {
+		return errors.New("smart_invalid_recovery_structure")
+	}
+	for _, value := range nodes {
+		ob, ok := value.(M)
+		if !ok {
+			return errors.New("smart_invalid_recovery_structure")
+		}
+		if ob["tag"] == recoveryTag {
+			return errors.New("smart_duplicate_recovery")
+		}
+	}
+	for _, value := range balancers {
+		b, ok := value.(M)
+		if !ok {
+			return errors.New("smart_invalid_recovery_structure")
+		}
+		if b["tag"] == recoveryTag+"-balancer" {
+			return errors.New("smart_duplicate_recovery")
+		}
+	}
+	for _, value := range rules {
+		rule, ok := value.(M)
+		if !ok {
+			return errors.New("smart_invalid_recovery_structure")
+		}
+		if tags, ok := rule["inboundTag"].([]any); ok {
+			for _, tag := range tags {
+				if tag == recoveryTag+"-egress" {
+					return errors.New("smart_duplicate_recovery")
+				}
+			}
+		}
+	}
 	var primary M
 	for _, value := range balancers {
 		b := value.(M)
@@ -36,16 +84,39 @@ func addObservedRecovery(root M, primaryTag, recoveryTag string) error {
 	if primary == nil {
 		return errors.New("smart_recovery_missing_primary")
 	}
-	selector := append([]any{}, primary["selector"].([]any)...)
+	selectors, ok := primary["selector"].([]any)
+	if !ok || len(selectors) == 0 {
+		return errors.New("smart_invalid_recovery_selector")
+	}
+	for _, value := range selectors {
+		if tag, ok := value.(string); !ok || tag == "" {
+			return errors.New("smart_invalid_recovery_selector")
+		}
+	}
+	selector := append([]any{}, selectors...)
 	primary["fallbackTag"] = recoveryTag
 	routing["balancers"] = append(balancers, M{"tag": recoveryTag + "-balancer", "selector": selector,
-		"strategy": M{"type": "leastLoad", "settings": M{"expected": 1, "maxRTT": "5s", "tolerance": 0.5}}, "fallbackTag": "block"})
+		"strategy": M{"type": "leastLoad", "settings": M{"expected": 1, "maxRTT": PayloadProbeTimeout, "tolerance": 0.15}}, "fallbackTag": "block"})
 	root["outbounds"] = append(root["outbounds"].([]any), M{"tag": recoveryTag, "protocol": "loopback", "settings": M{"inboundTag": recoveryTag + "-egress"}})
 	routing["rules"] = append([]any{M{"type": "field", "inboundTag": []any{recoveryTag + "-egress"}, "network": "tcp,udp", "balancerTag": recoveryTag + "-balancer"}}, routing["rules"].([]any)...)
 	return nil
 }
 
 func encodeEnvelope(root M) ([]byte, error) {
+	allowed := map[string]bool{}
+	for _, key := range []string{"remarks", "log", "dns", "inbounds", "outbounds", "routing", "burstObservatory", "policy", "stats", "metrics"} {
+		allowed[key] = true
+	}
+	for key := range root {
+		if !allowed[key] {
+			return nil, errors.New("smart_unexpected_envelope_field")
+		}
+	}
+	for key := range allowed {
+		if _, ok := root[key]; !ok {
+			return nil, errors.New("smart_missing_envelope_field")
+		}
+	}
 	var ordered bytes.Buffer
 	ordered.WriteByte('{')
 	for i, key := range []string{"remarks", "log", "dns", "inbounds", "outbounds", "routing", "burstObservatory", "policy", "stats", "metrics"} {

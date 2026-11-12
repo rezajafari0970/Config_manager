@@ -18,6 +18,14 @@ def echo():
  while True:
   c,peer=s.accept();threading.Thread(target=client,args=(c,peer),daemon=True).start()
 
+def payload_http():
+ from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
+ class Handler(BaseHTTPRequestHandler):
+  def log_message(self,*args):pass
+  def do_GET(self):
+   self.send_response(200);self.send_header('Content-Length','65536');self.end_headers();self.wfile.write(b'x'*65536)
+ ThreadingHTTPServer(('127.0.0.1',24447),Handler).serve_forever()
+
 def exact(s,n):
  out=b''
  while len(out)<n:
@@ -73,7 +81,7 @@ def main():
   for name,ip in [('main','127.0.0.2'),('ads','127.0.0.3')]:base['outbounds'].append({'tag':'fixture-'+name+'-direct','protocol':'freedom','sendThrough':ip,'settings':{'domainStrategy':'UseIPv4','finalRules':[{'action':'allow','network':'tcp,udp','ip':['127.0.0.1/32'],'port':'443,24444,24445,24447,24448'}]}})
   base['routing']['rules'][:0]=[{'type':'field','inboundTag':['fixture-main'],'outboundTag':'fixture-main-direct'},{'type':'field','inboundTag':['fixture-ads'],'source':['127.0.0.2/32'],'outboundTag':'fixture-ads-direct'},{'type':'field','inboundTag':['fixture-ads'],'outboundTag':'block'}]
   base['dns']['hosts']={'browserleaks.com':'127.0.0.1'}
-  base['burstObservatory']['pingConfig'].update(destination='http://127.0.0.1:24447/generate_204',interval='1s',sampling=1,timeout='500ms')
+  base['burstObservatory']['pingConfig']['destination']='http://127.0.0.1:24447/payload'
   reports={}
   for phase in ('chained','ads-down','bypass-negative'):
    cfg=copy.deepcopy(base)
@@ -82,14 +90,21 @@ def main():
    with lab.Sandbox(str(core),secrets.token_hex(3),8199,prefix='csta') as box:
     box.policy({});children=[]
     try:
-     for args in [[str(HERE/'ads-traffic-test.py'),'--echo'],[str(HERE/'smart-traffic-test.py'),'--http']]:children.append(subprocess.Popen([lab.IP,'netns','exec',box.name,sys.executable]+args,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL))
+     for args in [[str(HERE/'ads-traffic-test.py'),'--echo'],[str(HERE/'ads-traffic-test.py'),'--http64']]:children.append(subprocess.Popen([lab.IP,'netns','exec',box.name,sys.executable]+args,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL))
      process=box.launch(json.dumps(cfg).encode())
      for _ in range(60):
       if process.poll() is not None:raise RuntimeError('core exited '+box.logs().decode(errors='replace')[-1200:])
       r=box.net([sys.executable,'-c','import socket;s=socket.socket();print(s.connect_ex(("127.0.0.1",10808)))'])
       if r.stdout.strip()==b'0':break
       time.sleep(.1)
-     time.sleep(3)
+     deadline=time.monotonic()+60
+     while time.monotonic()<deadline:
+      state=box.net(['/usr/bin/curl','--noproxy','*','-fsS','--max-time','2','http://127.0.0.1:11111/debug/vars'])
+      ns=json.loads(state.stdout).get('observatory',{})
+      def good(tag):
+       n=ns.get(tag,{});h=n.get('health_ping',{});return n.get('alive') and h.get('all',0)>0 and h.get('fail',0)==0
+      if good('proxy-01') and ((phase=='chained' and good('ads-01')) or (phase!='chained' and ns.get('ads-01',{}).get('health_ping',{}).get('fail',0)>0)):break
+      time.sleep(.25)
      results={mode:json.loads(box.net([sys.executable,str(HERE/'ads-traffic-test.py'),'--exercise',mode],timeout=20).stdout) for mode in ['main','ads']}
      assert all(results['main'].values()),(phase,results)
      assert all(v==(phase=='chained') for v in results['ads'].values()),(phase,results,box.logs().decode(errors='replace')[-1000:])
@@ -101,6 +116,7 @@ def main():
       except subprocess.TimeoutExpired:child.kill();child.wait()
   print(json.dumps({'passed':True,'phases':reports,'scope':'synthetic pinned-core chained TCP/UDP/UDP443; no live QUIC or carrier claim'}))
 if __name__=='__main__':
- if len(sys.argv)>1 and sys.argv[1]=='--echo':echo()
+ if len(sys.argv)>1 and sys.argv[1]=='--http64':payload_http()
+ elif len(sys.argv)>1 and sys.argv[1]=='--echo':echo()
  elif len(sys.argv)>1 and sys.argv[1]=='--exercise':exercise(sys.argv[2]=='ads')
  else:main()

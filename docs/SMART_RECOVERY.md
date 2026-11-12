@@ -1,3 +1,5 @@
+> Current policy: Smart v15 / Ads v8 / schema27. See [SMART_CARRIER_HEALTH.md](SMART_CARRIER_HEALTH.md). The v14 timing and tolerance below are historical; the admission and preservation rules remain.
+
 # Smart v14: observed recovery and payload qualification
 
 The fast primary remains leastLoad, expected 3, maxRTT 2s, tolerance 0.15.

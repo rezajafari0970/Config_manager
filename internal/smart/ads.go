@@ -13,7 +13,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/repair"
 )
 
-const AdsVersion = "xray-26.11.9.smart-ads.v7"
+const AdsVersion = "xray-26.11.9.smart-ads.v8"
 
 func PrepareAds(b []byte) probe.Plan {
 	p := Prepare(b)
@@ -204,15 +204,27 @@ func ComposeAds(main []Member, ads Member) ([]byte, error) {
 		routing["balancers"] = append(balancers, M{"tag": "ads-exit-balancer", "selector": []any{"ads-pool-"}, "strategy": M{"type": "leastLoad", "settings": M{"expected": json.Number("3"), "maxRTT": "2s", "tolerance": json.Number("0.15")}}, "fallbackTag": "block"})
 		subjects = []any{"proxy-", "ads-pool-"}
 	}
+	// A singleton Ads exit must obey the same observation gate as a pool.
+	// Preserve its real tag and chain; the application rule selects it through
+	// a one-member balancer instead of bypassing observation with outboundTag.
+	if len(entries) == 1 {
+		routing["balancers"] = append(balancers, M{"tag": "ads-exit-balancer", "selector": []any{"ads-01"}, "strategy": M{"type": "leastLoad", "settings": M{"expected": 1, "maxRTT": "2s", "tolerance": 0.15}}, "fallbackTag": "block"})
+	}
 	extra = append(extra, M{"type": "field", "domain": []any{"geosite:google@ads", "domain:browserleaks.com", "domain:doubleclick.net", "domain:googleadservices.com", "domain:googlesyndication.com", "domain:admob.com", "domain:app-measurement.com", "domain:googletagservices.com", "domain:googletagmanager.com"}, "network": "tcp,udp", "outboundTag": "ads-01"})
+	if len(entries) == 1 {
+		adsRule := extra[len(extra)-1].(M)
+		delete(adsRule, "outboundTag")
+		adsRule["balancerTag"] = "ads-exit-balancer"
+	}
 	routing["rules"] = append(append(append([]any{}, rules[:len(rules)-1]...), extra...), rules[len(rules)-1:]...)
 	root["remarks"] = "@shenvpn-smart-ads"
 	root["burstObservatory"].(M)["subjectSelector"] = subjects
 	root["outbounds"] = out
-	if len(entries) > 1 {
-		if e = addObservedRecovery(root, "ads-exit-balancer", "ads-recovery"); e != nil {
-			return nil, e
-		}
+	if e = addObservedRecovery(root, "ads-exit-balancer", "ads-recovery"); e != nil {
+		return nil, e
+	}
+	if e = applyPayloadHealth(root); e != nil {
+		return nil, e
 	}
 	if _, e = compat.Wrap(root); e != nil {
 		return nil, e

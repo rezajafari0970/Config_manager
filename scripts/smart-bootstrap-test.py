@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Real tunneled TLS DoH and cold-start failure in a closed synthetic namespace.
-The only substitutions are fixture endpoints/CA and accelerated observation timing.
+The only substitutions are fixture endpoints/CA; payload observation timing is retained.
 No external DNS, production credentials, system trust changes or carrier claim.
 """
 import hashlib,importlib.util,json,os,pathlib,secrets,socket,struct
@@ -41,7 +41,9 @@ def services(work):
    c,peer=s.accept();threading.Thread(target=serve,args=(c,peer),daemon=True).start()
  threading.Thread(target=txt,daemon=True).start()
  class HTTP(BaseHTTPRequestHandler):
-  def do_GET(self):record(service='http',peer=self.client_address[0]);self.send_response(204);self.end_headers()
+  def do_GET(self):
+   record(service='http',peer=self.client_address[0]);body=b'x'*65536 if self.path=='/payload' else b''
+   self.send_response(200 if body else 204);self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
   def log_message(self,*args):pass
  server=ThreadingHTTPServer(('127.0.0.1',24447),HTTP)
  (work/'ready').touch();server.serve_forever()
@@ -70,7 +72,7 @@ def main():
   config['outbounds'].append({'tag':'fixture-exit-'+str(i),'sendThrough':'127.0.0.'+str(10+i),'protocol':'freedom','settings':{'finalRules':[{'action':'allow','network':'tcp','ip':['127.0.0.0/8'],'port':'24447,24453,24454'}]}})
   config['routing']['rules'].insert(0,{'type':'field','inboundTag':['fixture-'+str(i)],'outboundTag':'fixture-exit-'+str(i)})
  next(x for x in config['outbounds'] if x['tag']=='smart-dns-out')['settings'].update(rewriteAddress='127.0.0.1',rewritePort=24453)
- config['burstObservatory']['pingConfig'].update(destination='http://127.0.0.1:24447/generate_204',interval='1s',sampling=1,timeout='500ms')
+ config['burstObservatory']['pingConfig']['destination']='http://127.0.0.1:24447/payload'
  with tempfile.TemporaryDirectory(prefix='synthetic-bootstrap-') as directory:
   work=pathlib.Path(directory)
   subprocess.run(['openssl','req','-x509','-newkey','rsa:2048','-nodes','-days','1','-subj','/CN=bootstrap-fixture','-addext','subjectAltName=IP:127.0.0.2,IP:127.0.0.3','-keyout',str(work/'key.pem'),'-out',str(work/'cert.pem')],check=True,capture_output=True,timeout=10)
@@ -92,7 +94,12 @@ def main():
      if (work/'ready').exists() and (work/'doh-ready').exists():break
      time.sleep(.1)
     assert (work/'ready').exists(),'fixture not ready'
-    process=box.launch(json.dumps(config).encode());time.sleep(5)
+    process=box.launch(json.dumps(config).encode())
+    deadline=time.monotonic()+55
+    while time.monotonic()<deadline:
+     events=[json.loads(x) for x in (work/'trace.jsonl').read_text().splitlines()] if (work/'trace.jsonl').exists() else []
+     if any(x.get('service')=='http' and x['peer']=='127.0.0.11' for x in events):break
+     time.sleep(.25)
     assert process.poll() is None,'synthetic core exited'
     try:result=box.net([sys.executable,__file__,'--exercise'],timeout=15)
     except subprocess.CalledProcessError as e:raise RuntimeError(e.stderr.decode()+str((work/'trace.jsonl').read_text() if (work/'trace.jsonl').exists() else 'no trace')+box.logs().decode(errors='replace')[-2000:]) from None

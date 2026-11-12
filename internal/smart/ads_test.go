@@ -55,10 +55,13 @@ func TestAdsCompositionAndPinnedCore(t *testing.T) {
 		}
 		routing := root["routing"].(M)
 		rules := routing["rules"].([]any)
-		if len(rules) != 8 || rules[5].(M)["balancerTag"] != "smart-parallel-balancer" || rules[6].(M)["outboundTag"] != "ads-01" {
+		if len(rules) != 9 || rules[6].(M)["balancerTag"] != "smart-parallel-balancer" || rules[7].(M)["balancerTag"] != "ads-exit-balancer" {
 			t.Fatal("wrong route precedence")
 		}
 		for _, p := range routing["balancers"].([]any) {
+			if strings.HasPrefix(p.(M)["tag"].(string), "ads-") {
+				continue
+			}
 			for _, tag := range p.(M)["selector"].([]any) {
 				if strings.HasPrefix(tag.(string), "ads-") {
 					t.Fatal("ads leaked into main/bootstrap")

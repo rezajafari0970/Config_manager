@@ -72,10 +72,11 @@ def main():
      j=json.loads(line);assert j['remarks']==('@shenvpn-smart-ads' if args.ads else '@shenvpn-smart-parallel-v6b')
      assert list(j)==['remarks','log','dns','inbounds','outbounds','routing','burstObservatory','policy','stats','metrics']
      assert j['log']=={'loglevel':'none','access':'none','error':'none','dnsLog':False}
-     assert len(j['dns']['servers'])==4 and len(j['routing']['balancers'])==4 and len(j['routing']['rules'])==(8 if args.ads else 6)
+     assert len(j['dns']['servers'])==4 and len(j['routing']['balancers'])==(6 if args.ads else 4) and len(j['routing']['rules'])==(9 if args.ads else 6)
      assert j['outbounds'][0]['tag'] in j['routing']['balancers'][1]['selector'] and j['routing']['balancers'][0]['fallbackTag']=='smart-recovery'
      assert len([x for x in j['outbounds'] if x['tag'].startswith('proxy-')])>=(50 if args.ads else min(50,args.profiles))
      assert j['routing']['balancers'][0]['strategy']=={'type':'leastLoad','settings':{'expected':3,'maxRTT':'2s','tolerance':.15}}
+     ping=j['burstObservatory']['pingConfig'];assert ping['httpMethod']=='GET' and ping['destination']=='https://speed.cloudflare.com/__down?bytes=65536' and ping['sampling']==2 and ping['timeout']=='10s'
     normalized={normalize(line) for line in lines}
     turns=[]
     for i in range(len(lines)+1):
