@@ -1,3 +1,36 @@
+# P48 observed Ads country filtering — 2026-11-12
+
+Activated p48-617ea4b2e50ce60726e3-r1, schema27; route policy v5, ordinaryv9,
+Smartv14/SmartAdsv7 and payload_v1 preserved. Read docs/EGRESS_COUNTRIES.md
+and docs/reports/P48-report-fa.md plus P48-validation.json. Latest user explicitly
+requests country identification/filtering; that supersedes the older no-country
+rule below, without restoring ISP type classification or promising physical100%.
+Country facts come only from authenticated same-stream Ads peer IPs, locally
+before HMAC scrubbing. DB-IP Lite monthly data is estimated, attributed and pinned;
+no plaintext exits, per-IP external service or AI classification dependency.
+
+All four Residential Ads outputs require fresh route+geo proof and ALL observed
+24h countries allowed. Unknown/conflicting/stale countries fail closed. Counts
+include shared configs once per country. Default250 explicitly selected codes;
+empty selection emits none. Filter is scoped to Residential Ads, not Smart.
+Keep policy revision/eligibility revalidation, finite observation caveat, private
+registry and automatic atomic updates. Do not infer country from entry or ASN.
+Archived first-unknown gets one deep retry within30min; active leases and manual
+deletion semantics remain. TTL renewal alone no longer invalidates export generation. IPv6-only diagnostic
+codes preserve digits and do not repeat identical preflight across four cores.
+1000 real retained inputs were assessed in451.661s with10 workers;382 conclusive,
+576 UNKNOWN and42 UNSUPPORTED. Measured before the diagnostic-only Python patch;
+never describe all1000 as definitively classified. Final patch passed26 protocol
+contracts and6 actual IPv6-only preflight cases; Go executables unchanged.
+
+Full race/vet/build/Python/JS checks, private migration, SIGKILL recovery, country
+allowlist tests and mobile/desktop fixture+live UI passed. Migration preserved
+33source controls/settings. An activation directory0700 permission error caused
+brief downtime; corrected0755, fixed forward, six runtime hashes verified. Always
+chmod release dirs explicitly despite operator umask. Shared deploy lock and
+matching stopped DB/blob/key/release backup remain mandatory. No pre27 binary
+on schema27, no force push, no unrelated service/controller changes.
+
 # P47 Smart recovery and complete-payload qualification — 2026-11-12
 
 Activated p47-b51b595c6ec184771530; schema26, Smartv14, SmartAdsv7,

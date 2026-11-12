@@ -27,7 +27,7 @@ with open(WORK/'fixture.log','w') as log:
    time.sleep(.1)
   assert active==2
   killed=[x[0] for x in db.execute("SELECT hash FROM egress_jobs WHERE token!=''").fetchall()];assert len(killed)==2;worker.kill();worker.wait();time.sleep(1);worker=start()
-  browserEnv=dict(os.environ,PANEL_TEST_ORIGIN=ready['origin'],PANEL_TEST_DIR=str(WORK))
+  browserEnv=dict(os.environ,PANEL_COUNTRY_TEST='1',PANEL_TEST_ORIGIN=ready['origin'],PANEL_TEST_DIR=str(WORK))
   subprocess.run(['node',str(ROOT/'scripts/egress-browser.cjs')],env=browserEnv,check=True,timeout=90)
   begin=time.monotonic();maximum=0
   while time.monotonic()-begin<300:

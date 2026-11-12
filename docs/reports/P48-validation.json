@@ -1,0 +1,219 @@
+{
+  "date": "2026-11-12",
+  "base_commit": "2c86c81246549c31496aa81c6b303bd24fc73929",
+  "release": "p48-617ea4b2e50ce60726e3-r1",
+  "schema": 27,
+  "route_policy": "ads-egress.v5",
+  "full_check_passed": true,
+  "full_check_seconds": 618.99,
+  "panel_race_seconds": 574.144,
+  "final_protocol_contracts": 26,
+  "country_contracts": 5,
+  "actual_ipv6_preflights": 6,
+  "migration": {
+    "sources": 33,
+    "members": 863,
+    "preserved": true
+  },
+  "crash_recovery": true,
+  "browser_widths": [
+    390,
+    1440
+  ],
+  "live": {
+    "at": 1794475337298,
+    "countries": {
+      "counts": {
+        "AU": 33,
+        "BE": 1,
+        "CY": 1,
+        "KR": 3,
+        "MO": 3,
+        "MX": 1,
+        "PR": 1,
+        "TW": 4
+      },
+      "known": 40,
+      "published": 3,
+      "shared": 4,
+      "unknown": 0,
+      "window_ms": 86400000
+    },
+    "selected": 4,
+    "selected_countries": [
+      "CY",
+      "MO",
+      "PR",
+      "TW"
+    ],
+    "entry_country_subset_verified": true,
+    "policy_revision": 4,
+    "route_eligible": 40,
+    "outputs": {
+      "configs.json": {
+        "status": 200,
+        "count": 3,
+        "bytes": 4649,
+        "checksum_verified": true
+      },
+      "configs.jsonl": {
+        "status": 200,
+        "count": 3,
+        "bytes": 4644,
+        "checksum_verified": true
+      },
+      "next.json": {
+        "status": 200,
+        "count": 1,
+        "bytes": 1744,
+        "checksum_verified": true
+      },
+      "raw.txt": {
+        "status": 200,
+        "count": 3,
+        "bytes": 2218,
+        "checksum_verified": true
+      }
+    },
+    "api_ms": [
+      382.77,
+      306.1,
+      382.92,
+      323.0,
+      168.14
+    ],
+    "missing_source_inputs": 0,
+    "throughput": {
+      "completed_10m": 166,
+      "completed_5m": 140,
+      "definitive_10m": 111,
+      "definitive_5m": 88,
+      "max_workers": 31,
+      "target_10m": 1000
+    }
+  },
+  "geo_lookup_benchmark": {
+    "cold_ms": 160.58,
+    "lookups": 10000,
+    "wall_ms": 250.84,
+    "per_lookup_ms": 0.0251
+  },
+  "throughput": {
+    "version": "ads-egress.v5",
+    "requested": 1000,
+    "total": 1000,
+    "assessed": 1000,
+    "complete": true,
+    "seconds": 451.661,
+    "assessed_at_300s": 697,
+    "assessed_at_600s": 1000,
+    "target_600s_met": true,
+    "workers": 10,
+    "max_active": 10,
+    "min_available_mib": 2079,
+    "states": {
+      "NO_SPLIT": 381,
+      "RESIDENTIAL": 1,
+      "UNKNOWN": 576,
+      "UNSUPPORTED": 42
+    },
+    "reasons": {
+      "ads_peer_echo_incomplete": 18,
+      "controls_incomplete": 54,
+      "core_evidence_missing": 2,
+      "direct_route_not_qualified": 12,
+      "driver_infrastructure_error": 7,
+      "driver_unavailable": 42,
+      "endpoint_dns_failed": 5,
+      "mixed_route_observations": 2,
+      "network_retry_pending": 470,
+      "repeated_ads_split_project_definition": 1,
+      "route_not_distinct": 385,
+      "runtime_start_failed": 2
+    },
+    "sample_codes": {
+      "ads_peer_reported": 2787,
+      "control_echo": 3362,
+      "connection_timeout": 3994,
+      "connection_failed": 1635
+    },
+    "definitive": 382,
+    "job_ms_p50": 3578.1090210657567,
+    "job_ms_p95": 7804.258252959698,
+    "scope": "Distinct real retained source hashes; initial assessments include inconclusive and unsupported results. Not 1000 definitive residential classifications."
+  },
+  "throughput_scope_note": "Measured country-enabled version before final IPv6 diagnostic-only Python patch; no Go executable change in patch.",
+  "canary_first": {
+    "route": "DIFFERENT",
+    "eligible": true,
+    "country": {
+      "complete": true,
+      "status": "located",
+      "countries": [
+        "BE",
+        "CY",
+        "MX",
+        "PR",
+        "TR",
+        "TW"
+      ],
+      "providers": [
+        {
+          "name": "dbip-country-lite",
+          "dataset": "6a1d3c0a7fbe6a7bbe85a212224148b5ba364190897559f1048dfd86bad86647",
+          "released_at": 1793491200000,
+          "country": "BE"
+        },
+        {
+          "name": "dbip-country-lite",
+          "dataset": "6a1d3c0a7fbe6a7bbe85a212224148b5ba364190897559f1048dfd86bad86647",
+          "released_at": 1793491200000,
+          "country": "CY"
+        },
+        {
+          "name": "dbip-country-lite",
+          "dataset": "6a1d3c0a7fbe6a7bbe85a212224148b5ba364190897559f1048dfd86bad86647",
+          "released_at": 1793491200000,
+          "country": "MX"
+        },
+        {
+          "name": "dbip-country-lite",
+          "dataset": "6a1d3c0a7fbe6a7bbe85a212224148b5ba364190897559f1048dfd86bad86647",
+          "released_at": 1793491200000,
+          "country": "PR"
+        },
+        {
+          "name": "dbip-country-lite",
+          "dataset": "6a1d3c0a7fbe6a7bbe85a212224148b5ba364190897559f1048dfd86bad86647",
+          "released_at": 1793491200000,
+          "country": "TR"
+        },
+        {
+          "name": "dbip-country-lite",
+          "dataset": "6a1d3c0a7fbe6a7bbe85a212224148b5ba364190897559f1048dfd86bad86647",
+          "released_at": 1793491200000,
+          "country": "TW"
+        }
+      ],
+      "valid_until": 1794474130919
+    },
+    "wall_ms": 29302.915162872523
+  },
+  "canary_final": {
+    "route": "PARTIAL_DIFFERENCE",
+    "eligible": false,
+    "country": {
+      "complete": false,
+      "status": "route_unqualified",
+      "countries": [],
+      "providers": [],
+      "valid_until": 0
+    },
+    "wall_ms": 44555.96284288913
+  },
+  "source_controls_preserved": true,
+  "runtime_executables_verified": 6,
+  "initial_activation_issue": "release directory had 0700 from operator umask; corrected to 0755; no old binary used on migrated schema",
+  "country_provider": "DB-IP Lite November 2026; 732796 rows; CC BY 4.0; estimated geolocation",
+  "plaintext_exit_ips_persisted": false
+}

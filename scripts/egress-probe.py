@@ -6,7 +6,7 @@ import argparse,base64,hashlib,hmac,secrets,fcntl,ipaddress,contextlib,copy,impo
 HERE=pathlib.Path(__file__).resolve().parent
 def module(name,file):
  spec=importlib.util.spec_from_file_location(name,HERE/file);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
-lab=module('egress_lab','live-probe.py');scope=module('egress_scope','egress-preflight.py')
+lab=module('egress_lab','live-probe.py');scope=module('egress_scope','egress-preflight.py');country=module('egress_country','egress-country.py')
 CORES=[('xray-26.11.9','/opt/config-repair/core-26.11.9/xray','e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d'),('xray-26.10.31','/opt/config-repair/core-26.10.31/xray','cc4b84d3069569f297a61f04b914f2bb37e9d202fd7b84cb50def1fc30fd40e1'),('xray-26.7.28','/opt/config-repair/core-26.7.28/xray','64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d'),('xray-26.5.9','/opt/config-repair/core-26.5.9/xray','b2c525e082cf2fef460499c88838d355f0b9bfb5a00bdb3eaa99b6af63825006')]
 NATIVE=('sing-box-1.14.4','/opt/config-repair/sing-box-1.14.4/sing-box','1264361b5f8868c8768f7555d3e77e20118bf503c41ac08bb290a0d99056aa3a')
 def cleanup(prefix,slot=None,run=None):
@@ -46,9 +46,9 @@ class SessionBox(EgressBox):
  def core_mounts(self):return NativeBox.core_mounts(self) if self.driver!='xray' else []
  def core_command(self,test):return NativeBox.core_command(self,test) if self.driver!='xray' else lab.Sandbox.core_command(self,test)
 class ResourcePool:
- def __init__(self,args):self.args=args;self.box=None;self.pins={}
+ def __init__(self,args):self.args=args;self.box=None;self.pins={};self.geo=country.Registry()
  def __enter__(self):return self
- def __exit__(self,*exc):self.close()
+ def __exit__(self,*exc):self.close();self.geo.close()
  def close(self):
   if self.box is not None:
    box=self.box;self.box=None;box.__exit__(None,None,None)
@@ -142,6 +142,8 @@ def private_sources(samples,key):
   value=row.pop('ip','')
   row['source']=hmac.new(key,value.encode(),hashlib.sha256).hexdigest() if value and row.get('echo') else ''
  return samples
+def error_code(error):
+ return 'driver_subprocess_timeout' if isinstance(error,subprocess.TimeoutExpired) else 'driver_subprocess_failed' if isinstance(error,subprocess.CalledProcessError) else str(error) if isinstance(error,ValueError) and re.fullmatch('[a-z0-9_]{1,60}',str(error)) else 'driver_infrastructure_error'
 def investigate(req,args,pool=None):
  if pool is None:
   with ResourcePool(args) as own:return investigate(req,args,own)
@@ -198,9 +200,10 @@ def investigate(req,args,pool=None):
    # Schema/start failures still use the full pinned compatibility matrix.
    if len(checks)==2 and all(x.get('core') for x in checks) or code in ('network_retry_pending','raw_shared_egress'):break
   except Exception as error:
-   code='driver_subprocess_timeout' if isinstance(error,subprocess.TimeoutExpired) else 'driver_subprocess_failed' if isinstance(error,subprocess.CalledProcessError) else str(error) if isinstance(error,ValueError) and re.fullmatch('[a-z_]{1,60}',str(error)) else 'driver_infrastructure_error'
+   code=error_code(error)
    r['attempts'].append(dict(core=core,code=code,ms=(time.monotonic()-at)*1000,stages=stages))
    if best<0:r['code']=code
+   if code=='ipv6_only_probe_pending':break
  # A separate host control is only an outage check, never Ads IP evidence.
  try:
   if any(x.get('echo') for x in r['samples']):raise ValueError('outage_check_unnecessary')
@@ -208,6 +211,7 @@ def investigate(req,args,pool=None):
   r['infrastructure']=result.returncode==0 and b'ip=' in result.stdout
  except Exception:pass
  r['waves']=max([2]+[x.get('wave',0) for x in r['samples']])
+ r['samples']=pool.geo.attach(r['samples'])
  r['samples']=private_sources(r['samples'],secrets.token_bytes(32))
  r['finished']=int(time.time()*1000);r['wall_ms']=(time.monotonic()-begin)*1000
  return r

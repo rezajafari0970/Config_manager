@@ -23,3 +23,5 @@ go build -trimpath -buildvcs=false -o bin/config-egress-worker ./cmd/config-egre
 python3 scripts/egress-test.py
 
 python3 scripts/benchmark-test.py
+
+python3 scripts/egress-country-test.py

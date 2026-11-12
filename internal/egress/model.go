@@ -155,25 +155,26 @@ type Job struct {
 	Attempt  int    `json:"attempt"`
 }
 type Sample struct {
-	Variant             string `json:"variant"`
-	Domain              string `json:"domain"`
-	Wave                int    `json:"wave"`
-	At                  int64  `json:"at"`
-	Source              string `json:"source"`
-	Family              int    `json:"family"`
-	Transport           string `json:"transport"`
-	Nonce               string `json:"nonce"`
-	Connection          string `json:"connection"`
-	TLS                 bool   `json:"tls"`
-	SameStream          bool   `json:"same_stream"`
-	Echo                bool   `json:"echo"`
-	ActualAds           bool   `json:"actual_ads"`
-	Code                string `json:"code"`
-	Certificate         string `json:"certificate"`
-	Response            string `json:"response"`
-	FirstStatus         int    `json:"first_status"`
-	EchoStatus          int    `json:"echo_status"`
-	DiagnosticAuthority bool   `json:"diagnostic_authority"`
+	Geo                 CountryFact `json:"geo,omitempty"`
+	Variant             string      `json:"variant"`
+	Domain              string      `json:"domain"`
+	Wave                int         `json:"wave"`
+	At                  int64       `json:"at"`
+	Source              string      `json:"source"`
+	Family              int         `json:"family"`
+	Transport           string      `json:"transport"`
+	Nonce               string      `json:"nonce"`
+	Connection          string      `json:"connection"`
+	TLS                 bool        `json:"tls"`
+	SameStream          bool        `json:"same_stream"`
+	Echo                bool        `json:"echo"`
+	ActualAds           bool        `json:"actual_ads"`
+	Code                string      `json:"code"`
+	Certificate         string      `json:"certificate"`
+	Response            string      `json:"response"`
+	FirstStatus         int         `json:"first_status"`
+	EchoStatus          int         `json:"echo_status"`
+	DiagnosticAuthority bool        `json:"diagnostic_authority"`
 }
 type Check struct {
 	Name        string `json:"name"`

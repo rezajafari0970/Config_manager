@@ -1,0 +1,17 @@
+[Unit]
+Description=Refresh local Ads egress country database
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/bin/python3 /opt/config-repair/current/scripts/egress-country-update.py
+UMask=0077
+Nice=10
+MemoryMax=512M
+TasksMax=32
+TimeoutStartSec=180
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/config-repair/country /etc/config-repair

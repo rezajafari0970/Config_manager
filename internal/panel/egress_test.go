@@ -24,7 +24,7 @@ func dropEgressForMigration(t *testing.T, s *Store) {
 			t.Fatal(e)
 		}
 	}
-	for _, q := range []string{"DROP TRIGGER egress_ingest", "DROP VIEW input_blocked_identities", "DROP VIEW input_blocked", "DROP VIEW egress_eligible", "DROP TABLE egress_owners", "DROP TABLE egress_jobs", "DROP TABLE egress_turns", "DROP TABLE egress_events", "DROP TABLE egress_settings", "DROP TABLE egress_worker"} {
+	for _, q := range []string{"DROP VIEW egress_export_eligible", "DROP VIEW egress_geo_eligible", "DROP TABLE egress_geo_results", "DROP TABLE egress_countries", "DROP TABLE egress_country_policy", "DROP TRIGGER egress_ingest", "DROP VIEW input_blocked_identities", "DROP VIEW input_blocked", "DROP VIEW egress_eligible", "DROP TABLE egress_owners", "DROP TABLE egress_jobs", "DROP TABLE egress_turns", "DROP TABLE egress_events", "DROP TABLE egress_settings", "DROP TABLE egress_worker"} {
 		if _, e := s.db.Exec(q); e != nil {
 			t.Fatal(e)
 		}
@@ -44,7 +44,7 @@ func syntheticEgress(j egress.Job) egress.Report {
 					ip = "8.8.8.8"
 				}
 				n := egress.Hash([]byte(fmt.Sprint(v.Name, d, wave)))[:32]
-				r.Samples = append(r.Samples, egress.Sample{Variant: v.Name, Domain: d, Wave: wave, At: now, Source: egress.Hash([]byte(ip)), Family: 4, Transport: "tcp", Nonce: n, Connection: n, TLS: true, SameStream: true, Echo: true, ActualAds: ads, Certificate: strings.Repeat("c", 64), Response: strings.Repeat("f", 64)})
+				r.Samples = append(r.Samples, egress.Sample{Geo: egress.CountryFact{Version: egress.CountryVersion, Status: "located", Country: "TR", At: now, Providers: []egress.CountryProvider{{Name: "fixture", Dataset: strings.Repeat("a", 64), ReleasedAt: now - 86400000, Country: "TR"}}}, Variant: v.Name, Domain: d, Wave: wave, At: now, Source: egress.Hash([]byte(ip)), Family: 4, Transport: "tcp", Nonce: n, Connection: n, TLS: true, SameStream: true, Echo: true, ActualAds: ads, Certificate: strings.Repeat("c", 64), Response: strings.Repeat("f", 64)})
 			}
 		}
 	}

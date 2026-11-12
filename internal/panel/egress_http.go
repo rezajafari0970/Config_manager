@@ -81,6 +81,7 @@ func (m egressModule) Register(mux *http.ServeMux) {
 	}
 	mux.HandleFunc("GET /api/egress", m.state)
 	mux.HandleFunc("POST /api/egress/action", m.action)
+	mux.HandleFunc("POST /api/egress/countries", m.countries)
 	mux.HandleFunc("GET /egress-subscription/{token}/{format}", m.export)
 }
 func (m egressModule) links() map[string]string {
@@ -127,7 +128,7 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 	if offset > 1000000 {
 		offset = 1000000
 	}
-	table := "egress_eligible"
+	table := "egress_export_eligible"
 	filter := ""
 	if r.URL.Query().Get("view") == "diagnostics" {
 		table = "egress_jobs"
@@ -168,6 +169,12 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		}
 		owners.Close()
 		entry["sources"] = names
+		countries, err := entryCountries(ctx, db, entry["hash"].(string))
+		if err != nil {
+			failure(w, err)
+			return
+		}
+		entry["countries"] = countries
 	}
 	var partial int
 	db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE state!='DELETED' AND json_extract(decision,'$.route')='PARTIAL_DIFFERENCE'").Scan(&partial)
@@ -176,7 +183,12 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 	db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE tested>? AND json_extract(report,'$.version')=? AND state IN ('RESIDENTIAL','NO_SPLIT')", egress.Now()-300000, egress.Version).Scan(&definitive)
 	db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE tested>? AND json_extract(report,'$.version')=?", egress.Now()-600000, egress.Version).Scan(&completed10)
 	db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE tested>? AND json_extract(report,'$.version')=? AND state IN ('RESIDENTIAL','NO_SPLIT')", egress.Now()-600000, egress.Version).Scan(&definitive10)
-	respond(w, 200, map[string]any{"throughput": map[string]any{"completed_5m": completed, "definitive_5m": definitive, "completed_10m": completed10, "definitive_10m": definitive10, "target_10m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Project label only: Residential iff repeated dedicated Ads egress is observed; no ISP/network class lookup", "scope": "TCP / observed family / three explicit Ads domains / raw and template; IPv6-only entry, QUIC and ambiguous multipath remain unqualified"})
+	countryInfo, err := countryState(ctx, db)
+	if err != nil {
+		failure(w, err)
+		return
+	}
+	respond(w, 200, map[string]any{"country": countryInfo, "throughput": map[string]any{"completed_5m": completed, "definitive_5m": definitive, "completed_10m": completed10, "definitive_10m": definitive10, "target_10m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Project label only: Residential iff repeated dedicated Ads egress is observed; no ISP/network class lookup", "scope": "TCP / observed family / three explicit Ads domains / raw and template; IPv6-only entry, QUIC and ambiguous multipath remain unqualified"})
 }
 func (m egressModule) action(w http.ResponseWriter, r *http.Request) {
 	var b struct {
@@ -218,12 +230,13 @@ func (m egressModule) action(w http.ResponseWriter, r *http.Request) {
 type egressExportEntry struct {
 	Hash      string
 	Candidate string
-	Until     int64
+	Until     int64 `json:"-"`
 	Format    string
+	Countries []string
 }
 
 func egressSnapshot(ctx context.Context, q databaseQuery) ([]egressExportEntry, string, error) {
-	rows, e := q.QueryContext(ctx, "SELECT hash,candidate_hash,valid_until,format FROM egress_eligible ORDER BY hash")
+	rows, e := q.QueryContext(ctx, "SELECT hash,candidate_hash,valid_until,format FROM egress_export_eligible ORDER BY hash")
 	if e != nil {
 		return nil, "", e
 	}
@@ -236,10 +249,28 @@ func egressSnapshot(ctx context.Context, q databaseQuery) ([]egressExportEntry, 
 		}
 		out = append(out, x)
 	}
-	b, _ := json.Marshal(out)
-	return out, egress.Hash(b), rows.Err()
+	if e = rows.Err(); e != nil {
+		return nil, "", e
+	}
+	rows.Close()
+	for i := range out {
+		out[i].Countries, e = entryCountries(ctx, q, out[i].Hash)
+		if e != nil {
+			return nil, "", e
+		}
+	}
+	var revision int64
+	if e = q.QueryRowContext(ctx, "SELECT revision FROM egress_country_policy WHERE id=1").Scan(&revision); e != nil {
+		return nil, "", e
+	}
+	b, _ := json.Marshal(struct {
+		Revision int64
+		Entries  []egressExportEntry
+	}{revision, out})
+	return out, egress.Hash(b), nil
 }
-func (m egressModule) export(w http.ResponseWriter, r *http.Request) {
+func (m egressModule) export(w http.ResponseWriter, r *http.Request) { m.exportAttempt(w, r, 0) }
+func (m egressModule) exportAttempt(w http.ResponseWriter, r *http.Request, attempt int) {
 	if !equal(r.PathValue("token"), m.s.store.digest("egress-export-v2", "all")) {
 		http.NotFound(w, r)
 		return
@@ -264,7 +295,7 @@ func (m egressModule) export(w http.ResponseWriter, r *http.Request) {
 	}
 	var chosen string
 	if format == "next.json" {
-		e = m.s.store.read(r.Context()).QueryRowContext(r.Context(), "SELECT e.hash FROM egress_eligible e LEFT JOIN egress_turns t ON t.hash=e.hash ORDER BY coalesce(t.turn,0),e.hash LIMIT 1").Scan(&chosen)
+		e = m.s.store.read(r.Context()).QueryRowContext(r.Context(), "SELECT e.hash FROM egress_export_eligible e LEFT JOIN egress_turns t ON t.hash=e.hash ORDER BY coalesce(t.turn,0),e.hash LIMIT 1").Scan(&chosen)
 		if e != nil {
 			failure(w, e)
 			return
@@ -330,14 +361,30 @@ func (m egressModule) export(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, current, e := egressSnapshot(r.Context(), tx)
-	if e != nil || current != generation {
+	if e != nil {
+		failure(w, e)
+		return
+	}
+	if current != generation {
+		if attempt < 2 && r.URL.Query().Get("generation") == "" {
+			tx.Rollback()
+			spool.Close()
+			m.exportAttempt(w, r, attempt+1)
+			return
+		}
 		http.Error(w, "eligibility changed", 409)
 		return
 	}
 	if chosen != "" && r.Method != http.MethodHead {
 		var first string
-		e = tx.QueryRowContext(r.Context(), "SELECT e.hash FROM egress_eligible e LEFT JOIN egress_turns t ON t.hash=e.hash ORDER BY coalesce(t.turn,0),e.hash LIMIT 1").Scan(&first)
+		e = tx.QueryRowContext(r.Context(), "SELECT e.hash FROM egress_export_eligible e LEFT JOIN egress_turns t ON t.hash=e.hash ORDER BY coalesce(t.turn,0),e.hash LIMIT 1").Scan(&first)
 		if e != nil || first != chosen {
+			if attempt < 2 && r.URL.Query().Get("generation") == "" {
+				tx.Rollback()
+				spool.Close()
+				m.exportAttempt(w, r, attempt+1)
+				return
+			}
 			http.Error(w, "rotation advanced; retry", 409)
 			return
 		}
@@ -357,6 +404,7 @@ func (m egressModule) export(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Disposition", "inline")
 	w.Header().Set("X-Egress-Generation", generation)
+	w.Header().Set("X-Country-Policy", "all-observed-countries-allowed; 24h; GeoIP-estimate")
 	w.Header().Set("X-Config-Count", strconv.Itoa(count))
 	w.Header().Set("X-Residential-Definition", "repeated-ads-split-egress")
 	w.Header().Set("X-Egress-Evidence", "authenticated-Ads-peer-reported; finite TCP scope")

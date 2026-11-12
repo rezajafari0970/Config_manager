@@ -6,6 +6,10 @@ def load(name,file):
  spec=importlib.util.spec_from_file_location(name,HERE/file);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 session=load('egress_session','egress-session.py');driver=load('egress_driver','egress-probe.py')
 class Contracts(unittest.TestCase):
+ def test_ipv6_scope_error_keeps_digit_without_leaking_payload(self):
+  self.assertEqual(driver.error_code(ValueError('ipv6_only_probe_pending')),'ipv6_only_probe_pending')
+  self.assertEqual(driver.error_code(ValueError('endpoint_dns_failed')),'endpoint_dns_failed')
+  for error in [ValueError('secret.example.com'),ValueError('8.8.8.8'),RuntimeError('private payload')]:self.assertEqual(driver.error_code(error),'driver_infrastructure_error')
  def response(self,data,close=False):
   async def run():
    reader=asyncio.StreamReader();reader.feed_data(data);reader.feed_eof();return await session.read_response(reader,close)

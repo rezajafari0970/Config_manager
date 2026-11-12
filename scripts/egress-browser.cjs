@@ -10,5 +10,20 @@ for(const width of [390,1440]){
  const state=await(await page.request.get(process.env.PANEL_TEST_ORIGIN+'/api/egress?view=diagnostics')).json();assert(state.total>0);assert(state.entries.every(x=>x.hash.length===64));
  await page.screenshot({path:process.env.PANEL_TEST_DIR+'/egress-'+width+'.png',fullPage:true});
 }
+if(process.env.PANEL_COUNTRY_TEST==='1'){
+ await page.goto(process.env.PANEL_TEST_ORIGIN+'/egress');await page.waitForFunction(()=>document.querySelectorAll('#country-options input').length===250);
+ const original=(await(await page.request.get(process.env.PANEL_TEST_ORIGIN+'/api/egress')).json()).country.policy;
+ await page.locator('#country-none').click();await page.locator('#country-save').click();
+ await page.waitForFunction(()=>!document.querySelector('#country-selection').textContent.includes('ذخیره نشده'));
+ await page.reload();await page.waitForFunction(()=>document.querySelectorAll('#country-options input').length===250);
+ assert.equal(await page.locator('#country-options input:checked').count(),0);
+ const state=await(await page.request.get(process.env.PANEL_TEST_ORIGIN+'/api/egress')).json();
+ for(const url of Object.values(state.links))assert.equal((await page.request.get(url)).status(),503);
+ await page.locator('#country-options input[value="TR"]').check();
+ await page.waitForTimeout(3500);assert.equal(await page.locator('#country-options input:checked').count(),1);
+ await page.locator('#country-save').click();await page.waitForFunction(()=>!document.querySelector('#country-selection').textContent.includes('ذخیره نشده'));
+ const after=await(await page.request.get(process.env.PANEL_TEST_ORIGIN+'/api/egress')).json();assert.deepEqual(after.country.policy.countries,['TR']);
+ const restored=await page.evaluate(async body=>{const r=await fetch('/api/egress/countries',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(body)});return r.status},{revision:after.country.policy.revision,countries:original.countries});assert.equal(restored,200);
+}
 assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,mobile:390,desktop:1440,errors}));
 }finally{await browser.close()}})().catch(e=>{console.error(e);process.exit(1)});

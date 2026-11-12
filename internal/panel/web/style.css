@@ -32,3 +32,5 @@
 #egress-list .config-card{padding:18px;border:1px solid var(--line);border-radius:12px;margin:12px 0;min-width:0;overflow-wrap:anywhere}#egress-list pre{overflow:auto;max-width:100%;max-height:400px;font-size:11px;white-space:pre}#egress-worker{overflow-wrap:anywhere}
 
 body[data-page="egress"] #stat-retention{font-size:17px;white-space:normal;line-height:1.5}body[data-page="egress"] .page-heading>div{min-width:0}body[data-page="egress"] #page-title{overflow-wrap:anywhere}
+
+.country-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;max-height:340px;overflow:auto;padding:12px 2px}.country-option{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--line);border-radius:8px}.country-option input{width:auto!important;flex:none}#country-search{width:100%;margin:10px 0}#country-summary{display:block;overflow-wrap:anywhere}

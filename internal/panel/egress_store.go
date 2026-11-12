@@ -217,6 +217,14 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	if e != nil {
 		return e
 	}
+	if e = saveEgressCountries(ctx, tx, j.Hash, r, d, now); e != nil {
+		return e
+	}
+	if j.Deep {
+		if _, e = tx.ExecContext(ctx, "UPDATE egress_jobs SET deep_completed=1 WHERE hash=?", j.Hash); e != nil {
+			return e
+		}
+	}
 	return tx.Commit()
 }
 func (s *Store) revokeEgress(ctx context.Context, tx *sql.Tx, hash, reason string, now int64) error {
@@ -230,7 +238,7 @@ func (s *Store) revokeEgress(ctx context.Context, tx *sql.Tx, hash, reason strin
 	for _, q := range []string{
 		"DELETE FROM responses WHERE source_id IN (SELECT source FROM egress_owners WHERE hash=?)",
 		"DELETE FROM artifacts WHERE id IN (SELECT identity FROM egress_owners WHERE hash=?)",
-		"DELETE FROM conversion_results WHERE hash=?", "DELETE FROM conversion_jobs WHERE hash=?", "DELETE FROM repairs WHERE raw_hash=?", "DELETE FROM egress_turns WHERE hash=?",
+		"DELETE FROM egress_geo_results WHERE hash=?", "DELETE FROM egress_countries WHERE hash=?", "DELETE FROM conversion_results WHERE hash=?", "DELETE FROM conversion_jobs WHERE hash=?", "DELETE FROM repairs WHERE raw_hash=?", "DELETE FROM egress_turns WHERE hash=?",
 	} {
 		if _, e := tx.ExecContext(ctx, q, hash); e != nil {
 			return e
@@ -276,7 +284,13 @@ func (s *Store) expireEgress(ctx context.Context, tx *sql.Tx, now int64) error {
 	if _, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET state='QUARANTINED',reason='evidence_expired' WHERE ever_accepted=1 AND state='RESIDENTIAL' AND valid_until<=?", now); e != nil {
 		return e
 	}
-	if _, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET state='DELETED',reason='retention_expired',candidate_hash='',candidate_size=0,report='{}',decision='{}',revision=revision+1,token='',lease_until=0 WHERE ever_accepted=0 AND tested>0 AND state!='DELETED' AND first_seen<=?-(SELECT retention_seconds*1000 FROM settings)", now); e != nil {
+	if _, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET state='DELETED',reason='retention_expired',candidate_hash='',candidate_size=0,report='{}',decision='{}',revision=revision+1,token='',lease_until=0 WHERE ever_accepted=0 AND tested>0 AND state!='DELETED' AND first_seen<=?-(SELECT retention_seconds*1000 FROM settings) AND NOT(token!='' AND lease_until>?) AND NOT(state='UNKNOWN' AND deep_completed=0 AND tested>?)", now, now, now-1800000); e != nil {
+		return e
+	}
+	if _, e := tx.ExecContext(ctx, "DELETE FROM egress_countries WHERE last_seen<=? OR hash IN(SELECT hash FROM egress_jobs WHERE state='DELETED')", now-egress.CountryWindow); e != nil {
+		return e
+	}
+	if _, e := tx.ExecContext(ctx, "DELETE FROM egress_geo_results WHERE hash IN(SELECT hash FROM egress_jobs WHERE state='DELETED')"); e != nil {
 		return e
 	}
 	_, e := tx.ExecContext(ctx, "DELETE FROM egress_events WHERE at<?", now-int64(24*time.Hour/time.Millisecond))

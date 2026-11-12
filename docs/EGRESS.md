@@ -4,8 +4,9 @@ The user's latest definition supersedes the former ISP classification gate:
 **Residential in this project means repeated dedicated Ads egress.** It does
 not assert a household/ISP network type. A complete stable shared egress is
 NO_SPLIT; missing, mixed or ambiguous evidence remains UNKNOWN. Only RESIDENTIAL
-with fresh evidence qualifies the four exports. There is no external IP-type,
-ASN, country, provider-quota or AI dependency. The old classifier is removed.
+with fresh evidence qualifies the four exports. There is no external IP-type, ASN, provider-quota or AI dependency in route
+classification. P48 adds a separate local country-data publication gate; see
+EGRESS_COUNTRIES.md. The old household/ISP classifier remains removed.
 
 ## Evidence contract
 
@@ -59,7 +60,9 @@ elapsed time alone. A repeated split can qualify in the fast pass.
 Source addresses are transient helper memory only. At report completion each
 is replaced with HMAC-SHA256 using a fresh random job-local key. Equality
 within the job is retained; the key and plaintext addresses are discarded.
-No IP, ASN or country is persisted in new measurement reports or displayed.
+No plaintext exit IP or ASN is persisted. Under P48, country facts from the
+same authenticated Ads observations are looked up locally before HMAC scrubbing
+and retained with provider dataset and timestamp. They do not change route classification.
 Old policy reports are fenced and cleared on reconciliation, not relabelled.
 
 ## Isolation, scheduling and lifecycle
@@ -80,8 +83,10 @@ handle urgent accepted expiry and manual rechecks. Idle lanes steal work;
 ordinary NO_SPLIT rechecks cannot displace waiting initial assessments. Shared
 NO_SPLIT rechecks use fast mode; inconclusive/previously accepted use deep mode.
 Additive metadata indexes prevent report-archive scans on queue/eligibility/GC
-paths without changing schema25, source controls or resetting existing proofs. Partial first passes
-retry after30s. Accepted entries recheck after120s and are exempt from ordinary
+paths without changing source controls or resetting existing v5 route proofs. P48 uses schema27. Partial first passes
+retry after30s. P48 gives archived first-inconclusive records up to30minutes
+to complete their first deep retry, protects active leases, and resumes ordinary
+retention once a deep attempt completes. Manual deletion still wins. Accepted entries recheck after120s and are exempt from ordinary
 age-based retention; publication needs evidence younger than600s. Uncertainty
 quarantines and withdraws exports without calling it a route failure. Three
 spaced credible negatives, outside the outage guard, revoke globally and fence
@@ -89,14 +94,17 @@ re-import. Source settings, ordinary/Smart gates and deletion journal remain.
 
 ## Panel and exports
 
-/egress shows accepted split-route configurations by default. All-input
+/egress shows country-filtered accepted split-route configurations by default. All-input
 checkbox exposes pending, incomplete and unsupported cases with source names
 and diagnostic evidence. The UI explains the project-specific Residential
 label and distinguishes ten-minute assessments from conclusive route results.
 
 Four stable links: JSON array, JSONL, rotating single JSON and immutable raw
 text. Publication checks current eligibility and generation, and rotation is
-persistent. Empty/stale pools return503; concurrent rotation may return409.
+persistent. All four links apply the same country allowlist and fresh geo gate.
+Empty/stale/filtered pools return503. Renewing an unchanged proof no longer changes
+publication generation. Eligibility/rotation races retry internally up to twice
+before any bytes; explicitly pinned or repeatedly conflicting requests retain409.
 No ordinary-server fallback is substituted for an empty accepted pool.
 
 ## Verification and performance
@@ -113,6 +121,6 @@ The target1000 in600s is measured, not asserted from configured concurrency.
 Preserve strict TLS, raw data, server pins and stage-specific error evidence.
 
 Deployment holds /var/lock/config-repair-deploy.lock and captures a matching
-stopped DB/blob/key/release backup. Keep schema25 protections and never rewind
+stopped DB/blob/key/release backup. Keep schema27 protections and never rewind
 the authenticated deletion journal. Historical P39–P43 reports describe older
 policies and do not override the user's version5 definition.
