@@ -1,3 +1,21 @@
+# P51 device quality tools — 2026-11-12
+
+Read docs/reports/P51-summary.md. Production remainsP47/schema26. P51 is an
+independent tool-only change based on canonical2c86c81, not a P49/P50 rollout.
+Shared device-payload.v2 requires2MiB down,1MiB up and post-load HTTPS; all
+seven sites,DNS/UDP/QUIC/H3 and explicit core/config/network/age gate private
+Simple and Smart snapshots. Fresh directories fence stale artifacts. Old small
+receipts cannot qualify or be resumed as v2; newer interrupted attempts override
+older passes. Failed writes are not throughput. Never globally blacklist a
+working-on-another-carrier config from this phone assessment.
+Native TCP-mux/UDP alternative failed3/4 A trials; do not activate globally.
+OnlyB of4 paths qualified on both cores. Final one-member leastLoad Smart passed
+three repetitions per core includingH3DoH; one interrupted attempt was archived
+and retried. This is not redundant failover,APK,other-carrier or zero-loss proof.
+Official Lib40/current MeasureOutboundDelay discards routing,DNS,observers and
+makes a GET-only test. JSON cannot inject upload/multi-site health into that UI.
+Never claim forced negative ping or alter public exports without actual evidence.
+
 # P47 Smart recovery and complete-payload qualification — 2026-11-12
 
 Activated p47-b51b595c6ec184771530; schema26, Smartv14, SmartAdsv7,

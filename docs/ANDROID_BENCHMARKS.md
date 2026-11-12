@@ -78,7 +78,7 @@ python scripts/compare-benchmarks.py PRIVATE-results/report.json \
 
 Use a fresh output directory and repeat paired tests on each available operator.
 For an interrupted run, `--resume` accepts completed receipts only for the same
-core, configuration, network label, stage and observation duration. It preserves
+benchmark contract version, core, configuration, network label, stage and observation duration. It preserves
 their original timestamps and marks them historical; unfinished case directories
 are archived before retry. It never refreshes health evidence from an old pass.
 A registered SIM name does not establish the active route. Compare current route
@@ -88,6 +88,11 @@ control app UI or measure protected interfaces without an authorized device
 control channel. Those scenarios stay `not_run`.
 
 `--stage full` adds seven public HTTPS destinations, DNS/UDP/QUIC and full H3.
+The versioned device-payload.v2 probe uses 2 MiB download, 1 MiB upload, and
+a post-load HTTPS check. Shared benchmarks.quality defines the exact sizes and
+proof predicate for measurement, device admission and comparison. Old small
+transfer receipts are historical and cannot satisfy v2. Failed transfers retain
+raw timing diagnostics but do not display successful throughput in comparison.
 The upload uses generated random bytes, not user data. A valid HTTPS response
 and exact submitted/received byte count are required; the upload response is
 not a cryptographic server-side payload hash. Short transfer measurements include
@@ -145,7 +150,7 @@ without rewinding the database or external deletion journal.
 compiler. Eligibility is bounded to an explicit core checksum, observed network,
 complete configuration hash and a 60..3600-second receipt lifetime. It takes the
 latest matching receipt; a recent failure overrides an older pass. All seven
-HTTPS destinations, complete 512 KiB download/128 KiB upload, DNS TCP/UDP, DoH,
+HTTPS destinations, complete 2 MiB download/1 MiB upload and post-load HTTPS, DNS TCP/UDP, DoH,
 QUIC and verified full HTTP/3 are required for this particular device profile.
 TCP-only or currently unreachable routes remain stored; exclusion from this
 strict profile is not a parser/core-invalid verdict or a deletion rule.
@@ -166,3 +171,9 @@ every member and fail-closed routing. Three paired phone rounds at7 and15 member
 did not establish consistently complete transfers, so neither this profile nor
 the faster observatory profile is promoted to production. Production remains
 expected3 and the established15s/3/5s sampling parameters.
+
+P51 also exports each eligible original Simple object and an importable JSON array
+in the private device snapshot. A fresh destination directory is mandatory; an
+unsuccessful recheck cannot silently reuse an earlier healthy artifact. These
+files do not update the public subscription or the official v2rayNG delay UI.
+See reports/P51-summary.md for current evidence and native-delay limitations.
