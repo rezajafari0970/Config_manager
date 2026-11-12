@@ -1,4 +1,4 @@
-# P54: observed Ads country consensus and any-country publication policy
+# Observed Ads country consensus and ANY publication (P55 operations; P54 policy)
 
 Schema 29 supplements route policy ads-egress.v5. The user's new country request
 supersedes the old prohibition on country lookup, but does not restore the old
@@ -137,3 +137,8 @@ release directory0755 after mkdir: a private operator umask otherwise prevents
 the unprivileged panel service from traversing it. Keep country data/config0600
 inside root-owned0700 directories. Preserve P47 Smartv14, SmartAdsv7, payload_v1,
 ordinaryv9, strict TLS, all source controls and unrelated controllers.
+
+P55 schema30 preserves this ANY policy and all existing selection/evidence. Its
+summary snapshots freeze the nested view clock, and X-Country-Policy now states
+any-observed-country-selected. See EGRESS_OPERATIONS.md for bounded loading,
+durable operational metrics, resource governance and deployment requirements.

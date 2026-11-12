@@ -191,20 +191,21 @@ type Attempt struct {
 	Stages map[string]float64 `json:"stages,omitempty"`
 }
 type Report struct {
-	Health         []HealthSample `json:"health,omitempty"`
-	Version        string         `json:"version"`
-	Hash           string         `json:"hash"`
-	Started        int64          `json:"started"`
-	Finished       int64          `json:"finished"`
-	Core           string         `json:"core"`
-	CoreSHA        string         `json:"core_sha"`
-	Infrastructure bool           `json:"infrastructure"`
-	Code           string         `json:"code"`
-	Checks         []Check        `json:"checks"`
-	Samples        []Sample       `json:"samples"`
-	Attempts       []Attempt      `json:"attempts"`
-	WallMS         float64        `json:"wall_ms"`
-	Waves          int            `json:"waves"`
+	ResourcePressure bool           `json:"resource_pressure,omitempty"`
+	Health           []HealthSample `json:"health,omitempty"`
+	Version          string         `json:"version"`
+	Hash             string         `json:"hash"`
+	Started          int64          `json:"started"`
+	Finished         int64          `json:"finished"`
+	Core             string         `json:"core"`
+	CoreSHA          string         `json:"core_sha"`
+	Infrastructure   bool           `json:"infrastructure"`
+	Code             string         `json:"code"`
+	Checks           []Check        `json:"checks"`
+	Samples          []Sample       `json:"samples"`
+	Attempts         []Attempt      `json:"attempts"`
+	WallMS           float64        `json:"wall_ms"`
+	Waves            int            `json:"waves"`
 }
 type Completion struct {
 	Job    Job    `json:"job"`
@@ -241,6 +242,10 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 	d := Decision{State: "UNKNOWN", Reason: "incomplete_observations", Route: "UNKNOWN", Scope: "Project Residential = repeated Ads split egress; three DoubleClick domains; TCP; paired family; raw and template; authenticated peer report, not full hop topology or ISP class", Sources: []string{}, ControlSources: []string{}}
 	if r.Version != Version || r.Hash != hash || r.Started <= 0 || r.Started > r.Finished || r.Finished > now+2000 || r.Started < now-300000 || r.Finished < now-EvidenceTTL {
 		d.Reason = "stale_or_unbound_report"
+		return d
+	}
+	if r.ResourcePressure {
+		d.Reason = "local_resource_pressure"
 		return d
 	}
 	if len(p.Variants) != 2 {

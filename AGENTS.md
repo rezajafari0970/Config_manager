@@ -1,3 +1,30 @@
+# P55 Residential production hardening — 2026-11-12
+
+Schema30; active release p55-dbd82659ccbc19ad6911. Read docs/EGRESS_OPERATIONS.md
+and reports/P55-report-fa.md. Full race/vet/build/Python/JS, migration, crash,
+watchdog and browser checks passed. The1000-real-input benchmark took911.644s
+before activation and758.435s afterward (787assessed by600s;402conclusive).
+The1000/600s target is NOT met under the measured shared-host load; do not issue
+unqualified production/SLO or100%classification claims. Both receipts are retained.
+Canonical publication must match the tested307-file runtime source manifest.
+Preserve P54 ANY country intersection, selected codes/revision, health interval,
+routev5, healthv1, countryv2, strict TLS, raw bytes, core pins and all templates.
+Migration backfills committed staging without resurrecting manual exclusions.
+Counters are transactional and durable from their explicit start timestamp;
+never invent lifetime history from the rolling24hour events or latest job rows.
+Frozen eligibility clocks must cover nested views as well as outer SQL.
+Check lease/evidence time after writer acquisition, not before a SQLite wait.
+Every positive worker capacity must serve follow-ups; a single slot rotates.
+CPU/I/O/RAM governors reduce admission and recover gradually. OOM and missing raw
+storage are UNKNOWN, never destructive health evidence. Preserve bounded retries,
+finite negative circuit and accepted health intervals. Watchdog90sec uses SIGKILL
+and full group cleanup; private10sec fault tests do not measure production90sec.
+Keep brief polling and bounded on-demand row-version-bound evidence loading.
+No AI dependency in runtime; API review supplements tests, never classifies paths.
+Hold shared deploy lock, stopped matched DB/blob/key/release/unit backup and verify
+all six binaries. Never run pre30 binaries on schema30, force-push, overwrite
+concurrent edits, or claim100% future uptime, GeoIP accuracy or no possible bugs.
+
 # P54 user override: ANY selected Ads country — 2026-11-12
 
 Schema29 replaces ALL/subset country publication with ANY/intersection matching.

@@ -1,0 +1,1441 @@
+{
+  "version": "P55",
+  "at": 1794489248314,
+  "base_commit": "913d299389e760674ce68af1efd434746047397a",
+  "schema": 30,
+  "production_readiness": {
+    "functional_checks_passed": true,
+    "throughput_slo_met": false,
+    "unqualified_production_approval": false
+  },
+  "checks": {
+    "final-check": "passed",
+    "final-rehearsal": "passed",
+    "final-crash": "passed",
+    "throughput": "passed",
+    "after-throughput": "passed",
+    "watchdog": "passed",
+    "brief": "passed",
+    "fairness": "passed",
+    "lane-contract": "passed"
+  },
+  "blob_audit": {
+    "references": 8693,
+    "verified": 8693,
+    "missing_or_corrupt": 0
+  },
+  "benchmark": {
+    "country_consensus_enabled": true,
+    "version": "ads-egress.v5",
+    "requested": 1000,
+    "total": 1000,
+    "assessed": 1000,
+    "complete": true,
+    "seconds": 758.435,
+    "assessed_at_300s": 456,
+    "assessed_at_600s": 787,
+    "target_600s_met": false,
+    "workers": 10,
+    "max_active": 9,
+    "min_available_mib": 1910,
+    "states": {
+      "NO_SPLIT": 402,
+      "UNKNOWN": 553,
+      "UNSUPPORTED": 45
+    },
+    "reasons": {
+      "ads_peer_echo_incomplete": 17,
+      "controls_incomplete": 103,
+      "core_evidence_missing": 1,
+      "direct_route_not_qualified": 15,
+      "driver_unavailable": 45,
+      "endpoint_dns_failed": 5,
+      "ipv6_only_probe_pending": 6,
+      "mixed_route_observations": 2,
+      "network_retry_pending": 400,
+      "route_not_distinct": 404,
+      "runtime_start_failed": 2
+    },
+    "sample_codes": {
+      "ads_peer_reported": 2815,
+      "control_echo": 3512,
+      "connection_failed": 3200,
+      "connection_timeout": 3413
+    },
+    "definitive": 402,
+    "job_ms_p50": 2455.9535330627114,
+    "job_ms_p95": 15564.760134089738,
+    "timeline": [
+      {
+        "seconds": 0.0,
+        "assessed": 0,
+        "total": 1000,
+        "active": 0,
+        "available_mib": 2598
+      },
+      {
+        "seconds": 10.02,
+        "assessed": 14,
+        "total": 1000,
+        "active": 4,
+        "available_mib": 2486
+      },
+      {
+        "seconds": 20.06,
+        "assessed": 38,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2360
+      },
+      {
+        "seconds": 30.07,
+        "assessed": 61,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2243
+      },
+      {
+        "seconds": 40.26,
+        "assessed": 83,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2198
+      },
+      {
+        "seconds": 50.28,
+        "assessed": 102,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2162
+      },
+      {
+        "seconds": 60.33,
+        "assessed": 114,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2160
+      },
+      {
+        "seconds": 70.43,
+        "assessed": 130,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2167
+      },
+      {
+        "seconds": 80.57,
+        "assessed": 140,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2197
+      },
+      {
+        "seconds": 90.77,
+        "assessed": 154,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2280
+      },
+      {
+        "seconds": 100.94,
+        "assessed": 169,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2251
+      },
+      {
+        "seconds": 110.96,
+        "assessed": 183,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2245
+      },
+      {
+        "seconds": 120.99,
+        "assessed": 198,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2204
+      },
+      {
+        "seconds": 131.04,
+        "assessed": 215,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2202
+      },
+      {
+        "seconds": 141.06,
+        "assessed": 229,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2162
+      },
+      {
+        "seconds": 151.12,
+        "assessed": 240,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2150
+      },
+      {
+        "seconds": 161.14,
+        "assessed": 259,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2093
+      },
+      {
+        "seconds": 171.18,
+        "assessed": 275,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2179
+      },
+      {
+        "seconds": 181.34,
+        "assessed": 287,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2192
+      },
+      {
+        "seconds": 191.38,
+        "assessed": 298,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2158
+      },
+      {
+        "seconds": 201.4,
+        "assessed": 313,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2192
+      },
+      {
+        "seconds": 211.43,
+        "assessed": 333,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2157
+      },
+      {
+        "seconds": 221.48,
+        "assessed": 345,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2201
+      },
+      {
+        "seconds": 231.5,
+        "assessed": 362,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2163
+      },
+      {
+        "seconds": 241.54,
+        "assessed": 380,
+        "total": 1000,
+        "active": 9,
+        "available_mib": 2173
+      },
+      {
+        "seconds": 251.6,
+        "assessed": 398,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2108
+      },
+      {
+        "seconds": 261.67,
+        "assessed": 407,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2022
+      },
+      {
+        "seconds": 271.88,
+        "assessed": 424,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2004
+      },
+      {
+        "seconds": 281.91,
+        "assessed": 433,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2166
+      },
+      {
+        "seconds": 292.0,
+        "assessed": 445,
+        "total": 1000,
+        "active": 9,
+        "available_mib": 2104
+      },
+      {
+        "seconds": 302.02,
+        "assessed": 458,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2080
+      },
+      {
+        "seconds": 312.06,
+        "assessed": 472,
+        "total": 1000,
+        "active": 9,
+        "available_mib": 2136
+      },
+      {
+        "seconds": 322.09,
+        "assessed": 481,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2180
+      },
+      {
+        "seconds": 332.14,
+        "assessed": 489,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2186
+      },
+      {
+        "seconds": 342.18,
+        "assessed": 507,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2087
+      },
+      {
+        "seconds": 352.21,
+        "assessed": 518,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2108
+      },
+      {
+        "seconds": 362.23,
+        "assessed": 531,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2327
+      },
+      {
+        "seconds": 372.25,
+        "assessed": 541,
+        "total": 1000,
+        "active": 2,
+        "available_mib": 2519
+      },
+      {
+        "seconds": 382.27,
+        "assessed": 549,
+        "total": 1000,
+        "active": 3,
+        "available_mib": 2236
+      },
+      {
+        "seconds": 392.31,
+        "assessed": 551,
+        "total": 1000,
+        "active": 4,
+        "available_mib": 2292
+      },
+      {
+        "seconds": 402.32,
+        "assessed": 552,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 2159
+      },
+      {
+        "seconds": 412.34,
+        "assessed": 556,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 2248
+      },
+      {
+        "seconds": 422.37,
+        "assessed": 563,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 2209
+      },
+      {
+        "seconds": 432.43,
+        "assessed": 572,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2155
+      },
+      {
+        "seconds": 442.57,
+        "assessed": 584,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2163
+      },
+      {
+        "seconds": 452.61,
+        "assessed": 600,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 2262
+      },
+      {
+        "seconds": 463.43,
+        "assessed": 612,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2188
+      },
+      {
+        "seconds": 473.48,
+        "assessed": 624,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2070
+      },
+      {
+        "seconds": 483.5,
+        "assessed": 635,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2129
+      },
+      {
+        "seconds": 493.54,
+        "assessed": 647,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2007
+      },
+      {
+        "seconds": 503.58,
+        "assessed": 658,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2096
+      },
+      {
+        "seconds": 513.63,
+        "assessed": 669,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2149
+      },
+      {
+        "seconds": 523.81,
+        "assessed": 683,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2177
+      },
+      {
+        "seconds": 533.86,
+        "assessed": 699,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2211
+      },
+      {
+        "seconds": 543.89,
+        "assessed": 713,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 2184
+      },
+      {
+        "seconds": 553.96,
+        "assessed": 728,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2156
+      },
+      {
+        "seconds": 564.0,
+        "assessed": 741,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2121
+      },
+      {
+        "seconds": 574.13,
+        "assessed": 755,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2130
+      },
+      {
+        "seconds": 584.22,
+        "assessed": 768,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2063
+      },
+      {
+        "seconds": 594.31,
+        "assessed": 779,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2117
+      },
+      {
+        "seconds": 604.34,
+        "assessed": 791,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2243
+      },
+      {
+        "seconds": 614.38,
+        "assessed": 801,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2192
+      },
+      {
+        "seconds": 624.42,
+        "assessed": 812,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2035
+      },
+      {
+        "seconds": 634.47,
+        "assessed": 825,
+        "total": 1000,
+        "active": 9,
+        "available_mib": 2114
+      },
+      {
+        "seconds": 644.52,
+        "assessed": 839,
+        "total": 1000,
+        "active": 9,
+        "available_mib": 2052
+      },
+      {
+        "seconds": 654.56,
+        "assessed": 852,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2024
+      },
+      {
+        "seconds": 664.65,
+        "assessed": 864,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2000
+      },
+      {
+        "seconds": 674.77,
+        "assessed": 876,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2054
+      },
+      {
+        "seconds": 684.85,
+        "assessed": 889,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2043
+      },
+      {
+        "seconds": 694.89,
+        "assessed": 904,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 1983
+      },
+      {
+        "seconds": 704.95,
+        "assessed": 923,
+        "total": 1000,
+        "active": 9,
+        "available_mib": 1959
+      },
+      {
+        "seconds": 715.12,
+        "assessed": 941,
+        "total": 1000,
+        "active": 9,
+        "available_mib": 1999
+      },
+      {
+        "seconds": 725.21,
+        "assessed": 954,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2049
+      },
+      {
+        "seconds": 735.33,
+        "assessed": 964,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2055
+      },
+      {
+        "seconds": 745.39,
+        "assessed": 983,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2061
+      },
+      {
+        "seconds": 755.42,
+        "assessed": 999,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2121
+      }
+    ],
+    "scope": "Distinct real retained source hashes; initial assessments include inconclusive and unsupported results. Not 1000 definitive residential classifications."
+  },
+  "benchmark_before_activation": {
+    "country_consensus_enabled": true,
+    "version": "ads-egress.v5",
+    "requested": 1000,
+    "total": 1000,
+    "assessed": 1000,
+    "complete": true,
+    "seconds": 911.644,
+    "assessed_at_300s": 293,
+    "assessed_at_600s": 623,
+    "target_600s_met": false,
+    "workers": 10,
+    "max_active": 10,
+    "min_available_mib": 1768,
+    "states": {
+      "NO_SPLIT": 395,
+      "UNKNOWN": 560,
+      "UNSUPPORTED": 45
+    },
+    "reasons": {
+      "ads_peer_echo_incomplete": 17,
+      "controls_incomplete": 98,
+      "core_evidence_missing": 1,
+      "direct_route_not_qualified": 13,
+      "driver_unavailable": 45,
+      "endpoint_dns_failed": 5,
+      "ipv6_only_probe_pending": 6,
+      "mixed_route_observations": 2,
+      "network_retry_pending": 413,
+      "route_not_distinct": 398,
+      "runtime_start_failed": 2
+    },
+    "sample_codes": {
+      "ads_peer_reported": 2759,
+      "control_echo": 3429,
+      "connection_failed": 3312,
+      "connection_timeout": 3381
+    },
+    "definitive": 395,
+    "job_ms_p50": 2671.5609550010413,
+    "job_ms_p95": 16045.899344142526,
+    "timeline": [
+      {
+        "seconds": 0.01,
+        "assessed": 0,
+        "total": 1000,
+        "active": 0,
+        "available_mib": 2208
+      },
+      {
+        "seconds": 10.03,
+        "assessed": 5,
+        "total": 1000,
+        "active": 10,
+        "available_mib": 1995
+      },
+      {
+        "seconds": 20.05,
+        "assessed": 23,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2084
+      },
+      {
+        "seconds": 30.09,
+        "assessed": 39,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 2003
+      },
+      {
+        "seconds": 40.12,
+        "assessed": 52,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 1981
+      },
+      {
+        "seconds": 50.14,
+        "assessed": 60,
+        "total": 1000,
+        "active": 2,
+        "available_mib": 2041
+      },
+      {
+        "seconds": 60.2,
+        "assessed": 63,
+        "total": 1000,
+        "active": 3,
+        "available_mib": 2034
+      },
+      {
+        "seconds": 70.37,
+        "assessed": 69,
+        "total": 1000,
+        "active": 3,
+        "available_mib": 1937
+      },
+      {
+        "seconds": 80.39,
+        "assessed": 78,
+        "total": 1000,
+        "active": 4,
+        "available_mib": 2046
+      },
+      {
+        "seconds": 90.4,
+        "assessed": 84,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 2008
+      },
+      {
+        "seconds": 100.47,
+        "assessed": 91,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1943
+      },
+      {
+        "seconds": 110.58,
+        "assessed": 100,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2001
+      },
+      {
+        "seconds": 120.61,
+        "assessed": 109,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 1987
+      },
+      {
+        "seconds": 130.62,
+        "assessed": 127,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2028
+      },
+      {
+        "seconds": 140.71,
+        "assessed": 143,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1968
+      },
+      {
+        "seconds": 150.76,
+        "assessed": 154,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1987
+      },
+      {
+        "seconds": 160.77,
+        "assessed": 168,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2052
+      },
+      {
+        "seconds": 170.9,
+        "assessed": 183,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 1953
+      },
+      {
+        "seconds": 180.99,
+        "assessed": 195,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 1912
+      },
+      {
+        "seconds": 191.02,
+        "assessed": 208,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1952
+      },
+      {
+        "seconds": 201.05,
+        "assessed": 213,
+        "total": 1000,
+        "active": 4,
+        "available_mib": 1977
+      },
+      {
+        "seconds": 211.08,
+        "assessed": 222,
+        "total": 1000,
+        "active": 2,
+        "available_mib": 2031
+      },
+      {
+        "seconds": 221.14,
+        "assessed": 228,
+        "total": 1000,
+        "active": 4,
+        "available_mib": 2047
+      },
+      {
+        "seconds": 231.17,
+        "assessed": 235,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 2043
+      },
+      {
+        "seconds": 241.23,
+        "assessed": 243,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 2064
+      },
+      {
+        "seconds": 251.26,
+        "assessed": 250,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2097
+      },
+      {
+        "seconds": 261.37,
+        "assessed": 257,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2125
+      },
+      {
+        "seconds": 271.43,
+        "assessed": 263,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 2041
+      },
+      {
+        "seconds": 281.46,
+        "assessed": 271,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2098
+      },
+      {
+        "seconds": 291.52,
+        "assessed": 282,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2025
+      },
+      {
+        "seconds": 301.63,
+        "assessed": 295,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1969
+      },
+      {
+        "seconds": 311.66,
+        "assessed": 309,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2129
+      },
+      {
+        "seconds": 321.72,
+        "assessed": 325,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 2049
+      },
+      {
+        "seconds": 331.85,
+        "assessed": 336,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 2015
+      },
+      {
+        "seconds": 341.9,
+        "assessed": 351,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1872
+      },
+      {
+        "seconds": 351.92,
+        "assessed": 363,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 1946
+      },
+      {
+        "seconds": 361.95,
+        "assessed": 373,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 1849
+      },
+      {
+        "seconds": 372.04,
+        "assessed": 388,
+        "total": 1000,
+        "active": 9,
+        "available_mib": 2012
+      },
+      {
+        "seconds": 382.14,
+        "assessed": 403,
+        "total": 1000,
+        "active": 9,
+        "available_mib": 1895
+      },
+      {
+        "seconds": 392.17,
+        "assessed": 415,
+        "total": 1000,
+        "active": 10,
+        "available_mib": 1920
+      },
+      {
+        "seconds": 402.21,
+        "assessed": 432,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 1961
+      },
+      {
+        "seconds": 412.24,
+        "assessed": 443,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 2026
+      },
+      {
+        "seconds": 422.27,
+        "assessed": 454,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1854
+      },
+      {
+        "seconds": 432.32,
+        "assessed": 464,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 1991
+      },
+      {
+        "seconds": 442.42,
+        "assessed": 471,
+        "total": 1000,
+        "active": 3,
+        "available_mib": 2030
+      },
+      {
+        "seconds": 452.44,
+        "assessed": 474,
+        "total": 1000,
+        "active": 3,
+        "available_mib": 1956
+      },
+      {
+        "seconds": 462.49,
+        "assessed": 477,
+        "total": 1000,
+        "active": 4,
+        "available_mib": 1960
+      },
+      {
+        "seconds": 472.53,
+        "assessed": 480,
+        "total": 1000,
+        "active": 4,
+        "available_mib": 1972
+      },
+      {
+        "seconds": 482.56,
+        "assessed": 486,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 1978
+      },
+      {
+        "seconds": 492.59,
+        "assessed": 494,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1911
+      },
+      {
+        "seconds": 502.72,
+        "assessed": 504,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1904
+      },
+      {
+        "seconds": 512.82,
+        "assessed": 521,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 1917
+      },
+      {
+        "seconds": 522.84,
+        "assessed": 537,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 1888
+      },
+      {
+        "seconds": 532.93,
+        "assessed": 556,
+        "total": 1000,
+        "active": 9,
+        "available_mib": 1903
+      },
+      {
+        "seconds": 542.97,
+        "assessed": 569,
+        "total": 1000,
+        "active": 9,
+        "available_mib": 1876
+      },
+      {
+        "seconds": 553.01,
+        "assessed": 586,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 1882
+      },
+      {
+        "seconds": 563.03,
+        "assessed": 595,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 1851
+      },
+      {
+        "seconds": 573.13,
+        "assessed": 606,
+        "total": 1000,
+        "active": 3,
+        "available_mib": 2008
+      },
+      {
+        "seconds": 583.2,
+        "assessed": 610,
+        "total": 1000,
+        "active": 2,
+        "available_mib": 1976
+      },
+      {
+        "seconds": 593.26,
+        "assessed": 617,
+        "total": 1000,
+        "active": 3,
+        "available_mib": 1951
+      },
+      {
+        "seconds": 603.3,
+        "assessed": 624,
+        "total": 1000,
+        "active": 4,
+        "available_mib": 1958
+      },
+      {
+        "seconds": 613.35,
+        "assessed": 629,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 2026
+      },
+      {
+        "seconds": 623.47,
+        "assessed": 635,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 1952
+      },
+      {
+        "seconds": 633.53,
+        "assessed": 641,
+        "total": 1000,
+        "active": 4,
+        "available_mib": 1935
+      },
+      {
+        "seconds": 643.65,
+        "assessed": 650,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1862
+      },
+      {
+        "seconds": 653.67,
+        "assessed": 658,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 1865
+      },
+      {
+        "seconds": 663.7,
+        "assessed": 673,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 1952
+      },
+      {
+        "seconds": 673.73,
+        "assessed": 687,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 2021
+      },
+      {
+        "seconds": 683.81,
+        "assessed": 698,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 1884
+      },
+      {
+        "seconds": 693.85,
+        "assessed": 710,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1896
+      },
+      {
+        "seconds": 703.94,
+        "assessed": 722,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1850
+      },
+      {
+        "seconds": 714.16,
+        "assessed": 733,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1978
+      },
+      {
+        "seconds": 724.22,
+        "assessed": 744,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1932
+      },
+      {
+        "seconds": 734.45,
+        "assessed": 758,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 1942
+      },
+      {
+        "seconds": 744.5,
+        "assessed": 769,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 1964
+      },
+      {
+        "seconds": 754.53,
+        "assessed": 781,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 1974
+      },
+      {
+        "seconds": 764.6,
+        "assessed": 792,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1887
+      },
+      {
+        "seconds": 774.63,
+        "assessed": 808,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1947
+      },
+      {
+        "seconds": 784.68,
+        "assessed": 819,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1868
+      },
+      {
+        "seconds": 794.71,
+        "assessed": 829,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1948
+      },
+      {
+        "seconds": 804.94,
+        "assessed": 841,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1916
+      },
+      {
+        "seconds": 814.97,
+        "assessed": 856,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1891
+      },
+      {
+        "seconds": 825.05,
+        "assessed": 866,
+        "total": 1000,
+        "active": 5,
+        "available_mib": 1868
+      },
+      {
+        "seconds": 835.17,
+        "assessed": 881,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 1981
+      },
+      {
+        "seconds": 845.19,
+        "assessed": 901,
+        "total": 1000,
+        "active": 9,
+        "available_mib": 1793
+      },
+      {
+        "seconds": 855.25,
+        "assessed": 914,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 1940
+      },
+      {
+        "seconds": 865.28,
+        "assessed": 927,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 1864
+      },
+      {
+        "seconds": 875.31,
+        "assessed": 948,
+        "total": 1000,
+        "active": 6,
+        "available_mib": 2060
+      },
+      {
+        "seconds": 885.54,
+        "assessed": 960,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 1882
+      },
+      {
+        "seconds": 895.58,
+        "assessed": 975,
+        "total": 1000,
+        "active": 8,
+        "available_mib": 1921
+      },
+      {
+        "seconds": 905.61,
+        "assessed": 991,
+        "total": 1000,
+        "active": 7,
+        "available_mib": 1926
+      }
+    ],
+    "scope": "Distinct real retained source hashes; initial assessments include inconclusive and unsupported results. Not 1000 definitive residential classifications."
+  },
+  "live": {
+    "at": 1794489220860,
+    "schema": 30,
+    "match_mode": "any",
+    "selected_countries": [
+      "CY",
+      "MO",
+      "PR",
+      "TW"
+    ],
+    "policy_revision": 4,
+    "published": 19,
+    "known": 62,
+    "shared": 18,
+    "exact_database_set_verified": true,
+    "database_any_count": 20,
+    "database_old_all_count": 9,
+    "three_country_example_present": true,
+    "unique_entries_verified": true,
+    "outputs": {
+      "configs.json": {
+        "status": 200,
+        "count": 20,
+        "bytes": 32779,
+        "checksum_verified": true,
+        "any_header_verified": true
+      },
+      "configs.jsonl": {
+        "status": 200,
+        "count": 20,
+        "bytes": 32757,
+        "checksum_verified": true,
+        "any_header_verified": true
+      },
+      "next.json": {
+        "status": 200,
+        "count": 1,
+        "bytes": 1450,
+        "checksum_verified": true,
+        "any_header_verified": true
+      },
+      "raw.txt": {
+        "status": 200,
+        "count": 20,
+        "bytes": 16621,
+        "checksum_verified": true,
+        "any_header_verified": true
+      }
+    },
+    "brief_api_ms": [
+      268.03,
+      421.15,
+      183.11,
+      381.36,
+      339.48
+    ],
+    "full_bytes": 513649,
+    "brief_bytes": 36629,
+    "payload_reduction_percent": 92.87,
+    "targeted_evidence": true,
+    "missing_source_inputs": 0,
+    "missing_staged_inputs": 0,
+    "health_minutes": 15,
+    "metrics": {
+      "since": 1794488257758,
+      "baseline_inputs": 21166,
+      "registered": 236,
+      "completed": 771,
+      "first_assessments": 167,
+      "definitive": 366,
+      "lease_recoveries": 10,
+      "unhealthy_deleted": 0
+    },
+    "queue": {
+      "active_leases": 8,
+      "due": 9320,
+      "recoverable_leases": 1
+    },
+    "integrity": "ok",
+    "watchdog_unit": [
+      "Type=notify",
+      "WatchdogUSec=1min 30s",
+      "NRestarts=0"
+    ],
+    "boot_enabled": {
+      "config-repair": "enabled",
+      "config-repair-prober": "enabled",
+      "config-repair-smart": "enabled",
+      "config-repair-splash": "enabled",
+      "config-repair-ads": "enabled",
+      "config-repair-egress": "enabled",
+      "config-repair-country-update.timer": "enabled"
+    }
+  },
+  "migration": {
+    "from_schema": 29,
+    "to_schema": 30,
+    "preserved_tables": [
+      "egress_country_policy",
+      "egress_countries",
+      "egress_geo_results",
+      "egress_health",
+      "egress_lifecycle"
+    ],
+    "selected_countries": [
+      "CY",
+      "MO",
+      "PR",
+      "TW"
+    ],
+    "all_evidence_identical": true
+  },
+  "watchdog": {
+    "passed": true,
+    "seconds": 11.886,
+    "before": {
+      "ActiveState": "active",
+      "MainPID": "732388",
+      "NRestarts": "0"
+    },
+    "after": {
+      "ActiveState": "active",
+      "MainPID": "733485",
+      "NRestarts": "1"
+    },
+    "scope": "isolated transient unit; SIGSTOP; watchdog SIGKILL and restart"
+  },
+  "api_review": {
+    "model": "gpt-6-astra",
+    "reasoning": "high",
+    "status": "completed",
+    "input_tokens": 53145,
+    "output_tokens": 14073,
+    "source_sha256": "8b5af4e10fac6b8906dd7b18f6b23c6631792a9302081e42a7c0de6f21958b43",
+    "source_only": true,
+    "findings": 4,
+    "disposition": "all addressed; multiline view parser fixed before review returned; regression tests passed"
+  },
+  "release": "/opt/config-repair/releases/p55-dbd82659ccbc19ad6911",
+  "deployment": {
+    "from_schema": 29,
+    "to_schema": 30,
+    "sources": 33,
+    "controls_preserved": true,
+    "six_runtime_hashes_verified": true,
+    "matched_backup": true
+  },
+  "binaries": {
+    "config-panel": "dbd82659ccbc19ad6911454742d2f54e5be11c203c77b29336f7c1cff6f00044",
+    "config-probe-worker": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+    "config-egress-worker": "6a3c9958c5b56e46cc8e41c6a4450cbc2c239b8d51a2849a2f3d487eccda5dc2",
+    "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+    "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+    "config-probe-plan": "62c40caf384f0436300299f61c65364a94d13efddedf4e3bbbf3c66d55f793e9"
+  }
+}

@@ -41,15 +41,16 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	}
 	j := &egress.Job{}
 	var size int64
-	var state string
-	base := `SELECT hash,kind,size,revision,ever_accepted,attempts,state FROM egress_jobs WHERE state!='DELETED' AND paused=0 AND next_run<=? AND (token='' OR lease_until<=?)`
+	var state, previousToken string
+	base := `SELECT hash,kind,size,revision,ever_accepted,attempts,state,token FROM egress_jobs WHERE state!='DELETED' AND paused=0 AND next_run<=? AND (token='' OR lease_until<=?)`
 	order := ` ORDER BY CASE WHEN ever_accepted=1 AND valid_until<=? THEN 0 WHEN reason='manual_recheck' THEN 1 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 2 WHEN tested=0 THEN 3 WHEN ever_accepted=1 THEN 4 WHEN state='UNKNOWN' AND attempts=1 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 5 ELSE 6 END,next_run,first_seen,hash LIMIT 1`
 	filters := []string{""}
 	if lane == "initial" {
 		filters = []string{` AND (tested=0 OR reason='manual_recheck' OR (ever_accepted=1 AND valid_until<=?))`, ""}
 	}
 	if lane == "followup" {
-		filters = []string{` AND (reason='manual_recheck' OR ever_accepted=1 OR (tested>0 AND state NOT IN ('NO_SPLIT','UNSUPPORTED')))`, ` AND tested=0`, ""}
+		filters = []string{` AND (reason='manual_recheck' OR ever_accepted=1 OR tested>0)`, ` AND tested=0`, ""}
+		order = ` ORDER BY CASE WHEN ever_accepted=1 AND valid_until<=? THEN 0 WHEN reason='manual_recheck' THEN 1 ELSE 2 END,next_run,first_seen,hash LIMIT 1`
 	}
 	for _, filter := range filters {
 		args := []any{now, now}
@@ -57,7 +58,7 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 			args = append(args, now+60000)
 		}
 		args = append(args, now+60000)
-		e = tx.QueryRowContext(ctx, base+filter+order, args...).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Deep, &j.Attempt, &state)
+		e = tx.QueryRowContext(ctx, base+filter+order, args...).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Deep, &j.Attempt, &state, &previousToken)
 		if !errors.Is(e, sql.ErrNoRows) {
 			break
 		}
@@ -68,6 +69,11 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	}
 	if e != nil {
 		return nil, e
+	}
+	if previousToken != "" {
+		if _, e = tx.ExecContext(ctx, "UPDATE egress_metrics SET lease_recoveries=lease_recoveries+1 WHERE id=1"); e != nil {
+			return nil, e
+		}
 	}
 	j.Accepted = j.Deep
 	j.Deep = j.Deep || j.Attempt > 0 && state != "NO_SPLIT" && state != "UNSUPPORTED"
@@ -97,7 +103,16 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	return j, nil
 }
 func (s *Store) RenewEgress(ctx context.Context, j egress.Job) error {
-	r, e := s.db.ExecContext(ctx, "UPDATE egress_jobs SET lease_until=? WHERE hash=? AND token=? AND revision=? AND lease_until>? AND paused=0 AND state!='DELETED'", egress.Now()+120000, j.Hash, j.Token, j.Revision, egress.Now())
+	tx, e := s.db.BeginTx(ctx, nil)
+	if e != nil {
+		return e
+	}
+	defer tx.Rollback()
+	if _, e = tx.ExecContext(ctx, "UPDATE egress_settings SET generation=generation WHERE id=1"); e != nil {
+		return e
+	}
+	now := egress.Now()
+	r, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET lease_until=? WHERE hash=? AND token=? AND revision=? AND lease_until>? AND paused=0 AND state!='DELETED'", now+120000, j.Hash, j.Token, j.Revision, now)
 	if e != nil {
 		return e
 	}
@@ -105,7 +120,7 @@ func (s *Store) RenewEgress(ctx context.Context, j egress.Job) error {
 	if n != 1 {
 		return ErrConflict
 	}
-	return nil
+	return tx.Commit()
 }
 func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	j, r := c.Job, c.Report
@@ -118,19 +133,30 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 		raw, e = io.ReadAll(io.LimitReader(b, repair.MaxBytes+1))
 		b.Close()
 	}
-	if e != nil || egress.Hash(raw) != j.Hash {
+	inputUnavailable := e != nil || egress.Hash(raw) != j.Hash
+	if inputUnavailable {
 		raw = nil
 	}
 	plan := egress.Prepare(raw)
 	now := egress.Now()
-	d := egress.Evaluate(r, plan, j.Hash, now)
-	health := egress.Health(r, plan, now)
-	if d.Eligible && health != "healthy" {
-		d.Eligible = false
-		d.State = "UNKNOWN"
-		d.Reason = "payload_health_" + health
-		d.Until = 0
+	evaluate := func(now int64) (egress.Decision, string) {
+		d := egress.Evaluate(r, plan, j.Hash, now)
+		if inputUnavailable {
+			d.State = "UNKNOWN"
+			d.Reason = "input_unavailable"
+			d.Eligible = false
+			d.Until = 0
+		}
+		health := egress.Health(r, plan, now)
+		if d.Eligible && health != "healthy" {
+			d.Eligible = false
+			d.State = "UNKNOWN"
+			d.Reason = "payload_health_" + health
+			d.Until = 0
+		}
+		return d, health
 	}
+	d, health := evaluate(now)
 	var candidateHash string
 	var candidateSize int64
 	if d.Eligible {
@@ -149,10 +175,17 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	if _, e = tx.ExecContext(ctx, "UPDATE egress_settings SET generation=generation+1 WHERE id=1"); e != nil {
 		return e
 	}
+	// The writer reservation is held before reading the authoritative clock.
+	// Waiting for SQLite or candidate storage must not extend an expired lease.
+	now = egress.Now()
+	d, health = evaluate(now)
+	if d.Eligible && candidateHash == "" {
+		return ErrConflict
+	}
 	var accepted bool
-	var failures int
+	var failures, streak, firstCompleted int
 	var last, claimed int64
-	e = tx.QueryRowContext(ctx, "SELECT ever_accepted,failures,last_failure,claimed_at FROM egress_jobs WHERE hash=? AND revision=? AND token=? AND lease_until>? AND paused=0 AND state!='DELETED'", j.Hash, j.Revision, j.Token, now).Scan(&accepted, &failures, &last, &claimed)
+	e = tx.QueryRowContext(ctx, "SELECT ever_accepted,failures,last_failure,claimed_at,retry_streak,first_completed FROM egress_jobs WHERE hash=? AND revision=? AND token=? AND lease_until>? AND paused=0 AND state!='DELETED'", j.Hash, j.Revision, j.Token, now).Scan(&accepted, &failures, &last, &claimed, &streak, &firstCompleted)
 	if errors.Is(e, sql.ErrNoRows) {
 		return ErrConflict
 	}
@@ -196,7 +229,10 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 		failures = 0
 		last = 0
 	}
-	if _, e = tx.ExecContext(ctx, "INSERT INTO egress_events(hash,at,state,reason) VALUES(?,?,?,?)", j.Hash, now, state, d.Reason); e != nil {
+	if _, e = tx.ExecContext(ctx, "INSERT INTO egress_events(hash,at,state,reason,definitive,duration_ms) VALUES(?,?,?,?,?,?)", j.Hash, now, state, d.Reason, d.Eligible || d.State == "NO_SPLIT", max(0, r.Finished-r.Started)); e != nil {
+		return e
+	}
+	if _, e = tx.ExecContext(ctx, "UPDATE egress_metrics SET completed=completed+1,first_assessments=first_assessments+?,definitive=definitive+? WHERE id=1", firstCompleted == 0, d.Eligible || d.State == "NO_SPLIT"); e != nil {
 		return e
 	}
 	var correlated int
@@ -227,20 +263,13 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 			return e
 		}
 	}
-	delay := int64(300000)
-	if r.Code == "network_retry_pending" || j.Attempt == 1 && (d.Reason == "controls_incomplete" || d.Reason == "ads_peer_echo_incomplete") {
-		delay = 30000
+	streak++
+	if d.Eligible {
+		streak = 0
 	}
-	if state == "UNSUPPORTED" {
-		delay = 3600000
-	}
-	if accepted {
-		delay = interval
-	}
-	if accepted && !d.Eligible {
-		delay = 30000
-	}
-	_, e = tx.ExecContext(ctx, `UPDATE egress_jobs SET state=?,reason=?,ever_accepted=?,tested=?,valid_until=?,candidate_hash=?,candidate_size=?,format=?,decision=?,report=?,token='',lease_until=0,next_run=?,failures=?,last_failure=? WHERE hash=?`, state, d.Reason, accepted, now, d.Until, candidateHash, candidateSize, plan.Format, string(decision), string(report), now+delay, failures, last, j.Hash)
+	fastRetry := r.Code == "network_retry_pending" || j.Attempt == 1 && (d.Reason == "controls_incomplete" || d.Reason == "ads_peer_echo_incomplete")
+	delay := egressRetryDelay(j.Hash, state, health, accepted, streak, interval, fastRetry)
+	_, e = tx.ExecContext(ctx, `UPDATE egress_jobs SET state=?,reason=?,ever_accepted=?,tested=?,valid_until=?,candidate_hash=?,candidate_size=?,format=?,decision=?,report=?,token='',lease_until=0,next_run=?,failures=?,last_failure=?,retry_streak=?,first_completed=1 WHERE hash=?`, state, d.Reason, accepted, now, d.Until, candidateHash, candidateSize, plan.Format, string(decision), string(report), now+delay, failures, last, streak, j.Hash)
 	if e != nil {
 		return e
 	}
@@ -280,7 +309,7 @@ func (s *Store) manageEgress(ctx context.Context, tx *sql.Tx, action string, all
 		condition = "1=1"
 	}
 	if action != "delete" {
-		_, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET paused=?,revision=revision+1,token='',lease_until=0,valid_until=0,next_run=0,state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE 'PENDING' END WHERE "+condition, action == "disable")
+		_, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET paused=?,revision=revision+1,token='',lease_until=0,valid_until=0,next_run=0,state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE 'PENDING' END,retry_streak=0 WHERE ("+condition+") AND state!='DELETED'", action == "disable")
 		return e
 	}
 	if _, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET state='DELETED',reason='ordinary_delete',revision=revision+1,token='',lease_until=0,valid_until=0,candidate_hash='',candidate_size=0,report='{}',decision='{}' WHERE ("+condition+") AND ever_accepted=0"); e != nil {

@@ -24,7 +24,7 @@ func dropEgressForMigration(t *testing.T, s *Store) {
 			t.Fatal(e)
 		}
 	}
-	for _, q := range []string{"DROP TRIGGER egress_stage", "DROP TABLE egress_health", "DROP TABLE egress_lifecycle", "DROP VIEW egress_export_eligible", "DROP VIEW egress_geo_eligible", "DROP TABLE egress_geo_results", "DROP TABLE egress_countries", "DROP TABLE egress_country_policy", "DROP TRIGGER egress_ingest", "DROP VIEW input_blocked_identities", "DROP VIEW input_blocked", "DROP VIEW egress_eligible", "DROP TABLE egress_owners", "DROP TABLE egress_jobs", "DROP TABLE egress_turns", "DROP TABLE egress_events", "DROP TABLE egress_settings", "DROP TABLE egress_worker"} {
+	for _, q := range []string{"DROP TRIGGER egress_metric_ingest", "DROP TRIGGER egress_metric_delete", "DROP TRIGGER egress_retry_revived", "DROP TABLE egress_metrics", "DROP TRIGGER egress_stage", "DROP TABLE egress_health", "DROP TABLE egress_lifecycle", "DROP VIEW egress_export_eligible", "DROP VIEW egress_geo_eligible", "DROP TABLE egress_geo_results", "DROP TABLE egress_countries", "DROP TABLE egress_country_policy", "DROP TRIGGER egress_ingest", "DROP VIEW input_blocked_identities", "DROP VIEW input_blocked", "DROP VIEW egress_eligible", "DROP TABLE egress_owners", "DROP TABLE egress_jobs", "DROP TABLE egress_turns", "DROP TABLE egress_events", "DROP TABLE egress_settings", "DROP TABLE egress_worker"} {
 		if _, e := s.db.Exec(q); e != nil {
 			t.Fatal(e)
 		}
@@ -286,13 +286,19 @@ func TestEgressLaneFallbackAndFastSharedRecheck(t *testing.T) {
 		t.Fatal("idle followup must steal initial", j, err)
 	}
 	s.db.Exec("UPDATE egress_jobs SET token='',lease_until=0,tested=?,attempts=3,next_run=0,state='NO_SPLIT' WHERE hash=?", egress.Now(), j.Hash)
-	fresh, err := s.ClaimEgressLane(ctx, "followup")
+	fresh, err := s.ClaimEgressLane(ctx, "initial")
 	if err != nil || fresh == nil || fresh.Hash == j.Hash || fresh.Deep {
 		t.Fatal("shared recheck displaced first assessment", fresh, err)
 	}
-	retry, err := s.ClaimEgressLane(ctx, "initial")
+	retry, err := s.ClaimEgressLane(ctx, "followup")
 	if err != nil || retry == nil || retry.Hash != j.Hash || retry.Deep {
-		t.Fatal("idle initial should steal fast shared recheck", retry, err)
+		t.Fatal("reserved followup must serve fast shared recheck", retry, err)
+	}
+	// Once the initial lane is empty it may steal due routine follow-up work.
+	s.db.Exec("UPDATE egress_jobs SET token='',lease_until=0 WHERE hash=?", j.Hash)
+	stolen, err := s.ClaimEgressLane(ctx, "initial")
+	if err != nil || stolen == nil || stolen.Hash != j.Hash || stolen.Deep {
+		t.Fatal("idle initial did not steal fast shared work", stolen, err)
 	}
 	if _, err = s.ClaimEgressLane(ctx, "invalid"); err != ErrInvalid {
 		t.Fatal("unknown lane accepted", err)

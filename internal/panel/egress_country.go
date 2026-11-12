@@ -164,7 +164,7 @@ func countryState(ctx context.Context, q databaseQuery) (map[string]any, error) 
 		return nil, e
 	}
 	counts := map[string]int{}
-	rows, e := q.QueryContext(ctx, "SELECT c.country,count(*) FROM egress_countries c JOIN egress_geo_eligible g ON g.hash=c.hash WHERE c.last_seen>? GROUP BY c.country", egress.Now()-egress.CountryWindow)
+	rows, e := q.QueryContext(ctx, "SELECT c.country,count(*) FROM egress_countries c JOIN egress_geo_eligible g ON g.hash=c.hash WHERE c.last_seen>? GROUP BY c.country", readStamp(ctx)-egress.CountryWindow)
 	if e != nil {
 		return nil, e
 	}
@@ -183,14 +183,14 @@ func countryState(ctx context.Context, q databaseQuery) (map[string]any, error) 
 		return nil, e
 	}
 	var known, shared, published, route int
-	if e = q.QueryRowContext(ctx, `SELECT (SELECT count(*) FROM egress_geo_eligible),(SELECT count(*) FROM egress_export_eligible),(SELECT count(*) FROM egress_eligible),(SELECT count(*) FROM (SELECT c.hash FROM egress_countries c JOIN egress_geo_eligible g ON g.hash=c.hash WHERE c.last_seen>? GROUP BY c.hash HAVING count(*)>1))`, egress.Now()-egress.CountryWindow).Scan(&known, &published, &route, &shared); e != nil {
+	if e = q.QueryRowContext(ctx, `SELECT (SELECT count(*) FROM egress_geo_eligible),(SELECT count(*) FROM egress_export_eligible),(SELECT count(*) FROM egress_eligible),(SELECT count(*) FROM (SELECT c.hash FROM egress_countries c JOIN egress_geo_eligible g ON g.hash=c.hash WHERE c.last_seen>? GROUP BY c.hash HAVING count(*)>1))`, readStamp(ctx)-egress.CountryWindow).Scan(&known, &published, &route, &shared); e != nil {
 		return nil, e
 	}
 	return map[string]any{"policy": p, "match_mode": "any", "codes": egress.CountryCodes(), "counts": counts, "known": known, "shared": shared, "published": published, "unknown": route - known, "window_ms": egress.CountryWindow}, nil
 }
 
 func entryCountries(ctx context.Context, q databaseQuery, hash string) ([]string, error) {
-	rows, e := q.QueryContext(ctx, "SELECT country FROM egress_countries WHERE hash=? AND last_seen>? ORDER BY country", hash, egress.Now()-egress.CountryWindow)
+	rows, e := q.QueryContext(ctx, "SELECT country FROM egress_countries WHERE hash=? AND last_seen>? ORDER BY country", hash, readStamp(ctx)-egress.CountryWindow)
 	if e != nil {
 		return nil, e
 	}

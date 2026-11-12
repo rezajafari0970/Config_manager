@@ -46,6 +46,9 @@ func (s *Store) migrateV28() error {
 			return e
 		}
 	}
+	if e = backfillStagedEgress(tx); e != nil {
+		return e
+	}
 	// Publication independently requires a fresh full-payload health receipt.
 	var view string
 	if e = tx.QueryRow("SELECT sql FROM sqlite_master WHERE name='egress_eligible'").Scan(&view); e != nil {

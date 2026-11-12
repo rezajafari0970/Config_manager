@@ -1,4 +1,4 @@
-# P53 Residential Ads lifecycle
+# Residential Ads lifecycle (P55 operations; P53 health contract)
 
 Residential is the existing project label for finite repeated Google Ads split
 observations. It does not prove household ISP service or every possible route.
@@ -59,3 +59,7 @@ read snapshot; saving country selection returns its count atomically. At least o
 observed for a multi-country member during24hours must be selected (ANY). Filters do not
 erase stored healthy members. Neither GeoIP nor finite probes guarantee100% country
 accuracy, future routes or1000 conclusive classifications in a fixed time budget.
+
+P55 adds schema30 durable counters, fair resource-aware scheduling, watchdog recovery,
+upgrade-time staged-input recovery and execution-time lease fencing. See
+EGRESS_OPERATIONS.md. Accepted health and publication contracts above remain.

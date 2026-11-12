@@ -144,11 +144,16 @@ def private_sources(samples,key):
  return samples
 def error_code(error):
  return 'driver_subprocess_timeout' if isinstance(error,subprocess.TimeoutExpired) else 'driver_subprocess_failed' if isinstance(error,subprocess.CalledProcessError) else str(error) if isinstance(error,ValueError) and re.fullmatch('[a-z0-9_]{1,60}',str(error)) else 'driver_infrastructure_error'
+def resource_failures(prefix):
+ try:
+  fields=dict(line.split() for line in (pathlib.Path('/sys/fs/cgroup')/(prefix+'-sandboxes')/'memory.events').read_text().splitlines())
+  return int(fields.get('oom',0))+int(fields.get('oom_kill',0))
+ except (OSError,ValueError):return 0
 def investigate(req,args,pool=None):
  if pool is None:
   with ResourcePool(args) as own:return investigate(req,args,own)
  plan=req['plan'];r=dict(version='ads-egress.v5',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],health=[],attempts=[],wall_ms=0,waves=3 if req.get('deep') else 2)
- begin=time.monotonic();best=-1
+ begin=time.monotonic();best=-1;before_resource_failures=resource_failures(args.prefix)
  if len(plan.get('variants',[]))!=2:return r
  control_ip=control_ipv4()
  for core,path,pin in (core_order(plan) if plan['driver']=='xray' else [NATIVE]):
@@ -224,6 +229,7 @@ def investigate(req,args,pool=None):
  r['waves']=max([2]+[x.get('wave',0) for x in r['samples']])
  r['samples']=pool.geo.attach(r['samples'])
  r['samples']=private_sources(r['samples'],secrets.token_bytes(32))
+ r['resource_pressure']=resource_failures(args.prefix)>before_resource_failures
  r['finished']=int(time.time()*1000);r['wall_ms']=(time.monotonic()-begin)*1000
  return r
 def main():

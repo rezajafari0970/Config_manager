@@ -18,8 +18,6 @@ import (
 	"os/exec"
 	"os/signal"
 	"runtime"
-	"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -213,30 +211,6 @@ func (d *driverSession) exchange(ctx context.Context, input []byte) ([]byte, err
 	}
 }
 
-// Admission slows under pressure; already claimed jobs retain deadlines and cleanup.
-func resourceLimit(maximum int) int {
-	b, err := os.ReadFile("/proc/meminfo")
-	if err != nil {
-		return min(maximum, 2)
-	}
-	for _, line := range strings.Split(string(b), "\n") {
-		f := strings.Fields(line)
-		if len(f) >= 2 && f[0] == "MemAvailable:" {
-			kb, _ := strconv.ParseInt(f[1], 10, 64)
-			if kb < 512*1024 {
-				return 0
-			}
-			if kb < 1024*1024 {
-				return min(maximum, 4)
-			}
-			if kb < 1536*1024 {
-				return min(maximum, 12)
-			}
-			break
-		}
-	}
-	return maximum
-}
 func run() error {
 	socket := flag.String("socket", "/var/lib/config-repair/probe.sock", "local protected queue")
 	helper := flag.String("helper", "/opt/config-repair/current/scripts/egress-probe.py", "trusted driver")
@@ -264,6 +238,9 @@ func run() error {
 	c := client{&http.Client{Timeout: 30 * time.Second, Transport: &http.Transport{DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
 		return (&net.Dialer{}).DialContext(ctx, "unix", *socket)
 	}}}}
+	governor := resourceGovernor{current: resourceCapacity(*workers, sampleResources()), changed: time.Now()}
+	var capacityLimit atomic.Int32
+	capacityLimit.Store(int32(governor.current))
 	var active atomic.Int32
 	var wg sync.WaitGroup
 	for slot := 1; slot <= *workers; slot++ {
@@ -272,14 +249,13 @@ func run() error {
 			defer wg.Done()
 			driver := &driverSession{owner: ctx, helper: *helper, prefix: *prefix, slot: slot}
 			defer driver.stop()
+			var claims uint64
 			for ctx.Err() == nil {
 				var j *egress.Job
-				capacity := resourceLimit(*workers)
-				lane := "initial"
-				if slot > max(1, (capacity*4+4)/5) {
-					lane = "followup"
-				}
+				capacity := int(capacityLimit.Load())
+				lane := investigationLane(slot, capacity, claims)
 				if slot <= capacity && c.call(ctx, "claim", map[string]string{"lane": lane}, &j) == nil && j != nil {
+					claims++
 					active.Add(1)
 					execute(ctx, c, driver, *j)
 					active.Add(-1)
@@ -293,10 +269,14 @@ func run() error {
 			}
 		}(slot)
 	}
+	notifySystemd("READY=1")
+	defer notifySystemd("STOPPING=1")
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 	for ctx.Err() == nil {
-		_ = c.call(ctx, "status", map[string]any{"status": "running", "active": active.Load(), "code": fmt.Sprintf("capacity_%d", resourceLimit(*workers))}, nil)
+		notifySystemd("WATCHDOG=1")
+		capacityLimit.Store(int32(governor.update(resourceCapacity(*workers, sampleResources()), time.Now())))
+		_ = c.call(ctx, "status", map[string]any{"status": "running", "active": active.Load(), "code": fmt.Sprintf("capacity_%d", capacityLimit.Load())}, nil)
 		select {
 		case <-ctx.Done():
 		case <-ticker.C:

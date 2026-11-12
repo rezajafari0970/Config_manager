@@ -4,7 +4,11 @@ After=network-online.target config-repair.service
 Wants=network-online.target config-repair.service
 StartLimitIntervalSec=0
 [Service]
-Type=simple
+Type=notify
+NotifyAccess=main
+WatchdogSec=90
+WatchdogSignal=SIGKILL
+TimeoutStartSec=60
 User=root
 WorkingDirectory=/opt/config-repair/current
 ExecStart=/opt/config-repair/current/config-egress-worker
