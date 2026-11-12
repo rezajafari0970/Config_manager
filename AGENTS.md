@@ -1,3 +1,9 @@
+# Final P52 deployment observation
+
+Production independently moved to p48-617ea4b2e50ce60726e3-r1 during this work.
+P52 did not deploy it. Preserve that concurrent release; the P47 notes below
+refer to the starting state. P52 remains an isolated draft experiment.
+
 # P52 service-aware experiment — 2026-11-12
 
 Read docs/SERVICE_QUALITY.md and docs/reports/P52-summary.md. Production remains

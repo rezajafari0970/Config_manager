@@ -58,3 +58,8 @@ namespace after four real v2 member measurements passed. Eight service
 overrides were acknowledged/read back. Changing the external network token
 stopped the owned core; its PID was gone. This validates lifecycle wiring,
 not automatic Android network detection.
+
+Final concurrent-state observation: production moved independently during this
+work to p48-617ea4b2e50ce60726e3-r1; all six services were active. P52 did not
+perform that deployment. Earlier P47 statements describe the starting state.
+Keep P52 isolated; do not roll back or overwrite the concurrently updated release.
