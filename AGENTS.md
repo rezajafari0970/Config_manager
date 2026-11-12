@@ -1,3 +1,22 @@
+# P50 upload/QUIC candidate — 2026-11-12
+
+NOT ACTIVATED. Read docs/reports/P50-summary.md. Production remainsP47/schema26.
+The phone disconnected during the second matrix; do not claim uncollected runs.
+Opt-in config-probe-plan --experimental-upload-candidate appends a separate
+legacy plaintext VLESS TCP HTTP-header alternative; ordinary/Smart defaults
+remain unchanged. Keep raw, endpoints, credentials, TLS and original candidates.
+TCP mux/native UDP is Linux-tested; new Android repeats are pending. Earlier
+XUDP8 mux trial improved one upload but brokeDNS UDP3/3; never promote it.
+Official26.11.9 converts concurrency0..128 to128;26.10.31 retains1. Controlled
+three-stream fixture observed1 vs3 outerTCP connections. Never describe
+configured1 as effective1 onlatest. Both fixtures passed6 payloadpairs and24UDP
+echoes. Exact Internet candidate passed bothLinux cores includingHTTP3DoH.
+Large H3 endpoint has no contemporary positivecontrol, so its failure is
+inconclusive. Packet counts are not physical loss; no zero-loss/universal claims.
+No productionmigration, servicechange or unrelated project/phonecontroller edit.
+Resume onphone using baseline/candidate/healthycontrol and bothcore hashes;
+only fresh repeated bidirectional/UDP proofs can justify eventual activation.
+
 # P49 carrier-local payload health — 2026-11-12
 
 NOT ACTIVATED: the real 50-member phone pool still failed an upload. Keep the
