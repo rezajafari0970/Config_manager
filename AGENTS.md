@@ -1,3 +1,24 @@
+# P49 carrier-local payload health — 2026-11-12
+
+NOT ACTIVATED: the real 50-member phone pool still failed an upload. Keep the
+P49 candidate isolated until device qualification passes; production stays P47.
+Read docs/SMART_CARRIER_HEALTH.md and docs/reports/P49-summary.md. Smartv15, SmartAdsv8, schema27; ordinaryv9/Ads classifier v5 retained.
+Shared HTTPS GET64KiB observation replaces204, sampling2/timeout10s, interval
+max(15, observed node count)s. Main leastLoad3/2s/.15 remains; recovery1/10s/.15.
+Main, IP-only bootstrap and Ads scopes stay separate; singletonAds is gated too.
+Keep exact raw/server/security fields and failed/transient receipts. A failure
+on the user's current phone route must not globally blacklist an Irancell-usable
+server. Do not promote failed header/MSS/Mux/fragment experiments.
+
+Finite native Android A/B improved full64KiB6/12 to12/12;2MiB down1MiB up passed.
+Original legacy path was not repaired. Irancell is user-reported, not retested.
+QUIC latest remains intermittent; APK/VpnService, handover and battery not_run.
+Official observer lacks status/expected-length/upload checks. JSON cannot prove
+all apps, repair existing streams, or enforce startup probe concurrency. Keep
+bandwidth/large-pool recovery tradeoffs explicit. Hold shared deploy lock, matched
+stopped backup and six-binary verification; never run old code on schema27.
+Go1.27.1 race linking failed; use project Go1.26.0 and private bounded caches.
+
 # P47 Smart recovery and complete-payload qualification — 2026-11-12
 
 Activated p47-b51b595c6ec184771530; schema26, Smartv14, SmartAdsv7,

@@ -7,7 +7,7 @@ import (
 	"sort"
 )
 
-const Version = "xray-26.11.9.smart.v14"
+const Version = "xray-26.11.9.smart.v15"
 
 type Member struct {
 	Ads     bool
