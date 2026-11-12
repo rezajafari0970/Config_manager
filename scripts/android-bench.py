@@ -6,7 +6,8 @@ import argparse,concurrent.futures,hashlib,importlib.util,json,os,pathlib,subpro
 from benchmarks.core import Session,encoded,digest
 from benchmarks.http import site,transfers
 from benchmarks.quic import check as curl_http3
-VERSION='android-benchmark.v1'
+from benchmarks.quality import BENCHMARK_VERSION
+VERSION=BENCHMARK_VERSION
 HERE=pathlib.Path(__file__).resolve().parent
 
 def save(path,obj):
@@ -21,12 +22,12 @@ def http3(port,python,timeout):
     try:return json.loads(p.stdout)
     except ValueError:return {'status':'infrastructure_error','exit_code':p.returncode}
 def run_one(args,pair):
-    index,row=pair;c=row['config'];key=digest(encoded(c));work=pathlib.Path(args.output)/('case-%03d-'%index+key[:12]);result={'index':index,'family':row.get('family','smart'),'label':row.get('label','baseline'),'member_count':row.get('member_count',1),'profile':row.get('profile','simple'),'config_sha256':key,'core_sha256':args.core_sha,'network_label':args.network_label,'started':int(time.time()),'build':'not_run','startup':'not_run','connection':'not_run','app_functionality':'not_run'}
+    index,row=pair;c=row['config'];key=digest(encoded(c));work=pathlib.Path(args.output)/('case-%03d-'%index+key[:12]);result={'benchmark_version':VERSION,'index':index,'family':row.get('family','smart'),'label':row.get('label','baseline'),'member_count':row.get('member_count',1),'profile':row.get('profile','simple'),'config_sha256':key,'core_sha256':args.core_sha,'network_label':args.network_label,'started':int(time.time()),'build':'not_run','startup':'not_run','connection':'not_run','app_functionality':'not_run'}
     if args.resume:
         saved=work/'result.json'
         if saved.exists():
             prior=json.loads(saved.read_text())
-            if prior.get('config_sha256')==key and prior.get('core_sha256')==args.core_sha and prior.get('network_label')==args.network_label and prior.get('benchmark_stage')==args.stage and prior.get('observation_seconds')==args.observe_seconds and prior.get('finished'):
+            if prior.get('benchmark_version')==VERSION and prior.get('config_sha256')==key and prior.get('core_sha256')==args.core_sha and prior.get('network_label')==args.network_label and prior.get('benchmark_stage')==args.stage and prior.get('observation_seconds')==args.observe_seconds and prior.get('finished'):
                 prior['historical_reused']=True
                 print(json.dumps({'index':index,'status':'reused_completed_receipt','finished':prior['finished']}),flush=True)
                 return prior

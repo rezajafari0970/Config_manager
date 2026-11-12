@@ -1,5 +1,6 @@
 """Bounded verified HTTPS probes; destination status and transport are separate."""
 import json,os,pathlib,shutil,subprocess,time
+from .quality import PAYLOAD_VERSION, DOWNLOAD_BYTES, UPLOAD_BYTES, complete
 TARGETS={
  'google':('https://www.gstatic.com/generate_204',{204}),
  'instagram':('https://www.instagram.com/robots.txt',{200}),
@@ -30,9 +31,12 @@ def request(port,url,expected=(200,),timeout=6,payload=None,download_bytes=None,
 def site(port,name,timeout=6):
     url,status=TARGETS[name];return {'name':name,**request(port,url,status,timeout)}
 def transfers(port,work,timeout=8):
-    work=pathlib.Path(work);payload=work/'upload.bin';payload.write_bytes(os.urandom(131072))
+    work=pathlib.Path(work);payload=work/'upload.bin';payload.write_bytes(os.urandom(UPLOAD_BYTES))
     try:
-        down=request(port,'https://speed.cloudflare.com/__down?bytes=524288&nonce='+str(time.time_ns()),timeout=timeout,download_bytes=524288)
+        down=request(port,'https://speed.cloudflare.com/__down?bytes='+str(DOWNLOAD_BYTES)+'&nonce='+str(time.time_ns()),timeout=timeout,download_bytes=DOWNLOAD_BYTES)
         up=request(port,'https://speed.cloudflare.com/__up',timeout=timeout,payload=payload)
-        return {'download':down,'upload':up,'both_passed':down['status']==up['status']=='passed','upload_evidence':'verified HTTPS 2xx acknowledgement and exact submitted byte count; not a server-side payload hash'}
+        post=request(port,'https://www.gstatic.com/generate_204',expected=(204,),timeout=min(timeout,8))
+        result={'version':PAYLOAD_VERSION,'download':down,'upload':up,'post_load':post,'both_passed':down['status']==up['status']=='passed','upload_evidence':'verified HTTPS 2xx acknowledgement and exact submitted byte count; not a server-side payload hash'}
+        result['complete']=complete(result)
+        return result
     finally:payload.unlink(missing_ok=True)
