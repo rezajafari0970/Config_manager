@@ -82,6 +82,7 @@ func (m egressModule) Register(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/egress", m.state)
 	mux.HandleFunc("POST /api/egress/action", m.action)
 	mux.HandleFunc("POST /api/egress/countries", m.countries)
+	mux.HandleFunc("POST /api/egress/lifecycle", m.lifecycle)
 	mux.HandleFunc("GET /egress-subscription/{token}/{format}", m.export)
 }
 func (m egressModule) links() map[string]string {
@@ -175,6 +176,11 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		entry["countries"] = countries
+		var health string
+		var checked, valid int64
+		if err = db.QueryRowContext(ctx, "SELECT status,checked_at,valid_until FROM egress_health WHERE hash=?", entry["hash"]).Scan(&health, &checked, &valid); err == nil {
+			entry["health"] = map[string]any{"status": health, "checked_at": checked, "valid_until": valid}
+		}
 	}
 	var partial int
 	db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE state!='DELETED' AND json_extract(decision,'$.route')='PARTIAL_DIFFERENCE'").Scan(&partial)
@@ -188,7 +194,17 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		failure(w, err)
 		return
 	}
-	respond(w, 200, map[string]any{"country": countryInfo, "throughput": map[string]any{"completed_5m": completed, "definitive_5m": definitive, "completed_10m": completed10, "definitive_10m": definitive10, "target_10m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Project label only: Residential iff repeated dedicated Ads egress is observed; no ISP/network class lookup", "scope": "TCP / observed family / three explicit Ads domains / raw and template; IPv6-only entry, QUIC and ambiguous multipath remain unqualified"})
+	lifecycle, err := lifecycleState(ctx, db)
+	if err != nil {
+		failure(w, err)
+		return
+	}
+	var missing, retained int
+	if err = db.QueryRowContext(ctx, "SELECT (SELECT count(DISTINCT raw_hash) FROM memberships m WHERE NOT EXISTS(SELECT 1 FROM egress_jobs j WHERE j.hash=m.raw_hash)),(SELECT count(*) FROM egress_jobs WHERE ever_accepted=1 AND state!='DELETED')").Scan(&missing, &retained); err != nil {
+		failure(w, err)
+		return
+	}
+	respond(w, 200, map[string]any{"lifecycle": lifecycle, "coverage_missing": missing, "retained": retained, "country": countryInfo, "throughput": map[string]any{"completed_5m": completed, "definitive_5m": definitive, "completed_10m": completed10, "definitive_10m": definitive10, "target_10m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Project label only: Residential iff repeated dedicated Ads egress is observed; no ISP/network class lookup", "scope": "TCP / observed family / three explicit Ads domains / raw and template; IPv6-only entry, QUIC and ambiguous multipath remain unqualified"})
 }
 func (m egressModule) action(w http.ResponseWriter, r *http.Request) {
 	var b struct {

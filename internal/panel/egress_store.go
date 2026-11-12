@@ -69,6 +69,7 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	if e != nil {
 		return nil, e
 	}
+	j.Accepted = j.Deep
 	j.Deep = j.Deep || j.Attempt > 0 && state != "NO_SPLIT" && state != "UNSUPPORTED"
 	j.Attempt++
 	j.Token = randomToken()
@@ -108,7 +109,7 @@ func (s *Store) RenewEgress(ctx context.Context, j egress.Job) error {
 }
 func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	j, r := c.Job, c.Report
-	if !validDigest(j.Hash) || r.Hash != j.Hash || r.Version != egress.Version || len(r.Samples) > 256 || len(r.Attempts) > 8 || len(r.Checks) > 2 {
+	if !validDigest(j.Hash) || r.Hash != j.Hash || r.Version != egress.Version || len(r.Samples) > 256 || len(r.Attempts) > 8 || len(r.Checks) > 2 || len(r.Health) > 3 {
 		return ErrInvalid
 	}
 	b, e := s.vault.Open(j.Hash)
@@ -123,6 +124,13 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	plan := egress.Prepare(raw)
 	now := egress.Now()
 	d := egress.Evaluate(r, plan, j.Hash, now)
+	health := egress.Health(r, plan, now)
+	if d.Eligible && health != "healthy" {
+		d.Eligible = false
+		d.State = "UNKNOWN"
+		d.Reason = "payload_health_" + health
+		d.Until = 0
+	}
 	var candidateHash string
 	var candidateSize int64
 	if d.Eligible {
@@ -154,6 +162,25 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	if r.Started < claimed-2000 || r.Finished > now+2000 {
 		return ErrConflict
 	}
+	lifecycle, e := lifecycleState(ctx, tx)
+	if e != nil {
+		return e
+	}
+	interval := lifecycle.HealthMinutes * 60000
+	healthUntil := int64(0)
+	if health == "healthy" {
+		healthUntil = now + interval + 120000
+	}
+	if d.Eligible {
+		d.Until = healthUntil
+	}
+	hb, _ := json.Marshal(r.Health)
+	if _, e = tx.ExecContext(ctx, `INSERT INTO egress_health VALUES(?,?,?,?,?) ON CONFLICT(hash) DO UPDATE SET status=excluded.status,checked_at=excluded.checked_at,valid_until=excluded.valid_until,report=excluded.report`, j.Hash, health, now, healthUntil, string(hb)); e != nil {
+		return e
+	}
+	if accepted && health == "unhealthy" {
+		d.Reason = "payload_health_unhealthy"
+	}
 	state := d.State
 	if accepted && !d.Eligible {
 		state = "QUARANTINED"
@@ -162,10 +189,10 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 		accepted = true
 		failures = 0
 		last = 0
-	} else if accepted && d.Negative && now-last >= 30000 {
+	} else if accepted && health == "unhealthy" && now-last >= 30000 {
 		failures++
 		last = now
-	} else if !d.Negative {
+	} else if health != "unhealthy" {
 		failures = 0
 		last = 0
 	}
@@ -173,11 +200,11 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 		return e
 	}
 	var correlated int
-	if e = tx.QueryRowContext(ctx, "SELECT count(DISTINCT hash) FROM egress_events WHERE at>? AND reason='controls_incomplete' AND state='QUARANTINED'", now-60000).Scan(&correlated); e != nil {
+	if e = tx.QueryRowContext(ctx, "SELECT count(DISTINCT hash) FROM egress_events WHERE at>? AND reason='payload_health_unhealthy' AND state='QUARANTINED'", now-60000).Scan(&correlated); e != nil {
 		return e
 	}
 	if correlated >= 3 {
-		if _, e = tx.ExecContext(ctx, "UPDATE egress_settings SET circuit_until=max(circuit_until,?)", now+300000); e != nil {
+		if _, e = tx.ExecContext(ctx, "UPDATE egress_settings SET circuit_until=? WHERE circuit_until<=?", now+300000, now-300000); e != nil {
 			return e
 		}
 	}
@@ -186,7 +213,7 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 		return e
 	}
 	if accepted && failures >= 3 && now >= circuit {
-		if e = s.revokeEgress(ctx, tx, j.Hash, "confirmed_loss", now); e != nil {
+		if e = s.revokeEgress(ctx, tx, j.Hash, "confirmed_unhealthy", now); e != nil {
 			return e
 		}
 		return tx.Commit()
@@ -208,7 +235,7 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 		delay = 3600000
 	}
 	if accepted {
-		delay = 120000
+		delay = interval
 	}
 	if accepted && !d.Eligible {
 		delay = 30000
@@ -284,9 +311,9 @@ func (s *Store) expireEgress(ctx context.Context, tx *sql.Tx, now int64) error {
 	if _, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET state='QUARANTINED',reason='evidence_expired' WHERE ever_accepted=1 AND state='RESIDENTIAL' AND valid_until<=?", now); e != nil {
 		return e
 	}
-	if _, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET state='DELETED',reason='retention_expired',candidate_hash='',candidate_size=0,report='{}',decision='{}',revision=revision+1,token='',lease_until=0 WHERE ever_accepted=0 AND tested>0 AND state!='DELETED' AND first_seen<=?-(SELECT retention_seconds*1000 FROM settings) AND NOT(token!='' AND lease_until>?) AND NOT(state='UNKNOWN' AND deep_completed=0 AND tested>?)", now, now, now-1800000); e != nil {
-		return e
-	}
+	// Durable investigation inputs are not ordinary output artifacts. Unknown,
+	// unsupported and previously accepted inputs survive ordinary retention.
+
 	if _, e := tx.ExecContext(ctx, "DELETE FROM egress_countries WHERE last_seen<=? OR hash IN(SELECT hash FROM egress_jobs WHERE state='DELETED')", now-egress.CountryWindow); e != nil {
 		return e
 	}

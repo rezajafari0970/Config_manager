@@ -100,7 +100,7 @@ func execute(ctx context.Context, c client, driver *driverSession, j egress.Job)
 				}
 			}
 		}()
-		input, _ := json.Marshal(map[string]any{"hash": j.Hash, "started": started, "plan": p, "deep": j.Deep, "attempt": j.Attempt})
+		input, _ := json.Marshal(map[string]any{"hash": j.Hash, "started": started, "plan": p, "deep": j.Deep, "attempt": j.Attempt, "accepted": j.Accepted})
 		output, err := driver.exchange(job, input)
 		if err != nil || json.Unmarshal(output, &r) != nil {
 			driver.stop()

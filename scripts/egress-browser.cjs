@@ -12,9 +12,12 @@ for(const width of [390,1440]){
 }
 if(process.env.PANEL_COUNTRY_TEST==='1'){
  await page.goto(process.env.PANEL_TEST_ORIGIN+'/egress');await page.waitForFunction(()=>document.querySelectorAll('#country-options input').length===250);
+ assert.equal(await page.locator('#egress-health-minutes').inputValue(),'15');
+ await page.locator('#egress-health-minutes').fill('5');await page.locator('#egress-health-save').click();await page.waitForFunction(()=>document.querySelector('#egress-lifecycle-status').textContent.includes('ذخیره شد'));
  const original=(await(await page.request.get(process.env.PANEL_TEST_ORIGIN+'/api/egress')).json()).country.policy;
  await page.locator('#country-none').click();await page.locator('#country-save').click();
  await page.waitForFunction(()=>!document.querySelector('#country-selection').textContent.includes('ذخیره نشده'));
+ assert((await page.locator('#country-saved-count').textContent()).includes('کانفیگ'));
  await page.reload();await page.waitForFunction(()=>document.querySelectorAll('#country-options input').length===250);
  assert.equal(await page.locator('#country-options input:checked').count(),0);
  const state=await(await page.request.get(process.env.PANEL_TEST_ORIGIN+'/api/egress')).json();

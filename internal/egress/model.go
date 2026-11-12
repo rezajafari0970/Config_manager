@@ -145,6 +145,7 @@ func singlePath(raw []byte) bool {
 }
 
 type Job struct {
+	Accepted bool   `json:"accepted"`
 	Hash     string `json:"hash"`
 	Raw      []byte `json:"raw"`
 	Kind     string `json:"kind"`
@@ -190,19 +191,20 @@ type Attempt struct {
 	Stages map[string]float64 `json:"stages,omitempty"`
 }
 type Report struct {
-	Version        string    `json:"version"`
-	Hash           string    `json:"hash"`
-	Started        int64     `json:"started"`
-	Finished       int64     `json:"finished"`
-	Core           string    `json:"core"`
-	CoreSHA        string    `json:"core_sha"`
-	Infrastructure bool      `json:"infrastructure"`
-	Code           string    `json:"code"`
-	Checks         []Check   `json:"checks"`
-	Samples        []Sample  `json:"samples"`
-	Attempts       []Attempt `json:"attempts"`
-	WallMS         float64   `json:"wall_ms"`
-	Waves          int       `json:"waves"`
+	Health         []HealthSample `json:"health,omitempty"`
+	Version        string         `json:"version"`
+	Hash           string         `json:"hash"`
+	Started        int64          `json:"started"`
+	Finished       int64          `json:"finished"`
+	Core           string         `json:"core"`
+	CoreSHA        string         `json:"core_sha"`
+	Infrastructure bool           `json:"infrastructure"`
+	Code           string         `json:"code"`
+	Checks         []Check        `json:"checks"`
+	Samples        []Sample       `json:"samples"`
+	Attempts       []Attempt      `json:"attempts"`
+	WallMS         float64        `json:"wall_ms"`
+	Waves          int            `json:"waves"`
 }
 type Completion struct {
 	Job    Job    `json:"job"`

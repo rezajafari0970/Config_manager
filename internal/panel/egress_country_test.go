@@ -25,7 +25,9 @@ func TestEgressCountriesAllOutputsAndPolicy(t *testing.T) {
 			sample := &r.Samples[k]
 			if sample.ActualAds && (i == 2 || i == 1 && sample.Domain == egress.Domains[0]) {
 				sample.Geo.Country = "MO"
-				sample.Geo.Providers[0].Country = "MO"
+				for k := range sample.Geo.Providers {
+					sample.Geo.Providers[k].Country = "MO"
+				}
 				sample.Source = egress.Hash([]byte("second-fixture-source"))
 			}
 		}
@@ -172,7 +174,7 @@ func TestEgressFirstDeepRetrySurvivesArchivedRetention(t *testing.T) {
 		t.Fatal(e)
 	}
 	var state string
-	if e = s.db.QueryRow("SELECT state FROM egress_jobs WHERE hash=?", j.Hash).Scan(&state); e != nil || state != "DELETED" {
-		t.Fatal("normal retention not restored", state, e)
+	if e = s.db.QueryRow("SELECT state FROM egress_jobs WHERE hash=?", j.Hash).Scan(&state); e != nil || state == "DELETED" {
+		t.Fatal("durable investigation removed by ordinary retention", state, e)
 	}
 }

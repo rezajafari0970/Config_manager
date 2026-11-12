@@ -24,7 +24,7 @@ func dropEgressForMigration(t *testing.T, s *Store) {
 			t.Fatal(e)
 		}
 	}
-	for _, q := range []string{"DROP VIEW egress_export_eligible", "DROP VIEW egress_geo_eligible", "DROP TABLE egress_geo_results", "DROP TABLE egress_countries", "DROP TABLE egress_country_policy", "DROP TRIGGER egress_ingest", "DROP VIEW input_blocked_identities", "DROP VIEW input_blocked", "DROP VIEW egress_eligible", "DROP TABLE egress_owners", "DROP TABLE egress_jobs", "DROP TABLE egress_turns", "DROP TABLE egress_events", "DROP TABLE egress_settings", "DROP TABLE egress_worker"} {
+	for _, q := range []string{"DROP TRIGGER egress_stage", "DROP TABLE egress_health", "DROP TABLE egress_lifecycle", "DROP VIEW egress_export_eligible", "DROP VIEW egress_geo_eligible", "DROP TABLE egress_geo_results", "DROP TABLE egress_countries", "DROP TABLE egress_country_policy", "DROP TRIGGER egress_ingest", "DROP VIEW input_blocked_identities", "DROP VIEW input_blocked", "DROP VIEW egress_eligible", "DROP TABLE egress_owners", "DROP TABLE egress_jobs", "DROP TABLE egress_turns", "DROP TABLE egress_events", "DROP TABLE egress_settings", "DROP TABLE egress_worker"} {
 		if _, e := s.db.Exec(q); e != nil {
 			t.Fatal(e)
 		}
@@ -44,9 +44,13 @@ func syntheticEgress(j egress.Job) egress.Report {
 					ip = "8.8.8.8"
 				}
 				n := egress.Hash([]byte(fmt.Sprint(v.Name, d, wave)))[:32]
-				r.Samples = append(r.Samples, egress.Sample{Geo: egress.CountryFact{Version: egress.CountryVersion, Status: "located", Country: "TR", At: now, Providers: []egress.CountryProvider{{Name: "fixture", Dataset: strings.Repeat("a", 64), ReleasedAt: now - 86400000, Country: "TR"}}}, Variant: v.Name, Domain: d, Wave: wave, At: now, Source: egress.Hash([]byte(ip)), Family: 4, Transport: "tcp", Nonce: n, Connection: n, TLS: true, SameStream: true, Echo: true, ActualAds: ads, Certificate: strings.Repeat("c", 64), Response: strings.Repeat("f", 64)})
+				r.Samples = append(r.Samples, egress.Sample{Geo: egress.CountryFact{Version: egress.CountryVersion, Status: "located", Country: "TR", At: now, Providers: []egress.CountryProvider{{Name: "fixture", Lineage: "fixture", Kind: "database", Dataset: strings.Repeat("a", 64), ReleasedAt: now - 86400000, Country: "TR"}, {Name: "fixture2", Lineage: "fixture2", Kind: "database", Dataset: strings.Repeat("b", 64), ReleasedAt: now - 86400000, Country: "TR"}}}, Variant: v.Name, Domain: d, Wave: wave, At: now, Source: egress.Hash([]byte(ip)), Family: 4, Transport: "tcp", Nonce: n, Connection: n, TLS: true, SameStream: true, Echo: true, ActualAds: ads, Certificate: strings.Repeat("c", 64), Response: strings.Repeat("f", 64)})
 			}
 		}
+	}
+	for _, v := range []string{"raw", "template"} {
+		tr := egress.Transfer{Bytes: egress.HealthBytes, CurlExit: 0, HTTPStatus: 200, TLSVerified: true}
+		r.Health = append(r.Health, egress.HealthSample{Version: egress.HealthVersion, Variant: v, At: now, Providers: []egress.HealthProvider{{Provider: "cloudflare", Download: tr, Upload: tr}, {Provider: "httpbingo", Download: tr, Upload: tr}}})
 	}
 	return r
 }
@@ -151,9 +155,17 @@ func TestEgressUnknownQuarantinesAndConfirmedLossPurges(t *testing.T) {
 		if step == 0 {
 			r.Samples = nil
 		} else {
-			for i := range r.Samples {
-				r.Samples[i].Source = egress.Hash([]byte("1.1.1.1"))
+			host := r.Health[0]
+			host.Variant = "host"
+			host.HostControl = true
+			host.Providers = append([]egress.HealthProvider(nil), host.Providers...)
+			for i := range r.Health {
+				for k := range r.Health[i].Providers {
+					r.Health[i].Providers[k].Download.CurlExit = 28
+					r.Health[i].Providers[k].Upload.CurlExit = 28
+				}
 			}
+			r.Health = append(r.Health, host)
 		}
 		if e = s.CompleteEgress(ctx, egress.Completion{Job: *next, Report: r}); e != nil {
 			t.Fatal(e)

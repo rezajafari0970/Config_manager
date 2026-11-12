@@ -90,7 +90,13 @@ func (m egressModule) countries(w http.ResponseWriter, r *http.Request) {
 		b.Countries = []string{}
 	}
 	raw, _ := json.Marshal(b.Countries)
-	result, e := m.s.store.db.ExecContext(r.Context(), "UPDATE egress_country_policy SET allowed=?,revision=revision+1,updated=? WHERE id=1 AND revision=?", string(raw), egress.Now(), b.Revision)
+	tx, e := m.s.store.db.BeginTx(r.Context(), nil)
+	if e != nil {
+		failure(w, e)
+		return
+	}
+	defer tx.Rollback()
+	result, e := tx.ExecContext(r.Context(), "UPDATE egress_country_policy SET allowed=?,revision=revision+1,updated=? WHERE id=1 AND revision=?", string(raw), egress.Now(), b.Revision)
 	if e != nil {
 		failure(w, e)
 		return
@@ -100,8 +106,18 @@ func (m egressModule) countries(w http.ResponseWriter, r *http.Request) {
 		failure(w, ErrConflict)
 		return
 	}
+	info, e := countryState(r.Context(), tx)
+	if e != nil {
+		failure(w, e)
+		return
+	}
+	if e = tx.Commit(); e != nil {
+		failure(w, e)
+		return
+	}
 	b.Revision++
-	respond(w, 200, b)
+	respond(w, 200, map[string]any{"revision": b.Revision, "countries": b.Countries, "published": info["published"], "country": info, "saved_at": egress.Now()})
+
 }
 
 func countryState(ctx context.Context, q databaseQuery) (map[string]any, error) {

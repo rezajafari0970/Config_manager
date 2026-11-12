@@ -16,6 +16,7 @@ def available():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--reuse')
+    parser.add_argument('--country-config', help='Trusted private country manifest for an isolated full-pipeline benchmark')
     parser.add_argument('--count', type=int, default=1000)
     parser.add_argument('--workers', type=int, default=10)
     parser.add_argument('--seconds', type=int, default=1200)
@@ -49,7 +50,13 @@ def main():
         db = sqlite3.connect('file:'+str(work/'panel.db')+'?mode=ro', uri=True)
         total = db.execute('SELECT count(*) FROM egress_jobs').fetchone()[0]
         assert total>0
-        command = [str(ROOT/'bin/config-egress-worker'), '--socket', ready['socket'], '--helper', str(ROOT/'scripts/egress-probe.py'), '--prefix', 'cgt', '--lock-file', str(work/'worker.lock'), '--workers', str(args.workers)]
+        helper=ROOT/'scripts/egress-probe.py'
+        if args.country_config:
+            manifest=pathlib.Path(args.country_config).resolve();assert manifest.is_file()
+            helper=work/'country-helper.py'
+            helper.write_text("import importlib.util,functools\ns=importlib.util.spec_from_file_location('probe',"+repr(str(ROOT/'scripts/egress-probe.py'))+");m=importlib.util.module_from_spec(s);s.loader.exec_module(m)\noriginal=m.country.Registry.attach\ndef attach(self,rows,config=None):return original(self,rows,config="+repr(str(manifest))+")\nm.country.Registry.attach=attach\nm.main()\n")
+            helper.chmod(0o600)
+        command = [str(ROOT/'bin/config-egress-worker'), '--socket', ready['socket'], '--helper', str(helper), '--prefix', 'cgt', '--lock-file', str(work/'worker.lock'), '--workers', str(args.workers)]
         command = ['systemd-run', '--scope', '--quiet', '--unit=shen-egress-throughput-'+str(os.getpid()), '-p', 'MemoryMax=2G', '-p', 'TasksMax=4096'] + command
         begin = time.monotonic(); begin_wall_ms = int(time.time()*1000)
         worker = subprocess.Popen(command, stdout=worker_log, stderr=worker_log, start_new_session=True)
@@ -79,7 +86,7 @@ def main():
             samples.update(x['code'] for x in (report.get('samples') or []))
             if report.get('wall_ms') is not None: attempts.append(report['wall_ms'])
         attempts.sort()
-        receipt=dict(version='ads-egress.v5',requested=args.count,total=total,assessed=done,complete=done==total,seconds=round(elapsed,3),assessed_at_300s=at_300,assessed_at_600s=at_600,target_600s_met=done==total and elapsed<=600,workers=args.workers,max_active=maximum,min_available_mib=minimum_memory//1048576,states=states,reasons=reasons,sample_codes=dict(samples),definitive=states.get('RESIDENTIAL',0)+states.get('NO_SPLIT',0),job_ms_p50=attempts[len(attempts)//2] if attempts else None,job_ms_p95=attempts[min(len(attempts)-1,int(len(attempts)*.95))] if attempts else None,timeline=timeline,fixture_origin=ready['origin'],scope='Distinct real retained source hashes; initial assessments include inconclusive and unsupported results. Not 1000 definitive residential classifications.')
+        receipt=dict(country_consensus_enabled=bool(args.country_config),version='ads-egress.v5',requested=args.count,total=total,assessed=done,complete=done==total,seconds=round(elapsed,3),assessed_at_300s=at_300,assessed_at_600s=at_600,target_600s_met=done==total and elapsed<=600,workers=args.workers,max_active=maximum,min_available_mib=minimum_memory//1048576,states=states,reasons=reasons,sample_codes=dict(samples),definitive=states.get('RESIDENTIAL',0)+states.get('NO_SPLIT',0),job_ms_p50=attempts[len(attempts)//2] if attempts else None,job_ms_p95=attempts[min(len(attempts)-1,int(len(attempts)*.95))] if attempts else None,timeline=timeline,fixture_origin=ready['origin'],scope='Distinct real retained source hashes; initial assessments include inconclusive and unsupported results. Not 1000 definitive residential classifications.')
         (work/'receipt.json').write_text(json.dumps(receipt,indent=2))
         (ROOT/'.local/throughput-latest.json').write_text(json.dumps({'directory':str(work),**receipt},indent=2))
         if os.environ.get('PLAYWRIGHT_MODULE') and os.environ.get('CHROME_PATH'):

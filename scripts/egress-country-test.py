@@ -11,7 +11,7 @@ class Countries(unittest.TestCase):
   updater.build(b'8.8.8.0,8.8.8.255,TR\n2001:4860::,2001:4860:ffff:ffff:ffff:ffff:ffff:ffff,MO\n',self.db)
   self.entry=dict(name='fixture',driver='sqlite-ranges',path=str(self.db),sha256=hashlib.sha256(self.db.read_bytes()).hexdigest(),released_at=int(time.time()*1000)-86400000)
   self.config=self.root/'config.json';self.registry=country.Registry();self.addCleanup(self.registry.close)
-  self.write([self.entry]);self.registry.refresh(self.config)
+  self.entry['lineage']='fixture';self.second={**self.entry,'name':'fixture2','lineage':'fixture2'};self.write([self.entry,self.second]);self.registry.refresh(self.config)
  def write(self,providers):self.config.write_text(json.dumps(dict(version=country.VERSION,providers=providers)))
  def test_families_boundaries_and_no_network(self):
   for ip,c in [('8.8.8.0','TR'),('8.8.8.255','TR'),('2001:4860::1','MO')]:self.assertEqual(self.registry.lookup(ip)['country'],c)
@@ -19,11 +19,11 @@ class Countries(unittest.TestCase):
    r=self.registry.lookup(ip);self.assertEqual(r['country'],'');self.assertNotIn(ip,json.dumps(r))
  def test_stale_missing_and_corrupt_fail_closed(self):
   self.assertEqual(self.registry.lookup('8.8.8.8',self.entry['released_at']+country.MAX_AGE_MS+1)['country'],'')
-  self.entry['sha256']='0'*64;self.write([self.entry]);self.registry.refresh(self.config)
-  self.assertEqual(self.registry.lookup('8.8.8.8')['country'],'')
+  self.entry['sha256']='0'*64;self.entry['lineage']='fixture';self.second={**self.entry,'name':'fixture2','lineage':'fixture2'};self.write([self.entry,self.second]);self.registry.refresh(self.config)
+  self.assertEqual(self.registry.lookup('8.8.8.8')['country'],'TR')
  def test_provider_conflict(self):
   db=self.root/'other.sqlite';updater.build(b'8.8.8.0,8.8.8.255,MO\n',db)
-  other={**self.entry,'name':'other','path':str(db),'sha256':hashlib.sha256(db.read_bytes()).hexdigest()};self.write([self.entry,other]);self.registry.refresh(self.config)
+  other={**self.entry,'name':'other','lineage':'other','path':str(db),'sha256':hashlib.sha256(db.read_bytes()).hexdigest()};self.write([self.entry,other]);self.registry.refresh(self.config)
   self.assertEqual(self.registry.lookup('8.8.8.8')['status'],'country_provider_disagreement')
  def test_only_authenticated_ads_attached(self):
   row=dict(ip='8.8.8.8',actual_ads=True,echo=True,tls=True,same_stream=True)
@@ -32,4 +32,9 @@ class Countries(unittest.TestCase):
  def test_bad_csv_rejected(self):
   for index,raw in enumerate([b'8.8.8.9,8.8.8.1,TR\n',b'8.8.8.0,8.8.8.9,TR\n8.8.8.8,8.8.8.10,TR\n',b'8.8.8.0,::1,TR\n']):
    with self.assertRaises(ValueError):updater.build(raw,self.root/str(index))
+ def test_independent_votes_and_majority(self):
+  facts=[dict(lineage='dbip',country='TR'),dict(lineage='iplocate',country='MO'),dict(lineage='maxmind',country='MO')]
+  self.assertEqual(country.consensus(facts),'MO')
+  self.assertEqual(country.consensus([facts[0],facts[0]]),'')
+  self.assertEqual(country.consensus(facts[:2]),'')
 if __name__=='__main__':unittest.main()

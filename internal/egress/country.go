@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-const CountryVersion = "ads-country.v1"
+const CountryVersion = "ads-country.v2"
 const CountryWindow = int64(86400000)
 const CountryDataAge = int64(45 * 86400000)
 
@@ -19,6 +19,9 @@ func ValidCountry(code string) bool {
 }
 
 type CountryProvider struct {
+	Lineage    string `json:"lineage"`
+	Kind       string `json:"kind"`
+	CheckedAt  int64  `json:"checked_at,omitempty"`
 	Name       string `json:"name"`
 	Dataset    string `json:"dataset"`
 	ReleasedAt int64  `json:"released_at"`
@@ -66,21 +69,58 @@ func Countries(r Report, route Decision, now int64) CountryResult {
 			continue
 		}
 		g := s.Geo
-		if g.Version != CountryVersion || g.Status != "located" || !ValidCountry(g.Country) || g.At < r.Started || g.At > r.Finished+2000 || g.At > now+2000 || len(g.Providers) < 1 || len(g.Providers) > 4 {
+		if g.Version != CountryVersion || g.Status != "located" || !ValidCountry(g.Country) || g.At < r.Started || g.At > r.Finished+2000 || g.At > now+2000 || len(g.Providers) < 2 || len(g.Providers) > 8 {
 			return out
 		}
 		seen := map[string]bool{}
+		lineages := map[string]string{}
 		for _, p := range g.Providers {
-			digest, e := hex.DecodeString(p.Dataset)
-			if p.Name == "" || len(p.Name) > 48 || seen[p.Name] || e != nil || len(digest) != 32 || p.Country != g.Country || p.ReleasedAt <= 0 || p.ReleasedAt > g.At+86400000 || now-p.ReleasedAt >= CountryDataAge {
+			digest, err := hex.DecodeString(p.Dataset)
+			if p.Name == "" || len(p.Name) > 48 || seen[p.Name] || p.Lineage == "" || len(p.Lineage) > 48 || err != nil || len(digest) != 32 || !ValidCountry(p.Country) {
 				return out
 			}
 			seen[p.Name] = true
-			if expires := p.ReleasedAt + CountryDataAge; expires < until {
-				until = expires
+			expiry := int64(0)
+			if p.Kind == "database" {
+				if p.ReleasedAt <= 0 || p.ReleasedAt > g.At+86400000 {
+					return out
+				}
+				expiry = p.ReleasedAt + CountryDataAge
+			} else if p.Kind == "live" && p.Name == "geojs" && p.Lineage == "maxmind" {
+				if p.CheckedAt <= 0 || p.CheckedAt > g.At+2000 || p.ReleasedAt != 0 {
+					return out
+				}
+				expiry = p.CheckedAt + CountryWindow
+			} else {
+				return out
+			}
+			if expiry <= now {
+				return out
+			}
+			if expiry < until {
+				until = expiry
+			}
+			if old, ok := lineages[p.Lineage]; ok && old != p.Country {
+				lineages[p.Lineage] = "conflict"
+			} else if !ok {
+				lineages[p.Lineage] = p.Country
 			}
 			providers[p.Name+":"+p.Dataset+":"+p.Country] = p
 		}
+		votes, total := 0, 0
+		for _, country := range lineages {
+			if country != "conflict" {
+				total++
+				if country == g.Country {
+					votes++
+				}
+			}
+		}
+		if votes < 2 || votes*2 <= total {
+			out.Status = "country_conflict"
+			return out
+		}
+
 		if previous := sources[s.Source]; previous != "" && previous != g.Country {
 			out.Status = "country_conflict"
 			return out

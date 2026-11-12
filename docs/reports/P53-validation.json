@@ -1,0 +1,199 @@
+{
+  "phase": "P53",
+  "date": "2026-11-12",
+  "release": "/opt/config-repair/releases/p53-33fdc2ef3b946c78accb",
+  "schema": 28,
+  "versions": {
+    "route": "ads-egress.v5",
+    "country": "ads-country.v2",
+    "health": "ads-health.v1",
+    "ordinary": "v9",
+    "smart": "v14",
+    "smart_ads": "v7"
+  },
+  "checks": {
+    "check": 0,
+    "crash": 0,
+    "rehearsal": 0,
+    "lifecycle-race": 0,
+    "throughput": 0,
+    "patch-check": 0,
+    "circuit-race": 0
+  },
+  "migration": {
+    "sources": 33,
+    "memberships": 976,
+    "source_settings_country_selection_preserved": true
+  },
+  "throughput": {
+    "country_consensus_enabled": true,
+    "version": "ads-egress.v5",
+    "requested": 1000,
+    "total": 1000,
+    "assessed": 1000,
+    "complete": true,
+    "seconds": 462.227,
+    "assessed_at_300s": 609,
+    "assessed_at_600s": 1000,
+    "target_600s_met": true,
+    "workers": 10,
+    "max_active": 10,
+    "min_available_mib": 1925,
+    "states": {
+      "NO_SPLIT": 400,
+      "UNKNOWN": 556,
+      "UNSUPPORTED": 44
+    },
+    "reasons": {
+      "ads_peer_echo_incomplete": 16,
+      "controls_incomplete": 62,
+      "core_evidence_missing": 1,
+      "direct_route_not_qualified": 18,
+      "driver_unavailable": 44,
+      "endpoint_dns_failed": 5,
+      "ipv6_only_probe_pending": 5,
+      "mixed_route_observations": 1,
+      "network_retry_pending": 444,
+      "route_not_distinct": 402,
+      "runtime_start_failed": 2
+    },
+    "sample_codes": {
+      "ads_peer_reported": 2796,
+      "control_echo": 3501,
+      "connection_timeout": 3324,
+      "connection_failed": 2304,
+      "ads_echo_unavailable": 1
+    },
+    "definitive": 400,
+    "job_ms_p50": 3270.7100508268923,
+    "job_ms_p95": 10334.707856178284,
+    "scope": "Distinct real retained source hashes; initial assessments include inconclusive and unsupported results. Not 1000 definitive residential classifications."
+  },
+  "canary": {
+    "route": "DIFFERENT",
+    "route_eligible": true,
+    "health": "healthy",
+    "countries": [
+      "CY",
+      "MX",
+      "TW"
+    ],
+    "country_complete": true,
+    "wall_ms": 12907.538288040087,
+    "scope": "Project Residential = repeated Ads split egress; three DoubleClick domains; TCP; paired family; raw and template; authenticated peer report, not full hop topology or ISP class"
+  },
+  "live": {
+    "health_minutes": 15,
+    "health_counts": {
+      "healthy": 46,
+      "unhealthy": 7
+    },
+    "schedule_errors": 0,
+    "retained": 53,
+    "at": 1794480825870,
+    "countries": {
+      "counts": {
+        "AU": 35,
+        "BE": 1,
+        "CA": 2,
+        "CY": 1,
+        "DE": 2,
+        "GB": 2,
+        "HK": 2,
+        "IE": 2,
+        "IL": 1,
+        "KR": 2,
+        "MO": 7,
+        "MX": 1,
+        "PR": 2,
+        "TW": 8,
+        "US": 3
+      },
+      "known": 43,
+      "published": 3,
+      "shared": 10,
+      "unknown": 0,
+      "window_ms": 86400000
+    },
+    "selected": 4,
+    "selected_countries": [
+      "CY",
+      "MO",
+      "PR",
+      "TW"
+    ],
+    "entry_country_subset_verified": true,
+    "policy_revision": 4,
+    "route_eligible": 43,
+    "outputs": {
+      "configs.json": {
+        "status": 200,
+        "count": 3,
+        "bytes": 5250,
+        "checksum_verified": true
+      },
+      "configs.jsonl": {
+        "status": 200,
+        "count": 3,
+        "bytes": 5245,
+        "checksum_verified": true
+      },
+      "next.json": {
+        "status": 200,
+        "count": 1,
+        "bytes": 1756,
+        "checksum_verified": true
+      },
+      "raw.txt": {
+        "status": 200,
+        "count": 3,
+        "bytes": 4207,
+        "checksum_verified": true
+      }
+    },
+    "api_ms": [
+      379.07,
+      362.34,
+      299.98,
+      327.72,
+      288.56
+    ],
+    "missing_source_inputs": 0,
+    "throughput": {
+      "completed_10m": 371,
+      "completed_5m": 188,
+      "definitive_10m": 157,
+      "definitive_5m": 80,
+      "max_workers": 31,
+      "target_10m": 1000
+    }
+  },
+  "binaries": {
+    "config-panel": "33fdc2ef3b946c78accb042f319abfa65bb64e4c483846b05ffa59b85a70a951",
+    "config-probe-worker": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+    "config-egress-worker": "ecc78e5a895f66cd94a1dbb9abd53ab07a431150bd494de25152ad8b990af8bd",
+    "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+    "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+    "config-probe-plan": "62c40caf384f0436300299f61c65364a94d13efddedf4e3bbbf3c66d55f793e9"
+  },
+  "running_executables_match": true,
+  "country_lookup": {
+    "lookups": 10000,
+    "milliseconds": 575,
+    "cold_load_ms": 170,
+    "local_providers": [
+      "DB-IP",
+      "IPLocate"
+    ],
+    "fallback": "GeoJS (MaxMind GeoLite lineage)",
+    "fallback_live_endpoint_verified": true
+  },
+  "limitations": [
+    "Finite three-DoubleClick-domain TCP diagnostic observations, not all Google Ads traffic or physical hop topology.",
+    "GeoIP consensus is an estimate, never 100% physical location.",
+    "UNKNOWN and UNSUPPORTED are retained but not conclusive residential classifications.",
+    "Publication requires fresh health, route and country evidence and all observed countries selected; stored healthy configs are not age-deleted.",
+    "Pre-migration garbage-collected bytes cannot be reconstructed by a schema migration.",
+    "No Android/carrier or lifetime/no-bug guarantee."
+  ]
+}

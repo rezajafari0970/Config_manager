@@ -1,3 +1,36 @@
+# P53 Residential lifecycle and independent country consensus — 2026-11-12
+
+Activated p53-33fdc2ef3b946c78accb, schema28. Read
+docs/EGRESS_LIFECYCLE.md, EGRESS_COUNTRIES.md and reports/P53-report-fa.md.
+Preserve routev5, ordinaryv9, Smartv14, SmartAdsv7 and payload_v1.
+
+Staging and membership commits durably register inputs. Ordinary retention cannot
+erase unresolved or accepted egress inputs; manual exclusions still win. Reset
+revived first-assessment counters and leases. No promise to recover old GC bytes.
+Health defaults to15min, editable1..60 with CAS. Complete64KiB upload AND download
+in both exact runtimes is required; two independent targets and host outage controls
+separate uncertainty from credible negatives. Only three spaced confirmed unhealthy
+rounds plus circuit policy auto-revoke globally. A healthy route change withdraws
+Residential publication without globally deleting it. Fresh route/health/country
+proofs still gate outputs; unknown is retained, never invented as negative or positive.
+
+Countryv2 uses local DB-IP and IPLocate plus bounded GeoJS/MaxMind fallback.
+Require at least two agreeing independent lineages and a strict majority. Do not
+double-vote mirrors or use ASN/entry country. GeoIP is estimated. Provider failure
+retains independent last-good readers until original expiry; daily atomic updater
+pins official data and checks bounds. Keep attribution and license rules, privacy,
+all-observed24h-country subset filtering and transactional post-save counts.
+
+Full race/vet/build/Python/JS, migration, SIGKILL recovery and browser checks passed.
+The final finite-circuit patch passed all Egress race tests (42.871s), vet and six
+builds; the benchmark worker was unchanged. Repeated failures must not slide the
+five-minute guard indefinitely; its cooldown permits confirmed deletion.
+Real1000-input benchmark with10 workers and new country providers completed in
+462.227s with400 conclusive route results; never call all1000 definitive.
+Fastly canary passed split+health and country consensus (CY, MX, TW).
+Six executable hashes match. Preserve source controls, shared deploy lock,
+matched stopped DB/blob/key/release backup; never run pre28 binaries or force-push.
+
 # P48 observed Ads country filtering — 2026-11-12
 
 Activated p48-617ea4b2e50ce60726e3-r1, schema27; route policy v5, ordinaryv9,

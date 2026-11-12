@@ -5,7 +5,7 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 User=root
-ExecStart=/usr/bin/python3 /opt/config-repair/current/scripts/egress-country-update.py
+ExecStart=/usr/bin/python3 /opt/config-repair/current/scripts/egress-country-providers-update.py
 UMask=0077
 Nice=10
 MemoryMax=512M

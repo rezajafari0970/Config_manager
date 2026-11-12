@@ -147,12 +147,12 @@ def error_code(error):
 def investigate(req,args,pool=None):
  if pool is None:
   with ResourcePool(args) as own:return investigate(req,args,own)
- plan=req['plan'];r=dict(version='ads-egress.v5',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],attempts=[],wall_ms=0,waves=3 if req.get('deep') else 2)
+ plan=req['plan'];r=dict(version='ads-egress.v5',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],health=[],attempts=[],wall_ms=0,waves=3 if req.get('deep') else 2)
  begin=time.monotonic();best=-1
  if len(plan.get('variants',[]))!=2:return r
  control_ip=control_ipv4()
  for core,path,pin in (core_order(plan) if plan['driver']=='xray' else [NATIVE]):
-  at=time.monotonic();checks=[];samples=[];code='core_unavailable';stages={};checkpoint=at
+  at=time.monotonic();checks=[];samples=[];health=[];code='core_unavailable';stages={};checkpoint=at
   def mark(name):
    nonlocal checkpoint
    current=time.monotonic();stages[name]=(current-checkpoint)*1000;checkpoint=current
@@ -187,14 +187,20 @@ def investigate(req,args,pool=None):
      # XHTTP and deep retries avoid overloading one remote path with 21 connections.
      sequential=bool(req.get('deep')) or any(o.get('streamSettings',{}).get('network') in ('xhttp','splithttp') for o in config.get('outbounds',[]))
      rows=observe(1,r['waves'],8 if req.get('deep') else 3)
-     samples+=rows;box.stop();code='measured';mark(v['name']+'_probes')
-     if v['name']=='raw' and raw_shared_egress(rows,max(x['wave'] for x in rows)):code='raw_shared_egress';break
-     if not req.get('deep') and not any(x.get('echo') for x in rows):
+     samples+=rows
+     # Existing members always receive a real payload check. New candidates
+     # only pay this cost when a dedicated Ads path remains possible.
+     if req.get('accepted') or any(x.get('actual_ads') and x.get('echo') for x in rows) and not raw_shared_egress(rows,max(x['wave'] for x in rows)):
+      result=box.net(['/usr/bin/python3',str(HERE/'egress-health.py')],timeout=12)
+      h=json.loads(result.stdout);h['variant']=v['name'];health.append(h)
+     box.stop();code='measured';mark(v['name']+'_probes')
+     if not req.get('accepted') and v['name']=='raw' and raw_shared_egress(rows,max(x['wave'] for x in rows)):code='raw_shared_egress';break
+     if not req.get('accepted') and not req.get('deep') and not any(x.get('echo') for x in rows):
       code='network_retry_pending';break
    mark('reset')
    score=sum(bool(x.get('echo')) for x in samples)
    if len(checks)==2 and all(x['core'] for x in checks):score+=100
-   if score>best:r.update(core=core,core_sha=pin,checks=checks,samples=samples,code=code);best=score
+   if score>best:r.update(core=core,core_sha=pin,checks=checks,samples=samples,health=health,code=code);best=score
    r['attempts'].append(dict(core=core,code=code,ms=(time.monotonic()-at)*1000,stages=stages))
    # A validated running core does not need four repetitions of a network timeout.
    # Schema/start failures still use the full pinned compatibility matrix.
@@ -210,6 +216,11 @@ def investigate(req,args,pool=None):
   result=subprocess.run(['/usr/bin/curl','--noproxy','*','--silent','--fail','--max-time','5','https://1.1.1.1/cdn-cgi/trace'],capture_output=True,timeout=6)
   r['infrastructure']=result.returncode==0 and b'ip=' in result.stdout
  except Exception:pass
+ if len(r['health'])==2 and all(not any(x.get('passed') for x in h.get('providers',[])) for h in r['health']):
+  try:
+   q=subprocess.run(['/usr/bin/python3',str(HERE/'egress-health.py'),'--host-control'],capture_output=True,timeout=12)
+   h=json.loads(q.stdout);h['variant']='host';r['health'].append(h)
+  except Exception:pass
  r['waves']=max([2]+[x.get('wave',0) for x in r['samples']])
  r['samples']=pool.geo.attach(r['samples'])
  r['samples']=private_sources(r['samples'],secrets.token_bytes(32))

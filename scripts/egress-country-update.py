@@ -60,10 +60,11 @@ def update(directory, config):
             if count<100000:raise ValueError('incomplete_dataset')
             with temp.open('rb') as f:sha=hashlib.file_digest(f,'sha256').hexdigest()
             destination=directory/('dbip-'+month+'-'+sha[:16]+'.sqlite');os.replace(temp,destination)
-            entry=dict(name='dbip-country-lite',driver='sqlite-ranges',path=str(destination.resolve()),sha256=sha,released_at=released,publisher_sha1=hashes[-1],source_url=url,license='CC-BY-4.0')
+            entry=dict(name='dbip-country-lite',lineage='dbip',driver='sqlite-ranges',path=str(destination.resolve()),sha256=sha,released_at=released,publisher_sha1=hashes[-1],source_url=url,license='CC-BY-4.0')
             providers=[]
             if config.exists():providers=[p for p in json.loads(config.read_text()).get('providers',[]) if p.get('name')!='dbip-country-lite']
-            manifest=dict(version='ads-country.v1',providers=[entry]+providers)
+            manifest=json.loads(config.read_text()) if config.exists() else {'version':'ads-country.v2'}
+            manifest['providers']=[entry]+providers
             staged=config.with_name(config.name+'.new');staged.write_text(json.dumps(manifest,indent=2));os.chmod(staged,0o600);os.replace(staged,config)
         # Old immutable datasets are small and retained for in-flight readers.
         print(json.dumps({'status':'updated','release':month,'records':count,'sha256':sha}))
