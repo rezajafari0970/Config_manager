@@ -24,7 +24,7 @@ func TestEgressHealthScheduleRetentionAndRouteLoss(t *testing.T) {
 	}
 	var tested, next, until int64
 	s.db.QueryRow("SELECT tested,next_run,valid_until FROM egress_jobs WHERE hash=?", j.Hash).Scan(&tested, &next, &until)
-	if next-tested != 900000 || until < next+60000 {
+	if next-tested != 540000 || until > tested+600000 || until < next+59000 {
 		t.Fatal(tested, next, until)
 	}
 	app, e := NewServer(s, "http://127.0.0.1:18191")

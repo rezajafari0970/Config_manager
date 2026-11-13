@@ -1,3 +1,19 @@
+# P56 DoubleClick Iran guard — 2026-11-13
+
+Read docs/DOUBLECLICK_IRAN_GUARD.md. Schema31 adds sticky identity quarantine
+and permanent confirmed IR revocation. This explicit user-approved IR veto
+supersedes ANY country matching for IR only; preserve ANY for other countries.
+A partial authenticated Ads observation may quarantine even if route/health
+is incomplete. Require pinned core/variant, strict same-stream TLS evidence,
+fresh independent GeoIP consensus, and two independent positive rounds>=60s
+apart before deletion. Unknown, OOM and provider outages are not IR evidence.
+Clean tests cannot clear a valid IR signal. Preserve all current country/source/
+health settings and raw bytes. No runtime AI dependency. Guarded accepted probes
+are capped at10min with expiry fail-closed and an explicit overdue counter.
+Pre-guard proofs must be renewed. Never run pre31 binaries on schema31 or undo
+confirmed revocations by restoring an older DB alone. Hold shared deploy lock,
+matched stopped DB/blob/key/release backup, and verify all six binaries.
+
 # P55 Residential production hardening — 2026-11-12
 
 Schema30; active release p55-dbd82659ccbc19ad6911. Read docs/EGRESS_OPERATIONS.md

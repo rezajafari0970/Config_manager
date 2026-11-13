@@ -43,14 +43,14 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	var size int64
 	var state, previousToken string
 	base := `SELECT hash,kind,size,revision,ever_accepted,attempts,state,token FROM egress_jobs WHERE state!='DELETED' AND paused=0 AND next_run<=? AND (token='' OR lease_until<=?)`
-	order := ` ORDER BY CASE WHEN ever_accepted=1 AND valid_until<=? THEN 0 WHEN reason='manual_recheck' THEN 1 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 2 WHEN tested=0 THEN 3 WHEN ever_accepted=1 THEN 4 WHEN state='UNKNOWN' AND attempts=1 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 5 ELSE 6 END,next_run,first_seen,hash LIMIT 1`
+	order := ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 AND valid_until<=? THEN 0 WHEN reason='manual_recheck' THEN 1 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 2 WHEN tested=0 THEN 3 WHEN ever_accepted=1 THEN 4 WHEN state='UNKNOWN' AND attempts=1 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 5 ELSE 6 END,next_run,first_seen,hash LIMIT 1`
 	filters := []string{""}
 	if lane == "initial" {
 		filters = []string{` AND (tested=0 OR reason='manual_recheck' OR (ever_accepted=1 AND valid_until<=?))`, ""}
 	}
 	if lane == "followup" {
 		filters = []string{` AND (reason='manual_recheck' OR ever_accepted=1 OR tested>0)`, ` AND tested=0`, ""}
-		order = ` ORDER BY CASE WHEN ever_accepted=1 AND valid_until<=? THEN 0 WHEN reason='manual_recheck' THEN 1 ELSE 2 END,next_run,first_seen,hash LIMIT 1`
+		order = ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 AND valid_until<=? THEN 0 WHEN reason='manual_recheck' THEN 1 ELSE 2 END,next_run,first_seen,hash LIMIT 1`
 	}
 	for _, filter := range filters {
 		args := []any{now, now}
@@ -199,13 +199,16 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	if e != nil {
 		return e
 	}
-	interval := lifecycle.HealthMinutes * 60000
+	// Reserve completion time before the ten-minute evidence deadline. Slow
+	// probes are scheduled earlier, while admission remains resource bounded.
+	lead := min(int64(240000), max(int64(60000), 2*(r.Finished-r.Started)+30000))
+	interval := min(lifecycle.HealthMinutes*60000, egress.IranInterval-lead)
 	healthUntil := int64(0)
 	if health == "healthy" {
-		healthUntil = now + interval + 120000
+		healthUntil = now + lifecycle.HealthMinutes*60000 + 120000
 	}
 	if d.Eligible {
-		d.Until = healthUntil
+		d.Until = min(healthUntil, r.Finished+egress.IranInterval)
 	}
 	hb, _ := json.Marshal(r.Health)
 	if _, e = tx.ExecContext(ctx, `INSERT INTO egress_health VALUES(?,?,?,?,?) ON CONFLICT(hash) DO UPDATE SET status=excluded.status,checked_at=excluded.checked_at,valid_until=excluded.valid_until,report=excluded.report`, j.Hash, health, now, healthUntil, string(hb)); e != nil {
@@ -214,8 +217,22 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	if accepted && health == "unhealthy" {
 		d.Reason = "payload_health_unhealthy"
 	}
+	guard, e := s.applyIran(ctx, tx, r, plan, now)
+	if e != nil {
+		return e
+	}
+	if guard.Quarantined {
+		d.Eligible = false
+		d.Until = 0
+		d.State = "QUARANTINED"
+		d.Reason = "ads_iran_quarantined"
+	}
+	if guard.Blocked {
+		d.State = "DELETED"
+		d.Reason = "confirmed_ads_iran"
+	}
 	state := d.State
-	if accepted && !d.Eligible {
+	if accepted && !d.Eligible && !guard.Blocked {
 		state = "QUARANTINED"
 	}
 	if d.Eligible {
@@ -229,11 +246,18 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 		failures = 0
 		last = 0
 	}
-	if _, e = tx.ExecContext(ctx, "INSERT INTO egress_events(hash,at,state,reason,definitive,duration_ms) VALUES(?,?,?,?,?,?)", j.Hash, now, state, d.Reason, d.Eligible || d.State == "NO_SPLIT", max(0, r.Finished-r.Started)); e != nil {
+	eventReason := d.Reason
+	if accepted && health == "unhealthy" && !guard.Blocked {
+		eventReason = "payload_health_unhealthy"
+	}
+	if _, e = tx.ExecContext(ctx, "INSERT INTO egress_events(hash,at,state,reason,definitive,duration_ms) VALUES(?,?,?,?,?,?)", j.Hash, now, state, eventReason, d.Eligible || d.State == "NO_SPLIT", max(0, r.Finished-r.Started)); e != nil {
 		return e
 	}
 	if _, e = tx.ExecContext(ctx, "UPDATE egress_metrics SET completed=completed+1,first_assessments=first_assessments+?,definitive=definitive+? WHERE id=1", firstCompleted == 0, d.Eligible || d.State == "NO_SPLIT"); e != nil {
 		return e
+	}
+	if guard.Blocked {
+		return tx.Commit()
 	}
 	var correlated int
 	if e = tx.QueryRowContext(ctx, "SELECT count(DISTINCT hash) FROM egress_events WHERE at>? AND reason='payload_health_unhealthy' AND state='QUARANTINED'", now-60000).Scan(&correlated); e != nil {
@@ -269,6 +293,9 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	}
 	fastRetry := r.Code == "network_retry_pending" || j.Attempt == 1 && (d.Reason == "controls_incomplete" || d.Reason == "ads_peer_echo_incomplete")
 	delay := egressRetryDelay(j.Hash, state, health, accepted, streak, interval, fastRetry)
+	if guard.Quarantined {
+		delay = guard.Delay
+	}
 	_, e = tx.ExecContext(ctx, `UPDATE egress_jobs SET state=?,reason=?,ever_accepted=?,tested=?,valid_until=?,candidate_hash=?,candidate_size=?,format=?,decision=?,report=?,token='',lease_until=0,next_run=?,failures=?,last_failure=?,retry_streak=?,first_completed=1 WHERE hash=?`, state, d.Reason, accepted, now, d.Until, candidateHash, candidateSize, plan.Format, string(decision), string(report), now+delay, failures, last, streak, j.Hash)
 	if e != nil {
 		return e

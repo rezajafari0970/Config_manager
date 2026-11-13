@@ -50,10 +50,16 @@ func Countries(r Report, route Decision, now int64) CountryResult {
 		out.Status = "route_unqualified"
 		return out
 	}
+	return observedCountries(r, route.Until, now)
+}
+
+// Country consensus independent of the route classifier, shared by the
+// publication policy and the Iran deny guard.
+func observedCountries(r Report, until, now int64) CountryResult {
+	out := CountryResult{Status: "country_incomplete", Countries: []string{}, Providers: []CountryProvider{}}
 	countries := map[string]bool{}
 	sources := map[string]string{}
 	providers := map[string]CountryProvider{}
-	until := route.Until
 	count := 0
 	for _, s := range r.Samples {
 		if !s.ActualAds || !validSource(s, r) {
