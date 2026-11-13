@@ -13,6 +13,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -29,6 +30,10 @@ type Vault struct {
 	aead cipher.AEAD
 	mu   sync.Mutex
 	pins map[string]int
+	// Sweep progress is independent of pins and publication. A bounded pass must
+	// resume after its last attempted entry rather than starve a large tail.
+	sweepMu    sync.Mutex
+	sweepAfter string
 }
 
 func New(dir string, key []byte) (*Vault, error) {
@@ -223,14 +228,27 @@ func (v *Vault) decode(r io.Reader, w io.Writer, expected string) error {
 
 // Sweep checks database references while holding the same lock as publication pins.
 func (v *Vault) Sweep(ctx context.Context, referenced func(context.Context, string) (bool, error)) error {
+	v.sweepMu.Lock()
+	defer v.sweepMu.Unlock()
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	entries, err := os.ReadDir(v.dir)
 	if err != nil {
 		return err
 	}
-	for _, entry := range entries {
+	// ReadDir is sorted. Wrap once so arrivals before the cursor are visited too.
+	start := sort.Search(len(entries), func(i int) bool { return entries[i].Name() > v.sweepAfter })
+	for i := range entries {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
+		entry := entries[(start+i)%len(entries)]
+		// An error preserves the file, but must not indefinitely starve its peers.
+		// Every attempted entry is retried after the cursor wraps. Progress can be
+		// lost on restart without changing safety: current reference checks and
+		// pin locking below remain authoritative before every deletion.
+		v.sweepAfter = entry.Name()
 		if entry.IsDir() {
 			continue
 		}

@@ -64,6 +64,13 @@ The additive `egress_schedule_cover` index keeps claim/counter metadata separate
 from large report pages. Schema31 and evidence epochs are unchanged. The index
 is installed idempotently at startup; no input or proof reset is needed.
 
+Bounded blob sweeps resume after the last attempted directory entry and wrap
+once, so repeated cleanup deadlines or a failing reference query cannot starve
+the tail. Progress is in memory; restart safely rechecks from the beginning.
+Sweeps are serialized independently of publication pins. Current writer-database
+reference checks and pin locking remain authoritative before every deletion;
+query failures preserve the affected file. A cursor is not deletion authority.
+
 Run `scripts/check.sh`, the private worker/browser integration, the read-only
 authenticated blob audit, and live API/output reconciliation. Deployment retains
 the shared lock and matched stopped DB/blob/key/release backup. Verify the actual

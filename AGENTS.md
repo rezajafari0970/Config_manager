@@ -13,6 +13,9 @@ when multiple raw versions render identical templates. Blob coverage and queue
 registration are separate audits. No lifetime counter reset or history invention.
 All six release binaries must match tested source, with the shared deployment
 lock and stopped matched DB/blob/key/release backup. No zero-bug/uptime promises.
+Bounded blob sweeps resume and wrap without starving later entries. Preserve
+current writer-reference checks and publication pin locking; errors retain files.
+The in-memory cursor is progress only, never authority to delete or a snapshot.
 
 # P56 DoubleClick Iran guard — 2026-11-13
 
