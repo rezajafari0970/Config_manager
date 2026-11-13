@@ -174,6 +174,8 @@ func (s *Store) ensureEgressIndexes() error {
 		"CREATE INDEX IF NOT EXISTS egress_tested ON egress_jobs(tested)",
 		"CREATE INDEX IF NOT EXISTS egress_retention ON egress_jobs(first_seen) WHERE ever_accepted=0 AND tested>0 AND state!='DELETED'",
 		"CREATE INDEX IF NOT EXISTS egress_events_time ON egress_events(at)",
+		// Claims and counters must not fetch large report pages for every archived input.
+		"CREATE INDEX IF NOT EXISTS egress_schedule_cover ON egress_jobs(paused,next_run,lease_until,state,token,ever_accepted,tested,reason,first_seen,hash,kind,size,revision,attempts,valid_until) WHERE state!='DELETED'",
 	} {
 		if _, err := s.db.Exec(q); err != nil {
 			return err

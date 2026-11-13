@@ -1,3 +1,19 @@
+# P57 Residential accounting and renewal — 2026-11-13
+
+Read docs/EGRESS_ACCOUNTING.md. Schema31 and all P56 Iran proof/revocation rules
+remain unchanged. The additive covering index and due-accepted priority must not
+reset evidence, counters, inputs or controls. Both lanes honor the existing
+advance next_run for accepted proofs; do not defer most slots until the final
+minute. Worker resource ceilings and backoff remain authoritative.
+Statistics distinguish raw versions, collector identities, candidate bytes and
+attempts. Preserve exact queue/publication partitions and one frozen snapshot.
+Never add overlapping country counters or call repeated attempts unique configs.
+Keep archived/staged/current inventory distinct and preserve output rows even
+when multiple raw versions render identical templates. Blob coverage and queue
+registration are separate audits. No lifetime counter reset or history invention.
+All six release binaries must match tested source, with the shared deployment
+lock and stopped matched DB/blob/key/release backup. No zero-bug/uptime promises.
+
 # P56 DoubleClick Iran guard — 2026-11-13
 
 Read docs/DOUBLECLICK_IRAN_GUARD.md. Schema31 adds sticky identity quarantine

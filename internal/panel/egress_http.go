@@ -2,6 +2,7 @@ package panel
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/rezajafari0970/Config_manager/internal/egress"
@@ -182,6 +183,11 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		}
 		entries = append(entries, map[string]any{"hash": h, "kind": kind, "state": state, "reason": reason, "revision": rev, "tested": tested, "valid_until": until, "format": format, "decision": json.RawMessage(decision), "report": json.RawMessage(report)})
 	}
+	if e = rows.Err(); e != nil {
+		rows.Close()
+		failure(w, e)
+		return
+	}
 	rows.Close()
 	for _, entry := range entries {
 		names := []string{}
@@ -199,6 +205,11 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 			}
 			names = append(names, name)
 		}
+		if err = owners.Err(); err != nil {
+			owners.Close()
+			failure(w, err)
+			return
+		}
 		owners.Close()
 		entry["sources"] = names
 		countries, err := entryCountries(ctx, db, entry["hash"].(string))
@@ -210,7 +221,10 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		var health string
 		var checked, valid int64
 		if err = db.QueryRowContext(ctx, "SELECT status,checked_at,valid_until FROM egress_health WHERE hash=?", entry["hash"]).Scan(&health, &checked, &valid); err == nil {
-			entry["health"] = map[string]any{"status": health, "checked_at": checked, "valid_until": valid}
+			entry["health"] = map[string]any{"status": health, "checked_at": checked, "valid_until": valid, "fresh": valid > readStamp(ctx)}
+		} else if err != sql.ErrNoRows {
+			failure(w, err)
+			return
 		}
 	}
 	var partial int
@@ -218,9 +232,9 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		failure(w, e)
 		return
 	}
-	var completed, definitive, completed10, definitive10, unique5, unique10 int
+	var completed, definitive, completed10, definitive10, unique5, unique10, conclusive5, conclusive10 int
 	now := readStamp(ctx)
-	if e = db.QueryRowContext(ctx, "SELECT coalesce(sum(at>?),0),coalesce(sum(at>? AND definitive=1),0),count(*),coalesce(sum(definitive),0),count(DISTINCT CASE WHEN at>? THEN hash END),count(DISTINCT hash) FROM egress_events WHERE at>?", now-300000, now-300000, now-300000, now-600000).Scan(&completed, &definitive, &completed10, &definitive10, &unique5, &unique10); e != nil {
+	if e = db.QueryRowContext(ctx, "SELECT coalesce(sum(at>?),0),coalesce(sum(at>? AND definitive=1),0),count(*),coalesce(sum(definitive),0),count(DISTINCT CASE WHEN at>? THEN hash END),count(DISTINCT hash),count(DISTINCT CASE WHEN at>? AND definitive=1 THEN hash END),count(DISTINCT CASE WHEN definitive=1 THEN hash END) FROM egress_events WHERE at>?", now-300000, now-300000, now-300000, now-300000, now-600000).Scan(&completed, &definitive, &completed10, &definitive10, &unique5, &unique10, &conclusive5, &conclusive10); e != nil {
 		failure(w, e)
 		return
 	}
@@ -244,17 +258,19 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		failure(w, err)
 		return
 	}
-	var missing, retained int
-	if err = db.QueryRowContext(ctx, "SELECT (SELECT count(DISTINCT raw_hash) FROM memberships m WHERE NOT EXISTS(SELECT 1 FROM egress_jobs j WHERE j.hash=m.raw_hash)),(SELECT count(*) FROM egress_jobs WHERE ever_accepted=1 AND state!='DELETED')").Scan(&missing, &retained); err != nil {
+	accounting, err := egressAccounting(ctx, db)
+	if err != nil {
 		failure(w, err)
 		return
 	}
+	missing := accounting["coverage_missing"]
+	retained := accounting["publication"].(map[string]int)["retained"]
 	iran, err := iranState(ctx, db, readStamp(ctx))
 	if err != nil {
 		failure(w, err)
 		return
 	}
-	respond(w, 200, map[string]any{"iran_guard": iran, "metrics": metrics, "queue": map[string]any{"due": due, "recoverable_leases": recovery, "active_leases": activeLeases}, "lifecycle": lifecycle, "coverage_missing": missing, "retained": retained, "country": countryInfo, "throughput": map[string]any{"unique_5m": unique5, "unique_10m": unique10, "completed_5m": completed, "definitive_5m": definitive, "completed_10m": completed10, "definitive_10m": definitive10, "target_10m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Project label only: Residential iff repeated dedicated Ads egress is observed; no ISP/network class lookup", "scope": "TCP / observed family / three explicit Ads domains / raw and template; IPv6-only entry, QUIC and ambiguous multipath remain unqualified"})
+	respond(w, 200, map[string]any{"now": readStamp(ctx), "accounting": accounting, "iran_guard": iran, "metrics": metrics, "queue": map[string]any{"due": due, "recoverable_leases": recovery, "active_leases": activeLeases}, "lifecycle": lifecycle, "coverage_missing": missing, "retained": retained, "country": countryInfo, "throughput": map[string]any{"unique_definitive_5m": conclusive5, "unique_definitive_10m": conclusive10, "unique_5m": unique5, "unique_10m": unique10, "completed_5m": completed, "definitive_5m": definitive, "completed_10m": completed10, "definitive_10m": definitive10, "target_10m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Project label only: Residential iff repeated dedicated Ads egress is observed; no ISP/network class lookup", "scope": "TCP / observed family / three explicit Ads domains / raw and template; IPv6-only entry, QUIC and ambiguous multipath remain unqualified"})
 }
 func (m egressModule) action(w http.ResponseWriter, r *http.Request) {
 	var b struct {

@@ -102,7 +102,7 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	static, _ := fs.Sub(assets, "web")
 	files := http.StripPrefix("/assets/", http.FileServer(http.FS(static)))
-	for _, asset := range []string{"style.css", "waiting.css", "waiting.js", "egress.js", "egress-countries.js", "egress-health.js", "egress-evidence.js", "app.js", "core.js", "poll.js", "settings-form.js", "input.js", "source-status.js", "output.js", "setting.js", "actions.js", "diagnostics.js", "smart.js", "repairs.js", "Vazirmatn.woff2"} {
+	for _, asset := range []string{"style.css", "waiting.css", "waiting.js", "egress.js", "egress-countries.js", "egress-health.js", "egress-evidence.js", "egress-accounting.js", "app.js", "core.js", "poll.js", "settings-form.js", "input.js", "source-status.js", "output.js", "setting.js", "actions.js", "diagnostics.js", "smart.js", "repairs.js", "Vazirmatn.woff2"} {
 		mux.Handle("GET /assets/"+asset, files)
 	}
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {

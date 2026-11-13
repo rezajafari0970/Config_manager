@@ -17,8 +17,10 @@ func (s *Store) ClaimEgress(ctx context.Context) (*egress.Job, error) {
 }
 
 // Independent first-assessment and follow-up lanes share revision-fenced leases.
-// Urgent accepted proofs and manual requests can use either lane. Idle slots
+// Due accepted proofs and manual requests can use either lane. Idle slots
 // steal first assessments before spending capacity on routine NO_SPLIT rechecks.
+// next_run already reserves measured probe duration before expiry. Waiting for
+// the last minute here would discard that lead and starve renewal under load.
 func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, error) {
 	if lane != "" && lane != "initial" && lane != "followup" {
 		return nil, ErrInvalid
@@ -43,21 +45,17 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	var size int64
 	var state, previousToken string
 	base := `SELECT hash,kind,size,revision,ever_accepted,attempts,state,token FROM egress_jobs WHERE state!='DELETED' AND paused=0 AND next_run<=? AND (token='' OR lease_until<=?)`
-	order := ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 AND valid_until<=? THEN 0 WHEN reason='manual_recheck' THEN 1 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 2 WHEN tested=0 THEN 3 WHEN ever_accepted=1 THEN 4 WHEN state='UNKNOWN' AND attempts=1 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 5 ELSE 6 END,next_run,first_seen,hash LIMIT 1`
+	order := ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 THEN 0 WHEN reason='manual_recheck' THEN 1 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 2 WHEN tested=0 THEN 3 WHEN ever_accepted=1 THEN 4 WHEN state='UNKNOWN' AND attempts=1 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 5 ELSE 6 END,next_run,first_seen,hash LIMIT 1`
 	filters := []string{""}
 	if lane == "initial" {
-		filters = []string{` AND (tested=0 OR reason='manual_recheck' OR (ever_accepted=1 AND valid_until<=?))`, ""}
+		filters = []string{` AND (tested=0 OR reason='manual_recheck' OR reason='ads_iran_quarantined' OR ever_accepted=1)`, ""}
 	}
 	if lane == "followup" {
 		filters = []string{` AND (reason='manual_recheck' OR ever_accepted=1 OR tested>0)`, ` AND tested=0`, ""}
-		order = ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 AND valid_until<=? THEN 0 WHEN reason='manual_recheck' THEN 1 ELSE 2 END,next_run,first_seen,hash LIMIT 1`
+		order = ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 THEN 0 WHEN reason='manual_recheck' THEN 1 ELSE 2 END,next_run,first_seen,hash LIMIT 1`
 	}
 	for _, filter := range filters {
 		args := []any{now, now}
-		if lane == "initial" && filter != "" {
-			args = append(args, now+60000)
-		}
-		args = append(args, now+60000)
 		e = tx.QueryRowContext(ctx, base+filter+order, args...).Scan(&j.Hash, &j.Kind, &size, &j.Revision, &j.Deep, &j.Attempt, &state, &previousToken)
 		if !errors.Is(e, sql.ErrNoRows) {
 			break
