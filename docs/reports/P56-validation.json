@@ -1,0 +1,976 @@
+{
+  "version": "doubleclick-iran.v1",
+  "schema": 31,
+  "deployment": {
+    "release": "/opt/config-repair/releases/p56-e93796d365c64c1185d4",
+    "backup": "/var/backups/config-repair/p56-20261113-220013",
+    "before": {
+      "schema": 30,
+      "sources": 33,
+      "members": 1561,
+      "controls": {
+        "sources": "173e6fe00c53ce6f260ce487623faed69c0c8bbc9bb53bfaba06e2adb6e5d171",
+        "settings": "440d804d8964b2bf68d6eeb88051e3c3a9dcec8cf0febf4b8985ad90fd22e4e4",
+        "countries": "c2a100e73db192ebf91eb42426725b45c9e60f2400e345dea2ce7b60dde80ca9",
+        "lifecycle": "60e9a8b284b1f7e3443358a636da9c71e3232f335c3ce303d5ffcd4e9c267a0f"
+      }
+    },
+    "after": {
+      "schema": 31,
+      "sources": 33,
+      "members": 1561,
+      "controls": {
+        "sources": "173e6fe00c53ce6f260ce487623faed69c0c8bbc9bb53bfaba06e2adb6e5d171",
+        "settings": "440d804d8964b2bf68d6eeb88051e3c3a9dcec8cf0febf4b8985ad90fd22e4e4",
+        "countries": "c2a100e73db192ebf91eb42426725b45c9e60f2400e345dea2ce7b60dde80ca9",
+        "lifecycle": "60e9a8b284b1f7e3443358a636da9c71e3232f335c3ce303d5ffcd4e9c267a0f"
+      }
+    },
+    "binaries": {
+      "config-panel": "e93796d365c64c1185d4760291f442c59fc0aadebdc8e5ff5f060c4edfdd500f",
+      "config-probe-worker": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-egress-worker": "18244004e95982c5ccdd76e0d8fc6cb4f63c1bed92fd4a5850a56b00c8d8d6de",
+      "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+      "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+      "config-probe-plan": "62c40caf384f0436300299f61c65364a94d13efddedf4e3bbbf3c66d55f793e9"
+    },
+    "running": {
+      "config-repair-prober": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-smart": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-splash": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-ads": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-egress": "18244004e95982c5ccdd76e0d8fc6cb4f63c1bed92fd4a5850a56b00c8d8d6de",
+      "config-repair": "e93796d365c64c1185d4760291f442c59fc0aadebdc8e5ff5f060c4edfdd500f"
+    },
+    "activated": 1794607221
+  },
+  "code_publication": {
+    "commit": "cb36e58b4b6dd537ef96d53e7ded62ef32de9b03",
+    "tree": "3bab322e8fc7949e604722cc94a4bf52f462a54c",
+    "release": "/opt/config-repair/releases/p56-e93796d365c64c1185d4",
+    "source_files_verified": 310,
+    "six_builds_identical": true,
+    "six_services_active": true,
+    "canonical_clean": true
+  },
+  "full_checks": "scripts/check.sh passed; Go race panel960.493s; vet, six builds, Python and JS passed",
+  "focused_guard_race_seconds": 22.728,
+  "migration_rehearsal": {
+    "sources": 33,
+    "memberships": 1538,
+    "seeded_inputs": 38624,
+    "schema": 31,
+    "passed": true
+  },
+  "historical_replay": {
+    "reports": 162,
+    "configs": 143,
+    "IR_configs": 2,
+    "scope": "historical replay at report finish, not fresh production proof"
+  },
+  "live_guard_evidence": {
+    "at": 1794607741403,
+    "guards": [
+      {
+        "identity": "9f4826185f19",
+        "state": "BLOCKED",
+        "positive_rounds": 2,
+        "representations": 2,
+        "first_domain": "googleads.g.doubleclick.net",
+        "last_domain": "googleads.g.doubleclick.net",
+        "observation_gap_ms": 98298,
+        "first_providers": [
+          {
+            "name": "dbip-country-lite",
+            "lineage": "dbip",
+            "country": "CA",
+            "kind": "database"
+          },
+          {
+            "name": "geojs",
+            "lineage": "maxmind",
+            "country": "IR",
+            "kind": "live"
+          },
+          {
+            "name": "iplocate-country",
+            "lineage": "iplocate",
+            "country": "IR",
+            "kind": "database"
+          }
+        ],
+        "last_providers": [
+          {
+            "name": "dbip-country-lite",
+            "lineage": "dbip",
+            "country": "CA",
+            "kind": "database"
+          },
+          {
+            "name": "geojs",
+            "lineage": "maxmind",
+            "country": "IR",
+            "kind": "live"
+          },
+          {
+            "name": "iplocate-country",
+            "lineage": "iplocate",
+            "country": "IR",
+            "kind": "database"
+          }
+        ]
+      },
+      {
+        "identity": "b929b94e48bb",
+        "state": "QUARANTINED",
+        "positive_rounds": 0,
+        "representations": 1,
+        "first_domain": null,
+        "last_domain": null,
+        "observation_gap_ms": 0,
+        "first_providers": [],
+        "last_providers": []
+      },
+      {
+        "identity": "fd11d9e6b64a",
+        "state": "BLOCKED",
+        "positive_rounds": 2,
+        "representations": 2,
+        "first_domain": "googleads.g.doubleclick.net",
+        "last_domain": "googleads.g.doubleclick.net",
+        "observation_gap_ms": 98618,
+        "first_providers": [
+          {
+            "name": "dbip-country-lite",
+            "lineage": "dbip",
+            "country": "CA",
+            "kind": "database"
+          },
+          {
+            "name": "geojs",
+            "lineage": "maxmind",
+            "country": "IR",
+            "kind": "live"
+          },
+          {
+            "name": "iplocate-country",
+            "lineage": "iplocate",
+            "country": "IR",
+            "kind": "database"
+          }
+        ],
+        "last_providers": [
+          {
+            "name": "dbip-country-lite",
+            "lineage": "dbip",
+            "country": "CA",
+            "kind": "database"
+          },
+          {
+            "name": "geojs",
+            "lineage": "maxmind",
+            "country": "IR",
+            "kind": "live"
+          },
+          {
+            "name": "iplocate-country",
+            "lineage": "iplocate",
+            "country": "IR",
+            "kind": "database"
+          }
+        ]
+      }
+    ],
+    "globally_deleted_raw": 4
+  },
+  "live_verification": {
+    "iran_guard": {
+      "blocked_identities": 2,
+      "country_veto": "IR",
+      "interval_minutes": 10,
+      "overdue_retained": 0,
+      "quarantined_identities": 1,
+      "sticky": true,
+      "version": "doubleclick-iran.v1"
+    },
+    "guard_rows": [
+      [
+        "BLOCKED",
+        2,
+        2
+      ],
+      [
+        "QUARANTINED",
+        0,
+        1
+      ]
+    ],
+    "ir_blocked_intersection": 0,
+    "at": 1794607865443,
+    "schema": 31,
+    "match_mode": "any",
+    "selected_countries": [
+      "CY",
+      "MO",
+      "PR",
+      "TW"
+    ],
+    "policy_revision": 4,
+    "published": 14,
+    "known": 126,
+    "shared": 14,
+    "exact_database_set_verified": true,
+    "database_any_count": 14,
+    "database_old_all_count": 0,
+    "three_country_example_present": false,
+    "unique_entries_verified": true,
+    "outputs": {
+      "configs.json": {
+        "status": 200,
+        "count": 14,
+        "bytes": 20304,
+        "checksum_verified": true,
+        "any_header_verified": true
+      },
+      "configs.jsonl": {
+        "status": 200,
+        "count": 14,
+        "bytes": 20288,
+        "checksum_verified": true,
+        "any_header_verified": true
+      },
+      "next.json": {
+        "status": 200,
+        "count": 1,
+        "bytes": 1450,
+        "checksum_verified": true,
+        "any_header_verified": true
+      },
+      "raw.txt": {
+        "status": 200,
+        "count": 14,
+        "bytes": 5692,
+        "checksum_verified": true,
+        "any_header_verified": true
+      }
+    },
+    "brief_api_ms": [
+      673.93,
+      839.12,
+      656.4,
+      674.74,
+      802.29
+    ],
+    "full_bytes": 333232,
+    "brief_bytes": 27460,
+    "payload_reduction_percent": 91.76,
+    "targeted_evidence": true,
+    "missing_source_inputs": 0,
+    "missing_staged_inputs": 0,
+    "health_minutes": 15,
+    "metrics": {
+      "since": 1794488257758,
+      "baseline_inputs": 21166,
+      "registered": 17715,
+      "completed": 62684,
+      "first_assessments": 17715,
+      "definitive": 30382,
+      "lease_recoveries": 23,
+      "unhealthy_deleted": 33
+    },
+    "queue": {
+      "active_leases": 10,
+      "due": 27245,
+      "recoverable_leases": 0
+    },
+    "integrity": "ok",
+    "watchdog_unit": [
+      "Type=notify",
+      "WatchdogUSec=1min 30s",
+      "NRestarts=0"
+    ],
+    "boot_enabled": {
+      "config-repair": "enabled",
+      "config-repair-prober": "enabled",
+      "config-repair-smart": "enabled",
+      "config-repair-splash": "enabled",
+      "config-repair-ads": "enabled",
+      "config-repair-egress": "enabled",
+      "config-repair-country-update.timer": "enabled"
+    }
+  },
+  "monitor": {
+    "history": [
+      {
+        "seconds": 0.0,
+        "retained": 141,
+        "unchecked_since_activation": 139,
+        "published": 1,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 15.0,
+        "retained": 141,
+        "unchecked_since_activation": 135,
+        "published": 1,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 30.0,
+        "retained": 141,
+        "unchecked_since_activation": 132,
+        "published": 1,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 45.0,
+        "retained": 141,
+        "unchecked_since_activation": 129,
+        "published": 1,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 60.0,
+        "retained": 141,
+        "unchecked_since_activation": 128,
+        "published": 1,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 75.0,
+        "retained": 141,
+        "unchecked_since_activation": 121,
+        "published": 2,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 90.0,
+        "retained": 141,
+        "unchecked_since_activation": 117,
+        "published": 2,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 105.0,
+        "retained": 141,
+        "unchecked_since_activation": 111,
+        "published": 3,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 120.0,
+        "retained": 141,
+        "unchecked_since_activation": 105,
+        "published": 3,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 135.0,
+        "retained": 141,
+        "unchecked_since_activation": 101,
+        "published": 5,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 150.0,
+        "retained": 141,
+        "unchecked_since_activation": 98,
+        "published": 6,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 165.1,
+        "retained": 141,
+        "unchecked_since_activation": 92,
+        "published": 6,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 180.1,
+        "retained": 141,
+        "unchecked_since_activation": 87,
+        "published": 6,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 195.1,
+        "retained": 141,
+        "unchecked_since_activation": 82,
+        "published": 7,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 210.1,
+        "retained": 141,
+        "unchecked_since_activation": 77,
+        "published": 8,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            3
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 225.1,
+        "retained": 141,
+        "unchecked_since_activation": 70,
+        "published": 8,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            1
+          ],
+          [
+            "QUARANTINED",
+            1,
+            2
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 240.1,
+        "retained": 141,
+        "unchecked_since_activation": 68,
+        "published": 8,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            1
+          ],
+          [
+            "QUARANTINED",
+            1,
+            2
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 255.1,
+        "retained": 141,
+        "unchecked_since_activation": 63,
+        "published": 8,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            1
+          ],
+          [
+            "QUARANTINED",
+            1,
+            2
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 270.1,
+        "retained": 141,
+        "unchecked_since_activation": 59,
+        "published": 8,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            1
+          ],
+          [
+            "QUARANTINED",
+            1,
+            2
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 285.1,
+        "retained": 141,
+        "unchecked_since_activation": 55,
+        "published": 8,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            1
+          ],
+          [
+            "QUARANTINED",
+            1,
+            2
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 300.1,
+        "retained": 141,
+        "unchecked_since_activation": 51,
+        "published": 8,
+        "guard": [
+          [
+            "QUARANTINED",
+            0,
+            1
+          ],
+          [
+            "QUARANTINED",
+            1,
+            2
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 315.1,
+        "retained": 137,
+        "unchecked_since_activation": 43,
+        "published": 8,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 330.1,
+        "retained": 137,
+        "unchecked_since_activation": 37,
+        "published": 8,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 345.1,
+        "retained": 137,
+        "unchecked_since_activation": 33,
+        "published": 11,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 360.1,
+        "retained": 137,
+        "unchecked_since_activation": 29,
+        "published": 11,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 375.1,
+        "retained": 137,
+        "unchecked_since_activation": 25,
+        "published": 12,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 390.2,
+        "retained": 137,
+        "unchecked_since_activation": 23,
+        "published": 12,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 405.2,
+        "retained": 137,
+        "unchecked_since_activation": 20,
+        "published": 12,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 420.2,
+        "retained": 137,
+        "unchecked_since_activation": 19,
+        "published": 12,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 435.2,
+        "retained": 137,
+        "unchecked_since_activation": 17,
+        "published": 12,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 450.2,
+        "retained": 137,
+        "unchecked_since_activation": 16,
+        "published": 12,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 465.2,
+        "retained": 137,
+        "unchecked_since_activation": 12,
+        "published": 12,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 480.2,
+        "retained": 137,
+        "unchecked_since_activation": 9,
+        "published": 13,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 495.2,
+        "retained": 137,
+        "unchecked_since_activation": 8,
+        "published": 13,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 510.2,
+        "retained": 137,
+        "unchecked_since_activation": 6,
+        "published": 13,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 525.2,
+        "retained": 137,
+        "unchecked_since_activation": 3,
+        "published": 14,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      },
+      {
+        "seconds": 540.3,
+        "retained": 137,
+        "unchecked_since_activation": 0,
+        "published": 14,
+        "guard": [
+          [
+            "BLOCKED",
+            2,
+            2
+          ],
+          [
+            "QUARANTINED",
+            0,
+            1
+          ]
+        ],
+        "ir_leaked": 0
+      }
+    ],
+    "scope": "All current retained accepted inputs assessed since guard activation; not all Internet/SDK flows."
+  },
+  "recurrence": {
+    "at": 1794607858832,
+    "accepted_with_repeat_completion": 30,
+    "guarded_in_any_export_view": {
+      "egress_eligible": 0,
+      "egress_export_eligible": 0,
+      "conversion_inputs": 0,
+      "smart_inputs": 0,
+      "splash_smart_inputs": 0
+    },
+    "blocked_identity_exclusions": 2
+  },
+  "browser": {
+    "passed": true,
+    "views": [
+      {
+        "width": 390,
+        "guard_visible": true,
+        "four_links": true,
+        "no_horizontal_overflow": true
+      },
+      {
+        "width": 1440,
+        "guard_visible": true,
+        "four_links": true,
+        "no_horizontal_overflow": true
+      }
+    ],
+    "errors": []
+  },
+  "api_review": {
+    "model": "gpt-6-astra",
+    "completed": false,
+    "http_status": 429,
+    "code": "credit_balance_exhausted"
+  },
+  "limits": [
+    "Finite three-domain DoubleClick TCP observation; GeoIP estimate, not physical100% country proof.",
+    "Downloaded client configurations and existing connections cannot be remotely recalled by this subscription guard.",
+    "No new1000-config benchmark; P55 did not meet1000/600s."
+  ]
+}
