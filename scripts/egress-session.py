@@ -70,13 +70,15 @@ def socks_target(domain,control_ipv4=None):
 async def measure(domain,variant,wave,timeout,control_ipv4=None,target=None):
  target=target or next((t for t in DEFAULT_TARGETS if t['domain']==domain),None)
  if target is None:raise ValueError('target_driver_missing')
- nonce=uuid.uuid4().hex;writer=None
+ nonce=uuid.uuid4().hex;writer=None;stage='local_socks';error_kind=''
  row=dict(domain=domain,variant=variant,wave=wave,at=now(),transport='tcp',nonce=nonce,connection=nonce,ip='',family=0,tls=False,same_stream=False,echo=False,actual_ads=False,code='unavailable',certificate='',response='',first_status=0,echo_status=0,diagnostic_authority=False,request_bytes=0,response_bytes=0,response_complete=False)
  try:
   async with asyncio.timeout(timeout):
    reader,writer=await asyncio.open_connection('127.0.0.1',10808,limit=32769)
+   stage='socks_negotiation'
    writer.write(b'\x05\x01\x00');await writer.drain()
    if await reader.readexactly(2)!=b'\x05\x00':raise ValueError('socks_greeting')
+   stage='proxy_connect'
    address=socks_target(domain,control_ipv4);writer.write(b'\x05\x01\x00'+address+struct.pack('!H',443));await writer.drain()
    version,rep,_,typ=await reader.readexactly(4)
    if version!=5 or rep:raise ValueError('socks_connect')
@@ -84,12 +86,14 @@ async def measure(domain,variant,wave,timeout,control_ipv4=None,target=None):
    if typ==3:n=(await reader.readexactly(1))[0]
    if n is None:raise ValueError('socks_address')
    await reader.readexactly(n+2)
+   stage='target_tls'
    await writer.start_tls(TLS_CONTEXT,server_hostname=domain,ssl_handshake_timeout=timeout)
    tls=writer.get_extra_info('ssl_object');row.update(tls=True,certificate=digest(tls.getpeercert(binary_form=True)))
    async def get(host,path,close,method="GET"):
     request=(method+' '+path+' HTTP/1.1\r\nHost: '+host+'\r\nUser-Agent: Shen-Egress-Audit/3\r\nCache-Control: no-cache\r\nAccept-Encoding: identity\r\nConnection: '+('close' if close else 'keep-alive')+'\r\n\r\n').encode()
     writer.write(request);await writer.drain();row['request_bytes']+=len(request)
     result=await read_response(reader,close,method=="HEAD");row['response_bytes']+=len(result[2]);return result
+   stage='http_exchange'
    driver=target['driver']
    if driver=='google-peer':
     status,h,b=await get(domain,'/robots.txt',False);row.update(first_status=status,actual_ads=target['role']=='ads')
@@ -117,11 +121,15 @@ async def measure(domain,variant,wave,timeout,control_ipv4=None,target=None):
    ip=ipaddress.ip_address(value)
    if not ip.is_global or ip.is_multicast or ip.is_reserved:raise ValueError('nonpublic_echo')
    row.update(ip=str(ip),family=ip.version,same_stream=True,echo=True,response=digest(b),response_complete=True)
- except (TimeoutError,asyncio.TimeoutError):row['code']='connection_timeout'
- except ssl.SSLCertVerificationError:row['code']='tls_verification_failed'
- except ValueError as e:row['code']=str(e) if re.fullmatch('[a-z_]{1,48}',str(e)) else 'invalid_response'
- except Exception:row['code']='connection_failed'
+ except (TimeoutError,asyncio.TimeoutError):row['code']='connection_timeout';error_kind='timeout'
+ except ssl.SSLCertVerificationError:row['code']='tls_verification_failed';error_kind='certificate_verification'
+ except ValueError as e:row['code']=str(e) if re.fullmatch('[a-z_]{1,48}',str(e)) else 'invalid_response';error_kind='protocol_response'
+ except Exception as e:
+  row['code']='connection_failed'
+  # Fixed enums only: never persist exception text, addresses or credentials.
+  error_kind='connection_reset' if isinstance(e,ConnectionResetError) else 'connection_refused' if isinstance(e,ConnectionRefusedError) else 'unexpected_eof' if isinstance(e,asyncio.IncompleteReadError) else 'tls_handshake' if isinstance(e,ssl.SSLError) else 'io_error' if isinstance(e,OSError) else 'unexpected_error'
  finally:
+  if error_kind:row.update(error_stage=stage,error_kind=error_kind)
   if writer:writer.close()
  return row
 

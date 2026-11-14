@@ -172,6 +172,8 @@ type Sample struct {
 	Echo                bool        `json:"echo"`
 	ActualAds           bool        `json:"actual_ads"`
 	Code                string      `json:"code"`
+	ErrorStage          string      `json:"error_stage,omitempty"`
+	ErrorKind           string      `json:"error_kind,omitempty"`
 	Certificate         string      `json:"certificate"`
 	Response            string      `json:"response"`
 	FirstStatus         int         `json:"first_status"`

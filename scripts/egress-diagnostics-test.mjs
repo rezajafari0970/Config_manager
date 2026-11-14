@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const code=await readFile(new URL('../internal/panel/web/egress-diagnostics.js',import.meta.url),'utf8');
+const {connectionDiagnostics}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const failure={code:'connection_failed',tls:false,error_stage:'target_tls',error_kind:'connection_reset'};
+const report={samples:[failure,failure],evidence:[{samples:[failure,failure]}]};
+const d=connectionDiagnostics(report);
+assert.equal(d.sample_count,2);assert.equal(d.failed_before_tls,2);assert.equal(d.details[0].samples,2);
+assert.match(d.explanation,/غیررزیدنتال بودن نیست/);
+assert.equal(connectionDiagnostics({samples:[failure,{code:'control_echo',tls:true}]}).failed_before_tls,1);
+const legacy=connectionDiagnostics({samples:[{code:'connection_failed',tls:false}]});
+assert.match(legacy.details[0].stage,/گزارش قدیمی/);
+const unknown=connectionDiagnostics({samples:[{...failure,error_kind:'secret',error_stage:'secret'}]});
+assert.ok(!JSON.stringify(unknown).includes('secret'));
+assert.equal(connectionDiagnostics({samples:[{code:'ads_echo_unavailable',tls:true}]}).failed_before_tls,0);
+assert.equal(connectionDiagnostics(null).sample_count,0);
+console.log('egress diagnostics: failure phases, legacy reports, partial evidence and duplicate attempts passed');

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Offline adversarial protocol/privacy contract tests; no live classifications."""
 import asyncio,importlib.util,json,pathlib,tempfile,unittest
+from unittest.mock import patch
 HERE=pathlib.Path(__file__).parent
 def load(name,file):
  spec=importlib.util.spec_from_file_location(name,HERE/file);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
@@ -32,6 +33,30 @@ class Contracts(unittest.TestCase):
   self.assertNotEqual(driver.lab.SANDBOX_ADDRESS_BASES['cge'],driver.lab.SANDBOX_ADDRESS_BASES['crw']);self.assertNotEqual(driver.lab.SANDBOX_ADDRESS_BASES['cge'],driver.lab.SANDBOX_ADDRESS_BASES['cgt'])
  def test_second_authority_not_assumed(self):
   self.assertFalse(session.authority({'subjectAltName':[('DNS','*.doubleclick.net')]},'www.google.com'))
+class TransportDiagnostics(unittest.TestCase):
+ def test_failure_stage_and_fixed_kind_do_not_change_verdict_evidence(self):
+  for error,kind,code in [(ConnectionResetError('private endpoint credential'), 'connection_reset','connection_failed'),(asyncio.IncompleteReadError(b'private',10),'unexpected_eof','connection_failed'),(session.ssl.SSLError('private'),'tls_handshake','connection_failed'),(session.ssl.SSLCertVerificationError('private'),'certificate_verification','tls_verification_failed'),(TimeoutError('private'),'timeout','connection_timeout')]:
+   with self.subTest(kind=kind):
+    class Writer:
+     closed=False
+     def write(self,data):pass
+     async def drain(self):pass
+     async def start_tls(self,*args,**kwargs):raise error
+     def close(self):self.closed=True
+    writer=Writer()
+    async def connect(*args,**kwargs):
+     reader=asyncio.StreamReader();reader.feed_data(b'\x05\x00\x05\x00\x00\x01'+b'\x00'*6);return reader,writer
+    with patch.object(session.asyncio,'open_connection',connect):
+     row=asyncio.run(session.measure(session.DOMAINS[0],'raw',1,1))
+    self.assertEqual((row['code'],row['error_stage'],row['error_kind']),(code,'target_tls',kind))
+    self.assertFalse(row['tls']);self.assertFalse(row['echo']);self.assertFalse(row['same_stream']);self.assertTrue(writer.closed)
+    self.assertNotIn('private',json.dumps(row))
+ def test_local_listener_failure_stays_distinct_from_remote_tls(self):
+  async def connect(*args,**kwargs):raise ConnectionRefusedError('private address')
+  with patch.object(session.asyncio,'open_connection',connect):row=asyncio.run(session.measure(session.DOMAINS[0],'raw',1,1))
+  self.assertEqual((row['error_stage'],row['error_kind']),('local_socks','connection_refused'))
+  self.assertEqual(row['code'],'connection_failed');self.assertNotIn('private',json.dumps(row))
+
 class ExclusiveRejectionContracts(unittest.TestCase):
  def rows(self):
   rows=[]

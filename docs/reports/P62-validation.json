@@ -1,0 +1,102 @@
+{
+  "status": "draft_not_deployed_final_validation_running",
+  "base_commit": "1b63cf85ee7cd99573729924a899d927e9468f89",
+  "observed_live_commit": "d37f5b64bbfe11c34c58ca0310e598e1e5e56c06",
+  "classifier": "ads-egress.v7",
+  "schema": 34,
+  "production_mutations": false,
+  "statistics_reset": false,
+  "network_canary": {
+    "scope": "isolated copy of current unique Speedray representatives plus one independent positive control",
+    "speedray_identities": 31,
+    "speedray_types": {
+      "vless_tcp_reality": 30,
+      "vless_tcp_none": 1
+    },
+    "speedray_unknown": 31,
+    "speedray_residential": 0,
+    "speedray_samples": 1922,
+    "speedray_tls_verified": 0,
+    "speedray_echo": 0,
+    "speedray_connection_failed": 1922,
+    "positive_control": {
+      "protocol": "vmess",
+      "total": 1,
+      "residential": 1
+    },
+    "workers": 2,
+    "seconds": 262.316,
+    "raw_template": true,
+    "four_exports_status": 200,
+    "four_exports_count": 1,
+    "hundred_percent_or_1000_input_claim": false
+  },
+  "transport_diagnostics": {
+    "reality_samples": 1,
+    "pinned_cores": [
+      "26.11.9",
+      "26.10.31",
+      "26.7.28",
+      "26.5.9"
+    ],
+    "all_four_started_raw_template": true,
+    "all_four_failed_target_tls": true,
+    "reality_private_debug_error": "tls: first record does not look like a TLS handshake",
+    "unauthenticated_endpoint_response": "HTTP/1.1 400 Bad Request",
+    "plaintext_vless_private_debug_core": "26.5.9",
+    "plaintext_vless_private_debug_error": "connect: connection refused",
+    "debug_modified_log_only": true,
+    "debug_reports_used_for_publication": false,
+    "phone_carrier_tests": false
+  },
+  "historical_backup": {
+    "snapshot": "pre-P58, 2026-11-14T01:22:38Z",
+    "schema": 31,
+    "classifier": "ads-egress.v5",
+    "current_identities_present": 5,
+    "current_identities_absent": 26,
+    "same_representative_unknown_controls_incomplete": 5,
+    "all_related_raw_rows_unknown": 13,
+    "readonly_copy_removed": true,
+    "scope": "one snapshot only"
+  },
+  "pressure_bug": {
+    "old_reproduced_failure": "identity stranded after 2 resource-pressure reports: job=<nil> error=<nil>",
+    "focused_race_exit": 0,
+    "focused_race_seconds": 9.466,
+    "current_inventory_exhausted_pressure_at_snapshot": 0,
+    "established_speedray_cause": false,
+    "preserves_network_retry_limit": true,
+    "preserves_iran_and_exclusion_guards": true,
+    "preserves_metrics_reports_next_run_reset_clock": true
+  },
+  "synthetic_v5_v7_comparison": {
+    "cases": 6,
+    "passed": 6,
+    "production_classification": false
+  },
+  "validation": {
+    "local_full_first_exit": 1,
+    "local_full_first_seconds": 455,
+    "local_failures": [
+      "unixgram socket creation denied by local runtime",
+      "legacy GC fixture rejected the intentional bounded reference yield"
+    ],
+    "gc_fixture_corrected_with_retry_and_payload_preservation": true,
+    "final_focused_panel_race_exit": 0,
+    "final_focused_panel_race_seconds": 11.453,
+    "final_egress_race_exit": 0,
+    "final_egress_race_seconds": 1.163,
+    "python_contracts": 34,
+    "python_contracts_exit": 0,
+    "javascript_diagnostics_exit": 0,
+    "remote_final_full": "running"
+  },
+  "remaining": [
+    "final full validation completion",
+    "no production activation",
+    "provider endpoint/carrier-specific cause not established",
+    "P61 live contention and watchdog problems remain unresolved",
+    "no new 1000-input throughput benchmark"
+  ]
+}
