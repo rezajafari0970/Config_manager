@@ -170,6 +170,11 @@ func smartLedger(ctx context.Context, tx smartTransaction) (smart.Ledger, error)
 	return v, rows.Err()
 }
 func (s *SmartPipeline) ClaimSmart(ctx context.Context) (job *probe.Job, err error) {
+	release, err := s.Store.admitClaim(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer release()
 	if needed, e := s.smartClaimNeeded(ctx); e != nil || !needed {
 		return nil, e
 	}
@@ -292,6 +297,7 @@ func (s *SmartPipeline) ClaimSmart(ctx context.Context) (job *probe.Job, err err
 	if e = tx.Commit(); e != nil {
 		return nil, e
 	}
+	release()
 	defer func() {
 		if err != nil {
 			cleanup, cancel := context.WithTimeout(context.Background(), 2*time.Second)

@@ -26,6 +26,8 @@ type Store struct {
 	db            *sql.DB
 	readDB        *sql.DB
 	workerReadDB  *sql.DB
+	claimOnce     sync.Once
+	claimSlot     chan struct{}
 	aead          cipher.AEAD
 	key           []byte
 	vault         *blob.Vault

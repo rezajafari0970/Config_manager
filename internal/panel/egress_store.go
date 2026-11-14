@@ -35,6 +35,11 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	if lane != "" && lane != "initial" && lane != "followup" {
 		return nil, ErrInvalid
 	}
+	release, err := s.admitClaim(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer release()
 	// Idle workers inspect committed WAL state without queuing for the sole
 	// writer. This is only a negative fast path: claims and scope maintenance
 	// below still recheck everything after acquiring the writer. Work committed
@@ -121,6 +126,7 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	if e = tx.Commit(); e != nil {
 		return nil, e
 	}
+	release()
 	if size > repair.MaxBytes {
 		j.Issue = "input_size_limit"
 		return j, nil

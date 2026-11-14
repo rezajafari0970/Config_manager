@@ -119,6 +119,11 @@ func safeCode(s string) bool {
 	return true
 }
 func (s *Store) ClaimProbe(ctx context.Context) (*probe.Job, error) {
+	release, err := s.admitClaim(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer release()
 	tx, e := s.db.BeginTx(ctx, nil)
 	if e != nil {
 		return nil, e
@@ -160,6 +165,7 @@ func (s *Store) ClaimProbe(ctx context.Context) (*probe.Job, error) {
 	if e = tx.Commit(); e != nil {
 		return nil, e
 	}
+	release()
 	if size > repair.MaxBytes {
 		j.Issue = "inspection_size_limit"
 		return j, nil
