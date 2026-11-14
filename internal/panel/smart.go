@@ -170,6 +170,9 @@ func smartLedger(ctx context.Context, tx smartTransaction) (smart.Ledger, error)
 	return v, rows.Err()
 }
 func (s *SmartPipeline) ClaimSmart(ctx context.Context) (job *probe.Job, err error) {
+	if needed, e := s.smartClaimNeeded(ctx); e != nil || !needed {
+		return nil, e
+	}
 	tx, e := s.db.BeginTx(ctx, nil)
 	if e != nil {
 		return nil, e
@@ -204,44 +207,12 @@ func (s *SmartPipeline) ClaimSmart(ctx context.Context) (job *probe.Job, err err
 	if e != nil {
 		return nil, e
 	}
-	// One cached smart per unique first member. This makes complete cached rounds
-	// cover every first position exactly once, even with uneven source sizes.
-	ids := map[string]bool{}
-	hashes := map[string]string{}
-	for _, m := range pool {
-		if old := hashes[m.Hash]; old != "" && old != m.ID {
-			continue
-		}
-		hashes[m.Hash] = m.ID
-		if !s.ads || m.Ads {
-			ids[m.ID] = true
-		}
-	}
-	// A byte-identical candidate belongs to one canonical head in this snapshot.
-	// Filter follower/leader offers by the same ownership, so a secondary raw
-	// representation cannot reintroduce an already-deduplicated first candidate.
-	uniquePool := make([]smart.Member, 0, len(pool))
-	for _, m := range pool {
-		if hashes[m.Hash] == m.ID {
-			uniquePool = append(uniquePool, m)
-		}
-	}
-	pool = uniquePool
-	inventoryBytes, _ := json.Marshal(func() [][4]string {
-		v := make([][4]string, 0, len(pool))
-		for _, m := range pool {
-			v = append(v, [4]string{m.ID, m.Source, m.RawHash, m.Hash})
-		}
-		return v
-	}())
-	inventory := repair.Digest(inventoryBytes)
-	// Compare the current identity set in SQL. Unchanged polls do no inventory
-	// writes; changed sets use one bounded JSON batch rather than one call per ID.
-	currentIDs := make([]string, 0, len(ids))
-	for id := range ids {
-		currentIDs = append(currentIDs, id)
-	}
-	encodedIDs, _ := json.Marshal(currentIDs)
+	snapshot := smartClaimSnapshot(pool, s.ads)
+	pool = snapshot.pool
+	inventory := snapshot.digest
+	encodedIDs := snapshot.ids
+	// Compare current ownership again under the writer; the WAL preflight is
+	// only an idle-work hint and never authorizes a lease or publication.
 	var changed bool
 	e = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT value FROM json_each(?) EXCEPT SELECT id FROM smart_heads) OR EXISTS(SELECT id FROM smart_heads EXCEPT SELECT value FROM json_each(?))`, string(encodedIDs), string(encodedIDs)).Scan(&changed)
 	if e != nil {
