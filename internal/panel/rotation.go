@@ -78,6 +78,9 @@ func (s *Store) prepareRotation(ctx context.Context) (*rotatingConfig, error) {
 }
 
 func (s *Store) prepareScopedRotation(ctx context.Context, scope string) (*rotatingConfig, error) {
+	if item, e := s.peekScopedRotation(ctx, scope); e != nil || item != nil {
+		return item, e
+	}
 	tx, e := s.rotationTransaction(ctx, scope)
 	if e != nil {
 		return nil, e
@@ -147,6 +150,39 @@ func (s *Store) prepareScopedRotation(ctx context.Context, scope string) (*rotat
 		}
 	}
 	return &rotatingConfig{Conversion: ordered[0], Cycle: cycle + 1, Scope: scope}, tx.Commit()
+}
+
+// An existing round can be read from WAL without waiting for the shared writer.
+// This only proposes its first member: claimRotation still checks the exact
+// round, current ownership and proof under the writer before consuming it.
+// Empty rounds and invalid first entries use the transactional repair above.
+func (s *Store) peekScopedRotation(ctx context.Context, scope string) (*rotatingConfig, error) {
+	tx, e := s.reader().BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	if e != nil {
+		return nil, e
+	}
+	defer tx.Rollback()
+	var cycle int64
+	var hash string
+	e = tx.QueryRowContext(ctx, `SELECT s.cycle,q.candidate_hash
+ FROM export_rotation_state s JOIN export_rotation_queue q ON q.scope=s.scope
+ WHERE s.scope=? ORDER BY q.position LIMIT 1`, scope).Scan(&cycle, &hash)
+	if errors.Is(e, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if e != nil {
+		return nil, e
+	}
+	entries, e := querySourceConversions(ctx, tx, scope, 0, true)
+	if e != nil {
+		return nil, e
+	}
+	for _, c := range entries {
+		if c.Available && c.CandidateHash == hash {
+			return &rotatingConfig{Conversion: c, Cycle: cycle, Scope: scope}, nil
+		}
+	}
+	return nil, nil
 }
 
 func (s *Store) claimRotation(ctx context.Context, c *rotatingConfig) (bool, error) {
