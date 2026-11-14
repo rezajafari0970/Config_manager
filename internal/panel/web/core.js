@@ -12,12 +12,14 @@ export const dateTime=n=>n?clock.format(new Date(n)):'هنوز دریافت نش
 export const countdown=n=>{const sec=Math.max(0,Math.ceil((n-Date.now())/1000));if(sec<60)return fa.format(sec)+' ثانیه';if(sec<3600)return fa.format(Math.ceil(sec/60))+' دقیقه';return fa.format(Math.ceil(sec/3600))+' ساعت'};
 export function toast(text){$('#toast').textContent=text;$('#toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.add('hidden'),4500)}
 export async function api(path,options={}){
+ const {timeoutMs=20000,...requestOptions}=options;options=requestOptions;
+ const timeout=Number.isFinite(timeoutMs)?Math.min(120000,Math.max(1000,timeoutMs)):20000;
  const headers=new Headers(options.headers||{});
  if(options.method==='POST'){headers.set('X-CSRF-Token',csrf);if(typeof options.body!=='string'&&options.body!==undefined){headers.set('Content-Type','application/json');options={...options,body:JSON.stringify(options.body)}}}
  const controller=new AbortController(),signal=options.signal;
  const cancel=()=>controller.abort();
  if(signal?.aborted)cancel();else signal?.addEventListener('abort',cancel,{once:true});
- const timer=setTimeout(cancel,20000);
+ const timer=setTimeout(cancel,timeout);
  try{
   const response=await fetch(path,{...options,headers,signal:controller.signal,credentials:'same-origin',cache:'no-store'});
   let data;try{data=await response.json()}catch{throw new Error('پاسخ سرور دریافت نشد؛ دوباره تلاش کنید.')}

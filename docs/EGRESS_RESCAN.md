@@ -8,7 +8,8 @@ Newly ingested inputs use the normal queue and are not silently added to this co
 
 The public CSRF-protected POST /api/egress/rescan accepts the last run id as
 `revision`. A stale revision rejects a duplicate or competing reset. The reset is
-one writer transaction: create run and members, expire route/health/country receipt
+one writer transaction (the reset UI has a bounded120-second request deadline;
+other API calls retain their20-second default): create run and members, expire route/health/country receipt
 validity, fence leases by increasing revisions, clear the current tested clock,
 schedule all cohort members, and reset bounded retry progression. It does not clear
 raw data, prior diagnostic reports, lifetime attempts, first_completed, operational
