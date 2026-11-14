@@ -8,6 +8,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/rezajafari0970/Config_manager/internal/egress"
 )
 
 // A retained archive must neither become work again nor monopolize the panel
@@ -15,7 +17,14 @@ import (
 func TestSingleExportsDuringArchivedEgressPolling(t *testing.T) {
 	s := testStore(t)
 	source, expected := newExportSource(t, s, "single-contention", sourceURI(273), sourceURI(274))
-	if _, err := s.db.Exec(`UPDATE egress_jobs SET state='NO_SPLIT',reason='non_ads_uses_ads_egress',tested=1,first_completed=1;
+	job, err := s.ClaimEgress(context.Background())
+	if err != nil || job == nil {
+		t.Fatal("positive fixture", err)
+	}
+	if err = s.CompleteEgress(context.Background(), egress.Completion{Job: *job, Report: syntheticEgress(*job)}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.db.Exec(`UPDATE egress_jobs SET state='NO_SPLIT',reason='non_ads_uses_ads_egress',tested=1,first_completed=1 WHERE ever_accepted=0;
  WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM n WHERE i<30000)
  INSERT INTO egress_jobs(hash,kind,size,first_seen,last_seen) SELECT printf('%064x',100000+i),'fixture',1,1,1 FROM n;
  INSERT INTO egress_unique(identity,hash,created) SELECT hash,hash,1 FROM egress_jobs WHERE kind='fixture';`); err != nil {
@@ -73,7 +82,7 @@ func TestSingleExportsDuringArchivedEgressPolling(t *testing.T) {
 		t.Error(err)
 	}
 	var attempts int
-	if err := s.db.QueryRow("SELECT sum(attempts) FROM egress_jobs").Scan(&attempts); err != nil || attempts != 0 {
+	if err := s.db.QueryRow("SELECT sum(attempts) FROM egress_jobs").Scan(&attempts); err != nil || attempts != 1 {
 		t.Fatal("archive or terminal negative was retested", attempts, err)
 	}
 }
