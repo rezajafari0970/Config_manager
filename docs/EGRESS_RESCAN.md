@@ -13,6 +13,10 @@ validity, fence leases by increasing revisions, clear the current tested clock,
 schedule all cohort members, and reset bounded retry progression. It does not clear
 raw data, prior diagnostic reports, lifetime attempts, first_completed, operational
 counters, source controls, country choices, manual exclusions or Iran evidence.
+Schema33 also fences already excluded alternate raw versions and applies the same
+identity fence on subsequent exclusion inserts/updates. The directly revoked member
+keeps its own reason and health-deletion accounting; siblings are identity_excluded.
+Reports and lifetime attempt counters remain historical.
 Migration itself never initiates a reset. The operator/user explicitly starts it.
 
 Accepted inputs retain their deep raw and template check and existing queue priority.

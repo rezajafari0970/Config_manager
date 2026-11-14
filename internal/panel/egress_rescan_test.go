@@ -166,3 +166,46 @@ func TestEgressRunCountsConfirmedIranCompletionAsTested(t *testing.T) {
 		t.Fatal(run, err)
 	}
 }
+
+func TestEgressManualDeleteFencesAllAliasesWithoutInventingHealthDeletion(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	newExportSource(t, s, "alias-delete", sourceURI(258), sourceURI(259))
+	first, _ := s.ClaimEgress(ctx)
+	second, _ := s.ClaimEgress(ctx)
+	var identity string
+	if err := s.db.QueryRow("SELECT identity FROM egress_owners WHERE hash=? LIMIT 1", first.Hash).Scan(&identity); err != nil {
+		t.Fatal(err)
+	}
+	// Bind an existing in-flight alternate representation to the same identity.
+	if _, err := s.db.Exec("UPDATE egress_owners SET identity=? WHERE hash=?", identity, second.Hash); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.ResetEgress(ctx, 0); err != nil {
+		t.Fatal(err)
+	}
+	stale, _ := s.ClaimEgress(ctx)
+	tx, _ := s.db.Begin()
+	if err := s.revokeEgress(ctx, tx, first.Hash, "manual_delete", egress.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if err := tx.Commit(); err != nil {
+		t.Fatal(err)
+	}
+	var live int
+	s.db.QueryRow("SELECT count(*) FROM egress_jobs WHERE state!='DELETED'").Scan(&live)
+	if live != 0 {
+		t.Fatal("alias remained in active queue", live)
+	}
+	if err := s.CompleteEgress(ctx, egress.Completion{Job: *stale, Report: syntheticEgress(*stale)}); err != ErrConflict {
+		t.Fatal("alias lease survived exclusion", err)
+	}
+	run, err := egressRunState(ctx, s.db)
+	if err != nil || run["excluded"] != 2 || run["pending"] != 0 {
+		t.Fatal(run, err)
+	}
+	metrics, _ := egressMetricState(ctx, s.db)
+	if metrics.UnhealthyDeleted != 0 {
+		t.Fatal("manual deletion counted as health failure")
+	}
+}

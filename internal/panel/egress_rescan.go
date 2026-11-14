@@ -29,6 +29,17 @@ func (s *Store) migrateV33() error {
  CREATE TRIGGER egress_run_deleted AFTER UPDATE OF state ON egress_jobs WHEN NEW.state='DELETED' AND OLD.state!='DELETED' BEGIN
  UPDATE egress_run_members SET status='excluded',completed_at=CAST(unixepoch('subsec')*1000 AS INTEGER),state='DELETED' WHERE run=(SELECT max(id) FROM egress_runs) AND hash=NEW.hash AND status='pending';
  END;
+
+ CREATE TRIGGER egress_excluded_alias_insert AFTER INSERT ON input_exclusions BEGIN
+ UPDATE egress_jobs SET state='DELETED',reason='identity_excluded',revision=revision+1,token='',lease_until=0,valid_until=0
+ WHERE state!='DELETED' AND hash!=NEW.hash AND hash IN(SELECT hash FROM egress_owners WHERE identity=NEW.identity);
+ END;
+ CREATE TRIGGER egress_excluded_alias_update AFTER UPDATE ON input_exclusions BEGIN
+ UPDATE egress_jobs SET state='DELETED',reason='identity_excluded',revision=revision+1,token='',lease_until=0,valid_until=0
+ WHERE state!='DELETED' AND hash!=NEW.hash AND hash IN(SELECT hash FROM egress_owners WHERE identity=NEW.identity);
+ END;
+ UPDATE egress_jobs SET state='DELETED',reason='identity_excluded',revision=revision+1,token='',lease_until=0,valid_until=0
+ WHERE state!='DELETED' AND EXISTS(SELECT 1 FROM egress_owners o JOIN input_exclusions x ON x.identity=o.identity WHERE o.hash=egress_jobs.hash AND x.hash!=egress_jobs.hash);
  PRAGMA user_version=33;`)
 	if err != nil {
 		return err
