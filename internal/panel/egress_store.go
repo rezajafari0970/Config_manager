@@ -16,6 +16,16 @@ func (s *Store) ClaimEgress(ctx context.Context) (*egress.Job, error) {
 	return s.ClaimEgressLane(ctx, "")
 }
 
+// Enumerate the small current/retained identity set before looking up jobs.
+// Starting with the due-job index instead scans the entire historical archive on
+// every idle worker poll. The authoritative views still apply all exclusions,
+// Iran guards and completed-result rules to each candidate; this is not a cache.
+const egressClaimCandidates = `WITH claim_scope(hash) AS MATERIALIZED (
+ SELECT u.hash FROM (SELECT DISTINCT artifact_id FROM memberships) m JOIN egress_unique u ON u.identity=m.artifact_id
+ UNION SELECT hash FROM egress_jobs WHERE ever_accepted=1
+ UNION SELECT u.hash FROM egress_iran_guard g JOIN egress_unique u ON u.identity=g.identity WHERE g.state='QUARANTINED'
+) `
+
 // Independent first-assessment and follow-up lanes share revision-fenced leases.
 // Due accepted proofs and manual requests can use either lane. Idle slots
 // steal first assessments before spending capacity on routine NO_SPLIT rechecks.
@@ -31,12 +41,12 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	// after a negative read is picked up by the next ordinary poll, without a cache.
 	now := egress.Now()
 	var needed bool
-	e := s.reader().QueryRowContext(ctx, `SELECT
- EXISTS(SELECT 1 FROM egress_jobs WHERE token!='' AND hash NOT IN(SELECT hash FROM egress_inventory))
- OR EXISTS(SELECT 1 FROM egress_run_members WHERE run=(SELECT max(id) FROM egress_runs) AND status='pending' AND hash NOT IN(SELECT hash FROM egress_inventory))
+	e := s.reader().QueryRowContext(ctx, egressClaimCandidates+`SELECT
+ EXISTS(SELECT 1 FROM egress_jobs WHERE token!='' AND NOT EXISTS(SELECT 1 FROM egress_inventory i WHERE i.hash=egress_jobs.hash))
+ OR EXISTS(SELECT 1 FROM egress_run_members WHERE run=(SELECT max(id) FROM egress_runs) AND status='pending' AND NOT EXISTS(SELECT 1 FROM egress_inventory i WHERE i.hash=egress_run_members.hash))
  OR (EXISTS(SELECT 1 FROM egress_settings WHERE id=1 AND enabled!=0)
  AND (SELECT count(*) FROM egress_jobs WHERE token!='' AND lease_until>?)<?
- AND EXISTS(SELECT 1 FROM egress_work WHERE paused=0 AND next_run<=? AND (token='' OR lease_until<=?)))`, now, egress.MaxWorkers, now, now).Scan(&needed)
+ AND EXISTS(SELECT 1 FROM claim_scope c CROSS JOIN egress_work j ON j.hash=c.hash WHERE paused=0 AND next_run<=? AND (token='' OR lease_until<=?)))`, now, egress.MaxWorkers, now, now).Scan(&needed)
 	if e != nil || !needed {
 		return nil, e
 	}
@@ -50,10 +60,10 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	}
 	now = egress.Now()
 	var active, enabled int
-	if _, e = tx.ExecContext(ctx, `UPDATE egress_jobs SET revision=revision+1,token='',lease_until=0 WHERE token!='' AND hash NOT IN(SELECT hash FROM egress_inventory)`); e != nil {
+	if _, e = tx.ExecContext(ctx, `UPDATE egress_jobs SET revision=revision+1,token='',lease_until=0 WHERE token!='' AND NOT EXISTS(SELECT 1 FROM egress_inventory i WHERE i.hash=egress_jobs.hash)`); e != nil {
 		return nil, e
 	}
-	if _, e = tx.ExecContext(ctx, `UPDATE egress_run_members SET status='excluded',state='OUT_OF_SCOPE',completed_at=? WHERE run=(SELECT max(id) FROM egress_runs) AND status='pending' AND hash NOT IN(SELECT hash FROM egress_inventory)`, now); e != nil {
+	if _, e = tx.ExecContext(ctx, `UPDATE egress_run_members SET status='excluded',state='OUT_OF_SCOPE',completed_at=? WHERE run=(SELECT max(id) FROM egress_runs) AND status='pending' AND NOT EXISTS(SELECT 1 FROM egress_inventory i WHERE i.hash=egress_run_members.hash)`, now); e != nil {
 		return nil, e
 	}
 	if e = tx.QueryRowContext(ctx, "SELECT enabled,(SELECT count(*) FROM egress_jobs WHERE token!='' AND lease_until>?) FROM egress_settings WHERE id=1", now).Scan(&enabled, &active); e != nil {
@@ -65,15 +75,15 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	j := &egress.Job{}
 	var size int64
 	var state, previousToken string
-	base := `SELECT hash,kind,size,revision,ever_accepted,attempts,state,token FROM egress_work AS egress_jobs WHERE paused=0 AND next_run<=? AND (token='' OR lease_until<=?)`
-	order := ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 THEN 0 WHEN reason='manual_recheck' THEN 1 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 2 WHEN tested=0 THEN 3 WHEN ever_accepted=1 THEN 4 WHEN state='UNKNOWN' AND attempts=1 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 5 ELSE 6 END,next_run,first_seen,hash LIMIT 1`
+	base := egressClaimCandidates + `SELECT egress_jobs.hash,kind,size,revision,ever_accepted,attempts,state,token FROM claim_scope c CROSS JOIN egress_work AS egress_jobs ON egress_jobs.hash=c.hash WHERE paused=0 AND next_run<=? AND (token='' OR lease_until<=?)`
+	order := ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 THEN 0 WHEN reason='manual_recheck' THEN 1 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 2 WHEN tested=0 THEN 3 WHEN ever_accepted=1 THEN 4 WHEN state='UNKNOWN' AND attempts=1 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 5 ELSE 6 END,next_run,first_seen,egress_jobs.hash LIMIT 1`
 	filters := []string{""}
 	if lane == "initial" {
 		filters = []string{` AND (tested=0 OR reason='manual_recheck' OR reason='ads_iran_quarantined' OR ever_accepted=1)`, ""}
 	}
 	if lane == "followup" {
 		filters = []string{` AND (reason='manual_recheck' OR ever_accepted=1 OR tested>0)`, ` AND tested=0`, ""}
-		order = ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 THEN 0 WHEN reason='manual_recheck' THEN 1 ELSE 2 END,next_run,first_seen,hash LIMIT 1`
+		order = ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 THEN 0 WHEN reason='manual_recheck' THEN 1 ELSE 2 END,next_run,first_seen,egress_jobs.hash LIMIT 1`
 	}
 	for _, filter := range filters {
 		args := []any{now, now}
