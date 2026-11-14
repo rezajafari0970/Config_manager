@@ -25,6 +25,7 @@ import (
 type Store struct {
 	db            *sql.DB
 	readDB        *sql.DB
+	workerReadDB  *sql.DB
 	aead          cipher.AEAD
 	key           []byte
 	vault         *blob.Vault
@@ -70,6 +71,9 @@ func Open(path string, key []byte) (*Store, error) {
 	success := false
 	defer func() {
 		if !success {
+			if s.workerReadDB != nil {
+				s.workerReadDB.Close()
+			}
 			if s.readDB != nil {
 				s.readDB.Close()
 			}
@@ -251,13 +255,27 @@ PRAGMA user_version=1;`)
 	if err = s.readDB.Ping(); err != nil {
 		return nil, err
 	}
+	// Background queue preflights have their own bounded WAL pool. A burst of
+	// idle worker polls must not consume all readers needed by public exports.
+	s.workerReadDB, err = sql.Open("sqlite", dsn.String())
+	if err != nil {
+		return nil, err
+	}
+	s.workerReadDB.SetMaxOpenConns(2)
+	s.workerReadDB.SetMaxIdleConns(2)
+	if err = s.workerReadDB.Ping(); err != nil {
+		return nil, err
+	}
 	success = true
 	return s, nil
 }
 func (s *Store) Close() error {
 	var err error
+	if s.workerReadDB != nil {
+		err = s.workerReadDB.Close()
+	}
 	if s.readDB != nil {
-		err = s.readDB.Close()
+		err = errors.Join(err, s.readDB.Close())
 	}
 	return errors.Join(err, s.db.Close())
 }
@@ -266,6 +284,12 @@ func (s *Store) reader() *sql.DB {
 		return s.readDB
 	}
 	return s.db // Migrations and isolated legacy-store fixtures.
+}
+func (s *Store) workerReader() *sql.DB {
+	if s.workerReadDB != nil {
+		return s.workerReadDB
+	}
+	return s.reader()
 }
 func (s *Store) Ping(ctx context.Context) error { return s.db.PingContext(ctx) }
 func randomToken() string {

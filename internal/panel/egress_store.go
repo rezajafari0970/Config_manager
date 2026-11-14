@@ -41,7 +41,7 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	// after a negative read is picked up by the next ordinary poll, without a cache.
 	now := egress.Now()
 	var needed bool
-	e := s.reader().QueryRowContext(ctx, egressClaimCandidates+`SELECT
+	e := s.workerReader().QueryRowContext(ctx, egressClaimCandidates+`SELECT
  EXISTS(SELECT 1 FROM egress_jobs WHERE token!='' AND NOT EXISTS(SELECT 1 FROM egress_inventory i WHERE i.hash=egress_jobs.hash))
  OR EXISTS(SELECT 1 FROM egress_run_members WHERE run=(SELECT max(id) FROM egress_runs) AND status='pending' AND NOT EXISTS(SELECT 1 FROM egress_inventory i WHERE i.hash=egress_run_members.hash))
  OR (EXISTS(SELECT 1 FROM egress_settings WHERE id=1 AND enabled!=0)

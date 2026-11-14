@@ -51,7 +51,8 @@ func smartClaimSnapshot(pool []smart.Member, ads bool) smartClaimInventory {
 // positive path still repeats the authoritative checks inside ClaimSmart's
 // writer transaction; a change after a negative read is seen by the next poll.
 func (s *SmartPipeline) smartClaimNeeded(ctx context.Context) (bool, error) {
-	tx, err := s.reader().BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	readers := smartDB{DB: s.Store.workerReader(), splash: s.splash, ads: s.ads}
+	tx, err := readers.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
 	if err != nil {
 		return false, err
 	}
