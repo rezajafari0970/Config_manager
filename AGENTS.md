@@ -1,3 +1,34 @@
+# P61 explicit user correction — observed Ads split / 2026-11-14
+
+Read docs/ADS_OBSERVED.md. User requested fixing zero Residential detection and
+OpenAI API review. v7 supersedes v6's impossible mandatory reachability-source
+coverage, while preserving P60 unique current-identity queue and one-time reset.
+Require all six Ads, stable same-family coherent control witnesses including
+ordinary Google, raw/template and strict evidence; supplementary Telegram/Instagram
+unobservability stays visible and does not imply universal exclusivity. Any valid
+overlap still vetoes. Preserve unaffected v6 terminal negatives and unsupported
+verdicts on this narrow upgrade; affected results need fresh proof, never a new
+statistics reset. Keep country/IR/TLS/core/raw gates, matched backup, deploy lock,
+full validation, real canaries and six matching binaries. Report actual API status
+and measured outputs, not invented positives or100% coverage/uptime claims.
+
+# P60 activation receipt — 2026-11-14
+
+Activated schema34, release p60-278a45396131cf1dbe04, runtime commit ff0a3d5192fc01fc6cd6e087def692dcb042331c.
+Read docs/reports/P60-report-fa.md and P60-validation.json. Current-identity-only
+queue and one-time reset are live; 1413 initial identities, prior archive excluded.
+Completed classifications cache; bounded UNKNOWN follow-up and accepted/IR safety
+renewals remain. All four formats and mobile/desktop UI verified, no processing
+buttons. Six canonical binaries match. Composite race validation is documented:
+five legacy fixture/clock failures corrected and all failed/related cases rerun;
+runtime unchanged, all other full-suite cases and postchecks passed.
+Measured first1000 initial-cohort assessments 812.011s;
+first1000 settled outcomes 1125.294s, including UNKNOWN.
+The1000/600s target is NOT met. Zero verified/published positives at final snapshot;
+source-unobservable control limitation remains, not proof of no Residential inputs.
+Preserve schema34 cache and guards; never repeat the reset on startup or open with
+older binaries. Hold deploy lock and matched backup for later runtime changes.
+
 # P60 explicit user override — current unique automatic queue / 2026-11-14
 
 Read docs/EGRESS_UNIQUE.md. The user explicitly requested current identities only,

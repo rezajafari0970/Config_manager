@@ -43,7 +43,7 @@ func TestFiniteObservationPolicy(t *testing.T) {
 		}
 	}
 	r.Samples = keep
-	if d := Evaluate(r, p, "fixture", now); !d.Eligible || d.Route != "DIFFERENT" || d.Reason != "repeated_ads_exclusive_observation" {
+	if d := Evaluate(r, p, "fixture", now); !d.Eligible || d.Route != "DIFFERENT" || d.Reason != "repeated_ads_split_observation" {
 		t.Fatal(d)
 	}
 	cases := []struct {
@@ -181,7 +181,11 @@ func TestRotatingAdsPoolAndConflictingEvidence(t *testing.T) {
 		t.Fatal("mixed routes", d)
 	}
 	r, p, now = fixture()
-	r.Samples[len(Domains)].Source = Hash([]byte("2.2.2.2"))
+	for i := range r.Samples {
+		if r.Samples[i].Domain == "www.google.com" {
+			r.Samples[i].Source = Hash([]byte("2.2.2.2"))
+		}
+	}
 	if d := Evaluate(r, p, "fixture", now); !d.Eligible || d.Negative {
 		t.Fatal("heterogeneous controls rejected", d)
 	}

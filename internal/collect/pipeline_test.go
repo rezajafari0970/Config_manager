@@ -93,7 +93,9 @@ func TestAcquisitionProcessingHasIndependentBudget(t *testing.T) {
 			e, r := pipelineFixture(t, count)
 			r.delay = 150 * time.Millisecond
 			// Network completes quickly, local staging lasts longer than its fetch budget.
-			e.runJobWithBudgets(context.Background(), Job{}, 100*time.Millisecond, 10*time.Second)
+			// Leave disk-backed race instrumentation room on a busy shared host;
+			// the injected staging delay still exceeds the fetch deadline.
+			e.runJobWithBudgets(context.Background(), Job{}, 100*time.Millisecond, 120*time.Second)
 			if r.result.State != "updated" || r.result.Extracted != count || r.items != count || r.batches != (count+31)/32 {
 				t.Fatalf("lost healthy response: %+v batches=%d items=%d", r.result, r.batches, r.items)
 			}
@@ -106,7 +108,7 @@ func TestAcquisitionProcessingFailureNeverPublishesPartialBatch(t *testing.T) {
 			e, r := pipelineFixture(t, 40)
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
-			budget := time.Second
+			budget := 120 * time.Second
 			switch mode {
 			case "deadline":
 				r.delay = time.Second

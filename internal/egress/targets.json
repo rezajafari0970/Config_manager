@@ -1,13 +1,79 @@
 [
-  {"domain":"googleads.g.doubleclick.net","group":"doubleclick","role":"ads","driver":"google-peer","required":true},
-  {"domain":"pubads.g.doubleclick.net","group":"doubleclick","role":"ads","driver":"google-peer","required":true},
-  {"domain":"securepubads.g.doubleclick.net","group":"doubleclick","role":"ads","driver":"google-peer","required":true},
-  {"domain":"pagead2.googlesyndication.com","group":"syndication","role":"ads","driver":"google-peer","required":true},
-  {"domain":"adservice.google.com","group":"adservice","role":"ads","driver":"google-peer","required":true},
-  {"domain":"www.googleadservices.com","group":"adservices","role":"ads","driver":"google-peer","required":true},
-  {"domain":"www.google.com","group":"google-search","role":"control","driver":"google-peer","required":true},
-  {"domain":"www.cloudflare.com","group":"cloudflare","role":"control","driver":"cloudflare-trace","required":true},
-  {"domain":"api.ipify.org","group":"ipify","role":"control","driver":"ipify","required":true},
-  {"domain":"t.me","group":"telegram-web","role":"control","driver":"https-reachability","required":true},
-  {"domain":"www.instagram.com","group":"instagram-web","role":"control","driver":"https-reachability","required":true}
+  {
+    "domain": "googleads.g.doubleclick.net",
+    "group": "doubleclick",
+    "role": "ads",
+    "driver": "google-peer",
+    "required": true
+  },
+  {
+    "domain": "pubads.g.doubleclick.net",
+    "group": "doubleclick",
+    "role": "ads",
+    "driver": "google-peer",
+    "required": true
+  },
+  {
+    "domain": "securepubads.g.doubleclick.net",
+    "group": "doubleclick",
+    "role": "ads",
+    "driver": "google-peer",
+    "required": true
+  },
+  {
+    "domain": "pagead2.googlesyndication.com",
+    "group": "syndication",
+    "role": "ads",
+    "driver": "google-peer",
+    "required": true
+  },
+  {
+    "domain": "adservice.google.com",
+    "group": "adservice",
+    "role": "ads",
+    "driver": "google-peer",
+    "required": true
+  },
+  {
+    "domain": "www.googleadservices.com",
+    "group": "adservices",
+    "role": "ads",
+    "driver": "google-peer",
+    "required": true
+  },
+  {
+    "domain": "www.google.com",
+    "group": "google-search",
+    "role": "control",
+    "driver": "google-peer",
+    "required": true
+  },
+  {
+    "domain": "www.cloudflare.com",
+    "group": "cloudflare",
+    "role": "control",
+    "driver": "cloudflare-trace",
+    "required": true
+  },
+  {
+    "domain": "api.ipify.org",
+    "group": "ipify",
+    "role": "control",
+    "driver": "ipify",
+    "required": true
+  },
+  {
+    "domain": "t.me",
+    "group": "telegram-web",
+    "role": "control",
+    "driver": "https-reachability",
+    "required": false
+  },
+  {
+    "domain": "www.instagram.com",
+    "group": "instagram-web",
+    "role": "control",
+    "driver": "https-reachability",
+    "required": false
+  }
 ]

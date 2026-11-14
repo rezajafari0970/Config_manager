@@ -164,6 +164,13 @@ class PrivacyContracts(unittest.TestCase):
   self.assertNotEqual(other[0]['source'],out[0]['source'])
  def test_driver_has_no_network_class_dependency(self):
   self.assertFalse(hasattr(driver,'intel'));self.assertFalse((HERE/'egress-classify.py').exists())
+class ReachabilityHeadContracts(unittest.TestCase):
+ def test_head_large_content_length_does_not_read_a_body(self):
+  async def run():
+   reader=asyncio.StreamReader();reader.feed_data(b'HTTP/1.1 200 OK\r\nContent-Length: 2000000\r\n\r\n');reader.feed_eof()
+   status,headers,body=await session.read_response(reader,True,head=True)
+   self.assertEqual(status,200);self.assertEqual(body,b'');self.assertEqual(headers['content-length'],'2000000')
+  asyncio.run(run())
 class AdaptiveContracts(unittest.TestCase):
  def simulate(self,change):
   original=session.measure;calls=[]
@@ -177,12 +184,12 @@ class AdaptiveContracts(unittest.TestCase):
  def test_two_complete_paired_waves_skip_third(self):
   rows,calls=self.simulate(lambda r:None)
   self.assertEqual(len(rows),2*len(session.DEFAULT_TARGETS));self.assertEqual({w for d,w in calls},{1,2})
- def test_third_wave_retries_only_missing_domain_and_controls(self):
+ def test_third_wave_repeats_required_ads_and_comparison_controls(self):
   def change(r):
    if r['domain']==session.DOMAINS[0] and r['wave']==1:r['echo']=False
   rows,calls=self.simulate(change)
-  self.assertEqual({d for d,w in calls if w==3 and d in session.DOMAINS},{session.DOMAINS[0]})
-  self.assertEqual(len(rows),2*len(session.DEFAULT_TARGETS)+1)
+  self.assertEqual({d for d,w in calls if w==3},{t['domain'] for t in session.DEFAULT_TARGETS if t.get('required')})
+  self.assertEqual(len(rows),2*len(session.DEFAULT_TARGETS)+sum(t.get("required",False) for t in session.DEFAULT_TARGETS))
  def test_family_change_needs_third_wave(self):
   def change(r):
    if r['domain'] in session.DOMAINS and r['wave']==2:r['family']=6
@@ -192,7 +199,7 @@ class AdaptiveContracts(unittest.TestCase):
   def change(r):
    if r['domain']=='api.ipify.org' and r['wave']==2:r['echo']=False
   rows,calls=self.simulate(change)
-  self.assertEqual({d for d,w in calls if w==3 and d in session.DOMAINS},set())
+  self.assertEqual({d for d,w in calls if w==3},{t['domain'] for t in session.DEFAULT_TARGETS if t.get('required')})
  def test_flat_vless_dispatch_preserves_tls_and_local_semantics(self):
   import base64
   for address,security,encryption,want in [('8.8.8.8','none','none','26.5.9'),('example.com','none','none','26.5.9'),('127.0.0.1','none','none','26.11.9'),('8.8.8.8','tls','none','26.11.9'),('8.8.8.8','none','mlkem768x25519plus.native.0rtt.key','26.11.9')]:

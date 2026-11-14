@@ -1,0 +1,337 @@
+{
+  "schema": 34,
+  "runtime_commit": "ff0a3d5192fc01fc6cd6e087def692dcb042331c",
+  "release": "p60-278a45396131cf1dbe04",
+  "reset": {
+    "id": 1,
+    "started": 1794626946239,
+    "total": 1413,
+    "zero_old_statistics": true
+  },
+  "validation": {
+    "passed": true,
+    "full_race_suite_seconds": 956.791,
+    "full_run_exit": 1,
+    "full_run_failures": [
+      "TestRotationCyclesRestartAndSchema6Upgrade",
+      "TestSchema7MigrationPreservesGlobalQueue",
+      "TestSmartCacheMigrationAndReopenPreserveValidatedBytes",
+      "TestSmartPersistentConcurrentRoundsAndMigration",
+      "TestV32VersionInvalidatesProofWithoutErasingHistory"
+    ],
+    "failure_causes": [
+      "legacy fixture did not remove schema34 index",
+      "superseded current-test clock expectation; historical event remains preserved"
+    ],
+    "all_failed_and_related_migration_cases_retested_under_race": true,
+    "runtime_source_unchanged_since_full_race": true,
+    "all_other_full_suite_cases_passed": true,
+    "postchecks": "vet,format,modules,six builds,Python and JS passed",
+    "changed_test_files": [
+      "internal/panel/egress_iran_test.go",
+      "internal/panel/egress_test.go"
+    ],
+    "source_files": 326,
+    "scoped_tests_passed": true,
+    "worker_browser_crash_watchdog_passed": true,
+    "copied_production_migration_passed": true
+  },
+  "deployment_downtime_seconds": 14.462,
+  "controls_preserved": true,
+  "six_canonical_binary_hashes": {
+    "config-panel": "278a45396131cf1dbe04a9cfe4edf669bd41a3c286cb5812d83468f8986b2fd9",
+    "config-probe-worker": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+    "config-egress-worker": "83986957f4484c236a549dad7efb786ff9c18cde86652ccefd6bc57092c9af23",
+    "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+    "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+    "config-probe-plan": "62c40caf384f0436300299f61c65364a94d13efddedf4e3bbbf3c66d55f793e9"
+  },
+  "canonical_source_files_verified": 326,
+  "benchmarks": {
+    "first_1000_admitted_identities": {
+      "elapsed_ms": 775943,
+      "target_met": false,
+      "unique": 1000,
+      "first_states": {
+        "UNKNOWN": 518,
+        "NO_SPLIT": 466,
+        "UNSUPPORTED": 16
+      },
+      "definitive": 466,
+      "reset_at": 1794626946239,
+      "scope": "1000 distinct identity representatives admitted while current; includes post-reset new inputs, startup and migration; unknown is not a definitive classification",
+      "cohort": {
+        "accepted": 0,
+        "accepted_completed": 0,
+        "accepted_excluded": 0,
+        "assessed_at_600s": 770,
+        "completed": 955,
+        "definitive": 453,
+        "elapsed_ms": 779062,
+        "excluded": 83,
+        "finished": false,
+        "first_1000_ms": 0,
+        "id": 1,
+        "paused_pending": 0,
+        "pending": 375,
+        "started": 1794626946239,
+        "target_600s_met": false,
+        "total": 1413,
+        "unit": "collector_identity"
+      }
+    },
+    "first_1000_initial_cohort": {
+      "elapsed_ms": 812011,
+      "states": {
+        "NO_SPLIT": 478,
+        "UNKNOWN": 506,
+        "UNSUPPORTED": 16
+      },
+      "definitive": 478,
+      "target_600s_met": false
+    },
+    "first_1000_settled": {
+      "at": 1794628080679,
+      "since": 1794626946239,
+      "settled_distinct": 1006,
+      "current_incomplete": 434,
+      "current_initial_pending": 2,
+      "states": {
+        "NO_SPLIT": 755,
+        "UNKNOWN": 226,
+        "UNSUPPORTED": 25
+      },
+      "unique": 1000,
+      "elapsed_ms": 1125294,
+      "target_600s_met": false,
+      "first_states": {
+        "NO_SPLIT": 754,
+        "UNKNOWN": 221,
+        "UNSUPPORTED": 25
+      },
+      "hashes_sha256": "ac9c2e7849fdc9dd041005c153581e2f63b6fc45a887442519b1959d9597c008",
+      "scope": "One identity counted once when terminal or after its bounded UNKNOWN follow-up. UNKNOWN remains inconclusive. Includes post-reset current-source newcomers and startup; excludes never-assessed out-of-scope inputs."
+    }
+  },
+  "initial_cohort_closed": {
+    "at": 1794628957449,
+    "rescan": {
+      "accepted": 0,
+      "accepted_completed": 0,
+      "accepted_excluded": 0,
+      "assessed_at_600s": 770,
+      "completed": 1292,
+      "definitive": 657,
+      "elapsed_ms": 1962726,
+      "excluded": 121,
+      "finished": true,
+      "first_1000_ms": 812011,
+      "id": 1,
+      "paused_pending": 0,
+      "pending": 0,
+      "started": 1794626946239,
+      "target_600s_met": false,
+      "total": 1413,
+      "unit": "collector_identity"
+    },
+    "followups": 0
+  },
+  "current_queue_drained": {
+    "at": 1794629683176,
+    "since": 1794626946239,
+    "settled_distinct": 1695,
+    "current_incomplete": 0,
+    "current_initial_pending": 0,
+    "states": {
+      "NO_SPLIT": 997,
+      "UNKNOWN": 663,
+      "UNSUPPORTED": 35
+    }
+  },
+  "production_restart": {
+    "passed": true,
+    "at": 1794629689290,
+    "heartbeat_recovered_at": 1794629691437,
+    "restart_seconds": 7.613,
+    "reset_clock_preserved": true,
+    "run_preserved": true,
+    "cached_results_preserved": 1695,
+    "worker_active": true,
+    "boot_enabled": true,
+    "scope": "Production worker restarted after drain; schema34 reopen without a repeated reset independently validated in copied-data rehearsal."
+  },
+  "final_live": {
+    "at": 1794630212795,
+    "schema": 34,
+    "accounting": {
+      "archive_versions": 0,
+      "assessed_versions": 1369,
+      "at": 1794630210046,
+      "awaiting_first": 0,
+      "coverage_missing": 0,
+      "current_identities": 1369,
+      "current_live_versions": 1369,
+      "current_versions": 1397,
+      "deleted_versions": 0,
+      "live_versions": 1369,
+      "publication": {
+        "awaiting_proof": 0,
+        "country_filtered": 0,
+        "country_unknown": 0,
+        "distinct_templates": 0,
+        "eligible": 0,
+        "identities": 0,
+        "published": 0,
+        "retained": 0
+      },
+      "queue": {
+        "cached": 1368,
+        "due": 0,
+        "paused": 0,
+        "running": 0,
+        "scheduled": 1
+      },
+      "retained_outside_current": 0,
+      "staged_coverage_missing": 0,
+      "staged_versions": 0,
+      "unit": "collector_identity"
+    },
+    "run": {
+      "accepted": 0,
+      "accepted_completed": 0,
+      "accepted_excluded": 0,
+      "assessed_at_600s": 770,
+      "completed": 1292,
+      "definitive": 657,
+      "elapsed_ms": 1962726,
+      "excluded": 121,
+      "finished": true,
+      "first_1000_ms": 812011,
+      "id": 1,
+      "paused_pending": 0,
+      "pending": 0,
+      "started": 1794626946239,
+      "target_600s_met": false,
+      "total": 1413,
+      "unit": "collector_identity"
+    },
+    "counts": {
+      "NO_SPLIT": 809,
+      "UNKNOWN": 538,
+      "UNSUPPORTED": 22
+    },
+    "guard": {
+      "blocked_identities": 3,
+      "country_veto": "IR",
+      "interval_minutes": 10,
+      "overdue_retained": 0,
+      "quarantined_identities": 0,
+      "sticky": true,
+      "version": "ads-iran.v2"
+    },
+    "services": {
+      "config-repair-prober": {
+        "active": "active",
+        "boot": "enabled"
+      },
+      "config-repair-smart": {
+        "active": "active",
+        "boot": "enabled"
+      },
+      "config-repair-splash": {
+        "active": "active",
+        "boot": "enabled"
+      },
+      "config-repair-ads": {
+        "active": "active",
+        "boot": "enabled"
+      },
+      "config-repair-egress": {
+        "active": "active",
+        "boot": "enabled"
+      },
+      "config-repair": {
+        "active": "active",
+        "boot": "enabled"
+      }
+    },
+    "exports": {
+      "configs.json": {
+        "status": 503,
+        "count": null,
+        "iran_guard": "ads-iran.v2; IR-veto; observed-only"
+      },
+      "configs.jsonl": {
+        "status": 503,
+        "count": null,
+        "iran_guard": "ads-iran.v2; IR-veto; observed-only"
+      },
+      "next.json": {
+        "status": 503,
+        "count": null,
+        "iran_guard": "ads-iran.v2; IR-veto; observed-only"
+      },
+      "raw.txt": {
+        "status": 503,
+        "count": null,
+        "iran_guard": "ads-iran.v2; IR-veto; observed-only"
+      }
+    },
+    "zero_duplicate_outputs": true,
+    "cached_negatives_not_queued": true,
+    "integrity": "ok"
+  },
+  "final_reasons": [
+    {
+      "state": "NO_SPLIT",
+      "reason": "non_ads_uses_ads_egress",
+      "count": 809
+    },
+    {
+      "state": "UNKNOWN",
+      "reason": "ads_peer_echo_incomplete",
+      "count": 352
+    },
+    {
+      "state": "UNKNOWN",
+      "reason": "mixed_route_observations",
+      "count": 73
+    },
+    {
+      "state": "UNKNOWN",
+      "reason": "controls_incomplete",
+      "count": 69
+    },
+    {
+      "state": "UNKNOWN",
+      "reason": "direct_route_not_qualified",
+      "count": 31
+    },
+    {
+      "state": "UNSUPPORTED",
+      "reason": "driver_unavailable",
+      "count": 22
+    },
+    {
+      "state": "UNKNOWN",
+      "reason": "runtime_start_failed",
+      "count": 6
+    },
+    {
+      "state": "UNKNOWN",
+      "reason": "ipv6_only_probe_pending",
+      "count": 3
+    },
+    {
+      "state": "UNKNOWN",
+      "reason": "core_evidence_missing",
+      "count": 2
+    },
+    {
+      "state": "UNKNOWN",
+      "reason": "endpoint_dns_failed",
+      "count": 2
+    }
+  ],
+  "known_limit": "Strict v6 cannot confirm hidden Telegram/Instagram egress with the current reachability drivers. UNKNOWN is inconclusive; zero publishable configs is not proof of no Residential configs."
+}

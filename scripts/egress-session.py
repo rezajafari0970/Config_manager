@@ -24,7 +24,7 @@ def authority(cert,name):
  for typ,value in cert.get('subjectAltName',[]):
   if typ=='DNS' and (value==name or value.startswith('*.') and name.count('.')==value.count('.') and name.endswith(value[1:])):return True
  return False
-async def read_response(reader,close):
+async def read_response(reader,close,head=False):
  header=await reader.readuntil(b'\r\n\r\n')
  if len(header)>32768:raise ValueError('header_limit')
  lines=header.decode('iso-8859-1').split('\r\n');status=int(lines[0].split()[1]);h={}
@@ -34,7 +34,7 @@ async def read_response(reader,close):
    if k in h and k in ('content-length','transfer-encoding','connection','location'):raise ValueError('duplicate_header')
    h[k]=v.strip()
  body=b''
- if status in (204,304):pass
+ if head or status in (204,304):pass
  elif 100<=status<200:raise ValueError('interim_response')
  elif 'transfer-encoding' in h:
   if h['transfer-encoding'].lower()!='chunked' or 'content-length' in h:raise ValueError('ambiguous_framing')
@@ -86,10 +86,10 @@ async def measure(domain,variant,wave,timeout,control_ipv4=None,target=None):
    await reader.readexactly(n+2)
    await writer.start_tls(TLS_CONTEXT,server_hostname=domain,ssl_handshake_timeout=timeout)
    tls=writer.get_extra_info('ssl_object');row.update(tls=True,certificate=digest(tls.getpeercert(binary_form=True)))
-   async def get(host,path,close):
-    request=('GET '+path+' HTTP/1.1\r\nHost: '+host+'\r\nUser-Agent: Shen-Egress-Audit/3\r\nCache-Control: no-cache\r\nAccept-Encoding: identity\r\nConnection: '+('close' if close else 'keep-alive')+'\r\n\r\n').encode()
+   async def get(host,path,close,method="GET"):
+    request=(method+' '+path+' HTTP/1.1\r\nHost: '+host+'\r\nUser-Agent: Shen-Egress-Audit/3\r\nCache-Control: no-cache\r\nAccept-Encoding: identity\r\nConnection: '+('close' if close else 'keep-alive')+'\r\n\r\n').encode()
     writer.write(request);await writer.drain();row['request_bytes']+=len(request)
-    result=await read_response(reader,close);row['response_bytes']+=len(result[2]);return result
+    result=await read_response(reader,close,method=="HEAD");row['response_bytes']+=len(result[2]);return result
    driver=target['driver']
    if driver=='google-peer':
     status,h,b=await get(domain,'/robots.txt',False);row.update(first_status=status,actual_ads=target['role']=='ads')
@@ -111,7 +111,7 @@ async def measure(domain,variant,wave,timeout,control_ipv4=None,target=None):
     else:value=json.loads(b)['ip']
     row['code']='control_echo'
    else:
-    status,h,b=await get(domain,'/',True)
+    status,h,b=await get(domain,'/',True,'HEAD')
     row.update(first_status=status,same_stream=True,response=digest(b),response_complete=True,code='reachable_no_source')
     return row
    ip=ipaddress.ip_address(value)
@@ -138,9 +138,13 @@ async def session(req):
   groups=[await wave(start,targets),await wave(start+1,targets)]
   # Repeating an unsupported source observation cannot reveal an IP. Retain
   # both completed reachability observations and report their limited scope.
-  complete=[{x['domain'] for x in g if x.get('echo') or x.get('code')=='reachable_no_source'} for g in groups]
-  missing=[t for t in targets if t['domain'] not in complete[0]&complete[1]]
-  if missing:groups.append(await wave(start+2,missing))
+  complete=[{x['domain'] for x in g if x.get('echo')} for g in groups]
+  required=[t for t in targets if t.get('required')]
+  missing=[t for t in required if t['domain'] not in complete[0]&complete[1]]
+  # Recovery must remeasure the comparison destinations in the SAME wave.
+  # Repeating only a failed Ads request leaves its recovered observation unpaired.
+  # Reachability-only destinations cannot supply source evidence by retrying.
+  if missing:groups.append(await wave(start+2,required))
  elif req.get('sequential'):
   groups=[]
   for i in range(waves):groups.append(await wave(start+i,targets))

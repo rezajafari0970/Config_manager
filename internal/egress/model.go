@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const Version = "ads-egress.v6"
+const Version = "ads-egress.v7"
 
 // Keep slots within the dedicated 32-address sandbox block.
 const MaxWorkers = 31
@@ -215,6 +215,7 @@ type Completion struct {
 	Report Report `json:"report"`
 }
 type Decision struct {
+	EvidenceProfile  string            `json:"evidence_profile,omitempty"`
 	Services         []ServiceDecision `json:"services,omitempty"`
 	CoverageComplete bool              `json:"coverage_complete"`
 	State            string            `json:"state"`
@@ -247,7 +248,7 @@ func controlGroup(domain string) string {
 	return ""
 }
 func Evaluate(r Report, p Plan, hash string, now int64) Decision {
-	d := Decision{State: "UNKNOWN", Reason: "incomplete_observations", Route: "UNKNOWN", Scope: "Ads-exclusive observed policy; six Ads domains and five independent controls; TCP HTTP/1.1; raw/template; unreachable is not blocked; Telegram/Instagram web source may be unobservable; not all app traffic, QUIC, household class or full topology", Sources: []string{}, ControlSources: []string{}}
+	d := Decision{State: "UNKNOWN", Reason: "incomplete_observations", Route: "UNKNOWN", Scope: "Observed Ads split against three source-capable control groups; stable same-family witnesses including ordinary Google in two waves for every Ads domain; TCP HTTP/1.1; raw/template; Telegram/Instagram reachability is supplementary, not route proof; no claim about all other traffic, QUIC, household class or full topology", Sources: []string{}, ControlSources: []string{}}
 	if r.Version != Version || r.Hash != hash || r.Started <= 0 || r.Started > r.Finished || r.Finished > now+2000 || r.Started < now-300000 || r.Finished < now-EvidenceTTL {
 		d.Reason = "stale_or_unbound_report"
 		return d
@@ -259,6 +260,10 @@ func Evaluate(r Report, p Plan, hash string, now int64) Decision {
 	if len(p.Variants) != 2 {
 		d.State = "UNSUPPORTED"
 		d.Reason = "driver_unavailable"
+		return d
+	}
+	if p.Variants[0].Name != "raw" || p.Variants[1].Name != "template" {
+		d.Reason = "variant_binding_invalid"
 		return d
 	}
 	if r.Code == "network_retry_pending" {

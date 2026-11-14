@@ -31,7 +31,7 @@ func TestReachabilityAndDifferentFamilyAreNotRouteProof(t *testing.T) {
 			r, p, now := fixture()
 			for i := range r.Samples {
 				s := &r.Samples[i]
-				if s.Domain != "t.me" {
+				if s.Domain != "www.google.com" {
 					continue
 				}
 				switch kind {
@@ -60,21 +60,21 @@ func TestOnlyBoundLocalBlockCountsAsBlockedControl(t *testing.T) {
 		var cfg map[string]any
 		json.Unmarshal(v.Config, &cfg)
 		cfg["outbounds"] = append(cfg["outbounds"].([]any), map[string]any{"tag": "p58-deny", "protocol": "blackhole"})
-		cfg["routing"] = map[string]any{"domainStrategy": "AsIs", "rules": []any{map[string]any{"type": "field", "domain": []string{"full:t.me"}, "outboundTag": "p58-deny"}}}
+		cfg["routing"] = map[string]any{"domainStrategy": "AsIs", "rules": []any{map[string]any{"type": "field", "domain": []string{"full:www.google.com"}, "outboundTag": "p58-deny"}}}
 		v.Config, _ = json.Marshal(cfg)
 		v.Hash = Hash(v.Config)
 		r.Checks[i].Hash = v.Hash
 		r.Checks[i].RuntimeHash = v.Hash
 	}
 	for i := range r.Samples {
-		if r.Samples[i].Domain == "t.me" {
+		if r.Samples[i].Domain == "www.google.com" {
 			r.Samples[i].Echo = false
 			r.Samples[i].TLS = false
 			r.Samples[i].Source = ""
 			r.Samples[i].Code = "socks_connect"
 		}
 	}
-	if d := Evaluate(r, p, r.Hash, now); !d.Eligible {
+	if d := Evaluate(r, p, r.Hash, now); !d.Eligible || d.CoverageComplete {
 		t.Fatal(d)
 	}
 	for i := range p.Variants {

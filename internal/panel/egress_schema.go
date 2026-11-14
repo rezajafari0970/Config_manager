@@ -154,7 +154,14 @@ func (s *Store) reconcileEgressVersion() error {
 	}
 	current := egress.Version + "|" + convert.Version
 	if previous != current {
-		if _, e = tx.Exec("UPDATE egress_jobs SET state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE 'PENDING' END,reason='implementation_changed',tested=0,deep_completed=0,retry_streak=0,valid_until=0,revision=revision+1,token='',lease_until=0,next_run=0 WHERE state!='DELETED'"); e != nil {
+		where := "state!='DELETED'"
+		// v7 changes positive coverage, not v6's authenticated shared-egress
+		// rejection or unsupported driver inventory. Preserve those completed
+		// identity verdicts; only affected results need fresh observations.
+		if previous == "ads-egress.v6|"+convert.Version && egress.Version == "ads-egress.v7" {
+			where += " AND NOT (ever_accepted=0 AND tested>0 AND ((state='NO_SPLIT' AND reason='non_ads_uses_ads_egress') OR (state='UNSUPPORTED' AND reason='driver_unavailable')))"
+		}
+		if _, e = tx.Exec("UPDATE egress_jobs SET state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE 'PENDING' END,reason='implementation_changed',tested=0,deep_completed=0,retry_streak=0,valid_until=0,revision=revision+1,token='',lease_until=0,next_run=0 WHERE " + where); e != nil {
 			return e
 		}
 		if _, e = tx.Exec("UPDATE egress_health SET valid_until=0"); e != nil {

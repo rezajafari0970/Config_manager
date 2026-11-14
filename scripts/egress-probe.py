@@ -157,7 +157,7 @@ def overlap_assessment(observe,health):
 def investigate(req,args,pool=None):
  if pool is None:
   with ResourcePool(args) as own:return investigate(req,args,own)
- targets=sessions.target_registry(req.get('targets'));plan=req['plan'];r=dict(version='ads-egress.v6',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],health=[],attempts=[],evidence=[],wall_ms=0,waves=3 if req.get('deep') else 2)
+ targets=sessions.target_registry(req.get('targets'));plan=req['plan'];r=dict(version='ads-egress.v7',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],health=[],attempts=[],evidence=[],wall_ms=0,waves=3 if req.get('deep') else 2)
  begin=time.monotonic();best=-1;before_resource_failures=resource_failures(args.prefix)
  if len(plan.get('variants',[]))!=2:return r
  for core,path,pin in (core_order(plan) if plan['driver']=='xray' else [NATIVE]):

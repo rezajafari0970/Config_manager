@@ -60,7 +60,23 @@ func TestEgressWorkerFixture(t *testing.T) {
 		if benchmark > 0 && benchmark <= 2000 {
 			query = fmt.Sprintf("SELECT hash FROM egress_inventory WHERE paused=0 ORDER BY ever_accepted DESC,hash LIMIT %d", benchmark)
 		}
-		rows, e := original.Query(query)
+		args := []any{}
+		if selection := os.Getenv("EGRESS_FIXTURE_HASHES_FILE"); selection != "" {
+			body, err := os.ReadFile(selection)
+			var hashes []string
+			if err != nil || json.Unmarshal(body, &hashes) != nil || len(hashes) < 1 || len(hashes) > 32 {
+				t.Fatal("invalid private canary selection")
+			}
+			for _, h := range hashes {
+				if !validDigest(h) {
+					t.Fatal("invalid private canary hash")
+				}
+				args = append(args, h)
+			}
+			benchmark = len(hashes)
+			query = "SELECT hash FROM egress_inventory WHERE paused=0 AND hash IN(" + strings.TrimRight(strings.Repeat("?,", len(hashes)), ",") + ") ORDER BY hash"
+		}
+		rows, e := original.Query(query, args...)
 		if e != nil {
 			t.Fatal(e)
 		}

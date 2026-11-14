@@ -13,7 +13,7 @@ export function egressEvidence(container){
      const state=await api('/api/egress?view=diagnostics&hash='+encodeURIComponent(hash));
      const x=state.entries.find(x=>x.hash===hash&&String(x.tested)===d.dataset.tested&&String(x.revision)===d.dataset.revision);
      if(!x)throw new Error('شواهد تغییر کرده‌اند؛ در به‌روزرسانی بعدی دوباره دریافت می‌شوند.');
-     const text=JSON.stringify({scope:x.decision?.scope,report_version:x.report?.version,coverage_complete:x.decision?.coverage_complete,services:x.decision?.services,general_payload_status:x.report?.general_health,code:x.report?.code,checks:x.report?.checks,control_sources:x.decision?.control_sources,attempts:x.report?.attempts,general_payload:x.report?.health,attempt_evidence:x.report?.evidence,samples:x.report?.samples},null,2);
+     const text=JSON.stringify({scope:x.decision?.scope,report_version:x.report?.version,coverage_complete:x.decision?.coverage_complete,evidence_profile:x.decision?.evidence_profile,services:x.decision?.services,general_payload_status:x.report?.general_health,code:x.report?.code,checks:x.report?.checks,control_sources:x.decision?.control_sources,attempts:x.report?.attempts,general_payload:x.report?.health,attempt_evidence:x.report?.evidence,samples:x.report?.samples},null,2);
      cache.set(k,text);while(cache.size>32)cache.delete(cache.keys().next().value);return text;
     }).finally(()=>pending.delete(k)));
     const text=await pending.get(k);if(d.isConnected&&key(d)===k)d.querySelector('pre').textContent=text;
