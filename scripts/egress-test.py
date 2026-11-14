@@ -6,6 +6,11 @@ def load(name,file):
  spec=importlib.util.spec_from_file_location(name,HERE/file);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 session=load('egress_session','egress-session.py');driver=load('egress_driver','egress-probe.py')
 class Contracts(unittest.TestCase):
+ def test_host_dns_failure_does_not_rotate_compatible_cores(self):
+  self.assertTrue(driver.core_independent_failure('endpoint_dns_failed'))
+  self.assertTrue(driver.core_independent_failure('ipv6_only_probe_pending'))
+  for code in ('core_rejected','runtime_start_failed','core_schema_mismatch','driver_subprocess_timeout'):
+   self.assertFalse(driver.core_independent_failure(code))
  def test_ipv6_scope_error_keeps_digit_without_leaking_payload(self):
   self.assertEqual(driver.error_code(ValueError('ipv6_only_probe_pending')),'ipv6_only_probe_pending')
   self.assertEqual(driver.error_code(ValueError('endpoint_dns_failed')),'endpoint_dns_failed')

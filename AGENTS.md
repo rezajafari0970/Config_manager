@@ -1,3 +1,18 @@
+# P60 explicit user override — current unique automatic queue / 2026-11-14
+
+Read docs/EGRESS_UNIQUE.md. The user explicitly requested current identities only,
+no archive-wide work, no repeated completed initial classifications, no manual
+processing buttons, and one complete Residential statistics/result reset. This
+supersedes P59 and older counter/archive preservation rules only for schema34's
+one-time migration. Preserve inputs, ordinary/source settings, manual exclusions,
+external revocations and sticky Iran guards. Exact representative raw receipts,
+current inventory and all four exports share identity scope. UNKNOWN is not a
+negative; its follow-up is bounded. Verified positives and IR quarantine retain
+required periodic safety checks. Do not claim1000/600s or positive detection without
+measured evidence. Use the shared deploy lock, stopped matched backup, copied-data
+rehearsal, race/vet/build/Python/JS/worker/browser validation and six binary checks.
+Never open schema34 with an older binary. Source and activation receipts must match.
+
 # P59 user-authorized reset and throughput — 2026-11-14
 
 Read docs/EGRESS_RESCAN.md. Schema33 adds explicit CAS-protected durable rescan

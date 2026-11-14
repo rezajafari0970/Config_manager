@@ -93,7 +93,7 @@ func TestEgressHealthCannotBeInventedFromRoute(t *testing.T) {
 		t.Fatal("route alone qualified payload")
 	}
 }
-func TestEgressRevivalResetsFirstAssessment(t *testing.T) {
+func TestEgressReimportDoesNotResetHistoricalAssessment(t *testing.T) {
 	s := testStore(t)
 	ctx := context.Background()
 	newExportSource(t, s, "one", sourceURI(232))
@@ -101,7 +101,7 @@ func TestEgressRevivalResetsFirstAssessment(t *testing.T) {
 	s.db.Exec("UPDATE egress_jobs SET state='DELETED',reason='retention_expired',tested=123,attempts=5,deep_completed=1,report='{}',token='old',lease_until=9999999999999 WHERE hash=?", j.Hash)
 	newExportSource(t, s, "two", sourceURI(232))
 	j, e := s.ClaimEgress(ctx)
-	if e != nil || j == nil || j.Attempt != 1 || j.Deep {
+	if e != nil || j != nil {
 		t.Fatal(j, e)
 	}
 }
@@ -127,10 +127,8 @@ func TestEgressStagedInputsSurviveFailedSourceProcessing(t *testing.T) {
 	if members != 0 || queued != 2 {
 		t.Fatal(members, queued)
 	}
-	for range 2 {
-		j, e := s.ClaimEgress(ctx)
-		if e != nil || j == nil || len(j.Raw) == 0 || j.Issue != "" {
-			t.Fatal(j, e)
-		}
+	j, e := s.ClaimEgress(ctx)
+	if e != nil || j != nil {
+		t.Fatal("uncommitted staging entered current identity queue", j, e)
 	}
 }

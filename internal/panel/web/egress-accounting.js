@@ -2,8 +2,8 @@ import {$,fa} from './core.js';
 export function renderAccounting(a){
  if(!a)return;
  const p=a.publication,q=a.queue,n=v=>fa.format(v);
- $('#egress-progress').textContent=n(p.published)+' کانفیگ قابل انتشار بعد از فیلتر · '+n(p.eligible)+' رزیدنتال با تأیید معتبر فعلی · '+n(p.awaiting_proof)+' پذیرفته‌شده در انتظار تأیید تازه';
- $('#egress-inventory').textContent=n(a.current_versions)+' نسخهٔ خام در منابع جاری / '+n(a.current_identities)+' هویت یکتا · '+n(a.archive_versions)+' نسخهٔ نگهداری‌شده خارج از منابع جاری · '+n(a.live_versions)+' نسخهٔ زنده در کل مخزن';
- $('#egress-queue').textContent='وضعیت کل مخزن: '+n(q.running)+' در حال بررسی · '+n(q.due)+' آمادهٔ بررسی · '+n(q.scheduled)+' زمان‌بندی‌شده · '+n(q.paused)+' متوقف‌شده. '+n(a.awaiting_first)+' نسخه هنوز نتیجهٔ ثبت‌شدهٔ بررسی جاری ندارد.';
- $('#egress-output-counts').textContent='خروجی: '+n(p.published)+' ردیف / '+n(p.identities)+' هویت / '+n(p.distinct_templates)+' قالب با محتوای متفاوت · '+n(p.country_filtered)+' حذف‌شده فقط توسط فیلتر کشور · '+n(p.country_unknown)+' بدون تأیید تازهٔ کشور';
+ $('#egress-progress').textContent=n(p.eligible)+' رزیدنتال با تأیید معتبر · '+n(p.published)+' کانفیگ یکتا در خروجی · '+n(p.awaiting_proof)+' رزیدنتال در انتظار تمدید تأیید';
+ $('#egress-inventory').textContent=n(a.current_identities)+' کانفیگ یکتای منابع فعلی · '+n(a.retained_outside_current)+' رزیدنتال نگهداری‌شده خارج از منابع فعلی؛ هر هویت فقط یک نمایندهٔ آزمون دارد.';
+ $('#egress-queue').textContent=n(a.assessed_versions)+' کانفیگ یکتا بررسی‌شده · '+n(a.awaiting_first)+' بدون نتیجهٔ اولیه · '+n(q.running)+' در حال بررسی · '+n(q.due)+' آماده · '+n(q.scheduled)+' پیگیری زمان‌بندی‌شده · '+n(q.cached)+' نتیجهٔ ذخیره‌شده بدون تکرار · '+n(q.paused)+' متوقف';
+ $('#egress-output-counts').textContent=n(p.published)+' ردیف خروجی = '+n(p.identities)+' هویت یکتا · '+n(p.country_filtered)+' خارج از انتخاب کشور · '+n(p.country_unknown)+' در انتظار تعیین معتبر کشور';
 }

@@ -53,10 +53,10 @@ func TestEgressAccountingPartitionsAndOutputUnits(t *testing.T) {
 	}
 	queue := a["queue"].(map[string]int)
 	pub := a["publication"].(map[string]int)
-	if a["live_versions"] != 6 || a["current_versions"] != 5 || a["archive_versions"] != 1 || a["awaiting_first"] != 3 || a["assessed_versions"] != 3 {
+	if a["live_versions"] != 5 || a["current_versions"] != 5 || a["archive_versions"] != 0 || a["awaiting_first"] != 3 || a["assessed_versions"] != 2 {
 		t.Fatal(a)
 	}
-	if queue["paused"] != 1 || queue["running"] != 1 || queue["due"] != 1 || queue["scheduled"] != 3 {
+	if queue["paused"] != 1 || queue["running"] != 1 || queue["due"] != 1 || queue["scheduled"] != 2 {
 		t.Fatal(queue)
 	}
 	if pub["published"] != 2 || pub["distinct_templates"] != 1 || pub["identities"] != 2 || pub["awaiting_proof"] != 0 {

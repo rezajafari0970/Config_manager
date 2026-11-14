@@ -81,8 +81,8 @@ func (m egressModule) Register(mux *http.ServeMux) {
 		})
 	}
 	mux.HandleFunc("GET /api/egress", m.state)
-	mux.HandleFunc("POST /api/egress/action", m.action)
-	mux.HandleFunc("POST /api/egress/rescan", m.rescan)
+	// Residential execution is automatic; no public manual queue mutation.
+
 	mux.HandleFunc("POST /api/egress/countries", m.countries)
 	mux.HandleFunc("POST /api/egress/lifecycle", m.lifecycle)
 	mux.HandleFunc("GET /egress-subscription/{token}/{format}", m.export)
@@ -107,7 +107,7 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	counts := map[string]int{}
-	rows, e := db.QueryContext(ctx, "SELECT state,count(*) FROM egress_jobs WHERE state!='DELETED' GROUP BY state")
+	rows, e := db.QueryContext(ctx, "SELECT state,count(*) FROM egress_inventory WHERE state!='DELETED' GROUP BY state")
 	if e != nil {
 		failure(w, e)
 		return
@@ -129,7 +129,7 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 	}
 	rows.Close()
 	var total, pending, eligible int
-	if e = db.QueryRowContext(ctx, "SELECT count(*),coalesce(sum(tested=0),0),(SELECT count(*) FROM egress_eligible) FROM egress_jobs WHERE state!='DELETED'").Scan(&total, &pending, &eligible); e != nil {
+	if e = db.QueryRowContext(ctx, "SELECT count(*),coalesce(sum(tested=0),0),(SELECT count(*) FROM egress_eligible) FROM egress_inventory WHERE state!='DELETED'").Scan(&total, &pending, &eligible); e != nil {
 		failure(w, e)
 		return
 	}
@@ -150,7 +150,7 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 	table := "egress_export_eligible"
 	filter := ""
 	if r.URL.Query().Get("view") == "diagnostics" {
-		table = "egress_jobs"
+		table = "egress_inventory"
 		filter = ""
 	}
 	reportColumn := "report"
@@ -192,7 +192,7 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 	rows.Close()
 	for _, entry := range entries {
 		names := []string{}
-		owners, err := db.QueryContext(ctx, "SELECT DISTINCT s.name FROM sources s JOIN egress_owners o ON o.source=s.id WHERE o.hash=? ORDER BY s.name", entry["hash"])
+		owners, err := db.QueryContext(ctx, "SELECT DISTINCT s.name FROM sources s JOIN memberships m ON m.source_id=s.id JOIN egress_unique u ON u.identity=m.artifact_id WHERE u.hash=? ORDER BY s.name", entry["hash"])
 		if err != nil {
 			failure(w, err)
 			return
@@ -229,7 +229,7 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	var partial int
-	if e = db.QueryRowContext(ctx, "SELECT count(*) FROM egress_jobs WHERE state!='DELETED' AND json_extract(decision,'$.route')='PARTIAL_DIFFERENCE'").Scan(&partial); e != nil {
+	if e = db.QueryRowContext(ctx, "SELECT count(*) FROM egress_inventory WHERE state!='DELETED' AND json_extract(decision,'$.route')='PARTIAL_DIFFERENCE'").Scan(&partial); e != nil {
 		failure(w, e)
 		return
 	}
@@ -245,7 +245,7 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var due, recovery, activeLeases int
-	if e = db.QueryRowContext(ctx, "SELECT coalesce(sum(next_run<=? AND (token='' OR lease_until<=?)),0),coalesce(sum(token!='' AND lease_until<=?),0),coalesce(sum(token!='' AND lease_until>?),0) FROM egress_jobs WHERE state!='DELETED' AND paused=0", now, now, now, now).Scan(&due, &recovery, &activeLeases); e != nil {
+	if e = db.QueryRowContext(ctx, "SELECT coalesce(sum(next_run<=? AND (token='' OR lease_until<=?)),0),coalesce(sum(token!='' AND lease_until<=?),0),coalesce(sum(token!='' AND lease_until>?),0) FROM egress_work WHERE paused=0", now, now, now, now).Scan(&due, &recovery, &activeLeases); e != nil {
 		failure(w, e)
 		return
 	}

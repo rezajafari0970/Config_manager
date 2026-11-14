@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/rezajafari0970/Config_manager/internal/blob"
+	"github.com/rezajafari0970/Config_manager/internal/collect"
 	"io"
 	"net"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -53,10 +55,10 @@ func TestEgressWorkerFixture(t *testing.T) {
 		if e != nil {
 			t.Fatal(e)
 		}
-		query := "SELECT DISTINCT r.hash FROM conversion_results r JOIN memberships m ON m.raw_hash=r.hash WHERE r.connection='passed' AND r.core='passed' ORDER BY r.tested DESC LIMIT 3"
+		query := "SELECT min(r.hash) FROM conversion_results r JOIN memberships m ON m.raw_hash=r.hash WHERE r.connection='passed' AND r.core='passed' GROUP BY m.artifact_id ORDER BY max(r.tested) DESC LIMIT 3"
 		benchmark, _ := strconv.Atoi(os.Getenv("EGRESS_BENCHMARK_INPUTS"))
 		if benchmark > 0 && benchmark <= 2000 {
-			query = fmt.Sprintf("SELECT hash FROM egress_jobs WHERE state!='DELETED' AND paused=0 AND NOT EXISTS(SELECT 1 FROM egress_owners o JOIN input_exclusions x ON x.identity=o.identity WHERE o.hash=egress_jobs.hash) ORDER BY ever_accepted DESC,EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) DESC,hash LIMIT %d", benchmark)
+			query = fmt.Sprintf("SELECT hash FROM egress_inventory WHERE paused=0 ORDER BY ever_accepted DESC,hash LIMIT %d", benchmark)
 		}
 		rows, e := original.Query(query)
 		if e != nil {
@@ -97,29 +99,32 @@ func TestEgressWorkerFixture(t *testing.T) {
 			raws = append(raws, sourceURI(241), "hysteria2://synthetic@192.0.2.242:443?sni=example.com")
 		}
 		if benchmark > 0 {
-			// Seed the isolated measurement queue directly; acquisition is not part of
-			// the throughput clock. Bytes are real, immutable source inputs, not fixtures.
-			tx, e := s.db.BeginTx(ctx, nil)
-			if e != nil {
-				t.Fatal(e)
+			// Use real committed membership so the benchmark exercises identity admission.
+			src := testSource()
+			src.URL = "https://example.com/benchmark/" + randomToken()
+			id, err := s.Save(ctx, "", 0, src)
+			if err != nil {
+				t.Fatal(err)
 			}
+			job := claimOne(t, s, id)
+			ref, err := s.vault.Put(ctx, strings.NewReader(strings.Join(raws, "\n")))
+			if err != nil {
+				t.Fatal(err)
+			}
+			result := collect.Result{State: "updated", HTTPStatus: 200, Raw: ref, Extracted: len(raws)}
 			for _, raw := range raws {
-				ref, e := s.vault.Put(ctx, bytes.NewReader([]byte(raw)))
-				if e != nil {
-					t.Fatal(e)
-				}
-				_, e = tx.ExecContext(ctx, "INSERT OR IGNORE INTO egress_jobs(hash,kind,size,first_seen,last_seen) VALUES(?,?,?,?,?)", ref.Hash, "retained_input", ref.Size, time.Now().UnixMilli(), time.Now().UnixMilli())
-				if e == nil && acceptedHashes[ref.Hash] {
-					_, e = tx.ExecContext(ctx, "UPDATE egress_jobs SET ever_accepted=1,state='QUARANTINED' WHERE hash=?", ref.Hash)
-				}
-				s.vault.Release(ref.Hash)
-				if e != nil {
-					t.Fatal(e)
+				result.Items = append(result.Items, fixtureResult(t, s, raw).Items...)
+			}
+			if err = s.Complete(ctx, job, result, time.Now()); err != nil {
+				t.Fatal(err)
+			}
+			s.vault.Release(ref.Hash)
+			for hash := range acceptedHashes {
+				if _, err = s.db.Exec("UPDATE egress_jobs SET ever_accepted=1,state='QUARANTINED' WHERE hash=?", hash); err != nil {
+					t.Fatal(err)
 				}
 			}
-			if e = tx.Commit(); e != nil {
-				t.Fatal(e)
-			}
+
 		} else {
 			for _, raw := range raws {
 				src := testSource()

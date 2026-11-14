@@ -129,6 +129,10 @@ def private_sources(samples,key):
  return samples
 def error_code(error):
  return 'driver_subprocess_timeout' if isinstance(error,subprocess.TimeoutExpired) else 'driver_subprocess_failed' if isinstance(error,subprocess.CalledProcessError) else str(error) if isinstance(error,ValueError) and re.fullmatch('[a-z0-9_]{1,60}',str(error)) else 'driver_infrastructure_error'
+def core_independent_failure(code):
+ # Changing Xray cannot repair host DNS resolution or the IPv6-only sandbox.
+ # Preserve UNKNOWN and the queue's independent retry; do not try four cores.
+ return code in ('endpoint_dns_failed','ipv6_only_probe_pending')
 def resource_failures(prefix):
  try:
   fields=dict(line.split() for line in (pathlib.Path('/sys/fs/cgroup')/(prefix+'-sandboxes')/'memory.events').read_text().splitlines())
@@ -219,7 +223,7 @@ def investigate(req,args,pool=None):
    code=error_code(error)
    r['attempts'].append(dict(core=core,code=code,ms=(time.monotonic()-at)*1000,stages=stages))
    if best<0:r['code']=code
-   if code=='ipv6_only_probe_pending':break
+   if core_independent_failure(code):break
   finally:
    if samples:r['evidence'].append(dict(version=r['version'],hash=r['hash'],started=attempt_started,finished=int(time.time()*1000),core=core,core_sha=pin,checks=checks,samples=samples,resource_pressure=resource_failures(args.prefix)>attempt_pressure))
  # A separate host control is only an outage check, never Ads IP evidence.

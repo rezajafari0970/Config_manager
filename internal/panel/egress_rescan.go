@@ -73,7 +73,7 @@ func (s *Store) ResetEgress(ctx context.Context, revision int64) (int64, error) 
 		return 0, err
 	}
 	_, err = tx.ExecContext(ctx, `INSERT INTO egress_run_members(run,hash,accepted)
- SELECT ?,j.hash,j.ever_accepted FROM egress_jobs j WHERE j.state!='DELETED' AND j.paused=0
+ SELECT ?,j.hash,j.ever_accepted FROM egress_inventory j WHERE j.paused=0
  AND NOT EXISTS(SELECT 1 FROM egress_owners o JOIN input_exclusions x ON x.identity=o.identity WHERE o.hash=j.hash)
  AND NOT EXISTS(SELECT 1 FROM egress_owners o JOIN egress_iran_guard g ON g.identity=o.identity WHERE o.hash=j.hash AND g.state='BLOCKED')`, id)
 	if err != nil {
@@ -139,7 +139,7 @@ func egressRunState(ctx context.Context, q databaseQuery) (map[string]any, error
 	return map[string]any{"id": id, "started": started, "total": total, "pending": pending, "completed": completed, "excluded": excluded, "definitive": definitive,
 		"accepted": accepted, "accepted_completed": acceptedDone, "accepted_excluded": acceptedExcluded, "paused_pending": paused,
 		"elapsed_ms": elapsed, "first_1000_ms": max(int64(0), thousand-started), "assessed_at_600s": at600,
-		"target_600s_met": thousand > 0 && thousand-started <= 600000, "finished": pending == 0, "unit": "raw_sha256"}, nil
+		"target_600s_met": thousand > 0 && thousand-started <= 600000, "finished": pending == 0, "unit": "collector_identity"}, nil
 }
 
 func (m egressModule) rescan(w http.ResponseWriter, r *http.Request) {

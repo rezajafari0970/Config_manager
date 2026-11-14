@@ -165,7 +165,7 @@ func TestEgressUpgradeBackfillsStagingBeforeRecovery(t *testing.T) {
 				t.Fatal("upgraded input unreferenced", e)
 			}
 			work, e := s.ClaimEgress(ctx)
-			if e != nil || work == nil || work.Hash != items[0].Hash || len(work.Raw) == 0 {
+			if e != nil || work != nil {
 				t.Fatal(work, e)
 			}
 		})

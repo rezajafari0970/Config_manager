@@ -154,7 +154,7 @@ func (s *Store) reconcileEgressVersion() error {
 	}
 	current := egress.Version + "|" + convert.Version
 	if previous != current {
-		if _, e = tx.Exec("UPDATE egress_jobs SET state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE 'PENDING' END,reason='implementation_changed',valid_until=0,revision=revision+1,token='',lease_until=0,next_run=0 WHERE state!='DELETED'"); e != nil {
+		if _, e = tx.Exec("UPDATE egress_jobs SET state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE 'PENDING' END,reason='implementation_changed',tested=0,deep_completed=0,retry_streak=0,valid_until=0,revision=revision+1,token='',lease_until=0,next_run=0 WHERE state!='DELETED'"); e != nil {
 			return e
 		}
 		if _, e = tx.Exec("UPDATE egress_health SET valid_until=0"); e != nil {

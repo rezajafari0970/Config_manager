@@ -1,7 +1,7 @@
-import {$,api,fa,toast} from './core.js';
+import {$,api,fa} from './core.js';
+import {autoPolicy} from './auto-policy.js';
 export function healthSettings(onSaved){
- let policy=null,dirty=false;
- $('#egress-health-minutes').oninput=()=>{dirty=true};
- $('#egress-health-save').onclick=async()=>{if(!policy)return;const b=$('#egress-health-save');b.disabled=true;try{policy=await api('/api/egress/lifecycle',{method:'POST',body:{revision:policy.revision,health_minutes:Number($('#egress-health-minutes').value)}});dirty=false;$('#egress-lifecycle-status').textContent='فاصلهٔ بررسی: '+fa.format(policy.health_minutes)+' دقیقه؛ ذخیره شد';onSaved()}catch(e){if(e.status===409){dirty=false;onSaved()}toast(e.message)}finally{b.disabled=false}};
- return {update(state){if(!dirty){policy=state.lifecycle;$('#egress-health-minutes').value=policy.health_minutes}$('#egress-coverage').textContent=fa.format(state.retained)+' کانفیگ پذیرفته‌شده در نگهداری مستقل · '+fa.format(state.coverage_missing)+' ورودی جاری بدون ثبت در صف · '+fa.format(state.accounting?.staged_coverage_missing||0)+' ورودی مرحلهٔ دریافت بدون ثبت در صف';}};
+ const save=autoPolicy({url:'/api/egress/lifecycle',readPolicy:async()=>(await api('/api/egress?brief=1')).lifecycle,value:()=>Number($('#egress-health-minutes').value),body:health_minutes=>({health_minutes}),onPolicy:p=>{if(document.activeElement!==$('#egress-health-minutes'))$('#egress-health-minutes').value=p.health_minutes},onStatus:s=>{$('#egress-lifecycle-status').textContent=s},onSaved});
+ $('#egress-health-minutes').oninput=()=>{const n=Number($('#egress-health-minutes').value);if(Number.isInteger(n)&&n>=1&&n<=60)save.change();else $('#egress-lifecycle-status').textContent='فاصله باید عدد صحیح بین ۱ و ۶۰ باشد'};
+ return {update(state){save.update(state.lifecycle);$('#egress-coverage').textContent=fa.format(state.retained)+' رزیدنتال در نگهداری خودکار · '+fa.format(state.coverage_missing)+' هویت جاری بدون ثبت در صف';}};
 }
