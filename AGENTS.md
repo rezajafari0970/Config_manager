@@ -1,3 +1,20 @@
+# P58 activation receipt — 2026-11-14
+
+Activated ads-egress.v6/schema32, release p58-b42591c53e38fd9e1123.
+Read docs/reports/P58-report-fa.md. Full race/vet/build/Python/JS, copied-data
+migration, worker crash recovery, watchdog and fixture/live browser checks passed.
+All six canonical rebuilds match release binaries; 320 runtime source files match.
+At the observed startup snapshot, 129 retained inputs awaited new proof and zero
+were publishable; the later 36 reports were controls_incomplete. Do not claim
+complete positive detection of remote hidden split routing: Telegram/Instagram
+source evidence is still unavailable in the current reachability driver. Keep
+UNKNOWN distinct from non-Residential. Initial renewal backlog included 35 overdue
+retained items; no ten-minute deadline or 1000/5min capacity guarantee was measured.
+The host-wide Go race syso is malformed. Validation used verified official1.27.1
+at /root/projects/config-manager-ads-exclusive-p58/.local/toolchain/go with short
+GOTMPDIR/TMPDIR /var/tmp/p58b. Runtime has no compiler dependency. Do not silently
+reuse the corrupt global race object or weaken required checks.
+
 # P58 Ads-exclusive strategy — 2026-11-14
 
 Read docs/ADS_EXCLUSIVE.md. User-authorized v6/schema32 supersedes older stable-control and generic-payload gates. Required independent service coverage; reachability/timeouts/cross-family IPs are not source proof. Generic payload failure cannot delete Ads-only inputs. Preserve sticky IR guard, all attempt evidence, controls, raw bytes and accounting history. Prior receipts must expire without resetting counters. Strict Telegram/Instagram source coverage is currently unobservable unless a bounded local block is proved; do not claim all configs can be confirmed or hide an empty publishable set. Preserve shared deploy lock, matched backup and six-binary verification.
