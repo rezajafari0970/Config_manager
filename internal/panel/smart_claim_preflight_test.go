@@ -21,6 +21,7 @@ func TestSmartIdleAndFullPollsDoNotWaitForWriter(t *testing.T) {
 	}
 	check := func(pipeline *SmartPipeline) {
 		t.Helper()
+		before := s.db.Stats()
 		tx, err := s.db.BeginTx(ctx, nil)
 		if err != nil {
 			t.Fatal(err)
@@ -29,12 +30,19 @@ func TestSmartIdleAndFullPollsDoNotWaitForWriter(t *testing.T) {
 			tx.Rollback()
 			t.Fatal(err)
 		}
-		limited, cancel := context.WithTimeout(ctx, time.Second)
+		// Race instrumentation can make the Ads view exceed one second even
+		// without contention. Bound fixture execution, then assert the actual
+		// contract: no wait on the deliberately occupied writer connection.
+		limited, cancel := context.WithTimeout(ctx, 5*time.Second)
 		j, err := pipeline.ClaimSmart(limited)
 		cancel()
 		tx.Rollback()
+		after := s.db.Stats()
 		if err != nil || j != nil {
-			t.Fatal("idle/full poll waited for writer or claimed work", j, err)
+			t.Fatal("idle/full poll waited for writer or claimed work", pipeline.path(), j, err, "writer waits", after.WaitCount-before.WaitCount, after.WaitDuration-before.WaitDuration)
+		}
+		if after.WaitCount != before.WaitCount || after.WaitDuration != before.WaitDuration {
+			t.Fatal("idle/full poll entered writer wait queue", pipeline.path())
 		}
 	}
 	check(s.Smart())
