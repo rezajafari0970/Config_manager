@@ -56,7 +56,7 @@ func TestEgressWorkerFixture(t *testing.T) {
 		query := "SELECT DISTINCT r.hash FROM conversion_results r JOIN memberships m ON m.raw_hash=r.hash WHERE r.connection='passed' AND r.core='passed' ORDER BY r.tested DESC LIMIT 3"
 		benchmark, _ := strconv.Atoi(os.Getenv("EGRESS_BENCHMARK_INPUTS"))
 		if benchmark > 0 && benchmark <= 2000 {
-			query = fmt.Sprintf("SELECT hash FROM egress_jobs WHERE state!='DELETED' ORDER BY ever_accepted DESC,EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) DESC,hash LIMIT %d", benchmark)
+			query = fmt.Sprintf("SELECT hash FROM egress_jobs WHERE state!='DELETED' AND paused=0 AND NOT EXISTS(SELECT 1 FROM egress_owners o JOIN input_exclusions x ON x.identity=o.identity WHERE o.hash=egress_jobs.hash) ORDER BY ever_accepted DESC,EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) DESC,hash LIMIT %d", benchmark)
 		}
 		rows, e := original.Query(query)
 		if e != nil {
