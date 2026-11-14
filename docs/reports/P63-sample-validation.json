@@ -1,0 +1,630 @@
+{
+  "date": "2026-11-14",
+  "base_commit": "24e417af911452711b5f5108e4c0c0bb30a6d919",
+  "production_mutations": false,
+  "production_deployed": false,
+  "sample_protocol": "VLESS TCP HTTP header, plaintext transport",
+  "sample_credentials_redacted": true,
+  "final_rounds": [
+    {
+      "round": 5,
+      "started": 1794683530814,
+      "finished": 1794683565548,
+      "report_sha256": "a7ca5e3628d6c45cac764699cd8b6f3087be666ec2d068884ce3867a369b2f96",
+      "seconds": 33.152,
+      "samples": 72,
+      "ads_echoes": 36,
+      "observed_ads_countries": [
+        "IE"
+      ],
+      "codes": {
+        "ads_peer_reported": 36,
+        "google_control_peer_reported": 12,
+        "control_echo": 12,
+        "reachable_no_source": 4,
+        "connection_failed": 6,
+        "connection_timeout": 2
+      },
+      "core": "xray-26.5.9",
+      "core_sha256": "b2c525e082cf2fef460499c88838d355f0b9bfb5a00bdb3eaa99b6af63825006",
+      "exact_raw_template": true,
+      "health": [
+        {
+          "version": "ads-health.v1",
+          "variant": "raw",
+          "at": 1794683536560,
+          "host_control": false,
+          "providers": [
+            {
+              "provider": "cloudflare",
+              "download": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 156
+              },
+              "upload": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 218
+              }
+            },
+            {
+              "provider": "httpbingo",
+              "download": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 347
+              },
+              "upload": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 1331
+              }
+            }
+          ]
+        },
+        {
+          "version": "ads-health.v1",
+          "variant": "template",
+          "at": 1794683551491,
+          "host_control": false,
+          "providers": [
+            {
+              "provider": "cloudflare",
+              "download": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 242
+              },
+              "upload": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 166
+              }
+            },
+            {
+              "provider": "httpbingo",
+              "download": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 363
+              },
+              "upload": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 444
+              }
+            }
+          ]
+        }
+      ],
+      "result": {
+        "version": "ads-route-map.v1",
+        "state": "PARTIAL_ADS_SPLIT",
+        "reason": "separate_ads_domains_with_shared_or_unresolved_remainder",
+        "domains": [
+          {
+            "domain": "googleads.g.doubleclick.net",
+            "group": "doubleclick",
+            "state": "SEPARATE",
+            "variants": [
+              {
+                "variant": "raw",
+                "state": "SEPARATE",
+                "observed_waves": 3,
+                "paired_waves": 3,
+                "overlap_waves": 0,
+                "source_count": 3,
+                "healthy_waves": 3
+              },
+              {
+                "variant": "template",
+                "state": "SEPARATE",
+                "observed_waves": 3,
+                "paired_waves": 3,
+                "overlap_waves": 0,
+                "source_count": 3,
+                "healthy_waves": 3
+              }
+            ]
+          },
+          {
+            "domain": "pubads.g.doubleclick.net",
+            "group": "doubleclick",
+            "state": "SEPARATE",
+            "variants": [
+              {
+                "variant": "raw",
+                "state": "SEPARATE",
+                "observed_waves": 3,
+                "paired_waves": 3,
+                "overlap_waves": 0,
+                "source_count": 3,
+                "healthy_waves": 3
+              },
+              {
+                "variant": "template",
+                "state": "SEPARATE",
+                "observed_waves": 3,
+                "paired_waves": 3,
+                "overlap_waves": 0,
+                "source_count": 3,
+                "healthy_waves": 3
+              }
+            ]
+          },
+          {
+            "domain": "securepubads.g.doubleclick.net",
+            "group": "doubleclick",
+            "state": "SEPARATE",
+            "variants": [
+              {
+                "variant": "raw",
+                "state": "SEPARATE",
+                "observed_waves": 3,
+                "paired_waves": 3,
+                "overlap_waves": 0,
+                "source_count": 3,
+                "healthy_waves": 3
+              },
+              {
+                "variant": "template",
+                "state": "SEPARATE",
+                "observed_waves": 3,
+                "paired_waves": 3,
+                "overlap_waves": 0,
+                "source_count": 3,
+                "healthy_waves": 3
+              }
+            ]
+          },
+          {
+            "domain": "pagead2.googlesyndication.com",
+            "group": "syndication",
+            "state": "SHARED",
+            "variants": [
+              {
+                "variant": "raw",
+                "state": "SHARED",
+                "observed_waves": 3,
+                "paired_waves": 0,
+                "overlap_waves": 2,
+                "source_count": 2,
+                "healthy_waves": 3
+              },
+              {
+                "variant": "template",
+                "state": "SHARED",
+                "observed_waves": 3,
+                "paired_waves": 0,
+                "overlap_waves": 3,
+                "source_count": 2,
+                "healthy_waves": 3
+              }
+            ]
+          },
+          {
+            "domain": "adservice.google.com",
+            "group": "adservice",
+            "state": "SHARED",
+            "variants": [
+              {
+                "variant": "raw",
+                "state": "SHARED",
+                "observed_waves": 3,
+                "paired_waves": 0,
+                "overlap_waves": 3,
+                "source_count": 2,
+                "healthy_waves": 3
+              },
+              {
+                "variant": "template",
+                "state": "SHARED",
+                "observed_waves": 3,
+                "paired_waves": 0,
+                "overlap_waves": 3,
+                "source_count": 2,
+                "healthy_waves": 3
+              }
+            ]
+          },
+          {
+            "domain": "www.googleadservices.com",
+            "group": "adservices",
+            "state": "SHARED",
+            "variants": [
+              {
+                "variant": "raw",
+                "state": "SHARED",
+                "observed_waves": 3,
+                "paired_waves": 0,
+                "overlap_waves": 3,
+                "source_count": 1,
+                "healthy_waves": 3
+              },
+              {
+                "variant": "template",
+                "state": "SHARED",
+                "observed_waves": 3,
+                "paired_waves": 0,
+                "overlap_waves": 3,
+                "source_count": 1,
+                "healthy_waves": 3
+              }
+            ]
+          }
+        ],
+        "split_domains": [
+          "googleads.g.doubleclick.net",
+          "pubads.g.doubleclick.net",
+          "securepubads.g.doubleclick.net"
+        ],
+        "shared_domains": [
+          "adservice.google.com",
+          "pagead2.googlesyndication.com",
+          "www.googleadservices.com"
+        ],
+        "unresolved_domains": [],
+        "ads_coverage": "PARTIAL",
+        "general_health": "healthy",
+        "until": 1794684134254,
+        "iran_observed": false,
+        "publication_ready": false,
+        "scope": "Finite TCP/HTTP1.1 source observations; exact raw and template; two paired same-family control groups including a non-Ads Google hostname in two waves per separated domain; rotating Ads exits allowed; no physical-proxy, ISP, QUIC or all-domain proof; discovery only, no publication authorization"
+      }
+    },
+    {
+      "round": 6,
+      "started": 1794683569205,
+      "finished": 1794683599552,
+      "report_sha256": "4d0e16da58a415d27db94a1b47565266cd4399ff00871a14eb8e7e75f306ed11",
+      "seconds": 29.86,
+      "samples": 72,
+      "ads_echoes": 36,
+      "observed_ads_countries": [
+        "IE",
+        "TW"
+      ],
+      "codes": {
+        "ads_peer_reported": 36,
+        "google_control_peer_reported": 12,
+        "control_echo": 12,
+        "reachable_no_source": 6,
+        "connection_failed": 6
+      },
+      "core": "xray-26.5.9",
+      "core_sha256": "b2c525e082cf2fef460499c88838d355f0b9bfb5a00bdb3eaa99b6af63825006",
+      "exact_raw_template": true,
+      "health": [
+        {
+          "version": "ads-health.v1",
+          "variant": "raw",
+          "at": 1794683576137,
+          "host_control": false,
+          "providers": [
+            {
+              "provider": "cloudflare",
+              "download": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 992
+              },
+              "upload": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 277
+              }
+            },
+            {
+              "provider": "httpbingo",
+              "download": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 451
+              },
+              "upload": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 381
+              }
+            }
+          ]
+        },
+        {
+          "version": "ads-health.v1",
+          "variant": "template",
+          "at": 1794683589249,
+          "host_control": false,
+          "providers": [
+            {
+              "provider": "cloudflare",
+              "download": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 534
+              },
+              "upload": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 707
+              }
+            },
+            {
+              "provider": "httpbingo",
+              "download": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 673
+              },
+              "upload": {
+                "bytes": 65536,
+                "curl_exit": 0,
+                "http_status": 200,
+                "tls_verified": true,
+                "ms": 564
+              }
+            }
+          ]
+        }
+      ],
+      "result": {
+        "version": "ads-route-map.v1",
+        "state": "PARTIAL_ADS_SPLIT",
+        "reason": "separate_ads_domains_with_shared_or_unresolved_remainder",
+        "domains": [
+          {
+            "domain": "googleads.g.doubleclick.net",
+            "group": "doubleclick",
+            "state": "SEPARATE",
+            "variants": [
+              {
+                "variant": "raw",
+                "state": "SEPARATE",
+                "observed_waves": 3,
+                "paired_waves": 3,
+                "overlap_waves": 0,
+                "source_count": 3,
+                "healthy_waves": 3
+              },
+              {
+                "variant": "template",
+                "state": "SEPARATE",
+                "observed_waves": 3,
+                "paired_waves": 3,
+                "overlap_waves": 0,
+                "source_count": 3,
+                "healthy_waves": 3
+              }
+            ]
+          },
+          {
+            "domain": "pubads.g.doubleclick.net",
+            "group": "doubleclick",
+            "state": "SEPARATE",
+            "variants": [
+              {
+                "variant": "raw",
+                "state": "SEPARATE",
+                "observed_waves": 3,
+                "paired_waves": 3,
+                "overlap_waves": 0,
+                "source_count": 3,
+                "healthy_waves": 3
+              },
+              {
+                "variant": "template",
+                "state": "SEPARATE",
+                "observed_waves": 3,
+                "paired_waves": 3,
+                "overlap_waves": 0,
+                "source_count": 3,
+                "healthy_waves": 3
+              }
+            ]
+          },
+          {
+            "domain": "securepubads.g.doubleclick.net",
+            "group": "doubleclick",
+            "state": "SEPARATE",
+            "variants": [
+              {
+                "variant": "raw",
+                "state": "SEPARATE",
+                "observed_waves": 3,
+                "paired_waves": 3,
+                "overlap_waves": 0,
+                "source_count": 3,
+                "healthy_waves": 3
+              },
+              {
+                "variant": "template",
+                "state": "SEPARATE",
+                "observed_waves": 3,
+                "paired_waves": 3,
+                "overlap_waves": 0,
+                "source_count": 3,
+                "healthy_waves": 3
+              }
+            ]
+          },
+          {
+            "domain": "pagead2.googlesyndication.com",
+            "group": "syndication",
+            "state": "SHARED",
+            "variants": [
+              {
+                "variant": "raw",
+                "state": "SHARED",
+                "observed_waves": 3,
+                "paired_waves": 0,
+                "overlap_waves": 3,
+                "source_count": 1,
+                "healthy_waves": 3
+              },
+              {
+                "variant": "template",
+                "state": "SHARED",
+                "observed_waves": 3,
+                "paired_waves": 0,
+                "overlap_waves": 3,
+                "source_count": 2,
+                "healthy_waves": 3
+              }
+            ]
+          },
+          {
+            "domain": "adservice.google.com",
+            "group": "adservice",
+            "state": "SHARED",
+            "variants": [
+              {
+                "variant": "raw",
+                "state": "SHARED",
+                "observed_waves": 3,
+                "paired_waves": 0,
+                "overlap_waves": 3,
+                "source_count": 2,
+                "healthy_waves": 3
+              },
+              {
+                "variant": "template",
+                "state": "SHARED",
+                "observed_waves": 3,
+                "paired_waves": 0,
+                "overlap_waves": 3,
+                "source_count": 2,
+                "healthy_waves": 3
+              }
+            ]
+          },
+          {
+            "domain": "www.googleadservices.com",
+            "group": "adservices",
+            "state": "SHARED",
+            "variants": [
+              {
+                "variant": "raw",
+                "state": "SHARED",
+                "observed_waves": 3,
+                "paired_waves": 0,
+                "overlap_waves": 3,
+                "source_count": 1,
+                "healthy_waves": 3
+              },
+              {
+                "variant": "template",
+                "state": "SHARED",
+                "observed_waves": 3,
+                "paired_waves": 0,
+                "overlap_waves": 3,
+                "source_count": 1,
+                "healthy_waves": 3
+              }
+            ]
+          }
+        ],
+        "split_domains": [
+          "googleads.g.doubleclick.net",
+          "pubads.g.doubleclick.net",
+          "securepubads.g.doubleclick.net"
+        ],
+        "shared_domains": [
+          "adservice.google.com",
+          "pagead2.googlesyndication.com",
+          "www.googleadservices.com"
+        ],
+        "unresolved_domains": [],
+        "ads_coverage": "PARTIAL",
+        "general_health": "healthy",
+        "until": 1794684173837,
+        "iran_observed": false,
+        "publication_ready": false,
+        "scope": "Finite TCP/HTTP1.1 source observations; exact raw and template; two paired same-family control groups including a non-Ads Google hostname in two waves per separated domain; rotating Ads exits allowed; no physical-proxy, ISP, QUIC or all-domain proof; discovery only, no publication authorization"
+      }
+    }
+  ],
+  "legacy_comparison": [
+    {
+      "legacy_reason": "non_ads_uses_ads_egress",
+      "legacy_state": "NO_SPLIT",
+      "new_state": "PARTIAL_ADS_SPLIT",
+      "replay_at_receipt_time": true,
+      "round": 5
+    },
+    {
+      "legacy_reason": "non_ads_uses_ads_egress",
+      "legacy_state": "NO_SPLIT",
+      "new_state": "PARTIAL_ADS_SPLIT",
+      "replay_at_receipt_time": true,
+      "round": 6
+    }
+  ],
+  "namespaces_remaining": [],
+  "validation": {
+    "go_race": "passed internal/adsroute, internal/egress, cmd/config-route-audit",
+    "go_vet": "passed new module and CLI",
+    "python_contracts": 33,
+    "live_final_rounds": 2,
+    "final_live_observations": 144,
+    "production_migration": false,
+    "production_export_validation": false,
+    "thousand_config_benchmark": false,
+    "api_model_review": false,
+    "audit_binary_sha256": "819eda2774674a66b02769578145a636b244ef773a9f5681a78baeb22531c7dc"
+  },
+  "preliminary_rounds": [
+    {
+      "round": 1,
+      "legacy_driver": "raw_shared_egress",
+      "template_skipped": true
+    },
+    {
+      "round": 2,
+      "exact_raw_template": true,
+      "general_health": "healthy",
+      "new_google_ipv4_control": false
+    },
+    {
+      "round": 3,
+      "state": "UNKNOWN",
+      "reason": "insufficient_same_family_google_control",
+      "new_google_ipv4_control": false
+    },
+    {
+      "round": 4,
+      "state": "UNKNOWN",
+      "reason": "insufficient_same_family_google_control",
+      "new_google_ipv4_control": false
+    }
+  ]
+}

@@ -1,0 +1,379 @@
+{
+  "version": "p64-research-registry.v1",
+  "research_only": true,
+  "active_classifier_registry_changed": false,
+  "targets": [
+    {
+      "domain": "www.google.com",
+      "group": "google-search",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "google-normal",
+      "anchor": true,
+      "required": true
+    },
+    {
+      "domain": "ipv4.google.com",
+      "group": "google-search",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "google-normal",
+      "anchor": true,
+      "required": true
+    },
+    {
+      "domain": "www.cloudflare.com",
+      "group": "cloudflare",
+      "role": "control",
+      "driver": "cloudflare-trace",
+      "purpose": "baseline",
+      "anchor": true,
+      "required": true
+    },
+    {
+      "domain": "api.ipify.org",
+      "group": "ipify",
+      "role": "control",
+      "driver": "ipify",
+      "purpose": "baseline",
+      "anchor": true,
+      "required": true
+    },
+    {
+      "domain": "googleads.g.doubleclick.net",
+      "group": "doubleclick",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "pubads.g.doubleclick.net",
+      "group": "doubleclick",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "securepubads.g.doubleclick.net",
+      "group": "doubleclick",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "ad.doubleclick.net",
+      "group": "doubleclick",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "adclick.g.doubleclick.net",
+      "group": "doubleclick",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "stats.g.doubleclick.net",
+      "group": "doubleclick",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "fls.doubleclick.net",
+      "group": "doubleclick",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "cm.g.doubleclick.net",
+      "group": "doubleclick",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "pagead2.googlesyndication.com",
+      "group": "ads-serving",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "tpc.googlesyndication.com",
+      "group": "ads-serving",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "www.googlesyndication.com",
+      "group": "ads-serving",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "pagead2.googleadservices.com",
+      "group": "ads-serving",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "www.googleadservices.com",
+      "group": "ads-serving",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "adservice.google.com",
+      "group": "ads-serving",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "www.googletagservices.com",
+      "group": "ads-serving",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "partner.googleadservices.com",
+      "group": "ads-serving",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "ads-delivery",
+      "required": true
+    },
+    {
+      "domain": "ads.google.com",
+      "group": "ads-tools",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "ads-tools-measurement",
+      "required": true
+    },
+    {
+      "domain": "admanager.google.com",
+      "group": "ads-tools",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "ads-tools-measurement",
+      "required": true
+    },
+    {
+      "domain": "admob.google.com",
+      "group": "ads-tools",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "ads-tools-measurement",
+      "required": true
+    },
+    {
+      "domain": "admob.googleapis.com",
+      "group": "ads-tools",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "ads-tools-measurement",
+      "required": true
+    },
+    {
+      "domain": "googleads.googleapis.com",
+      "group": "ads-tools",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "ads-tools-measurement",
+      "required": true
+    },
+    {
+      "domain": "www.googletagmanager.com",
+      "group": "ads-tools",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "ads-tools-measurement",
+      "required": true
+    },
+    {
+      "domain": "www.google-analytics.com",
+      "group": "ads-tools",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "ads-tools-measurement",
+      "required": true
+    },
+    {
+      "domain": "region1.google-analytics.com",
+      "group": "ads-tools",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "ads-tools-measurement",
+      "required": true
+    },
+    {
+      "domain": "www.googleapis.com",
+      "group": "google-services",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "google-normal",
+      "required": true
+    },
+    {
+      "domain": "accounts.google.com",
+      "group": "google-services",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "google-normal",
+      "required": true
+    },
+    {
+      "domain": "play.googleapis.com",
+      "group": "google-services",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "google-normal",
+      "required": true
+    },
+    {
+      "domain": "android.googleapis.com",
+      "group": "google-services",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "google-normal",
+      "required": true
+    },
+    {
+      "domain": "connectivitycheck.gstatic.com",
+      "group": "google-services",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "google-normal",
+      "required": true
+    },
+    {
+      "domain": "www.gstatic.com",
+      "group": "google-services",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "google-normal",
+      "required": true
+    },
+    {
+      "domain": "fonts.googleapis.com",
+      "group": "google-services",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "google-normal",
+      "required": true
+    },
+    {
+      "domain": "www.youtube.com",
+      "group": "google-services",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "google-normal",
+      "required": true
+    },
+    {
+      "domain": "youtubei.googleapis.com",
+      "group": "other-services",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "other",
+      "required": true
+    },
+    {
+      "domain": "mail.google.com",
+      "group": "other-services",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "other",
+      "required": true
+    },
+    {
+      "domain": "dns.google",
+      "group": "other-services",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "other",
+      "required": true
+    },
+    {
+      "domain": "play.google.com",
+      "group": "other-services",
+      "role": "control",
+      "driver": "google-peer",
+      "purpose": "other",
+      "required": true
+    },
+    {
+      "domain": "t.me",
+      "group": "other-services",
+      "role": "control",
+      "driver": "https-reachability",
+      "purpose": "other",
+      "required": true
+    },
+    {
+      "domain": "www.instagram.com",
+      "group": "other-services",
+      "role": "control",
+      "driver": "https-reachability",
+      "purpose": "other",
+      "required": true
+    },
+    {
+      "domain": "web.whatsapp.com",
+      "group": "other-services",
+      "role": "control",
+      "driver": "https-reachability",
+      "purpose": "other",
+      "required": true
+    },
+    {
+      "domain": "x.com",
+      "group": "other-services",
+      "role": "control",
+      "driver": "https-reachability",
+      "purpose": "other",
+      "required": true
+    },
+    {
+      "domain": "www.adsensecustomsearchads.com",
+      "group": "search-ads",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "search-ads",
+      "required": true
+    },
+    {
+      "domain": "syndicatedsearch.goog",
+      "group": "search-ads",
+      "role": "ads",
+      "driver": "google-peer",
+      "purpose": "search-ads",
+      "required": true
+    }
+  ]
+}

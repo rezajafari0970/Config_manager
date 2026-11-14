@@ -157,7 +157,8 @@ def overlap_assessment(observe,health):
 def investigate(req,args,pool=None):
  if pool is None:
   with ResourcePool(args) as own:return investigate(req,args,own)
- targets=sessions.target_registry(req.get('targets'));plan=req['plan'];r=dict(version='ads-egress.v7',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],health=[],attempts=[],evidence=[],wall_ms=0,waves=3 if req.get('deep') else 2)
+ discovery=req.get('discovery') is True
+ targets=sessions.target_registry(req.get('targets'));plan=req['plan'];r=dict(version='ads-egress.v7',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],health=[],attempts=[],evidence=[],wall_ms=0,waves=3 if req.get('deep') or discovery else 2)
  begin=time.monotonic();best=-1;before_resource_failures=resource_failures(args.prefix)
  if len(plan.get('variants',[]))!=2:return r
  for core,path,pin in (core_order(plan) if plan['driver']=='xray' else [NATIVE]):
@@ -188,20 +189,20 @@ def investigate(req,args,pool=None):
       code=lab.classify(box.logs(),'runtime_start_failed');check.update(core=False,code=code);break
      check.update(core=True,code='exact_runtime_started')
      def observe(start,waves,timeout):
-      result=box.net(['/usr/bin/python3',str(HERE/'egress-session.py')],input=json.dumps({'targets':targets,'variant':v['name'],'timeout':timeout,'start_wave':start,'waves':waves,'sequential':sequential,'adaptive':bool(req.get('deep'))}).encode(),timeout=max(25,timeout*(waves if sequential else 2)+10))
+      result=box.net(['/usr/bin/python3',str(HERE/'egress-session.py')],input=json.dumps({'targets':targets,'variant':v['name'],'timeout':timeout,'start_wave':start,'waves':waves,'sequential':sequential,'adaptive':bool(req.get('deep')) and not discovery}).encode(),timeout=max(25,timeout*(waves if sequential else 2)+10))
       if len(result.stdout)>131072:raise ValueError('session_output_limit')
       rows=json.loads(result.stdout)
       if not isinstance(rows,list) or not min(waves,2)*len(targets)<=len(rows)<=waves*len(targets):raise ValueError('session_contract')
       return rows
      # XHTTP and deep retries avoid overloading one remote path with 21 connections.
-     sequential=bool(req.get('deep')) or any(o.get('streamSettings',{}).get('network') in ('xhttp','splithttp') for o in config.get('outbounds',[]))
-     observe_current=lambda:observe(1,r['waves'],8 if req.get('deep') else 3)
+     sequential=discovery or bool(req.get('deep')) or any(o.get('streamSettings',{}).get('network') in ('xhttp','splithttp') for o in config.get('outbounds',[]))
+     observe_current=lambda:observe(1,r['waves'],8 if req.get('deep') or discovery else 3)
      if req.get('accepted'):
       rows,h=overlap_assessment(observe_current,lambda:diagnostic_health(box,v['name']))
       health.append(h)
      else:rows=observe_current()
      samples+=rows
-     if not req.get('accepted') and v['name']=='raw' and raw_shared_egress(rows,targets):
+     if not discovery and not req.get('accepted') and v['name']=='raw' and raw_shared_egress(rows,targets):
       box.stop();code='raw_shared_egress';mark(v['name']+'_probes');break
      # Existing members always receive a real payload check. New candidates
      # only pay this cost when a dedicated Ads path remains possible.
@@ -209,7 +210,7 @@ def investigate(req,args,pool=None):
       health.append(diagnostic_health(box,v['name']))
      box.stop();code='measured';mark(v['name']+'_probes')
      # Acceptance always requires both variants; a proven raw overlap only rejects.
-     if not req.get('accepted') and not req.get('deep') and not any(x.get('echo') for x in rows):
+     if not discovery and not req.get('accepted') and not req.get('deep') and not any(x.get('echo') for x in rows):
       code='network_retry_pending';break
    mark('reset')
    score=sum(bool(x.get('echo')) for x in samples)
