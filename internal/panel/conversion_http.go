@@ -56,13 +56,25 @@ func queryConversions(ctx context.Context, db conversionQuerier, page int, all b
 }
 
 func querySourceConversions(ctx context.Context, db conversionQuerier, source string, page int, all bool) ([]Conversion, error) {
+	return querySourceIdentityConversions(ctx, db, source, "", page, all)
+}
+
+func querySourceIdentityConversions(ctx context.Context, db conversionQuerier, source, identity string, page int, all bool) ([]Conversion, error) {
 	now := time.Now().UnixMilli()
 	q := conversionQuery + " ORDER BY id"
 	args := []any{convert.Version, now, convert.Version, now, now, now}
+	filter := ""
 	if source != "" {
-		q = strings.Replace(q, "/* source filter */", "AND m.source_id=?", 1)
+		filter += " AND m.source_id=?"
 		args = append(args, source)
 	}
+	// Restrict by the partition key, never the candidate hash: all raw aliases
+	// of this identity must still participate in the exact same winner ranking.
+	if identity != "" {
+		filter += " AND a.id=?"
+		args = append(args, identity)
+	}
+	q = strings.Replace(q, "/* source filter */", filter, 1)
 	if !all {
 		q += " LIMIT 100 OFFSET ?"
 		args = append(args, max(0, page)*100)

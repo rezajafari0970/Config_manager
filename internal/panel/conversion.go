@@ -64,7 +64,11 @@ func (s *Store) migrateV6() error {
 	return tx.Commit()
 }
 func syncConversions(ctx context.Context, tx *sql.Tx) error {
-	if _, e := tx.ExecContext(ctx, `DELETE FROM conversion_jobs WHERE NOT EXISTS(SELECT 1 FROM conversion_inputs i WHERE i.hash=conversion_jobs.hash)`); e != nil {
+	// Compute current ownership once for this statement. Correlating the full
+	// eligibility view with every historical job repeats its shared safety gates
+	// while holding the sole writer, delaying single exports during ingestion.
+	if _, e := tx.ExecContext(ctx, `WITH active_inputs AS MATERIALIZED(SELECT hash FROM conversion_inputs)
+ DELETE FROM conversion_jobs WHERE NOT EXISTS(SELECT 1 FROM active_inputs i WHERE i.hash=conversion_jobs.hash)`); e != nil {
 		return e
 	}
 	_, e := tx.ExecContext(ctx, `INSERT INTO conversion_jobs(hash) SELECT hash FROM conversion_inputs WHERE true ON CONFLICT(hash) DO NOTHING`)

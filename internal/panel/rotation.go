@@ -166,7 +166,7 @@ func (s *Store) claimRotation(ctx context.Context, c *rotatingConfig) (bool, err
 	}
 	// Recheck current source ownership, TTL, controls, version and proof after
 	// reading the blob: a concurrent deletion or failed retest cannot be exported.
-	entries, e := querySourceConversions(ctx, tx, c.Scope, 0, true)
+	entries, e := querySourceIdentityConversions(ctx, tx, c.Scope, c.Conversion.ID, 0, true)
 	if e != nil {
 		return false, e
 	}
