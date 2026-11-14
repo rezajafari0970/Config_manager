@@ -439,7 +439,7 @@ func (m egressModule) exportAttempt(w http.ResponseWriter, r *http.Request, atte
 		failure(w, e)
 		return
 	}
-	tx, e := m.s.store.db.BeginTx(r.Context(), nil)
+	tx, e := m.s.store.outputTransaction(r.Context())
 	if e != nil {
 		failure(w, e)
 		return

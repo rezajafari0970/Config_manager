@@ -97,8 +97,35 @@ func (d smartDB) BeginTx(c context.Context, o *sql.TxOptions) (*smartTx, error) 
 
 type smartTx struct {
 	*sql.Tx
-	splash bool
-	ads    bool
+	release func()
+	splash  bool
+	ads     bool
+}
+
+func (t *smartTx) Commit() error {
+	if t.release != nil {
+		defer t.release()
+	}
+	return t.Tx.Commit()
+}
+func (t *smartTx) Rollback() error {
+	if t.release != nil {
+		defer t.release()
+	}
+	return t.Tx.Rollback()
+}
+func (s *SmartPipeline) outputTransaction(ctx context.Context) (*smartTx, error) {
+	release, err := s.operations.acquire(ctx, true)
+	if err != nil {
+		return nil, err
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		release()
+		return nil, err
+	}
+	tx.release = release
+	return tx, nil
 }
 
 func (t *smartTx) QueryContext(c context.Context, q string, a ...any) (*sql.Rows, error) {

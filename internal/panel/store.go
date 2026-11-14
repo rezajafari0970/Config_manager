@@ -28,6 +28,7 @@ type Store struct {
 	workerReadDB  *sql.DB
 	claimOnce     sync.Once
 	claimSlot     chan struct{}
+	operations    operationAdmission
 	aead          cipher.AEAD
 	key           []byte
 	vault         *blob.Vault
@@ -296,7 +297,14 @@ func (s *Store) workerReader() *sql.DB {
 	}
 	return s.reader()
 }
-func (s *Store) Ping(ctx context.Context) error { return s.db.PingContext(ctx) }
+func (s *Store) Ping(ctx context.Context) error {
+	release, err := s.operations.acquire(ctx, true)
+	if err != nil {
+		return err
+	}
+	defer release()
+	return s.db.PingContext(ctx)
+}
 func randomToken() string {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {

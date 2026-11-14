@@ -379,7 +379,7 @@ func (s *Store) PrivateProbeHandler() http.Handler {
 		}
 		respond(w, 200, true)
 	})
-	return mux
+	return s.admitWorker(mux)
 }
 
 // A source/expiry/GC change between list and blob open must not break every
