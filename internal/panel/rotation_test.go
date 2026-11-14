@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -135,8 +137,28 @@ func TestRotationConcurrentStoresAndGarbageCollection(t *testing.T) {
 		}
 		rounds[c.Cycle][c.Conversion.CandidateHash] = true
 	}
-	if e := <-gcDone; e != nil {
+	if e := <-gcDone; e != nil && !errors.Is(e, context.DeadlineExceeded) {
 		t.Fatal("GC deadlock/failure", e)
+	}
+	// A busy reference check may yield after its bounded 250ms budget. The
+	// overall deadline must still be live, and a later sweep must succeed and
+	// preserve every referenced payload; yielding is not a deletion decision.
+	if ctx.Err() != nil {
+		t.Fatal("GC or rotation exhausted the operation deadline", ctx.Err())
+	}
+	if err := s.vault.Sweep(ctx, s.Referenced); err != nil {
+		t.Fatal("GC did not recover after the concurrent writers", err)
+	}
+	for hash, want := range expected {
+		f, err := s.vault.Open(hash)
+		if err != nil {
+			t.Fatal("GC removed referenced payload", err)
+		}
+		got, err := io.ReadAll(f)
+		f.Close()
+		if err != nil || !bytes.Equal(got, want) {
+			t.Fatal("GC changed referenced payload", err)
+		}
 	}
 	if len(rounds) != 5 {
 		t.Fatal("wrong round count", len(rounds))
