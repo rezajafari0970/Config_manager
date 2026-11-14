@@ -2,7 +2,7 @@ package egress
 
 // Iran is a deny signal, independent of split-route qualification and payload
 // health. Missing observations never manufacture a country or a clean result.
-const IranVersion = "doubleclick-iran.v1"
+const IranVersion = "ads-iran.v2"
 const IranInterval = int64(600000)
 const IranSpacing = int64(60000)
 
@@ -16,6 +16,22 @@ type IranObservation struct {
 }
 
 func Iran(r Report, p Plan, hash string, now int64) *IranObservation {
+	if len(r.Evidence) > 4 {
+		return nil
+	}
+	if x := iranRound(r, p, hash, now); x != nil {
+		return x
+	}
+	for _, part := range r.Evidence {
+		if len(part.Evidence) == 0 && len(part.Samples) <= 256 && part.Started >= r.Started && part.Finished <= r.Finished {
+			if x := iranRound(part, p, hash, now); x != nil {
+				return x
+			}
+		}
+	}
+	return nil
+}
+func iranRound(r Report, p Plan, hash string, now int64) *IranObservation {
 	if r.Version != Version || r.Hash != hash || r.Started <= 0 || r.Started > r.Finished || r.Started < now-300000 || r.Finished > now+2000 || r.ResourcePressure || Cores[r.Core] == "" || Cores[r.Core] != r.CoreSHA {
 		return nil
 	}

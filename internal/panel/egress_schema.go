@@ -154,7 +154,10 @@ func (s *Store) reconcileEgressVersion() error {
 	}
 	current := egress.Version + "|" + convert.Version
 	if previous != current {
-		if _, e = tx.Exec("UPDATE egress_jobs SET state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE 'PENDING' END,reason='implementation_changed',tested=0,attempts=0,report='{}',decision='{}',valid_until=0,revision=revision+1,token='',lease_until=0,next_run=0 WHERE state!='DELETED'"); e != nil {
+		if _, e = tx.Exec("UPDATE egress_jobs SET state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE 'PENDING' END,reason='implementation_changed',valid_until=0,revision=revision+1,token='',lease_until=0,next_run=0 WHERE state!='DELETED'"); e != nil {
+			return e
+		}
+		if _, e = tx.Exec("UPDATE egress_health SET valid_until=0"); e != nil {
 			return e
 		}
 		if _, e = tx.Exec("UPDATE egress_settings SET version=?,generation=generation+1", current); e != nil {
@@ -182,4 +185,18 @@ func (s *Store) ensureEgressIndexes() error {
 		}
 	}
 	return nil
+}
+
+// P58 changes the meaning of health and required route coverage. Older binaries
+// must not consume this database. Evidence remains historical, never promoted.
+func (s *Store) migrateV32() error {
+	var v int
+	if err := s.db.QueryRow("PRAGMA user_version").Scan(&v); err != nil {
+		return err
+	}
+	if v >= 32 {
+		return nil
+	}
+	_, err := s.db.Exec("PRAGMA user_version=32")
+	return err
 }

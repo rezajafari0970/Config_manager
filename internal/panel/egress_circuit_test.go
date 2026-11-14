@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestEgressCorrelatedFailureGuardCannotRenewForever(t *testing.T) {
+func TestEgressGenericOutageCannotOpenCircuitOrDeleteAds(t *testing.T) {
 	s := testStore(t)
 	ctx := context.Background()
 	newExportSource(t, s, "guard", sourceURI(235), sourceURI(236), sourceURI(237))
@@ -50,8 +50,8 @@ func TestEgressCorrelatedFailureGuardCannotRenewForever(t *testing.T) {
 	}
 	var opened int64
 	s.db.QueryRow("SELECT circuit_until FROM egress_settings").Scan(&opened)
-	if opened <= egress.Now() {
-		t.Fatal("guard did not open")
+	if opened != 0 {
+		t.Fatal("generic outage polluted Ads circuit")
 	}
 	// Additional simultaneous failures must not restart the five-minute window.
 	for _, h := range hashes {
@@ -69,7 +69,7 @@ func TestEgressCorrelatedFailureGuardCannotRenewForever(t *testing.T) {
 	}
 	var deleted int
 	s.db.QueryRow("SELECT count(*) FROM egress_jobs WHERE state='DELETED' AND reason='confirmed_unhealthy'").Scan(&deleted)
-	if deleted != 3 {
-		t.Fatal("confirmed negatives remained trapped", deleted)
+	if deleted != 0 {
+		t.Fatal("generic failures deleted valid Ads", deleted)
 	}
 }

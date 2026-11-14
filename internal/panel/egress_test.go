@@ -37,14 +37,19 @@ func syntheticEgress(j egress.Job) egress.Report {
 	for _, v := range p.Variants {
 		r.Checks = append(r.Checks, egress.Check{Name: v.Name, Hash: v.Hash, RuntimeHash: v.Hash, Core: true})
 		for wave := 1; wave <= 3; wave++ {
-			for _, d := range append(append([]string{}, egress.Domains...), "www.cloudflare.com", "api.ipify.org") {
-				ads := d != "www.cloudflare.com" && d != "api.ipify.org"
+			for _, d := range append(append([]string{}, egress.Domains...), egress.ControlDomains...) {
+				ads := false
+				for _, a := range egress.Domains {
+					if a == d {
+						ads = true
+					}
+				}
 				ip := "1.1.1.1"
 				if ads {
 					ip = "8.8.8.8"
 				}
 				n := egress.Hash([]byte(fmt.Sprint(v.Name, d, wave)))[:32]
-				r.Samples = append(r.Samples, egress.Sample{Geo: egress.CountryFact{Version: egress.CountryVersion, Status: "located", Country: "TR", At: now, Providers: []egress.CountryProvider{{Name: "fixture", Lineage: "fixture", Kind: "database", Dataset: strings.Repeat("a", 64), ReleasedAt: now - 86400000, Country: "TR"}, {Name: "fixture2", Lineage: "fixture2", Kind: "database", Dataset: strings.Repeat("b", 64), ReleasedAt: now - 86400000, Country: "TR"}}}, Variant: v.Name, Domain: d, Wave: wave, At: now, Source: egress.Hash([]byte(ip)), Family: 4, Transport: "tcp", Nonce: n, Connection: n, TLS: true, SameStream: true, Echo: true, ActualAds: ads, Certificate: strings.Repeat("c", 64), Response: strings.Repeat("f", 64)})
+				r.Samples = append(r.Samples, egress.Sample{RequestBytes: 200, ResponseBytes: 1000, ResponseComplete: true, Geo: egress.CountryFact{Version: egress.CountryVersion, Status: "located", Country: "TR", At: now, Providers: []egress.CountryProvider{{Name: "fixture", Lineage: "fixture", Kind: "database", Dataset: strings.Repeat("a", 64), ReleasedAt: now - 86400000, Country: "TR"}, {Name: "fixture2", Lineage: "fixture2", Kind: "database", Dataset: strings.Repeat("b", 64), ReleasedAt: now - 86400000, Country: "TR"}}}, Variant: v.Name, Domain: d, Wave: wave, At: now, Source: egress.Hash([]byte(ip)), Family: 4, Transport: "tcp", Nonce: n, Connection: n, TLS: true, SameStream: true, Echo: true, ActualAds: ads, Certificate: strings.Repeat("c", 64), Response: strings.Repeat("f", 64)})
 			}
 		}
 	}
@@ -134,7 +139,7 @@ func TestEgressQueueLeaseExportAndExpiry(t *testing.T) {
 		t.Fatal("legacy remains")
 	}
 }
-func TestEgressUnknownQuarantinesAndConfirmedLossPurges(t *testing.T) {
+func TestEgressUnknownQuarantinesButGenericFailuresDoNotPurge(t *testing.T) {
 	s := testStore(t)
 	ctx := context.Background()
 	newExportSource(t, s, "member", sourceURI(4))
@@ -173,8 +178,8 @@ func TestEgressUnknownQuarantinesAndConfirmedLossPurges(t *testing.T) {
 		var state string
 		s.db.QueryRow("SELECT state FROM egress_jobs WHERE hash=?", j.Hash).Scan(&state)
 		want := "QUARANTINED"
-		if step == 3 {
-			want = "DELETED"
+		if step > 0 {
+			want = "RESIDENTIAL"
 		}
 		if state != want {
 			t.Fatal(step, state, want)
@@ -182,12 +187,12 @@ func TestEgressUnknownQuarantinesAndConfirmedLossPurges(t *testing.T) {
 	}
 	var n int
 	s.db.QueryRow("SELECT count(*) FROM conversion_inputs WHERE hash=?", j.Hash).Scan(&n)
-	if n != 0 {
-		t.Fatal("purged member in ordinary output")
+	if n != 1 {
+		t.Fatal("healthy Ads member withdrawn for generic failures")
 	}
 	s.db.QueryRow("SELECT count(*) FROM input_exclusions WHERE hash=?", j.Hash).Scan(&n)
-	if n == 0 {
-		t.Fatal("purge not durable")
+	if n != 0 {
+		t.Fatal("generic health created a destructive exclusion")
 	}
 }
 

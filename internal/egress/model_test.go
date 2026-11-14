@@ -15,14 +15,19 @@ func fixture() (Report, Plan, int64) {
 	for _, v := range p.Variants {
 		r.Checks = append(r.Checks, Check{v.Name, v.Hash, v.Hash, true, "ok"})
 		for wave := 1; wave <= 3; wave++ {
-			for _, d := range append(append([]string{}, Domains...), "www.cloudflare.com", "api.ipify.org") {
+			for _, d := range append(append([]string{}, Domains...), ControlDomains...) {
 				ip := "1.1.1.1"
-				ads := d != "www.cloudflare.com" && d != "api.ipify.org"
+				ads := false
+				for _, a := range Domains {
+					if a == d {
+						ads = true
+					}
+				}
 				if ads {
 					ip = "8.8.8.8"
 				}
 				n := Hash([]byte(fmt.Sprint(v.Name, wave, d)))[:32]
-				r.Samples = append(r.Samples, Sample{Variant: v.Name, Wave: wave, Domain: d, At: now, Source: Hash([]byte(ip)), Family: 4, Transport: "tcp", TLS: true, Echo: true, SameStream: true, ActualAds: ads, Nonce: n, Connection: n, Certificate: strings.Repeat("c", 64), Response: strings.Repeat("d", 64)})
+				r.Samples = append(r.Samples, Sample{RequestBytes: 200, ResponseBytes: 1000, ResponseComplete: true, Variant: v.Name, Wave: wave, Domain: d, At: now, Source: Hash([]byte(ip)), Family: 4, Transport: "tcp", TLS: true, Echo: true, SameStream: true, ActualAds: ads, Nonce: n, Connection: n, Certificate: strings.Repeat("c", 64), Response: strings.Repeat("d", 64)})
 			}
 		}
 	}
@@ -38,7 +43,7 @@ func TestFiniteObservationPolicy(t *testing.T) {
 		}
 	}
 	r.Samples = keep
-	if d := Evaluate(r, p, "fixture", now); !d.Eligible || d.Route != "DIFFERENT" || d.Reason != "repeated_ads_split_project_definition" {
+	if d := Evaluate(r, p, "fixture", now); !d.Eligible || d.Route != "DIFFERENT" || d.Reason != "repeated_ads_exclusive_observation" {
 		t.Fatal(d)
 	}
 	cases := []struct {
@@ -57,8 +62,8 @@ func TestFiniteObservationPolicy(t *testing.T) {
 		{"mixed_family", func(r *Report, p *Plan) { r.Samples[0].Family = 6 }},
 		{"plaintext_source", func(r *Report, p *Plan) { r.Samples[0].Source = "8.8.8.8" }},
 		{"replayed_control", func(r *Report, p *Plan) {
-			r.Samples[3].Connection = r.Samples[8].Connection
-			r.Samples[3].Nonce = r.Samples[8].Nonce
+			r.Samples[0].Connection = r.Samples[1].Connection
+			r.Samples[0].Nonce = r.Samples[1].Nonce
 		}},
 	}
 	for _, c := range cases {
@@ -125,7 +130,8 @@ func TestOverlapNeverQualifiesAsDedicatedResidential(t *testing.T) {
 }
 func TestPartialEchoRetainsEvidenceWithoutQualifying(t *testing.T) {
 	r, p, now := fixture()
-	r.Samples = append(r.Samples[1:5], r.Samples[6:]...)
+	stride := len(Domains) + len(ControlDomains)
+	r.Samples = append(r.Samples[1:stride], r.Samples[stride+1:]...)
 	d := Evaluate(r, p, "fixture", now)
 	if d.Eligible || d.Route != "PARTIAL_DIFFERENCE" || len(d.Sources) == 0 {
 		t.Fatal(d)
@@ -136,7 +142,7 @@ func TestTwoPairedRepeatsPerDomainAndVariantQualify(t *testing.T) {
 	r, p, now := fixture()
 	r.Samples = r.Samples[1:]
 	d := Evaluate(r, p, "fixture", now)
-	if !d.Eligible || d.State != "RESIDENTIAL" || d.Route != "DIFFERENT" || d.Missing != 1 {
+	if !d.Eligible || d.State != "RESIDENTIAL" || d.Route != "DIFFERENT" || d.Missing != 0 {
 		t.Fatal(d)
 	}
 }
@@ -175,14 +181,14 @@ func TestRotatingAdsPoolAndConflictingEvidence(t *testing.T) {
 		t.Fatal("mixed routes", d)
 	}
 	r, p, now = fixture()
-	r.Samples[3].Source = Hash([]byte("2.2.2.2"))
-	if d := Evaluate(r, p, "fixture", now); d.Eligible || d.Negative {
-		t.Fatal("unstable controls", d)
+	r.Samples[len(Domains)].Source = Hash([]byte("2.2.2.2"))
+	if d := Evaluate(r, p, "fixture", now); !d.Eligible || d.Negative {
+		t.Fatal("heterogeneous controls rejected", d)
 	}
 	r, p, now = fixture()
 	r.Samples[1].Source = Hash([]byte("1.1.1.1"))
-	r.Samples[3].TLS = false
-	r.Samples[4].TLS = false
+	r.Samples[len(Domains)].TLS = false
+	r.Samples[len(Domains)+1].TLS = false
 	if d := Evaluate(r, p, "fixture", now); d.Eligible {
 		t.Fatal("unpaired overlap ignored", d)
 	}

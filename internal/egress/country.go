@@ -122,6 +122,14 @@ func observedCountries(r Report, until, now int64) CountryResult {
 				}
 			}
 		}
+		// A fresh minority IR observation blocks publication without being promoted
+		// to a confirmed IR observation for the sticky deny guard.
+		for _, country := range lineages {
+			if country == "IR" && g.Country != "IR" {
+				out.Status = "country_iran_conflict"
+				return out
+			}
+		}
 		if votes < 2 || votes*2 <= total {
 			out.Status = "country_conflict"
 			return out

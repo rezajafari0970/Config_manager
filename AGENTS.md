@@ -1,3 +1,7 @@
+# P58 Ads-exclusive strategy — 2026-11-14
+
+Read docs/ADS_EXCLUSIVE.md. User-authorized v6/schema32 supersedes older stable-control and generic-payload gates. Required independent service coverage; reachability/timeouts/cross-family IPs are not source proof. Generic payload failure cannot delete Ads-only inputs. Preserve sticky IR guard, all attempt evidence, controls, raw bytes and accounting history. Prior receipts must expire without resetting counters. Strict Telegram/Instagram source coverage is currently unobservable unless a bounded local block is proved; do not claim all configs can be confirmed or hide an empty publishable set. Preserve shared deploy lock, matched backup and six-binary verification.
+
 # P57 Residential accounting and renewal — 2026-11-13
 
 Read docs/EGRESS_ACCOUNTING.md. Schema31 and all P56 Iran proof/revocation rules

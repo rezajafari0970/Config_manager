@@ -20,7 +20,10 @@ func TestEgressAnyCountrySharedOutputsAndMigration(t *testing.T) {
 		t.Fatal(err)
 	}
 	r := syntheticEgress(*j)
-	countryByDomain := map[string]string{egress.Domains[0]: "TW", egress.Domains[1]: "MX", egress.Domains[2]: "CY"}
+	countryByDomain := map[string]string{}
+	for i, d := range egress.Domains {
+		countryByDomain[d] = []string{"TW", "MX", "CY"}[i%3]
+	}
 	for i := range r.Samples {
 		sample := &r.Samples[i]
 		if country := countryByDomain[sample.Domain]; sample.ActualAds && country != "" {

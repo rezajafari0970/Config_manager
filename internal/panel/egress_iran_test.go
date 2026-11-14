@@ -307,7 +307,7 @@ func TestIranMigrationPreservesPolicyAndQuarantinesHistoricalIR(t *testing.T) {
 	}
 }
 
-func TestIranQuarantinePreservesConfirmedHealthRemoval(t *testing.T) {
+func TestIranQuarantineSurvivesUnrelatedGeneralHealthFailures(t *testing.T) {
 	s := testStore(t)
 	ctx := context.Background()
 	newExportSource(t, s, "unhealthy-guard", sourceURI(565))
@@ -341,12 +341,79 @@ func TestIranQuarantinePreservesConfirmedHealthRemoval(t *testing.T) {
 	}
 	var state, reason string
 	s.db.QueryRow("SELECT state,reason FROM egress_jobs WHERE hash=?", j.Hash).Scan(&state, &reason)
-	if state != "DELETED" || reason != "confirmed_unhealthy" {
-		t.Fatal("guard disabled health lifecycle", state, reason)
+	if state != "QUARANTINED" || reason != "ads_iran_quarantined" {
+		t.Fatal("generic health improperly changed Iran quarantine", state, reason)
 	}
 	var positives int
 	s.db.QueryRow("SELECT positives FROM egress_iran_guard").Scan(&positives)
 	if positives != 1 {
 		t.Fatal("health failure counted as IR")
+	}
+}
+
+func TestIranRetainsEarlierAttemptEvidence(t *testing.T) {
+	s := testStore(t)
+	newExportSource(t, s, "earlier-ir", sourceURI(580))
+	j, _ := s.ClaimEgress(context.Background())
+	p := egress.Prepare(j.Raw)
+	r := syntheticEgress(*j)
+	old := iranFixture(*j)
+	old.Started = r.Started
+	old.Finished = r.Finished
+	r.Evidence = []egress.Report{old}
+	if egress.Iran(r, p, j.Hash, egress.Now()) == nil {
+		t.Fatal("clean selected attempt hid earlier IR")
+	}
+	r.Evidence[0].CoreSHA = "invalid"
+	if egress.Iran(r, p, j.Hash, egress.Now()) != nil {
+		t.Fatal("unbound attempt counted")
+	}
+}
+func TestCountryMinorityIranBlocksPublicationWithoutConfirmedIR(t *testing.T) {
+	s := testStore(t)
+	newExportSource(t, s, "conflict-ir", sourceURI(581))
+	j, _ := s.ClaimEgress(context.Background())
+	p := egress.Prepare(j.Raw)
+	r := syntheticEgress(*j)
+	for i := range r.Samples {
+		if r.Samples[i].ActualAds {
+			g := &r.Samples[i].Geo
+			x := g.Providers[0]
+			x.Name = "independent-ir"
+			x.Lineage = "independent-ir"
+			x.Country = "IR"
+			g.Providers = append(g.Providers, x)
+		}
+	}
+	d := egress.Evaluate(r, p, j.Hash, egress.Now())
+	c := egress.Countries(r, d, egress.Now())
+	if c.Complete || c.Status != "country_iran_conflict" {
+		t.Fatal(c)
+	}
+	if egress.Iran(r, p, j.Hash, egress.Now()) != nil {
+		t.Fatal("minority report promoted to confirmed IR")
+	}
+}
+func TestV32VersionInvalidatesProofWithoutErasingHistory(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	newExportSource(t, s, "version-history", sourceURI(582))
+	j, _ := s.ClaimEgress(ctx)
+	if e := s.CompleteEgress(ctx, egress.Completion{Job: *j, Report: syntheticEgress(*j)}); e != nil {
+		t.Fatal(e)
+	}
+	var beforeReport, beforeDecision string
+	var tested, attempts int64
+	s.db.QueryRow("SELECT report,decision,tested,attempts FROM egress_jobs WHERE hash=?", j.Hash).Scan(&beforeReport, &beforeDecision, &tested, &attempts)
+	s.db.Exec("UPDATE egress_settings SET version='ads-egress.v5|old'")
+	if e := s.reconcileEgressVersion(); e != nil {
+		t.Fatal(e)
+	}
+	var report, decision, state string
+	var afterTested, afterAttempts, until, healthyUntil int64
+	s.db.QueryRow("SELECT report,decision,tested,attempts,valid_until,state FROM egress_jobs WHERE hash=?", j.Hash).Scan(&report, &decision, &afterTested, &afterAttempts, &until, &state)
+	s.db.QueryRow("SELECT valid_until FROM egress_health WHERE hash=?", j.Hash).Scan(&healthyUntil)
+	if report != beforeReport || decision != beforeDecision || tested != afterTested || attempts != afterAttempts || until != 0 || healthyUntil != 0 || state != "QUARANTINED" {
+		t.Fatal("history lost or old proof eligible")
 	}
 }

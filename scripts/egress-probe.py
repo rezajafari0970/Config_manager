@@ -6,7 +6,7 @@ import argparse,base64,hashlib,hmac,secrets,fcntl,ipaddress,contextlib,copy,impo
 HERE=pathlib.Path(__file__).resolve().parent
 def module(name,file):
  spec=importlib.util.spec_from_file_location(name,HERE/file);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
-lab=module('egress_lab','live-probe.py');scope=module('egress_scope','egress-preflight.py');country=module('egress_country','egress-country.py')
+lab=module('egress_lab','live-probe.py');scope=module('egress_scope','egress-preflight.py');country=module('egress_country','egress-country.py');sessions=module('egress_sessions','egress-session.py')
 CORES=[('xray-26.11.9','/opt/config-repair/core-26.11.9/xray','e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d'),('xray-26.10.31','/opt/config-repair/core-26.10.31/xray','cc4b84d3069569f297a61f04b914f2bb37e9d202fd7b84cb50def1fc30fd40e1'),('xray-26.7.28','/opt/config-repair/core-26.7.28/xray','64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d'),('xray-26.5.9','/opt/config-repair/core-26.5.9/xray','b2c525e082cf2fef460499c88838d355f0b9bfb5a00bdb3eaa99b6af63825006')]
 NATIVE=('sing-box-1.14.4','/opt/config-repair/sing-box-1.14.4/sing-box','1264361b5f8868c8768f7555d3e77e20118bf503c41ac08bb290a0d99056aa3a')
 def cleanup(prefix,slot=None,run=None):
@@ -100,43 +100,27 @@ def core_order(plan):
      return [CORES[-1]]+CORES[:-1]
  except (ValueError,KeyError,TypeError):pass
  return CORES
-_control_cache=(0,'')
-def control_ipv4():
- # A dual-stack control name may otherwise use IPv6 while Ads uses IPv4.
- # Resolve the fixed public name outside the tunnel; NEVER add it to the
- # namespace firewall. The SOCKS connection and verified TLS still use proxy.
- global _control_cache
- now=time.monotonic()
- if _control_cache[0]>now:return _control_cache[1]
- value=''
- try:
-  helper='import socket,json;print(json.dumps(sorted({x[4][0] for x in socket.getaddrinfo("www.cloudflare.com",443,socket.AF_INET,socket.SOCK_STREAM)})))'
-  r=subprocess.run(['/usr/bin/python3','-c',helper],capture_output=True,check=True,timeout=3)
-  ips=json.loads(r.stdout)
-  valid=[str(ipaddress.ip_address(ip)) for ip in ips if ipaddress.ip_address(ip).version==4 and ipaddress.ip_address(ip).is_global and not ipaddress.ip_address(ip).is_multicast and not ipaddress.ip_address(ip).is_reserved]
-  if valid:value=valid[0]
- except Exception:pass
- _control_cache=(now+(300 if value else 5),value)
- return value
-def raw_shared_egress(rows,waves):
- # Rejection only; Go independently verifies every required observation.
- stable={}
- for wave in range(1,waves+1):
-  paired={}
-  for row in rows:
-   if row.get('wave')!=wave or not all(row.get(k) for k in ('echo','tls','same_stream')):continue
-   domain=row.get('domain');family=row.get('family');source=row.get('ip')
-   group='cf' if domain in ('www.cloudflare.com','one.one.one.one') else 'ipify' if domain in ('api.ipify.org','api6.ipify.org') else ''
-   if group:
-    previous=paired.setdefault(family,{}).get(group)
-    if previous and previous!=source:return False
-    paired[family][group]=source;stable.setdefault(family,set()).add(source)
-  for domain in ['googleads.g.doubleclick.net','pubads.g.doubleclick.net','securepubads.g.doubleclick.net']:
-   matching=[x for x in rows if x.get('wave')==wave and x.get('domain')==domain and all(x.get(k) for k in ('echo','tls','same_stream','actual_ads'))]
-   if len(matching)!=1:return False
-   row=matching[0];group=paired.get(row.get('family'),{})
-   if len(group)!=2 or any(x!=row.get('ip') for x in group.values()):return False
- return bool(stable) and all(len(sources)==1 for sources in stable.values())
+def raw_shared_egress(rows,targets):
+ # Negative-only optimization. Go independently revalidates exact raw evidence.
+ # Other controls may rotate or be unobservable; a repeated paired overlap with
+ # any registered non-Ads control disproves exclusivity for these observations.
+ ads={t['domain'] for t in targets if t['role']=='ads'}
+ controls={t['domain'] for t in targets if t['role']=='control'}
+ observed={};seen=set()
+ for row in rows:
+  domain=row.get('domain');nonce=row.get('nonce','');wave=row.get('wave',0)
+  if domain not in ads|controls or not all(row.get(k) for k in ('echo','tls','same_stream')):continue
+  if row.get('actual_ads',False)!=(domain in ads) or wave not in (1,2,3) or len(nonce)!=32 or nonce!=row.get('connection') or nonce in seen:continue
+  try:ip=ipaddress.ip_address(row.get('ip',''))
+  except ValueError:continue
+  if not ip.is_global or ip.is_multicast or ip.is_reserved or ip.version!=row.get('family'):continue
+  seen.add(nonce);observed.setdefault(domain,[]).append(row)
+ if any(len({r['wave'] for r in observed.get(d,[])})<2 for d in ads):return False
+ for d in controls:
+  shared={r['wave'] for r in observed.get(d,[]) if any(a['wave']==r['wave'] and a['family']==r['family'] and a['ip']==r['ip'] for name in ads for a in observed.get(name,[]))}
+  if len(shared)>=2:return True
+ return False
+
 def private_sources(samples,key):
  for row in samples:
   value=row.pop('ip','')
@@ -152,12 +136,11 @@ def resource_failures(prefix):
 def investigate(req,args,pool=None):
  if pool is None:
   with ResourcePool(args) as own:return investigate(req,args,own)
- plan=req['plan'];r=dict(version='ads-egress.v5',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],health=[],attempts=[],wall_ms=0,waves=3 if req.get('deep') else 2)
+ targets=sessions.target_registry(req.get('targets'));plan=req['plan'];r=dict(version='ads-egress.v6',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],health=[],attempts=[],evidence=[],wall_ms=0,waves=3 if req.get('deep') else 2)
  begin=time.monotonic();best=-1;before_resource_failures=resource_failures(args.prefix)
  if len(plan.get('variants',[]))!=2:return r
- control_ip=control_ipv4()
  for core,path,pin in (core_order(plan) if plan['driver']=='xray' else [NATIVE]):
-  at=time.monotonic();checks=[];samples=[];health=[];code='core_unavailable';stages={};checkpoint=at
+  at=time.monotonic();attempt_started=int(time.time()*1000);attempt_pressure=resource_failures(args.prefix);checks=[];samples=[];health=[];code='core_unavailable';stages={};checkpoint=at
   def mark(name):
    nonlocal checkpoint
    current=time.monotonic();stages[name]=(current-checkpoint)*1000;checkpoint=current
@@ -184,22 +167,24 @@ def investigate(req,args,pool=None):
       code=lab.classify(box.logs(),'runtime_start_failed');check.update(core=False,code=code);break
      check.update(core=True,code='exact_runtime_started')
      def observe(start,waves,timeout):
-      result=box.net(['/usr/bin/python3',str(HERE/'egress-session.py')],input=json.dumps({'variant':v['name'],'timeout':timeout,'start_wave':start,'waves':waves,'sequential':sequential,'adaptive':bool(req.get('deep')),'control_ipv4':control_ip}).encode(),timeout=max(25,timeout*(waves if sequential else 2)+10))
+      result=box.net(['/usr/bin/python3',str(HERE/'egress-session.py')],input=json.dumps({'targets':targets,'variant':v['name'],'timeout':timeout,'start_wave':start,'waves':waves,'sequential':sequential,'adaptive':bool(req.get('deep'))}).encode(),timeout=max(25,timeout*(waves if sequential else 2)+10))
       if len(result.stdout)>131072:raise ValueError('session_output_limit')
       rows=json.loads(result.stdout)
-      if not isinstance(rows,list) or not min(waves,2)*5<=len(rows)<=waves*7:raise ValueError('session_contract')
+      if not isinstance(rows,list) or not min(waves,2)*len(targets)<=len(rows)<=waves*len(targets):raise ValueError('session_contract')
       return rows
      # XHTTP and deep retries avoid overloading one remote path with 21 connections.
      sequential=bool(req.get('deep')) or any(o.get('streamSettings',{}).get('network') in ('xhttp','splithttp') for o in config.get('outbounds',[]))
      rows=observe(1,r['waves'],8 if req.get('deep') else 3)
      samples+=rows
+     if not req.get('accepted') and v['name']=='raw' and raw_shared_egress(rows,targets):
+      box.stop();code='raw_shared_egress';mark(v['name']+'_probes');break
      # Existing members always receive a real payload check. New candidates
      # only pay this cost when a dedicated Ads path remains possible.
-     if req.get('accepted') or any(x.get('actual_ads') and x.get('echo') for x in rows) and not raw_shared_egress(rows,max(x['wave'] for x in rows)):
+     if req.get('accepted') or any(x.get('actual_ads') and x.get('echo') for x in rows):
       result=box.net(['/usr/bin/python3',str(HERE/'egress-health.py')],timeout=12)
       h=json.loads(result.stdout);h['variant']=v['name'];health.append(h)
      box.stop();code='measured';mark(v['name']+'_probes')
-     if not req.get('accepted') and v['name']=='raw' and raw_shared_egress(rows,max(x['wave'] for x in rows)):code='raw_shared_egress';break
+     # Acceptance always requires both variants; a proven raw overlap only rejects.
      if not req.get('accepted') and not req.get('deep') and not any(x.get('echo') for x in rows):
       code='network_retry_pending';break
    mark('reset')
@@ -215,6 +200,8 @@ def investigate(req,args,pool=None):
    r['attempts'].append(dict(core=core,code=code,ms=(time.monotonic()-at)*1000,stages=stages))
    if best<0:r['code']=code
    if code=='ipv6_only_probe_pending':break
+  finally:
+   if samples:r['evidence'].append(dict(version=r['version'],hash=r['hash'],started=attempt_started,finished=int(time.time()*1000),core=core,core_sha=pin,checks=checks,samples=samples,resource_pressure=resource_failures(args.prefix)>attempt_pressure))
  # A separate host control is only an outage check, never Ads IP evidence.
  try:
   if any(x.get('echo') for x in r['samples']):raise ValueError('outage_check_unnecessary')
@@ -227,10 +214,12 @@ def investigate(req,args,pool=None):
    h=json.loads(q.stdout);h['variant']='host';r['health'].append(h)
   except Exception:pass
  r['waves']=max([2]+[x.get('wave',0) for x in r['samples']])
- r['samples']=pool.geo.attach(r['samples'])
- r['samples']=private_sources(r['samples'],secrets.token_bytes(32))
+ unique={id(s):s for part in [r]+r['evidence'] for s in part.get('samples',[])}
+ pool.geo.attach(list(unique.values()))
+ private_sources(list(unique.values()),secrets.token_bytes(32))
  r['resource_pressure']=resource_failures(args.prefix)>before_resource_failures
  r['finished']=int(time.time()*1000);r['wall_ms']=(time.monotonic()-begin)*1000
+ for part in r['evidence']:part['finished']=r['finished']
  return r
 def main():
  a=argparse.ArgumentParser();a.add_argument('--prefix',default='cge',choices=['cge','cgt']);a.add_argument('--slot',type=int,default=1);a.add_argument('--run-id');a.add_argument('--cleanup',action='store_true');a.add_argument('--serve',action='store_true');args=a.parse_args()

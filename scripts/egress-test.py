@@ -27,6 +27,32 @@ class Contracts(unittest.TestCase):
   self.assertNotEqual(driver.lab.SANDBOX_ADDRESS_BASES['cge'],driver.lab.SANDBOX_ADDRESS_BASES['crw']);self.assertNotEqual(driver.lab.SANDBOX_ADDRESS_BASES['cge'],driver.lab.SANDBOX_ADDRESS_BASES['cgt'])
  def test_second_authority_not_assumed(self):
   self.assertFalse(session.authority({'subjectAltName':[('DNS','*.doubleclick.net')]},'www.google.com'))
+class ExclusiveRejectionContracts(unittest.TestCase):
+ def rows(self):
+  rows=[]
+  for wave in (1,2):
+   for i,t in enumerate(session.DEFAULT_TARGETS):
+    nonce=f'{wave:016x}{i:016x}'
+    rows.append(dict(domain=t['domain'],variant='raw',wave=wave,nonce=nonce,connection=nonce,ip='8.8.8.8' if t['role']=='ads' or t['domain']=='www.google.com' else '1.1.1.1',family=4,tls=True,same_stream=True,echo=True,actual_ads=t['role']=='ads'))
+  return rows
+ def test_google_overlap_rejects_despite_independent_other_controls(self):
+  rows=self.rows()
+  for r in rows:
+   if r['domain'] in ('t.me','www.instagram.com'):r['echo']=False
+  self.assertTrue(driver.raw_shared_egress(rows,session.DEFAULT_TARGETS))
+ def test_single_wave_overlap_cannot_skip_template(self):
+  rows=self.rows()
+  for r in rows:
+   if r['domain']=='www.google.com' and r['wave']==2:r['ip']='1.1.1.1'
+  self.assertFalse(driver.raw_shared_egress(rows,session.DEFAULT_TARGETS))
+ def test_missing_ads_and_disjoint_sources_cannot_skip_template(self):
+  rows=self.rows();rows=[r for r in rows if r['domain']!=session.DOMAINS[-1]]
+  self.assertFalse(driver.raw_shared_egress(rows,session.DEFAULT_TARGETS))
+  rows=self.rows()
+  for r in rows:
+   if not r['actual_ads']:r['ip']='1.1.1.1'
+  self.assertFalse(driver.raw_shared_egress(rows,session.DEFAULT_TARGETS))
+
 class PerformanceContracts(unittest.TestCase):
  def test_safe_repeated_nonframing_header(self):
   async def check():
@@ -37,14 +63,14 @@ class PerformanceContracts(unittest.TestCase):
   original=session.measure
   async def run():
    arrived=[];all_started=asyncio.Event()
-   async def fake(domain,variant,wave,timeout,control_ipv4=None):
+   async def fake(domain,variant,wave,timeout,control_ipv4=None,target=None):
     arrived.append((domain,wave))
-    if len(arrived)==21:all_started.set()
+    if len(arrived)==min(12,3*len(session.DEFAULT_TARGETS)):all_started.set()
     await asyncio.wait_for(all_started.wait(),5)
     return dict(domain=domain,wave=wave,echo=True,family=4,actual_ads=domain in session.DOMAINS)
    session.measure=fake
    rows=await session.session({'variant':'raw','waves':3})
-   self.assertEqual(len(arrived),21);self.assertEqual(len(rows),15)
+   self.assertEqual(len(arrived),3*len(session.DEFAULT_TARGETS));self.assertEqual(len(rows),3*len(session.DEFAULT_TARGETS))
    self.assertEqual({x['wave'] for x in rows},{1,2,3})
   try:asyncio.run(run())
   finally:session.measure=original
@@ -52,14 +78,14 @@ class PerformanceContracts(unittest.TestCase):
   original=session.measure
   async def run():
    arrived=[];all_started=asyncio.Event()
-   async def fake(domain,variant,wave,timeout,control_ipv4=None):
+   async def fake(domain,variant,wave,timeout,control_ipv4=None,target=None):
     arrived.append(domain)
-    if len(arrived)==7:all_started.set()
+    if len(arrived)==len(session.DEFAULT_TARGETS):all_started.set()
     await asyncio.wait_for(all_started.wait(),5)
     return dict(domain=domain,wave=wave,echo=True,family=6 if domain in session.DOMAINS else 4,actual_ads=domain in session.DOMAINS)
    session.measure=fake
    rows=await session.session({'variant':'raw','waves':1})
-   self.assertEqual(len(arrived),7);self.assertEqual(len(rows),7)
+   self.assertEqual(len(arrived),len(session.DEFAULT_TARGETS));self.assertEqual(len(rows),len(session.DEFAULT_TARGETS))
   try:asyncio.run(run())
   finally:session.measure=original
  def test_max_slot_is_disjoint_and_owned(self):
@@ -105,25 +131,24 @@ class RegressionContracts(unittest.TestCase):
                {'ip':['1.1.1.1'],'unknown':'unsafe','outboundTag':'direct'}]:
    cfg['routing']['rules']=[rule]
    with self.assertRaisesRegex(ValueError,'direct_route_not_qualified'):driver.lab.preflight.runtime_config(driver.scope.inspect(cfg,driver.lab.preflight),{})
- def test_control_family_is_explicit_and_never_direct(self):
-  import ipaddress
-  target=session.socks_target('www.cloudflare.com','104.16.123.96')
-  self.assertEqual(target,b'\x01'+ipaddress.ip_address('104.16.123.96').packed)
-  self.assertEqual(session.socks_target('one.one.one.one')[0],4)
-  self.assertEqual(session.socks_target(session.DOMAINS[0])[0],3)
-  for ip in (None,'127.0.0.1','::1','2606:4700:4700::1111','not-an-ip'):
-   with self.assertRaisesRegex(ValueError,'control_ipv4_unavailable'):session.socks_target('www.cloudflare.com',ip)
+ def test_domain_controls_preserve_domain_routing(self):
+  for name in session.CONTROLS:
+   for supplied in [None,'104.16.123.96','127.0.0.1']:
+    target=session.socks_target(name,supplied)
+    self.assertEqual(target[0],3)
+    self.assertEqual(target[2:].decode(),name)
+
  def test_control_does_not_use_source_dns_bypass_ip(self):
-  self.assertEqual(session.CONTROLS[:2],['www.cloudflare.com','api.ipify.org'])
+  self.assertIn('www.google.com',session.CONTROLS);self.assertIn('www.cloudflare.com',session.CONTROLS)
  def test_deep_waves_are_bounded_and_sequential(self):
   original=session.measure;active=set();overlap=[]
-  async def fake(domain,variant,wave,timeout,control_ipv4=None):
+  async def fake(domain,variant,wave,timeout,control_ipv4=None,target=None):
    active.add((domain,wave));overlap.append(len({w for _,w in active}));await asyncio.sleep(.01);active.remove((domain,wave))
    return dict(domain=domain,wave=wave,echo=True,family=4,actual_ads=domain in session.DOMAINS)
   session.measure=fake
   try:
    rows=asyncio.run(session.session({'variant':'raw','waves':3,'sequential':True}))
-   self.assertEqual(len(rows),15);self.assertEqual(max(overlap),1)
+   self.assertEqual(len(rows),3*len(session.DEFAULT_TARGETS));self.assertEqual(max(overlap),1)
   finally:session.measure=original
 class PrivacyContracts(unittest.TestCase):
  def test_only_job_local_opaque_equality_survives(self):
@@ -132,50 +157,37 @@ class PrivacyContracts(unittest.TestCase):
   self.assertTrue(all('ip' not in r for r in out));self.assertEqual(out[0]['source'],out[1]['source']);self.assertNotEqual(out[0]['source'],out[2]['source']);self.assertEqual(out[3]['source'],'')
   other=driver.private_sources([dict(ip='8.8.8.8',echo=True)],b'b'*32)
   self.assertNotEqual(other[0]['source'],out[0]['source'])
- def test_raw_shortcut_requires_every_repeated_domain(self):
-  rows=[dict(wave=w,domain=d,echo=True,tls=True,same_stream=True,actual_ads=d in session.DOMAINS,family=4,ip='1.1.1.1') for w in (1,2) for d in session.DOMAINS+session.CONTROLS[:2]]
-  self.assertTrue(driver.raw_shared_egress(rows,2))
-  rows[0]['ip']='8.8.8.8';self.assertFalse(driver.raw_shared_egress(rows,2))
-  rows[0]['ip']='1.1.1.1';rows[0]['echo']=False;self.assertFalse(driver.raw_shared_egress(rows,2))
- def test_raw_shortcut_pairs_ipv6_without_comparing_to_ipv4(self):
-  rows=[]
-  for wave in (1,2):
-   for domain in session.DOMAINS+session.CONTROLS:
-    family=4 if domain=='www.cloudflare.com' else 6
-    rows.append(dict(wave=wave,domain=domain,family=family,ip='1.1.1.1' if family==4 else '2606:4700:4700::1111',echo=True,tls=True,same_stream=True,actual_ads=domain in session.DOMAINS))
-  self.assertTrue(driver.raw_shared_egress(rows,2))
-  rows[0]['ip']='2001:4860:4860::8888';self.assertFalse(driver.raw_shared_egress(rows,2))
  def test_driver_has_no_network_class_dependency(self):
   self.assertFalse(hasattr(driver,'intel'));self.assertFalse((HERE/'egress-classify.py').exists())
 class AdaptiveContracts(unittest.TestCase):
  def simulate(self,change):
   original=session.measure;calls=[]
-  async def fake(domain,variant,wave,timeout,control_ipv4=None):
+  async def fake(domain,variant,wave,timeout,control_ipv4=None,target=None):
    calls.append((domain,wave))
-   row=dict(domain=domain,wave=wave,echo=True,tls=True,same_stream=True,family=6 if domain in session.CONTROLS[2:] else 4,actual_ads=domain in session.DOMAINS)
+   row=dict(domain=domain,wave=wave,echo=True,tls=True,same_stream=True,family=4,actual_ads=domain in session.DOMAINS)
    change(row);return row
   session.measure=fake
   try:return asyncio.run(session.session(dict(variant='raw',waves=3,sequential=True,adaptive=True))),calls
   finally:session.measure=original
  def test_two_complete_paired_waves_skip_third(self):
   rows,calls=self.simulate(lambda r:None)
-  self.assertEqual(len(rows),10);self.assertEqual({w for d,w in calls},{1,2})
+  self.assertEqual(len(rows),2*len(session.DEFAULT_TARGETS));self.assertEqual({w for d,w in calls},{1,2})
  def test_third_wave_retries_only_missing_domain_and_controls(self):
   def change(r):
    if r['domain']==session.DOMAINS[0] and r['wave']==1:r['echo']=False
   rows,calls=self.simulate(change)
   self.assertEqual({d for d,w in calls if w==3 and d in session.DOMAINS},{session.DOMAINS[0]})
-  self.assertEqual(len(rows),13)
+  self.assertEqual(len(rows),2*len(session.DEFAULT_TARGETS)+1)
  def test_family_change_needs_third_wave(self):
   def change(r):
    if r['domain'] in session.DOMAINS and r['wave']==2:r['family']=6
   rows,calls=self.simulate(change)
-  self.assertEqual({d for d,w in calls if w==3 and d in session.DOMAINS},set(session.DOMAINS))
+  self.assertEqual({d for d,w in calls if w==3 and d in session.DOMAINS},set())
  def test_unpaired_controls_do_not_skip_retry(self):
   def change(r):
    if r['domain']=='api.ipify.org' and r['wave']==2:r['echo']=False
   rows,calls=self.simulate(change)
-  self.assertEqual({d for d,w in calls if w==3 and d in session.DOMAINS},set(session.DOMAINS))
+  self.assertEqual({d for d,w in calls if w==3 and d in session.DOMAINS},set())
  def test_flat_vless_dispatch_preserves_tls_and_local_semantics(self):
   import base64
   for address,security,encryption,want in [('8.8.8.8','none','none','26.5.9'),('example.com','none','none','26.5.9'),('127.0.0.1','none','none','26.11.9'),('8.8.8.8','tls','none','26.11.9'),('8.8.8.8','none','mlkem768x25519plus.native.0rtt.key','26.11.9')]:

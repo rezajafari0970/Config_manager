@@ -1,3 +1,5 @@
+> Current v6/schema32 behavior: see [ADS_EXCLUSIVE.md](ADS_EXCLUSIVE.md). The historical policy below is superseded where it conflicts with Ads-only health, independent controls, preserved history and multi-attempt IR evidence.
+
 # Residential accounting and renewal
 
 `internal/panel/egress_accounting.go` owns the presentation accounting contract.

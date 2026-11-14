@@ -81,6 +81,9 @@ func TestEgressHealthCannotBeInventedFromRoute(t *testing.T) {
 	j, _ := s.ClaimEgress(ctx)
 	r := syntheticEgress(*j)
 	r.Health = nil
+	for i := range r.Samples {
+		r.Samples[i].ResponseComplete = false
+	}
 	if e := s.CompleteEgress(ctx, egress.Completion{Job: *j, Report: r}); e != nil {
 		t.Fatal(e)
 	}

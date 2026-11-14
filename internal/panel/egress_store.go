@@ -122,8 +122,13 @@ func (s *Store) RenewEgress(ctx context.Context, j egress.Job) error {
 }
 func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	j, r := c.Job, c.Report
-	if !validDigest(j.Hash) || r.Hash != j.Hash || r.Version != egress.Version || len(r.Samples) > 256 || len(r.Attempts) > 8 || len(r.Checks) > 2 || len(r.Health) > 3 {
+	if !validDigest(j.Hash) || r.Hash != j.Hash || r.Version != egress.Version || len(r.Samples) > 256 || len(r.Attempts) > 8 || len(r.Checks) > 2 || len(r.Health) > 3 || len(r.Evidence) > 4 {
 		return ErrInvalid
+	}
+	for _, part := range r.Evidence {
+		if len(part.Evidence) != 0 || len(part.Samples) > 256 || len(part.Checks) > 2 || len(part.Health) > 3 || part.Hash != j.Hash || part.Version != egress.Version {
+			return ErrInvalid
+		}
 	}
 	b, e := s.vault.Open(j.Hash)
 	var raw []byte
@@ -145,7 +150,7 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 			d.Eligible = false
 			d.Until = 0
 		}
-		health := egress.Health(r, plan, now)
+		health := egress.AdsHealth(r, plan, now)
 		if d.Eligible && health != "healthy" {
 			d.Eligible = false
 			d.State = "UNKNOWN"
@@ -154,6 +159,7 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 		}
 		return d, health
 	}
+	r.GeneralHealth = egress.Health(r, plan, now)
 	d, health := evaluate(now)
 	var candidateHash string
 	var candidateSize int64
@@ -206,9 +212,9 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 		healthUntil = now + lifecycle.HealthMinutes*60000 + 120000
 	}
 	if d.Eligible {
-		d.Until = min(healthUntil, r.Finished+egress.IranInterval)
+		d.Until = min(d.Until, healthUntil, r.Finished+egress.IranInterval)
 	}
-	hb, _ := json.Marshal(r.Health)
+	hb, _ := json.Marshal(map[string]any{"scope": "ads_application_exchange", "status": health, "general_status": r.GeneralHealth, "general_payload": r.Health})
 	if _, e = tx.ExecContext(ctx, `INSERT INTO egress_health VALUES(?,?,?,?,?) ON CONFLICT(hash) DO UPDATE SET status=excluded.status,checked_at=excluded.checked_at,valid_until=excluded.valid_until,report=excluded.report`, j.Hash, health, now, healthUntil, string(hb)); e != nil {
 		return e
 	}

@@ -1,3 +1,5 @@
+> Current v6/schema32 behavior: see [ADS_EXCLUSIVE.md](ADS_EXCLUSIVE.md). The historical policy below is superseded where it conflicts with Ads-only health, independent controls, preserved history and multi-attempt IR evidence.
+
 # DoubleClick Iran guard — P56
 
 `doubleclick-iran.v1` is a deny policy independent of the Residential split-route
