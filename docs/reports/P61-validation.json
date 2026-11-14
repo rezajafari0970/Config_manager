@@ -1,0 +1,122 @@
+{
+  "status": "classifier_fixed_live; performance_investigation_blocked_by_device_connection",
+  "runtime": {
+    "commit": "d37f5b64bbfe11c34c58ca0310e598e1e5e56c06",
+    "tree": "2e658a44e5f133f1ae0f0900193ece1fb005bbe2",
+    "release": "p61c-07c512309847e2633957",
+    "schema": 34,
+    "classifier": "ads-egress.v7",
+    "six_canonical_binaries_identical": true
+  },
+  "validation": {
+    "full_suite_exit": 0,
+    "full_suite_seconds": 1049.002,
+    "panel_race_seconds": 1035.644,
+    "focused_idle_race_seconds": 21.482,
+    "worker_crash_recovered": true,
+    "watchdog_isolated_passed": true,
+    "fixture_browser_widths": [
+      390,
+      1440
+    ],
+    "source_files": 330
+  },
+  "copied_data": {
+    "all_state_unchanged": true,
+    "job_rows": 42994,
+    "cached_negative_rows": 2189,
+    "reopen_idempotent": true
+  },
+  "deployment": {
+    "cached_negative_rows_preserved": 2193,
+    "no_statistics_reset": true,
+    "matched_stopped_backup": true,
+    "stop_to_panel_ready_seconds": 11.113,
+    "six_services_verified": true
+  },
+  "canary": {
+    "inputs": 7,
+    "positives": 3,
+    "negatives": 4,
+    "seconds": 50.227,
+    "four_exports_verified": true,
+    "scope": "targeted isolated sample, not whole-inventory success rate"
+  },
+  "earlier_live_coherent_verification": {
+    "at": 1794632749259,
+    "published": 11,
+    "export_counts": {
+      "configs.json": 11,
+      "configs.jsonl": 11,
+      "raw.txt": 11,
+      "next.json": 1
+    },
+    "same_generation": true,
+    "content_hashes_verified": true,
+    "zero_duplicate_outputs": true,
+    "iran_veto_preserved": true
+  },
+  "earlier_automatic_renewal": {
+    "at": 1794634495461,
+    "renewed": 1,
+    "published_at_observation": 13
+  },
+  "gc_only_stress": {
+    "passed": false,
+    "elapsed_seconds": 78.715,
+    "requests": 30,
+    "network_failures": 1,
+    "panel_pid_changed": true
+  },
+  "final_queue_stress": {
+    "passed": false,
+    "elapsed_seconds": 58.652,
+    "requests": 10,
+    "statuses": {
+      "0": 1,
+      "200": 9
+    },
+    "published_min": 12,
+    "published_max": 13,
+    "latency_seconds": {
+      "p50": 6.1962,
+      "p95": 30.0262,
+      "maximum": 30.0262
+    },
+    "failure": "next.json request timed out",
+    "panel_restarts_at_stress_snapshot": 0,
+    "later_watchdog_restart_observed": true
+  },
+  "diagnostics": {
+    "rotation_query_fresh_connection_seconds": 0.031603355,
+    "snapshot_query_fresh_connection_seconds": 0.041679953,
+    "live_cpu_profile_collected": true,
+    "remaining": "concurrent queue query contention; not established as isolated rotation SELECT slowness"
+  },
+  "api_review": {
+    "model": "gpt-6-astra",
+    "reasoning": {
+      "effort": "max"
+    },
+    "status": "completed",
+    "id": "resp_07bbf34a2c8ec8f5016af7df6bce1487d290ef5bbe7767b3a2",
+    "usage": {
+      "input_tokens": 1951,
+      "output_tokens": 11104,
+      "total_tokens": 13055
+    },
+    "initial_pro_review_status": "incomplete",
+    "runtime_ai_dependency": false
+  },
+  "performance": {
+    "last_fixed_cohort_first_1000_seconds": 812.011,
+    "target_600_seconds_met": false,
+    "new_1000_input_benchmark": false
+  },
+  "blocker": {
+    "device": "serverprojects.ptr.network",
+    "connection": "Remote Desktop Commander reported offline on repeated read-only reconnect attempts",
+    "server_power_state": "not determined",
+    "no_pending_production_mutation_started_after_disconnect": true
+  }
+}

@@ -1,3 +1,23 @@
+# P61 live status — classifier fixed, performance follow-up blocked / 2026-11-14
+
+Read docs/reports/P61-report-fa.md and P61-validation.json before further work.
+Runtime d37f5b64bbfe11c34c58ca0310e598e1e5e56c06, release
+p61c-07c512309847e2633957, ads-egress.v7/schema34. Full checks, copied-data
+preservation, worker recovery and six canonical binary comparisons passed.
+Actual positive detection and four coherent exports were verified earlier;
+latest pressure observation had12–13 publishable identities. BOTH GC-only and
+WAL-preflight live stress runs FAILED. Latest next.json timed out after30s;
+a later automatic watchdog restart was observed. Do not claim stability fixed.
+Fresh-connection rotation SQL benchmark was~0.032s; live CPU profiling showed
+heavy ClaimEgressLane/SQLite work. Continue contention diagnosis rather than
+assuming rotation SQL itself is slow or extending watchdog/request deadlines.
+The management device serverprojects.ptr.network went offline during diagnosis;
+server power state is not established. Source worktrees may still be at runtime
+commit d37f5b6 while remote refs include this docs-only status. Reconcile before
+new edits. Preserve all private failure receipts and existing2193 cached terminal
+negatives, reset clock, Iran guards, exact proofs and matched backup requirements.
+No second reset, no universal Ads-only/ISP proof, no1000/600s or future uptime claim.
+
 # P61 queue follow-up — avoid idle writer contention / 2026-11-14
 
 The GC-only release passed isolated checks but failed concurrent live export
