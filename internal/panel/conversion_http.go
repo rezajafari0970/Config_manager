@@ -60,6 +60,14 @@ func querySourceConversions(ctx context.Context, db conversionQuerier, source st
 }
 
 func querySourceIdentityConversions(ctx context.Context, db conversionQuerier, source, identity string, page int, all bool) ([]Conversion, error) {
+	return queryScopedConversions(ctx, db, source, identity, "", page, all)
+}
+
+func querySourceCandidateConversions(ctx context.Context, db conversionQuerier, source, candidate string) ([]Conversion, error) {
+	return queryScopedConversions(ctx, db, source, "", candidate, 0, true)
+}
+
+func queryScopedConversions(ctx context.Context, db conversionQuerier, source, identity, candidate string, page int, all bool) ([]Conversion, error) {
 	now := time.Now().UnixMilli()
 	q := conversionQuery + " ORDER BY id"
 	args := []any{convert.Version, now, convert.Version, now, now, now}
@@ -74,7 +82,17 @@ func querySourceIdentityConversions(ctx context.Context, db conversionQuerier, s
 		filter += " AND a.id=?"
 		args = append(args, identity)
 	}
+	// Restrict whole identity partitions using the indexed candidate lookup.
+	// Filtering raw aliases before ranking would incorrectly promote stale bytes.
+	if candidate != "" {
+		filter += " AND a.id IN (SELECT cm.artifact_id FROM conversion_results cr JOIN memberships cm ON cm.raw_hash=cr.hash WHERE cr.candidate_hash=?)"
+		args = append(args, candidate)
+		q = strings.Replace(q, "WHERE choice=1", "WHERE choice=1 AND candidate_hash=?", 1)
+	}
 	q = strings.Replace(q, "/* source filter */", filter, 1)
+	if candidate != "" {
+		args = append(args, candidate)
+	}
 	if !all {
 		q += " LIMIT 100 OFFSET ?"
 		args = append(args, max(0, page)*100)

@@ -173,7 +173,7 @@ func (s *Store) peekScopedRotation(ctx context.Context, scope string) (*rotating
 	if e != nil {
 		return nil, e
 	}
-	entries, e := querySourceConversions(ctx, tx, scope, 0, true)
+	entries, e := querySourceCandidateConversions(ctx, tx, scope, hash)
 	if e != nil {
 		return nil, e
 	}

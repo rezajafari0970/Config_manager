@@ -264,7 +264,9 @@ func (s *Store) Recover(ctx context.Context) error {
 	return s.recoverInventory(ctx)
 }
 func (s *Store) Claim(ctx context.Context, now time.Time, limit int, lease time.Duration) ([]collect.Job, error) {
-	release, err := s.operations.acquire(ctx, false)
+	// Dispatch leases are short and drive the collector liveness heartbeat.
+	// Bulk staging and completion still use background admission.
+	release, err := s.operations.acquire(ctx, true)
 	if err != nil {
 		return nil, err
 	}
