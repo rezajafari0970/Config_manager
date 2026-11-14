@@ -1,3 +1,21 @@
+# P64 expanded route research — not deployed / 2026-11-14
+
+Read docs/reports/P64-expanded-route-report-fa.md and its validation/targets JSON.
+Same private sample:46 destination names,828 raw/template observations,756 valid
+source reports;106 additional direct-calibration observations. Eight DoubleClick
+names repeatedly separated; nine other Ads-related names shared AWS. DoubleClick
+country reports rotated across TW/IE/IL/PS; do not require a fixed IP/country/ASN.
+Two initially incomplete same-family control cells were resolved by supplemental
+paired rounds; preserve initial failures. www.googlesyndication.com returned
+NXDOMAIN from both independent resolvers: target failure is not config failure.
+Telegram/WhatsApp/X had reachability only; Google DNS no usable source echo;
+Instagram failed through the sample.32 ASNs were mapped, not32 physical proxies.
+This commit adds research documentation only; active registry/classifier, DB,
+statistics, queues and exports are unchanged. P63 draft remains discovery-only.
+Keep partial coverage explicit; no all-Ads, household, QUIC, Android or1000/SLO
+claim. Private source IPs/config remain outside Git. Preserve production guards
+and concurrent single-output work; no reset or deployment is implied by research.
+
 # P63 sample-first route discovery — prepared, not deployed / 2026-11-14
 
 The latest explicit user request supersedes the old classification design: first
