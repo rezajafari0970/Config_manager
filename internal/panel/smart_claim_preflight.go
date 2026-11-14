@@ -63,17 +63,25 @@ func (s *SmartPipeline) smartClaimNeeded(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	now := time.Now().UnixMilli()
-	var invalid bool
+	var invalid, due bool
 	var active int
 	err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM smart_heads
  WHERE token!='' AND (version!=? OR revision!=? OR expires<=? OR
  (SELECT count(*) FROM smart_owned_members m WHERE m.head=smart_heads.id)!=member_count)),
- (SELECT count(*) FROM smart_heads WHERE token!='' AND lease_until>?)`, s.version(), revision, now, now).Scan(&invalid, &active)
+ (SELECT count(*) FROM smart_heads WHERE token!='' AND lease_until>?),
+ EXISTS(SELECT 1 FROM smart_heads WHERE (token='' OR lease_until<=?)
+ AND (state!='ready' OR revision!=? OR version!=?) AND next_run<=?)`,
+		s.version(), revision, now, now, now, revision, s.version(), now).Scan(&invalid, &active, &due)
 	if err != nil || invalid {
 		return invalid, err
 	}
 	if !enabled || active >= 2 {
 		return false, nil
+	}
+	// Known due work already needs the authoritative writer path. Avoid building
+	// its whole inventory twice; detailed read-only checks are for idle polls.
+	if due {
+		return true, nil
 	}
 	pool, err := smartInventory(ctx, tx)
 	if err != nil {
