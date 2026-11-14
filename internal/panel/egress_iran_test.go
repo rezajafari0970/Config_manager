@@ -413,7 +413,12 @@ func TestV32VersionInvalidatesProofWithoutErasingHistory(t *testing.T) {
 	var afterTested, afterAttempts, until, healthyUntil int64
 	s.db.QueryRow("SELECT report,decision,tested,attempts,valid_until,state FROM egress_jobs WHERE hash=?", j.Hash).Scan(&report, &decision, &afterTested, &afterAttempts, &until, &state)
 	s.db.QueryRow("SELECT valid_until FROM egress_health WHERE hash=?", j.Hash).Scan(&healthyUntil)
-	if report != beforeReport || decision != beforeDecision || tested != afterTested || attempts != afterAttempts || until != 0 || healthyUntil != 0 || state != "QUARANTINED" {
+	if report != beforeReport || decision != beforeDecision || tested <= 0 || afterTested != 0 || attempts != afterAttempts || until != 0 || healthyUntil != 0 || state != "QUARANTINED" {
 		t.Fatal("history lost or old proof eligible")
+	}
+	var history int
+	s.db.QueryRow("SELECT count(*) FROM egress_events WHERE hash=? AND at=?", j.Hash, tested).Scan(&history)
+	if history != 1 {
+		t.Fatal("old assessment history lost", history)
 	}
 }
