@@ -1,3 +1,14 @@
+# P61 follow-up — bound GC reference contention / 2026-11-14
+
+Live watchdog recovery exposed blob publication blocked behind Sweep's database
+reference lookup while holding the publication mutex. A reproduced regression
+fails on the old implementation. Bound each reference lookup to250ms; preserve
+the writer-backed reference and pin locks, retain uncertain files, and keep cursor
+retry semantics. Do not raise/disable the watchdog or weaken deletion checks.
+Classifier v7/schema34, all receipts and the reset clock remain unchanged. Full
+validation and a matched stopped backup plus six binary checks are still required.
+Separate the intentional SIGQUIT diagnostic capture from automatic watchdog events.
+
 # P61 explicit user correction — observed Ads split / 2026-11-14
 
 Read docs/ADS_OBSERVED.md. User requested fixing zero Residential detection and

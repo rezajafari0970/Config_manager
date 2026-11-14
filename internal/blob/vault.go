@@ -268,7 +268,16 @@ func (v *Vault) Sweep(ctx context.Context, referenced func(context.Context, stri
 			v.mu.Unlock()
 			continue
 		}
-		used, e := referenced(ctx, hash)
+		// Reference checks need the database writer, which may itself need a blob.
+		// Never monopolize the publication lock for the whole sweep budget while
+		// waiting for that connection. A timed-out check retains the file and the
+		// existing cursor/retry cycle revisits it; it is never a negative reference.
+		checkCtx, cancel := context.WithTimeout(ctx, 250*time.Millisecond)
+		used, e := referenced(checkCtx, hash)
+		if e == nil {
+			e = checkCtx.Err()
+		}
+		cancel()
 		if e == nil && !used {
 			e = os.Remove(v.path(hash))
 			if os.IsNotExist(e) {
