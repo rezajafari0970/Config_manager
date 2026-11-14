@@ -1,3 +1,42 @@
+# P62 Speedray audit — prepared, not deployed / 2026-11-14
+
+Read docs/reports/P62-speedray-audit-fa.md and P62-validation.json. The designated
+server reconnected during this audit. All31 current Speedray identities were
+retested in an isolated fixture with one independent positive control:31 UNKNOWN,
+one control RESIDENTIAL,1922 Speedray samples with zero verified TLS/echo. Four
+pinned cores reproduced a reset for one REALITY sample. Its private debug run
+reported a non-TLS first record; a separate unauthenticated endpoint diagnostic
+received HTTP400. Do not extrapolate that endpoint result to every input/carrier.
+The plaintext Speedray input separately refused the proxy connection. Recomputed
+all31 identities and canonical raw/template settings; six cosmetic aliases match.
+The pre-P58 v5 backup contains five current identities, all UNKNOWN in that snapshot.
+A reproduced local-resource-pressure bug exhausted a never-accepted identity's
+assessment budget without a network assessment. Preserve its budget, use bounded
+attempt-based backoff, and narrowly recover existing exhausted pressure rows on
+open. Keep current-inventory claims, ordinary UNKNOWN limits, terminal caches,
+exclusions, Iran guards, all evidence/counters and the reset clock unchanged.
+No current inventory row was exhausted by pressure at the observed snapshot;
+the pressure bug is not the established cause of Speedray's results. Add fixed,
+non-secret failure stage/kind diagnostics and explain legacy missing fields in
+the evidence panel without changing eligibility. The GC concurrency fixture now
+permits the existing bounded reference yield only when the overall deadline is
+live, then requires a successful retry and unchanged referenced bytes.
+Pinned v5/v7 synthetic comparison also demonstrates old whole-Google positives
+and newer explicit UNKNOWN observations. Do not roll back ordinary Google controls
+or weaken proof to fill the panel. Classifier v7/schema34 stay unchanged.
+Validation is composite: the full server race run had one missing asset-route404;
+the route was added and all failed/related race cases passed (33.451s), then full
+vet/format/module/build/Python/JS postchecks passed. Six binaries were built. The
+final-source positive-control canary FAILED twice due to incomplete fresh Ads
+observations; both failures are preserved. Its four empty exports correctly503.
+Do not describe the network revalidation or a clean full-suite single run as passed.
+No production activation or new1000-input throughput claim. The initial four isolated
+exports contained the one control, with exact payload hashes matched; none contained Speedray. Source input/backend
+repair is not established, nor is Android/carrier behavior. Obtain a currently
+working exact sample/vantage for that comparison before declaring Speedray fixed. All
+existing deployment/backup/lock requirements and P61 unresolved stress failures
+remain authoritative.
+
 # P61 live status — classifier fixed, performance follow-up blocked / 2026-11-14
 
 Read docs/reports/P61-report-fa.md and P61-validation.json before further work.

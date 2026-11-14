@@ -322,12 +322,23 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 			return e
 		}
 	}
-	streak++
+	// Host resource pressure is not a completed assessment of this identity.
+	// Keep its finite network-assessment budget while backing off using total
+	// attempts, so a prolonged host outage cannot produce a tight retry loop.
+	interrupted := !accepted && d.State == "UNKNOWN" && d.Reason == "local_resource_pressure"
+	if !interrupted {
+		streak++
+	}
 	if d.Eligible {
 		streak = 0
 	}
 	fastRetry := r.Code == "network_retry_pending" || j.Attempt == 1 && (d.Reason == "controls_incomplete" || d.Reason == "ads_peer_echo_incomplete")
-	delay := egressRetryDelay(j.Hash, state, health, accepted, streak, interval, fastRetry)
+	backoffStreak := streak
+	if interrupted {
+		backoffStreak = max(streak, j.Attempt)
+		fastRetry = false
+	}
+	delay := egressRetryDelay(j.Hash, state, health, accepted, backoffStreak, interval, fastRetry)
 	if guard.Quarantined {
 		delay = guard.Delay
 	}
@@ -338,7 +349,7 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	if e = saveEgressCountries(ctx, tx, j.Hash, r, d, now); e != nil {
 		return e
 	}
-	if j.Deep {
+	if j.Deep && !interrupted {
 		if _, e = tx.ExecContext(ctx, "UPDATE egress_jobs SET deep_completed=1 WHERE hash=?", j.Hash); e != nil {
 			return e
 		}

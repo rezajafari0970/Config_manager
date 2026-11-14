@@ -1,0 +1,173 @@
+{
+  "status": "draft_not_deployed_composite_code_validation_passed_live_positive_revalidation_failed",
+  "base_commit": "1b63cf85ee7cd99573729924a899d927e9468f89",
+  "observed_live_commit": "d37f5b64bbfe11c34c58ca0310e598e1e5e56c06",
+  "classifier": "ads-egress.v7",
+  "schema": 34,
+  "production_mutations": false,
+  "statistics_reset": false,
+  "network_canary": {
+    "scope": "isolated copy of current unique Speedray representatives plus one independent positive control",
+    "speedray_identities": 31,
+    "speedray_types": {
+      "vless_tcp_reality": 30,
+      "vless_tcp_none": 1
+    },
+    "speedray_unknown": 31,
+    "speedray_residential": 0,
+    "speedray_samples": 1922,
+    "speedray_tls_verified": 0,
+    "speedray_echo": 0,
+    "speedray_connection_failed": 1922,
+    "positive_control": {
+      "protocol": "vmess",
+      "total": 1,
+      "residential": 1
+    },
+    "workers": 2,
+    "seconds": 262.316,
+    "raw_template": true,
+    "four_exports_status": 200,
+    "four_exports_count": 1,
+    "hundred_percent_or_1000_input_claim": false,
+    "four_export_exact_payload_hashes_matched": true
+  },
+  "transport_diagnostics": {
+    "reality_samples": 1,
+    "pinned_cores": [
+      "26.11.9",
+      "26.10.31",
+      "26.7.28",
+      "26.5.9"
+    ],
+    "all_four_started_raw_template": true,
+    "all_four_failed_target_tls": true,
+    "reality_private_debug_error": "tls: first record does not look like a TLS handshake",
+    "unauthenticated_endpoint_response": "HTTP/1.1 400 Bad Request",
+    "plaintext_vless_private_debug_core": "26.5.9",
+    "plaintext_vless_private_debug_error": "connect: connection refused",
+    "debug_modified_log_only": true,
+    "debug_reports_used_for_publication": false,
+    "phone_carrier_tests": false
+  },
+  "historical_backup": {
+    "snapshot": "pre-P58, 2026-11-14T01:22:38Z",
+    "schema": 31,
+    "classifier": "ads-egress.v5",
+    "current_identities_present": 5,
+    "current_identities_absent": 26,
+    "same_representative_unknown_controls_incomplete": 5,
+    "all_related_raw_rows_unknown": 13,
+    "readonly_copy_removed": true,
+    "scope": "one snapshot only"
+  },
+  "pressure_bug": {
+    "old_reproduced_failure": "identity stranded after 2 resource-pressure reports: job=<nil> error=<nil>",
+    "focused_race_exit": 0,
+    "focused_race_seconds": 9.466,
+    "current_inventory_exhausted_pressure_at_snapshot": 0,
+    "established_speedray_cause": false,
+    "preserves_network_retry_limit": true,
+    "preserves_iran_and_exclusion_guards": true,
+    "preserves_metrics_reports_next_run_reset_clock": true
+  },
+  "synthetic_v5_v7_comparison": {
+    "cases": 6,
+    "passed": 6,
+    "production_classification": false
+  },
+  "validation": {
+    "local_full_first_exit": 1,
+    "local_full_first_seconds": 455,
+    "local_failures": [
+      "unixgram socket creation denied by local runtime",
+      "legacy GC fixture rejected the intentional bounded reference yield"
+    ],
+    "gc_fixture_corrected_with_retry_and_payload_preservation": true,
+    "final_focused_panel_race_exit": 0,
+    "final_focused_panel_race_seconds": 11.453,
+    "final_egress_race_exit": 0,
+    "final_egress_race_seconds": 1.163,
+    "python_contracts": 34,
+    "python_contracts_exit": 0,
+    "javascript_diagnostics_exit": 0,
+    "remote_final_full": "completed_with_one_asset_route_failure",
+    "runtime_source_files_matched_between_local_and_server": 324,
+    "remote_full_exit": 1,
+    "remote_full_seconds": 1293,
+    "remote_panel_race_seconds": 1272.521,
+    "remote_full_failures": [
+      "TestBrowserModuleImportsAreServed: egress-diagnostics.js returned404"
+    ],
+    "asset_route_corrected": true,
+    "failed_and_related_race_exit": 0,
+    "failed_and_related_race_seconds": 33.451,
+    "all_postchecks_exit": 0,
+    "all_postchecks_seconds": 30,
+    "go_version": "go1.27.1 linux/amd64",
+    "validation_mode": "full run plus targeted correction verification and all postchecks; not a clean single full run",
+    "six_binaries_built": true
+  },
+  "remaining": [
+    "no production activation",
+    "final-source positive-control revalidation failed twice; preserve failed receipts",
+    "provider endpoint/carrier-specific cause not established",
+    "P61 live contention and watchdog problems remain unresolved",
+    "no new1000-input throughput benchmark",
+    "no live browser or Android/carrier validation for this change"
+  ],
+  "identity_audit": {
+    "total": 31,
+    "exact_current_raw": 25,
+    "recomputed_fingerprint_match": 31,
+    "canonical_raw_and_template_match": 31,
+    "production_mutations": false
+  },
+  "final_canary": {
+    "first_attempt_passed": false,
+    "first_attempt_control_state": "QUARANTINED",
+    "first_attempt_control_reason": "ads_peer_echo_incomplete",
+    "first_attempt_control_missing": "googleads.g.doubleclick.net had one verified observation in each variant",
+    "first_attempt_control_sample_codes": {
+      "ads_peer_reported": 29,
+      "google_control_peer_reported": 6,
+      "control_echo": 12,
+      "reachable_no_source": 8,
+      "connection_timeout": 6,
+      "connection_failed": 1
+    },
+    "first_attempt_speedray_state": "UNKNOWN",
+    "first_attempt_speedray_diagnostic_samples_persisted": 62,
+    "first_attempt_speedray_stage": "target_tls",
+    "retry": "completed; positive revalidation failed",
+    "production_mutations": false,
+    "retry_count": 1,
+    "retry_control_state": "QUARANTINED",
+    "retry_control_reason": "ads_peer_echo_incomplete",
+    "retry_control_sample_codes": {
+      "connection_timeout": 16,
+      "ads_peer_reported": 20,
+      "connection_failed": 2,
+      "control_echo": 12,
+      "reachable_no_source": 7,
+      "google_control_peer_reported": 5
+    },
+    "retry_speedray_state": "UNKNOWN",
+    "retry_speedray_connection_reset_before_tls": 62,
+    "fail_closed_exports": {
+      "configs.json": 503,
+      "configs.jsonl": 503,
+      "next.json": 503,
+      "raw.txt": 503
+    },
+    "positive_revalidation_passed": false
+  },
+  "six_built_binary_sha256": {
+    "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+    "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+    "config-panel": "978b086e3299e6796494d81dac170f68d94717b26b6ee44ec36ab4a0e0e957fb",
+    "config-probe-plan": "62c40caf384f0436300299f61c65364a94d13efddedf4e3bbbf3c66d55f793e9",
+    "config-probe-worker": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+    "config-egress-worker": "b34d366c32da26aa1368e74a95c0a48f5ac2b2489ac2db4593bf5937ba6af353"
+  }
+}
