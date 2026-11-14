@@ -25,6 +25,21 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	if lane != "" && lane != "initial" && lane != "followup" {
 		return nil, ErrInvalid
 	}
+	// Idle workers inspect committed WAL state without queuing for the sole
+	// writer. This is only a negative fast path: claims and scope maintenance
+	// below still recheck everything after acquiring the writer. Work committed
+	// after a negative read is picked up by the next ordinary poll, without a cache.
+	now := egress.Now()
+	var needed bool
+	e := s.reader().QueryRowContext(ctx, `SELECT
+ EXISTS(SELECT 1 FROM egress_jobs WHERE token!='' AND hash NOT IN(SELECT hash FROM egress_inventory))
+ OR EXISTS(SELECT 1 FROM egress_run_members WHERE run=(SELECT max(id) FROM egress_runs) AND status='pending' AND hash NOT IN(SELECT hash FROM egress_inventory))
+ OR (EXISTS(SELECT 1 FROM egress_settings WHERE id=1 AND enabled!=0)
+ AND (SELECT count(*) FROM egress_jobs WHERE token!='' AND lease_until>?)<?
+ AND EXISTS(SELECT 1 FROM egress_work WHERE paused=0 AND next_run<=? AND (token='' OR lease_until<=?)))`, now, egress.MaxWorkers, now, now).Scan(&needed)
+	if e != nil || !needed {
+		return nil, e
+	}
 	tx, e := s.db.BeginTx(ctx, nil)
 	if e != nil {
 		return nil, e
@@ -33,7 +48,7 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	if _, e = tx.ExecContext(ctx, "UPDATE egress_settings SET generation=generation WHERE id=1"); e != nil {
 		return nil, e
 	}
-	now := egress.Now()
+	now = egress.Now()
 	var active, enabled int
 	if _, e = tx.ExecContext(ctx, `UPDATE egress_jobs SET revision=revision+1,token='',lease_until=0 WHERE token!='' AND hash NOT IN(SELECT hash FROM egress_inventory)`); e != nil {
 		return nil, e

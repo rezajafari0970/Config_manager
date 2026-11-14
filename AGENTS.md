@@ -1,3 +1,13 @@
+# P61 queue follow-up — avoid idle writer contention / 2026-11-14
+
+The GC-only release passed isolated checks but failed concurrent live export
+observation with a watchdog restart. Preserve that failed receipt. Idle Egress
+polls now use a read-only WAL preflight; every positive claim/maintenance path
+still rechecks under the serialized writer. Do not skip out-of-scope lease/run
+cleanup, disabled-state guards, source scope, cache rules or expiry rechecks.
+No schema/version/statistics reset. Require full validation, a matched stopped
+backup, six binary checks and a successful bounded live stress observation.
+
 # P61 follow-up — bound GC reference contention / 2026-11-14
 
 Live watchdog recovery exposed blob publication blocked behind Sweep's database
