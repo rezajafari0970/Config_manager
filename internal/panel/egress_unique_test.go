@@ -140,3 +140,39 @@ func TestEgressIdentityPublicationAndAccountingAgree(t *testing.T) {
 		t.Fatal(a, err)
 	}
 }
+
+func TestEgressIdentityCacheSurvivesOrdinaryManagement(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	raw := sourceURI(246)
+	newExportSource(t, s, "manage-cache", raw)
+	j, _ := s.ClaimEgress(ctx)
+	r := syntheticEgress(*j)
+	for i := range r.Samples {
+		r.Samples[i].Source = egress.Hash([]byte("1.1.1.1"))
+	}
+	if err := s.CompleteEgress(ctx, egress.Completion{Job: *j, Report: r}); err != nil {
+		t.Fatal(err)
+	}
+	for _, action := range []string{"disable", "enable", "delete"} {
+		tx, _ := s.db.Begin()
+		if err := s.manageEgress(ctx, tx, action, true, egress.Now()); err != nil {
+			t.Fatal(err)
+		}
+		if err := tx.Commit(); err != nil {
+			t.Fatal(err)
+		}
+		var state, report string
+		var attempts int
+		s.db.QueryRow("SELECT state,report,attempts FROM egress_jobs WHERE hash=?", j.Hash).Scan(&state, &report, &attempts)
+		if state != "NO_SPLIT" || report == "{}" || attempts != 1 {
+			t.Fatal(action, state, attempts)
+		}
+	}
+	s.db.Exec("DELETE FROM memberships")
+	newExportSource(t, s, "manage-reappear", raw+"#newlabel")
+	again, err := s.ClaimEgress(ctx)
+	if err != nil || again != nil {
+		t.Fatal("management reset classification", again, err)
+	}
+}

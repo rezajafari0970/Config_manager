@@ -356,10 +356,10 @@ func (s *Store) manageEgress(ctx context.Context, tx *sql.Tx, action string, all
 		condition = "1=1"
 	}
 	if action != "delete" {
-		_, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET paused=?,revision=revision+1,token='',lease_until=0,valid_until=0,next_run=0,state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE 'PENDING' END,retry_streak=0 WHERE ("+condition+") AND state!='DELETED'", action == "disable")
+		_, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET paused=?,revision=revision+1,token='',lease_until=0,valid_until=0,next_run=0,state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE state END WHERE ("+condition+") AND state!='DELETED'", action == "disable")
 		return e
 	}
-	if _, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET state='DELETED',reason='ordinary_delete',revision=revision+1,token='',lease_until=0,valid_until=0,candidate_hash='',candidate_size=0,report='{}',decision='{}' WHERE ("+condition+") AND ever_accepted=0"); e != nil {
+	if _, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET revision=revision+1,token='',lease_until=0,valid_until=0 WHERE ("+condition+") AND ever_accepted=0"); e != nil {
 		return e
 	}
 	rows, e := tx.QueryContext(ctx, "SELECT hash FROM egress_jobs WHERE ("+condition+") AND ever_accepted=1")

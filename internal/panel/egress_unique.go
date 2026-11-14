@@ -30,7 +30,9 @@ func (s *Store) migrateV34() error {
  INSERT INTO egress_jobs(hash,kind,size,first_seen,last_seen)
  SELECT new.raw_hash,new.kind,new.size,CAST(unixepoch('subsec')*1000 AS INTEGER),CAST(unixepoch('subsec')*1000 AS INTEGER)
  WHERE NOT EXISTS(SELECT 1 FROM input_exclusions WHERE identity=new.artifact_id)
- ON CONFLICT(hash) DO UPDATE SET last_seen=excluded.last_seen;
+ ON CONFLICT(hash) DO UPDATE SET last_seen=excluded.last_seen,
+ state=CASE WHEN egress_jobs.reason IN('ordinary_delete','retention_expired') AND NOT EXISTS(SELECT 1 FROM egress_unique u WHERE u.hash=egress_jobs.hash) THEN 'PENDING' ELSE egress_jobs.state END,
+ reason=CASE WHEN egress_jobs.reason IN('ordinary_delete','retention_expired') AND NOT EXISTS(SELECT 1 FROM egress_unique u WHERE u.hash=egress_jobs.hash) THEN 'unique_epoch' ELSE egress_jobs.reason END;
  INSERT OR IGNORE INTO egress_owners SELECT new.raw_hash,new.artifact_id,new.source_id WHERE EXISTS(SELECT 1 FROM egress_jobs WHERE hash=new.raw_hash);
  INSERT OR IGNORE INTO egress_unique SELECT new.artifact_id,new.raw_hash,CAST(unixepoch('subsec')*1000 AS INTEGER)
  WHERE EXISTS(SELECT 1 FROM egress_jobs WHERE hash=new.raw_hash AND state!='DELETED') AND NOT EXISTS(SELECT 1 FROM input_exclusions WHERE identity=new.artifact_id);
