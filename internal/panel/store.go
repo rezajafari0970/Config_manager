@@ -230,6 +230,9 @@ PRAGMA user_version=1;`)
 	if err = s.ensureEgressEligibilityLookup(); err != nil {
 		return nil, err
 	}
+	if err = s.ensureEgressGuardLookup(); err != nil {
+		return nil, err
+	}
 	if err = s.reconcileEgressVersion(); err != nil {
 		return nil, err
 	}
