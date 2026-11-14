@@ -73,6 +73,13 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 			return nil, e
 		}
 	}
+	var freshRun bool
+	if e = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM egress_run_members WHERE run=(SELECT max(id) FROM egress_runs) AND hash=? AND status='pending')", j.Hash).Scan(&freshRun); e != nil {
+		return nil, e
+	}
+	if freshRun {
+		j.Attempt = 0
+	}
 	j.Accepted = j.Deep
 	j.Deep = j.Deep || j.Attempt > 0 && state != "NO_SPLIT" && state != "UNSUPPORTED"
 	j.Attempt++
@@ -258,6 +265,9 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 		return e
 	}
 	if _, e = tx.ExecContext(ctx, "UPDATE egress_metrics SET completed=completed+1,first_assessments=first_assessments+?,definitive=definitive+? WHERE id=1", firstCompleted == 0, d.Eligible || d.State == "NO_SPLIT"); e != nil {
+		return e
+	}
+	if e = recordEgressRun(ctx, tx, j.Hash, state, d.Eligible || d.State == "NO_SPLIT", r.Started, now, max(int64(0), r.Finished-r.Started)); e != nil {
 		return e
 	}
 	if guard.Blocked {

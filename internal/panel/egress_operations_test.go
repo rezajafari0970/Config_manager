@@ -116,6 +116,9 @@ func TestEgressBackoffAndLocalPressurePreserveAcceptedInput(t *testing.T) {
 	if egressRetryDelay("ab", "RESIDENTIAL", "healthy", true, 0, 900000, false) != 900000 || egressRetryDelay("ab", "QUARANTINED", "unhealthy", true, 99, 900000, false) != 30000 {
 		t.Fatal("health schedule changed")
 	}
+	if egressRetryDelay("ab", "QUARANTINED", "healthy", true, 1, 480000, true) != 480000 {
+		t.Fatal("healthy Ads unknown-route retry storm")
+	}
 	s := testStore(t)
 	ctx := context.Background()
 	newExportSource(t, s, "pressure", sourceURI(244))

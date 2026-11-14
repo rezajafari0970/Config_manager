@@ -194,6 +194,26 @@ class AdaptiveContracts(unittest.TestCase):
    cfg={'outbounds':[{'protocol':'vless','settings':{'address':address,'port':443,'id':'fixture','encryption':encryption},'streamSettings':{'security':security}}]}
    plan={'variants':[{'config':base64.b64encode(json.dumps(cfg).encode()).decode()}]}
    self.assertEqual(driver.core_order(plan)[0][0],'xray-'+want)
+class OverlapContracts(unittest.TestCase):
+ def test_same_runtime_parallel_join_preserves_both_results(self):
+  import threading
+  barrier=threading.Barrier(2);finished=threading.Event()
+  def health():barrier.wait(timeout=2);finished.set();return {'providers':['diagnostic']}
+  def observe():barrier.wait(timeout=2);return ['route-proof']
+  rows,h=driver.overlap_assessment(observe,health)
+  self.assertEqual(rows,['route-proof']);self.assertEqual(h['providers'],['diagnostic']);self.assertTrue(finished.is_set())
+ def test_observer_failure_joins_health_before_next_runtime(self):
+  import threading
+  started=threading.Event();release=threading.Event();finished=threading.Event()
+  def health():started.set();release.wait(timeout=2);finished.set();return {}
+  def observe():self.assertTrue(started.wait(timeout=2));release.set();raise ValueError('observation-failed')
+  with self.assertRaisesRegex(ValueError,'observation-failed'):driver.overlap_assessment(observe,health)
+  self.assertTrue(finished.is_set())
+ def test_health_subprocess_failure_does_not_destroy_route_evidence(self):
+  class Box:
+   def net(self,*a,**kw):raise TimeoutError()
+  h=driver.diagnostic_health(Box(),'raw')
+  self.assertEqual(h['variant'],'raw');self.assertEqual(h['providers'],[])
 if __name__=='__main__':unittest.main()
 
 

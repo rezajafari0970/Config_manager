@@ -2,6 +2,7 @@
 """Trusted driver orchestrator. Configs enter exclusively through stdin.
 Each job owns one isolated netns/cgroup. Core fallback never weakens TLS.
 """
+import concurrent.futures
 import argparse,base64,hashlib,hmac,secrets,fcntl,ipaddress,contextlib,copy,importlib.util,json,os,pathlib,re,signal,subprocess,sys,threading,time
 HERE=pathlib.Path(__file__).resolve().parent
 def module(name,file):
@@ -133,6 +134,22 @@ def resource_failures(prefix):
   fields=dict(line.split() for line in (pathlib.Path('/sys/fs/cgroup')/(prefix+'-sandboxes')/'memory.events').read_text().splitlines())
   return int(fields.get('oom',0))+int(fields.get('oom_kill',0))
  except (OSError,ValueError):return 0
+def diagnostic_health(box,variant):
+ # An optional payload diagnostic failure must not discard valid route/IR proof.
+ try:
+  result=box.net(['/usr/bin/python3',str(HERE/'egress-health.py')],timeout=12)
+  h=json.loads(result.stdout)
+  if not isinstance(h,dict):raise ValueError('health_contract')
+ except Exception:h=dict(version='ads-health.v1',at=int(time.time()*1000),providers=[])
+ h['variant']=variant
+ return h
+def overlap_assessment(observe,health):
+ # Two independent bounded processes in the SAME runtime. Join before core
+ # shutdown, even on failure; no thread may leak into the next variant/job.
+ with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+  pending=executor.submit(health)
+  rows=observe()
+  return rows,pending.result()
 def investigate(req,args,pool=None):
  if pool is None:
   with ResourcePool(args) as own:return investigate(req,args,own)
@@ -174,15 +191,18 @@ def investigate(req,args,pool=None):
       return rows
      # XHTTP and deep retries avoid overloading one remote path with 21 connections.
      sequential=bool(req.get('deep')) or any(o.get('streamSettings',{}).get('network') in ('xhttp','splithttp') for o in config.get('outbounds',[]))
-     rows=observe(1,r['waves'],8 if req.get('deep') else 3)
+     observe_current=lambda:observe(1,r['waves'],8 if req.get('deep') else 3)
+     if req.get('accepted'):
+      rows,h=overlap_assessment(observe_current,lambda:diagnostic_health(box,v['name']))
+      health.append(h)
+     else:rows=observe_current()
      samples+=rows
      if not req.get('accepted') and v['name']=='raw' and raw_shared_egress(rows,targets):
       box.stop();code='raw_shared_egress';mark(v['name']+'_probes');break
      # Existing members always receive a real payload check. New candidates
      # only pay this cost when a dedicated Ads path remains possible.
-     if req.get('accepted') or any(x.get('actual_ads') and x.get('echo') for x in rows):
-      result=box.net(['/usr/bin/python3',str(HERE/'egress-health.py')],timeout=12)
-      h=json.loads(result.stdout);h['variant']=v['name'];health.append(h)
+     if not req.get('accepted') and any(x.get('actual_ads') and x.get('echo') for x in rows):
+      health.append(diagnostic_health(box,v['name']))
      box.stop();code='measured';mark(v['name']+'_probes')
      # Acceptance always requires both variants; a proven raw overlap only rejects.
      if not req.get('accepted') and not req.get('deep') and not any(x.get('echo') for x in rows):

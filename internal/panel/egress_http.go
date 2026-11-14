@@ -82,6 +82,7 @@ func (m egressModule) Register(mux *http.ServeMux) {
 	}
 	mux.HandleFunc("GET /api/egress", m.state)
 	mux.HandleFunc("POST /api/egress/action", m.action)
+	mux.HandleFunc("POST /api/egress/rescan", m.rescan)
 	mux.HandleFunc("POST /api/egress/countries", m.countries)
 	mux.HandleFunc("POST /api/egress/lifecycle", m.lifecycle)
 	mux.HandleFunc("GET /egress-subscription/{token}/{format}", m.export)
@@ -263,6 +264,11 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		failure(w, err)
 		return
 	}
+	run, err := egressRunState(ctx, db)
+	if err != nil {
+		failure(w, err)
+		return
+	}
 	missing := accounting["coverage_missing"]
 	retained := accounting["publication"].(map[string]int)["retained"]
 	iran, err := iranState(ctx, db, readStamp(ctx))
@@ -270,7 +276,7 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		failure(w, err)
 		return
 	}
-	respond(w, 200, map[string]any{"now": readStamp(ctx), "accounting": accounting, "iran_guard": iran, "metrics": metrics, "queue": map[string]any{"due": due, "recoverable_leases": recovery, "active_leases": activeLeases}, "lifecycle": lifecycle, "coverage_missing": missing, "retained": retained, "country": countryInfo, "throughput": map[string]any{"unique_definitive_5m": conclusive5, "unique_definitive_10m": conclusive10, "unique_5m": unique5, "unique_10m": unique10, "completed_5m": completed, "definitive_5m": definitive, "completed_10m": completed10, "definitive_10m": definitive10, "target_10m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "targets": egress.Targets(), "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Project label: Ads-exclusive observed against each required independent control; no household/ISP classification", "scope": "TCP HTTP/1.1 / six Ads destinations / five independent controls / raw and template; source-unobservable controls, cross-family identity, IPv6-only entry and QUIC remain unqualified"})
+	respond(w, 200, map[string]any{"rescan": run, "now": readStamp(ctx), "accounting": accounting, "iran_guard": iran, "metrics": metrics, "queue": map[string]any{"due": due, "recoverable_leases": recovery, "active_leases": activeLeases}, "lifecycle": lifecycle, "coverage_missing": missing, "retained": retained, "country": countryInfo, "throughput": map[string]any{"unique_definitive_5m": conclusive5, "unique_definitive_10m": conclusive10, "unique_5m": unique5, "unique_10m": unique10, "completed_5m": completed, "definitive_5m": definitive, "completed_10m": completed10, "definitive_10m": definitive10, "target_10m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "targets": egress.Targets(), "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Project label: Ads-exclusive observed against each required independent control; no household/ISP classification", "scope": "TCP HTTP/1.1 / six Ads destinations / five independent controls / raw and template; source-unobservable controls, cross-family identity, IPv6-only entry and QUIC remain unqualified"})
 }
 func (m egressModule) action(w http.ResponseWriter, r *http.Request) {
 	var b struct {

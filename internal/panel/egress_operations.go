@@ -59,10 +59,13 @@ func egressMetricState(ctx context.Context, q databaseQuery) (egressMetrics, err
 	return m, err
 }
 
+// A complete healthy Ads exchange already checks Iran in both variants.
+// Incomplete route-source visibility does not justify a 30s retry storm; renew
+// on the same advance ten-minute deadline. Iran follow-ups override this below.
 // Keep first deep retries and credible health failures prompt. Repeated
 // uncertainty backs off without deleting raw bytes or changing its verdict.
 func egressRetryDelay(hash, state, health string, accepted bool, streak int, interval int64, fastRetry bool) int64 {
-	if accepted && state == "RESIDENTIAL" {
+	if accepted && (state == "RESIDENTIAL" || state == "QUARANTINED" && health == "healthy") {
 		return interval
 	}
 	if accepted && health == "unhealthy" {

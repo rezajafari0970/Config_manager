@@ -216,7 +216,7 @@ func run() error {
 	helper := flag.String("helper", "/opt/config-repair/current/scripts/egress-probe.py", "trusted driver")
 	prefix := flag.String("prefix", "cge", "isolated scope")
 	lockPath := flag.String("lock-file", "/run/config-repair-egress.lock", "single supervisor")
-	workers := flag.Int("workers", min(egress.MaxWorkers, runtime.NumCPU()*2+2), "maximum concurrent isolated jobs")
+	workers := flag.Int("workers", min(egress.MaxWorkers, runtime.NumCPU()*4), "maximum concurrent isolated jobs")
 	flag.Parse()
 	if *workers < 1 || *workers > egress.MaxWorkers {
 		return errors.New("invalid worker limit")

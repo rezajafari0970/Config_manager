@@ -49,7 +49,7 @@ func TestEgressPrivateMigrationRehearsal(t *testing.T) {
 	s.db.QueryRow("SELECT count(DISTINCT raw_hash) FROM memberships").Scan(&raws)
 	s.db.QueryRow("SELECT count(*) FROM sqlite_master WHERE name GLOB 'residential_*'").Scan(&legacy)
 	s.db.QueryRow("PRAGMA user_version").Scan(&version)
-	if beforeSources != afterSources || beforeMembers != afterMembers || jobs < raws || legacy != 0 || version != 32 {
+	if beforeSources != afterSources || beforeMembers != afterMembers || jobs < raws || legacy != 0 || version != 33 {
 		t.Fatal("migration counts", beforeSources, afterSources, beforeMembers, afterMembers, jobs, raws, legacy, version)
 	}
 	t.Logf("preserved %d sources and %d memberships; seeded %d unique inputs; zero legacy objects; schema %d", afterSources, afterMembers, jobs, version)

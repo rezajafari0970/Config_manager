@@ -56,13 +56,14 @@ func TestEgressWorkerFixture(t *testing.T) {
 		query := "SELECT DISTINCT r.hash FROM conversion_results r JOIN memberships m ON m.raw_hash=r.hash WHERE r.connection='passed' AND r.core='passed' ORDER BY r.tested DESC LIMIT 3"
 		benchmark, _ := strconv.Atoi(os.Getenv("EGRESS_BENCHMARK_INPUTS"))
 		if benchmark > 0 && benchmark <= 2000 {
-			query = fmt.Sprintf("SELECT hash FROM egress_jobs WHERE state!='DELETED' ORDER BY hash LIMIT %d", benchmark)
+			query = fmt.Sprintf("SELECT hash FROM egress_jobs WHERE state!='DELETED' ORDER BY ever_accepted DESC,EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) DESC,hash LIMIT %d", benchmark)
 		}
 		rows, e := original.Query(query)
 		if e != nil {
 			t.Fatal(e)
 		}
 		raws := []string{}
+		acceptedHashes := map[string]bool{}
 		for rows.Next() {
 			var h string
 			rows.Scan(&h)
@@ -77,6 +78,20 @@ func TestEgressWorkerFixture(t *testing.T) {
 			}
 		}
 		rows.Close()
+		if benchmark > 0 {
+			ar, err := original.Query("SELECT hash FROM egress_jobs WHERE ever_accepted=1 AND state!='DELETED'")
+			if err != nil {
+				t.Fatal(err)
+			}
+			for ar.Next() {
+				var hash string
+				if err = ar.Scan(&hash); err != nil {
+					t.Fatal(err)
+				}
+				acceptedHashes[hash] = true
+			}
+			ar.Close()
+		}
 		original.Close()
 		if benchmark == 0 {
 			raws = append(raws, sourceURI(241), "hysteria2://synthetic@192.0.2.242:443?sni=example.com")
@@ -94,6 +109,9 @@ func TestEgressWorkerFixture(t *testing.T) {
 					t.Fatal(e)
 				}
 				_, e = tx.ExecContext(ctx, "INSERT OR IGNORE INTO egress_jobs(hash,kind,size,first_seen,last_seen) VALUES(?,?,?,?,?)", ref.Hash, "retained_input", ref.Size, time.Now().UnixMilli(), time.Now().UnixMilli())
+				if e == nil && acceptedHashes[ref.Hash] {
+					_, e = tx.ExecContext(ctx, "UPDATE egress_jobs SET ever_accepted=1,state='QUARANTINED' WHERE hash=?", ref.Hash)
+				}
 				s.vault.Release(ref.Hash)
 				if e != nil {
 					t.Fatal(e)

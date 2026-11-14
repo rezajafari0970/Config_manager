@@ -1,3 +1,19 @@
+# P59 user-authorized reset and throughput — 2026-11-14
+
+Read docs/EGRESS_RESCAN.md. Schema33 adds explicit CAS-protected durable rescan
+cohorts; migration itself does not reset tests. A reset fences old leases and
+expires current receipts while preserving lifetime audit counters, source controls,
+raw data, manual exclusions and sticky Iran guards. Previously accepted inputs
+remain deep/raw+template priority work. Never count UNKNOWN as definitive.
+Default admission ceiling is16 on this4CPU host; resource governors and all sandbox
+limits remain. Healthy Ads with unresolved controls renews within the existing
+advance ten-minute schedule instead of retry storms. Independent general payload
+and route probes overlap only within one exact runtime and join before cleanup.
+The1000/600s target requires measured receipts; no unmeasured SLO claims. Strict
+v6 source-observation limitations remain. Preserve matched stopped backup, shared
+deploy lock, six binaries and external revocations. Never open schema33 with an
+older binary. Activation and benchmark results must be read from the final report.
+
 # P58 activation receipt — 2026-11-14
 
 Activated ads-egress.v6/schema32, release p58-b42591c53e38fd9e1123.
