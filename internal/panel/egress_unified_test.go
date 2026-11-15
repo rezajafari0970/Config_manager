@@ -239,3 +239,46 @@ func TestUnifiedUnprovedDeliveryRemainsRecoverableWithoutReimport(t *testing.T) 
 		t.Fatal("asset recovery did not restore eligibility")
 	}
 }
+
+func TestUnifiedRoutineRenewalCannotStarveInitialLane(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	newExportSource(t, s, "fair", sourceURI(741), sourceURI(742))
+	old, err := s.ClaimEgress(ctx)
+	if err != nil || old == nil {
+		t.Fatal(err)
+	}
+	if _, err = s.db.Exec("UPDATE egress_jobs SET token='',lease_until=0,ever_accepted=1,tested=?,state='RESIDENTIAL',next_run=0,valid_until=? WHERE hash=?", egress.Now(), egress.Now()+300000, old.Hash); err != nil {
+		t.Fatal(err)
+	}
+	fresh, err := s.ClaimEgressLane(ctx, "initial")
+	if err != nil || fresh == nil || fresh.Hash == old.Hash {
+		t.Fatal("routine renewal displaced untouched input", fresh, err)
+	}
+	renewal, err := s.ClaimEgressLane(ctx, "followup")
+	if err != nil || renewal == nil || renewal.Hash != old.Hash {
+		t.Fatal("reserved renewal lost", renewal, err)
+	}
+}
+func TestUnifiedNegativeConfirmationPrecedesResetBacklog(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	newExportSource(t, s, "negative", sourceURI(743), sourceURI(744))
+	old, err := s.ClaimEgress(ctx)
+	if err != nil || old == nil {
+		t.Fatal(err)
+	}
+	if _, err = s.db.Exec("UPDATE egress_jobs SET token='',lease_until=0,ever_accepted=1,tested=?,state='QUARANTINED',next_run=1,valid_until=0 WHERE hash=?", egress.Now(), old.Hash); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = s.db.Exec("INSERT INTO egress_retirements VALUES(?,'confirmed_ads_delivery_unhealthy',1,?)", old.Hash, egress.Now()-60000); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = s.db.Exec("UPDATE egress_jobs SET ever_accepted=1 WHERE hash!=?", old.Hash); err != nil {
+		t.Fatal(err)
+	}
+	next, err := s.ClaimEgressLane(ctx, "followup")
+	if err != nil || next == nil || next.Hash != old.Hash {
+		t.Fatal("confirmation starved by reset backlog", next, err)
+	}
+}

@@ -91,7 +91,12 @@ being forgotten after the initial retry budget. The UI has no processing buttons
 | common eligibility/export views | Consistent panel and four exact-byte outputs |
 
 Configured worker ceiling31 retains CPU/RAM/I/O governors and namespace/cgroup
-limits. New-input fast checks use two paired3s waves. Accepted renewals and incomplete
+limits. After ten seconds of recovery, admission grows by bounded steps of two
+to four jobs; every new pressure sample can still reduce it immediately. Iran,
+pending spaced-removal confirmations and proofs within120s of expiry are urgent.
+Routine renewal uses reserved follow-up capacity and cannot monopolize a nonempty
+initial-assessment lane; idle lanes can still steal work. No proof expiry is extended.
+New-input fast checks use two paired3s waves. Accepted renewals and incomplete
 initial probes use two sequential8s waves with a third adaptive recovery wave
 only when required evidence is incomplete, including missing same-family paired
 controls despite successful source echoes. Assets have a6s initial /8s deep completion budget;

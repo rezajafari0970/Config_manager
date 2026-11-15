@@ -75,7 +75,10 @@ func (g *resourceGovernor) update(target int, now time.Time) int {
 		g.current = target
 		g.changed = now
 	} else if target > g.current && now.Sub(g.changed) >= 10*time.Second {
-		g.current++
+		// A brief I/O spike must not impose a multi-minute ramp at a 31-job
+		// ceiling. Recover in bounded steps after the existing quiet interval;
+		// every new sample still reduces capacity immediately when necessary.
+		g.current = min(target, g.current+min(4, max(2, (g.current+1)/2)))
 		g.changed = now
 	}
 	return g.current

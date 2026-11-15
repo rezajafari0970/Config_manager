@@ -27,10 +27,9 @@ const egressClaimCandidates = `WITH claim_scope(hash) AS MATERIALIZED (
 ) `
 
 // Independent first-assessment and follow-up lanes share revision-fenced leases.
-// Due accepted proofs and manual requests can use either lane. Idle slots
-// steal first assessments before spending capacity on routine NO_SPLIT rechecks.
-// next_run already reserves measured probe duration before expiry. Waiting for
-// the last minute here would discard that lead and starve renewal under load.
+// Iran, spaced retirement confirmations and near-expiry accepted proofs can use
+// either lane. Routine accepted renewal has reserved follow-up slots and may
+// steal idle initial slots, but cannot monopolize a nonempty first-assessment lane.
 func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, error) {
 	if lane != "" && lane != "initial" && lane != "followup" {
 		return nil, ErrInvalid
@@ -81,14 +80,17 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	var size int64
 	var state, previousToken string
 	base := egressClaimCandidates + `SELECT egress_jobs.hash,kind,size,revision,ever_accepted,attempts,state,token FROM claim_scope c CROSS JOIN egress_work AS egress_jobs ON egress_jobs.hash=c.hash WHERE paused=0 AND next_run<=? AND (token='' OR lease_until<=?)`
-	order := ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 THEN 0 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 2 WHEN tested=0 THEN 3 WHEN ever_accepted=1 THEN 4 WHEN state='UNKNOWN' AND attempts=1 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 5 ELSE 6 END,next_run,first_seen,egress_jobs.hash LIMIT 1`
+	retirement := `EXISTS(SELECT 1 FROM egress_retirements r WHERE r.hash=egress_jobs.hash)`
+	urgent := `(ever_accepted=1 AND tested>0 AND valid_until>0 AND valid_until<=CAST(unixepoch('subsec')*1000 AS INTEGER)+120000)`
+	priority := `CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ` + retirement + ` THEN 1 WHEN ` + urgent + ` THEN 2 `
+	order := ` ORDER BY ` + priority + ` WHEN tested=0 AND ever_accepted=1 THEN 3 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 4 WHEN tested=0 THEN 5 WHEN ever_accepted=1 THEN 6 ELSE 7 END,next_run,first_seen,egress_jobs.hash LIMIT 1`
 	filters := []string{""}
 	if lane == "initial" {
-		filters = []string{` AND (tested=0 OR reason='ads_iran_quarantined' OR ever_accepted=1)`, ""}
+		filters = []string{` AND (tested=0 OR reason='ads_iran_quarantined' OR ` + retirement + ` OR ` + urgent + `)`, ""}
 	}
 	if lane == "followup" {
 		filters = []string{` AND (ever_accepted=1 OR tested>0)`, ` AND tested=0`, ""}
-		order = ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 THEN 0 ELSE 2 END,next_run,first_seen,egress_jobs.hash LIMIT 1`
+		order = ` ORDER BY ` + priority + ` WHEN ever_accepted=1 THEN 3 ELSE 4 END,next_run,first_seen,egress_jobs.hash LIMIT 1`
 	}
 	for _, filter := range filters {
 		args := []any{now, now}

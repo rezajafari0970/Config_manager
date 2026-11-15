@@ -16,10 +16,23 @@ func TestResourceAdmissionAndGradualRecovery(t *testing.T) {
 	}
 	now := time.Now()
 	g := resourceGovernor{current: 10, changed: now}
-	if g.update(2, now) != 2 || g.update(10, now.Add(time.Second)) != 2 || g.update(10, now.Add(10*time.Second)) != 3 {
+	if g.update(2, now) != 2 || g.update(10, now.Add(time.Second)) != 2 || g.update(10, now.Add(10*time.Second)) != 4 {
 		t.Fatal(g)
 	}
 	if pressure([]byte("some avg10=81.25 avg60=50\nfull avg10=3.0\n"), "some") != 81.25 {
 		t.Fatal("PSI parser")
+	}
+}
+
+func TestResourceRecoveryRespectsFreshCapsAndHardStops(t *testing.T) {
+	now := time.Now()
+	g := resourceGovernor{current: 0, changed: now}
+	for step, want := range []int{2, 4, 6, 9, 13, 17, 21, 25, 29, 31} {
+		if got := g.update(31, now.Add(time.Duration(step+1)*10*time.Second)); got != want {
+			t.Fatal(step, got, want)
+		}
+	}
+	if g.update(0, now.Add(101*time.Second)) != 0 || g.update(3, now.Add(110*time.Second)) != 0 || g.update(3, now.Add(111*time.Second)) != 2 || g.update(3, now.Add(121*time.Second)) != 3 {
+		t.Fatal("recovery bypassed a fresh resource cap", g)
 	}
 }
