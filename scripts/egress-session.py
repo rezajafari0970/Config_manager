@@ -130,7 +130,7 @@ def needs_pair_recovery(groups,required):
  # alone is insufficient when Ads and its stable comparison use different IP
  # families. Repeat the whole paired set, never just the missing Ads endpoint.
  buckets={t['domain']:[r for g in groups for r in g if r['domain']==t['domain'] and r.get('echo')] for t in required}
- if any(len({r['wave'] for r in rows})<2 for rows in buckets.values()):return True
+ if any(len({r['wave'] for r in buckets[t['domain']]})<2 for t in required if t['role']=='ads'):return True
  controls=[t for t in required if t['role']=='control']
  for t in required:
   if t['role']!='ads':continue

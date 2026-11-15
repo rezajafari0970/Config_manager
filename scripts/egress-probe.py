@@ -7,7 +7,7 @@ import argparse,base64,hashlib,hmac,secrets,fcntl,ipaddress,contextlib,copy,impo
 HERE=pathlib.Path(__file__).resolve().parent
 def module(name,file):
  spec=importlib.util.spec_from_file_location(name,HERE/file);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
-lab=module('egress_lab','live-probe.py');scope=module('egress_scope','egress-preflight.py');country=module('egress_country','egress-country.py');sessions=module('egress_sessions','egress-session.py')
+lab=module('egress_lab','live-probe.py');scope=module('egress_scope','egress-preflight.py');country=module('egress_country','egress-country.py');sessions=module('egress_sessions','egress-session.py');scheduling=module('egress_scheduling','egress-scheduling.py')
 CORES=[('xray-26.11.9','/opt/config-repair/core-26.11.9/xray','e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d'),('xray-26.10.31','/opt/config-repair/core-26.10.31/xray','cc4b84d3069569f297a61f04b914f2bb37e9d202fd7b84cb50def1fc30fd40e1'),('xray-26.7.28','/opt/config-repair/core-26.7.28/xray','64d46afb80adea1bf97a0d467e83f4a9ac1ebd0995891e84bca3f1a1d1affb1d'),('xray-26.5.9','/opt/config-repair/core-26.5.9/xray','b2c525e082cf2fef460499c88838d355f0b9bfb5a00bdb3eaa99b6af63825006')]
 NATIVE=('sing-box-1.14.4','/opt/config-repair/sing-box-1.14.4/sing-box','1264361b5f8868c8768f7555d3e77e20118bf503c41ac08bb290a0d99056aa3a')
 def cleanup(prefix,slot=None,run=None):
@@ -56,7 +56,8 @@ class ResourcePool:
  def verify(self,path,pin):
   p=pathlib.Path(path);st=p.stat();key=(st.st_dev,st.st_ino,st.st_size,st.st_mtime_ns,pin)
   if self.pins.get(path)!=key:
-   if lab.digest(p.read_bytes())!=pin:raise ValueError('core_pin_mismatch')
+   with p.open('rb') as f:actual=hashlib.file_digest(f,'sha256').hexdigest()
+   if actual!=pin:raise ValueError('core_pin_mismatch')
    self.pins[path]=key
  @contextlib.contextmanager
  def lease(self,path,driver):
@@ -191,13 +192,14 @@ def investigate(req,args,pool=None):
       code=lab.classify(box.logs(),'runtime_start_failed');check.update(core=False,code=code);break
      check.update(core=True,code='exact_runtime_started')
      def observe(start,waves,timeout):
-      result=box.net(['/usr/bin/python3',str(HERE/'egress-session.py')],input=json.dumps({'targets':targets,'variant':v['name'],'timeout':timeout,'start_wave':start,'waves':waves,'sequential':sequential,'adaptive':bool(req.get('deep')) and not discovery}).encode(),timeout=max(25,timeout*(waves if sequential else 2)+10))
+      result=box.net(['/usr/bin/python3',str(HERE/'egress-session.py')],input=json.dumps({'targets':targets,'variant':v['name'],'timeout':timeout,'start_wave':start,'waves':waves,'sequential':sequential,'adaptive':bool(req.get('deep')) and not discovery}).encode(),timeout=scheduling.session_deadline(len(targets),waves,timeout,sequential))
       if len(result.stdout)>131072:raise ValueError('session_output_limit')
       rows=json.loads(result.stdout)
       if not isinstance(rows,list) or not min(waves,2)*len(targets)<=len(rows)<=waves*len(targets):raise ValueError('session_contract')
       return rows
-     # XHTTP and deep retries avoid overloading one remote path with 21 connections.
-     sequential=discovery or bool(req.get('deep')) or any(o.get('streamSettings',{}).get('network') in ('xhttp','splithttp') for o in config.get('outbounds',[]))
+     # Deep paired waves remain serial to avoid upstream connection saturation;
+     # initial checks retain transport-specific overlap and the shared cap.
+     sequential=scheduling.sequential(req,config)
      observe_current=lambda:observe(1,r['waves'],probe_timeout)
      if discovery:rows=observe_current()
      else:

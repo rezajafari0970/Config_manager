@@ -1,4 +1,4 @@
-# Residential: sole active policy, P66 / ads-egress.v9 / schema37
+# Residential: sole active policy, P68 maintenance / ads-egress.v9 / schema37
 
 This document supersedes earlier policy descriptions. Historical reports remain
 records of their own releases, not selectable strategies. `internal/egress.Evaluate`
@@ -91,7 +91,12 @@ being forgotten after the initial retry budget. Explicit transient DNS and drive
 | common eligibility/export views | Consistent panel and four exact-byte outputs |
 
 Configured worker ceiling31 retains CPU/RAM/I/O governors and namespace/cgroup
-limits. After ten seconds of recovery, admission grows by bounded steps of two
+limits. CPU pressure is the maximum of the worker/helper and isolated-core cgroup
+signals, with host CPU fallback for missing or malformed telemetry. Host memory
+and I/O pressure remain safety gates. Persistent CPUWeight400 gives helpers a
+relative scheduler share; it does not reserve CPU or change the core sandbox's
+two-core quota. The worker retains MemoryMax2GiB and the core parent1GiB limit.
+After ten seconds of recovery, admission grows by bounded steps of two
 to four jobs; every new pressure sample can still reduce it immediately. Idle slots above the reduced capacity release their helper, namespace and country caches after their current job ends; recovered capacity starts a clean helper. Iran,
 pending spaced-removal confirmations and still-valid proofs within120s of expiry
 are urgent. Already expired proofs remain withdrawn and use follow-up recovery;
@@ -106,6 +111,18 @@ valid partial progress cannot become a destructive health failure. Optional serv
 and generic bulk transfers leave the publication critical path; Ads asset retrieval
 and route observations overlap within the same runtime and join before teardown.
 This removes redundant work without relaxing the evidence necessary for acceptance.
+`egress-scheduling.py` accounts for semaphore queue batches in the bounded session
+deadline. Deep/discovery waves stay sequential: overlapping them caused incomplete
+paired evidence on a repeated real canary. Initial transport-compatible waves may
+overlap; XHTTP/splithttp stays sequential. A third recovery wave is skipped only
+when existing paired evidence already satisfies every required control group;
+missing required same-family evidence still triggers recovery. Core digest checks
+stream the pinned executable rather than loading the entire binary into memory.
+
+Panel presentation scopes only caller inventory/work queries to current inputs,
+ever-accepted safety records and quarantined Iran guards. Authoritative eligibility
+views retain indexed identity lookups and all expiry/country/withdrawal checks.
+No eligibility cache or global replacement of internal views is permitted.
 
 Targets are1000 unique inputs within600s and2000 within900s. Measure both first
 assessments and definitive results from immutable reset-cohort timestamps. Retries,
@@ -127,16 +144,15 @@ copied-database rehearsal and six tested matching binaries. Validate full checks
 real canaries, all four exports, isolated crash/watchdog/UI recovery, then the live
 cohort benchmark. No AI service is a runtime dependency or network-evidence source.
 
-P67 maintenance is active with schema37. The throughput targets are not validated; see
-[the P67 report](reports/P67-report-fa.md) and its validation receipt. The earlier
-[P66 report](reports/P66-report-fa.md) retains its historical cohort measurements. This policy
-is an admission/lifecycle specification, not a claim that every current input has
-already completed or that actual advertising display has been measured.
-
-P67 maintenance keeps ads-egress.v9/schema37 and the original reset epoch.
-Both queue summaries use the same urgent deadline rule. The attempted inventory
-CTE optimization regressed the complete live API and was rolled back; the original
-snapshot query plan is retained. No eligibility cache is introduced.
-The cohort panel distinguishes definitive first assessments from later settlement.
-No classifier, country selection, proof TTL or tested raw/template bytes change.
-Activation and validation status belong to the P67 receipt.
+P68 is active with schema37 and the original reset epoch. The latest requested
+100-definitive-inputs/180s capacity goal passed an isolated fresh200-input benchmark:
+100 definitive by95.356s, all200 first assessments by138.134s,143 definitive at180s.
+UNKNOWN/UNSUPPORTED and renewals are not counted as definitive. This is not a
+1000/2000-input benchmark or a guarantee for every future cohort. See the
+[P68 report](reports/P68-report-fa.md) and its composite validation receipt, including
+failed intermediate benchmarks and the rejected deep-overlap experiment. The
+[P67](reports/P67-report-fa.md) and [P66](reports/P66-report-fa.md) reports remain
+historical evidence. Classification, selected countries, proof TTL, exact tested
+bytes and automatic safety renewal/withdrawal remain unchanged. No complete
+inventory, actual ad-rendering or universal future-uptime claim follows from this
+maintenance release.

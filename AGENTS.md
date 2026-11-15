@@ -1,3 +1,46 @@
+# P68 throughput and pre-release timeout fixed — 2026-11-15
+
+Runtime `12f4b0859829f4d44bd064b4d1d05213c0adf38a`, release
+`p68-12f4b085-f3f20c73ed37`, ads-egress.v9/schema37. Read
+`docs/reports/P68-report-fa.md`, `P68-validation.json` and the active policy.
+All six services/executables matched; stopped matched backup and original metrics
+epoch1794719470134 were preserved. No reset, classifier or safety-gate relaxation.
+
+A fresh isolated200-current-unique-input cohort reached100 definitive at95.356s,
+200 first assessments by138.134s and143 definitive in180s. UNKNOWN/UNSUPPORTED
+and retries are excluded. Other services stayed running; production egress paused
+only for the bounded benchmark, with independent emergency resume. Production
+observation then completed97 new first/86 definitive, emptied its pending initial
+queue, and had API median0.842s/max1.541s without errors or unexpected restarts.
+The fixed cohort proves the latest100/180s goal under measured conditions; it does
+not prove1000/2000 throughput, universal accuracy, ad rendering or future uptime.
+Four final exports matched exact bytes and one generation:88 identities/77 distinct
+templates, next.json1. Adjacent API snapshot was87/76 before a new completion.
+
+Keep caller-only sparse inventory/work scope, indexed authoritative eligibility,
+cgroup-scoped helper/core CPU feedback with host fallback, host memory/I/O gates,
+31-worker ceiling, and persistent CPUWeight400. Two-core sandbox quota,1GiB core
+parent,2GiB helper memory and production watchdog90s remain. **Deep/discovery
+waves must remain sequential**: experimental overlap failed two repeated paired
+canaries; old serial and corrected serial passed the same inputs. Do not hide these
+failures or the two intermediate speed misses. Keep bounded semaphore-aware
+scheduling and streaming SHA verification. No AI runtime dependency was added.
+
+Old12s full-API cold-copy timeout was reproduced twice; caller-scoped queries passed
+cold and warm checks without raising the request timeout. The historical P67 event
+has no contemporaneous I/O trace, so the mechanism is reproduced, not its unique
+historical cause proven. Full suite passed on owned tmpfs after a disk-I/O-heavy
+attempt was deliberately interrupted; the local Unixgram-permission failure remains
+recorded. Composite race/vet/38 Python/copied-DB/canary/watchdog/export checks passed.
+
+Disk audit found98% root usage, historical backups/test copies/releases and active
+LXD data. Two files in an unrelated old DOB worktree produce EXT4 inode checksum
+errors; no mounted filesystem repair or broad data deletion was performed. Retain
+matched backups, current runtime, live container data and P58 build toolchain.
+Use the shared deployment lock and preserve all375 installed runtime manifest
+hashes for documentation-only updates. Earlier notes below are historical wherever
+they conflict with this maintenance. Do not reset again.
+
 # P67 Residential maintenance active — 2026-11-15
 
 Runtime `eb126cce80ffcb26338fe2dac64d9e20a808150f`, release

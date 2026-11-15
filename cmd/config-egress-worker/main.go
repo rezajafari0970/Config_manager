@@ -250,7 +250,7 @@ func run() error {
 	c := client{&http.Client{Timeout: 30 * time.Second, Transport: &http.Transport{DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
 		return (&net.Dialer{}).DialContext(ctx, "unix", *socket)
 	}}}}
-	governor := resourceGovernor{current: resourceCapacity(*workers, sampleResources()), changed: time.Now()}
+	governor := resourceGovernor{current: resourceCapacity(*workers, sampleResources(*prefix)), changed: time.Now()}
 	var capacityLimit atomic.Int32
 	capacityLimit.Store(int32(governor.current))
 	var active atomic.Int32
@@ -287,7 +287,7 @@ func run() error {
 	defer ticker.Stop()
 	for ctx.Err() == nil {
 		notifySystemd("WATCHDOG=1")
-		capacityLimit.Store(int32(governor.update(resourceCapacity(*workers, sampleResources()), time.Now())))
+		capacityLimit.Store(int32(governor.update(resourceCapacity(*workers, sampleResources(*prefix)), time.Now())))
 		_ = c.call(ctx, "status", map[string]any{"status": "running", "active": active.Load(), "code": fmt.Sprintf("capacity_%d", capacityLimit.Load())}, nil)
 		select {
 		case <-ctx.Done():
