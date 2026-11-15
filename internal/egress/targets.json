@@ -75,5 +75,12 @@
     "role": "control",
     "driver": "https-reachability",
     "required": false
+  },
+  {
+    "domain": "ipv4.google.com",
+    "group": "google-search",
+    "role": "control",
+    "driver": "google-peer",
+    "required": true
   }
 ]

@@ -276,7 +276,12 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		failure(w, err)
 		return
 	}
-	respond(w, 200, map[string]any{"rescan": run, "now": readStamp(ctx), "accounting": accounting, "iran_guard": iran, "metrics": metrics, "queue": map[string]any{"due": due, "recoverable_leases": recovery, "active_leases": activeLeases}, "lifecycle": lifecycle, "coverage_missing": missing, "retained": retained, "country": countryInfo, "throughput": map[string]any{"unique_definitive_5m": conclusive5, "unique_definitive_10m": conclusive10, "unique_5m": unique5, "unique_10m": unique10, "completed_5m": completed, "definitive_5m": definitive, "completed_10m": completed10, "definitive_10m": definitive10, "target_10m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "targets": egress.Targets(), "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Project label: observed Ads split against stable same-family source-capable controls including ordinary Google; supplementary unobservable services stay unknown; no universal exclusivity or household/ISP claim", "scope": "TCP HTTP/1.1 / six Ads destinations / three source-capable controls / raw and template; Telegram/Instagram reachability supplementary; cross-family-only comparisons, IPv6-only entry and QUIC remain unqualified"})
+	profileStats, err := egressProfileSummary(ctx, db)
+	if err != nil {
+		failure(w, err)
+		return
+	}
+	respond(w, 200, map[string]any{"profile_stats": profileStats, "profiles": egress.Profiles(), "rescan": run, "now": readStamp(ctx), "accounting": accounting, "iran_guard": iran, "metrics": metrics, "queue": map[string]any{"due": due, "recoverable_leases": recovery, "active_leases": activeLeases}, "lifecycle": lifecycle, "coverage_missing": missing, "retained": retained, "country": countryInfo, "throughput": map[string]any{"unique_definitive_5m": conclusive5, "unique_definitive_10m": conclusive10, "unique_5m": unique5, "unique_10m": unique10, "completed_5m": completed, "definitive_5m": definitive, "completed_10m": completed10, "definitive_10m": definitive10, "target_10m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "targets": egress.Targets(), "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Project label: at least one complete named Ads profile repeatedly separated in exact raw/template; other Ads can share controls; partial coverage explicit; no household or universal exclusivity claim", "scope": "TCP HTTP/1.1 / versioned Ads profiles / same-family stable controls including ordinary Google / raw and template; source-unobservable controls and QUIC remain unknown"})
 }
 func (m egressModule) action(w http.ResponseWriter, r *http.Request) {
 	var b struct {
@@ -495,7 +500,8 @@ func (m egressModule) exportAttempt(w http.ResponseWriter, r *http.Request, atte
 	w.Header().Set("X-Egress-Generation", generation)
 	w.Header().Set("X-Country-Policy", "any-observed-country-selected; 24h; GeoIP-estimate")
 	w.Header().Set("X-Config-Count", strconv.Itoa(count))
-	w.Header().Set("X-Residential-Definition", "repeated-ads-split-egress")
+	w.Header().Set("X-Residential-Definition", "verified-ads-profile-split")
+	w.Header().Set("X-Egress-Profile-Policy", "any-complete-profile; partial-Ads-coverage-explicit")
 	w.Header().Set("X-Egress-Evidence", "authenticated-Ads-peer-reported; finite TCP scope")
 	w.Header().Set("X-Config-Formats", fmt.Sprint(formats))
 	w.Header().Set("X-Content-SHA256", spool.Hash())

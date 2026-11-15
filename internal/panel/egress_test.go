@@ -247,7 +247,7 @@ func TestEgressPartialFirstAttemptRetriesSoonAndRemainsVisible(t *testing.T) {
 	}
 	r := syntheticEgress(*j)
 	for i := range r.Samples {
-		if r.Samples[i].Variant == "raw" && r.Samples[i].Wave <= 2 && r.Samples[i].Domain == "api.ipify.org" {
+		if r.Samples[i].Variant == "raw" && r.Samples[i].Wave <= 2 && (r.Samples[i].Domain == "www.google.com" || r.Samples[i].Domain == "ipv4.google.com") {
 			r.Samples[i].Echo = false
 		}
 	}

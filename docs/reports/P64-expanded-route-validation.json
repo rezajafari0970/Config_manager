@@ -1,0 +1,4699 @@
+{
+  "version": "p64-expanded-route-research.v1",
+  "scope": "Finite isolated TCP HTTP/1.1 route investigation; no production classifier/export change or publication authorization",
+  "source_commit": "8cf053a8181a16e50c9d580477696d76e47aa390",
+  "core": "xray-26.5.9",
+  "core_sha256": "b2c525e082cf2fef460499c88838d355f0b9bfb5a00bdb3eaa99b6af63825006",
+  "started_tehran": "2026-11-14T23:50:11.649000+03:30",
+  "finished_tehran": "2026-11-14T23:57:36.649000+03:30",
+  "unique_destinations": 46,
+  "observations": 828,
+  "valid_source_observations": 756,
+  "probe_driver_seconds": 210.97299999999998,
+  "elapsed_between_first_and_last_measurement_seconds": 445,
+  "unique_source_ips": 108,
+  "asn_count": 32,
+  "asn_lookup_errors": 0,
+  "doubleclick": {
+    "domains": 8,
+    "observations": 108,
+    "unique_ips": 106,
+    "countries": {
+      "IE": 37,
+      "IL": 15,
+      "PS": 1,
+      "TW": 55
+    },
+    "geo_status": {
+      "located": 108
+    }
+  },
+  "all_nonces_unique": true,
+  "records": [
+    {
+      "campaign": "p64-expanded",
+      "round": 1,
+      "batch": "doubleclick",
+      "started": 1794687611649,
+      "finished": 1794687641743,
+      "seconds": 30.093,
+      "samples": 72,
+      "tls": 72,
+      "echo": 72,
+      "checks": [
+        {
+          "name": "raw",
+          "core": true,
+          "exact": true
+        },
+        {
+          "name": "template",
+          "core": true,
+          "exact": true
+        }
+      ],
+      "codes": {
+        "google_control_peer_reported": 12,
+        "control_echo": 12,
+        "ads_peer_reported": 48
+      },
+      "report_sha256": "c185272e9944d423fe41101206928b9a02cb7d769175c2125c3f3c305fc817b0"
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 1,
+      "batch": "ads-serving",
+      "started": 1794687641944,
+      "finished": 1794687665784,
+      "seconds": 23.84,
+      "samples": 72,
+      "tls": 66,
+      "echo": 66,
+      "checks": [
+        {
+          "name": "raw",
+          "core": true,
+          "exact": true
+        },
+        {
+          "name": "template",
+          "core": true,
+          "exact": true
+        }
+      ],
+      "codes": {
+        "google_control_peer_reported": 12,
+        "control_echo": 12,
+        "ads_peer_reported": 42,
+        "connection_failed": 6
+      },
+      "report_sha256": "bff9ce50233bf488afc87829c2214d1d3959fb35e943d1b2f7c96ee672231537"
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 1,
+      "batch": "ads-tools",
+      "started": 1794687665981,
+      "finished": 1794687676774,
+      "seconds": 10.793,
+      "samples": 72,
+      "tls": 72,
+      "echo": 72,
+      "checks": [
+        {
+          "name": "raw",
+          "core": true,
+          "exact": true
+        },
+        {
+          "name": "template",
+          "core": true,
+          "exact": true
+        }
+      ],
+      "codes": {
+        "google_control_peer_reported": 60,
+        "control_echo": 12
+      },
+      "report_sha256": "6ee803987f3e0905874208707f797ec6309f85089279eb1b9ed2c284af28f8fa"
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 1,
+      "batch": "google-services",
+      "started": 1794687676846,
+      "finished": 1794687685313,
+      "seconds": 8.468,
+      "samples": 72,
+      "tls": 72,
+      "echo": 72,
+      "checks": [
+        {
+          "name": "raw",
+          "core": true,
+          "exact": true
+        },
+        {
+          "name": "template",
+          "core": true,
+          "exact": true
+        }
+      ],
+      "codes": {
+        "google_control_peer_reported": 60,
+        "control_echo": 12
+      },
+      "report_sha256": "d46e4c3e888874d90b1b77af06a3e682cef2fee4295ef14f81c7570e776ce13d"
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 1,
+      "batch": "other-services",
+      "started": 1794687685640,
+      "finished": 1794687696313,
+      "seconds": 10.674,
+      "samples": 72,
+      "tls": 66,
+      "echo": 42,
+      "checks": [
+        {
+          "name": "raw",
+          "core": true,
+          "exact": true
+        },
+        {
+          "name": "template",
+          "core": true,
+          "exact": true
+        }
+      ],
+      "codes": {
+        "google_control_peer_reported": 30,
+        "control_echo": 12,
+        "ads_echo_unavailable": 6,
+        "reachable_no_source": 18,
+        "connection_failed": 6
+      },
+      "report_sha256": "b4bd436f18c070966e749f99ba119ae402b43697a668c4d178c3ba08263b5afe"
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 2,
+      "batch": "doubleclick",
+      "started": 1794687696512,
+      "finished": 1794687725966,
+      "seconds": 29.454,
+      "samples": 72,
+      "tls": 72,
+      "echo": 72,
+      "checks": [
+        {
+          "name": "raw",
+          "core": true,
+          "exact": true
+        },
+        {
+          "name": "template",
+          "core": true,
+          "exact": true
+        }
+      ],
+      "codes": {
+        "google_control_peer_reported": 12,
+        "control_echo": 12,
+        "ads_peer_reported": 48
+      },
+      "report_sha256": "18ec198aeb4f17d09b1a3ab3e91f115d7b739b52b769fa8eeb621707bca6af8f"
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 2,
+      "batch": "ads-serving",
+      "started": 1794687726143,
+      "finished": 1794687747809,
+      "seconds": 21.666,
+      "samples": 72,
+      "tls": 66,
+      "echo": 66,
+      "checks": [
+        {
+          "name": "raw",
+          "core": true,
+          "exact": true
+        },
+        {
+          "name": "template",
+          "core": true,
+          "exact": true
+        }
+      ],
+      "codes": {
+        "google_control_peer_reported": 12,
+        "control_echo": 12,
+        "ads_peer_reported": 42,
+        "connection_failed": 6
+      },
+      "report_sha256": "1b724f2bdfb29cb37460a44b9653d99eb747a65028379f524c95db3ad2c4b6b2"
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 2,
+      "batch": "ads-tools",
+      "started": 1794687748078,
+      "finished": 1794687756257,
+      "seconds": 8.179,
+      "samples": 72,
+      "tls": 72,
+      "echo": 72,
+      "checks": [
+        {
+          "name": "raw",
+          "core": true,
+          "exact": true
+        },
+        {
+          "name": "template",
+          "core": true,
+          "exact": true
+        }
+      ],
+      "codes": {
+        "google_control_peer_reported": 60,
+        "control_echo": 12
+      },
+      "report_sha256": "f53c9549385da014493adad6e11485276f186647deb16591cd389f2651b7ddcf"
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 2,
+      "batch": "google-services",
+      "started": 1794687756563,
+      "finished": 1794687762965,
+      "seconds": 6.402,
+      "samples": 72,
+      "tls": 72,
+      "echo": 72,
+      "checks": [
+        {
+          "name": "raw",
+          "core": true,
+          "exact": true
+        },
+        {
+          "name": "template",
+          "core": true,
+          "exact": true
+        }
+      ],
+      "codes": {
+        "google_control_peer_reported": 60,
+        "control_echo": 12
+      },
+      "report_sha256": "92570aa25435bd6f0f48fe580b5450775a54fdb3a099d1dd10a516e7948990f3"
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 2,
+      "batch": "other-services",
+      "started": 1794687763239,
+      "finished": 1794687782055,
+      "seconds": 18.816,
+      "samples": 72,
+      "tls": 66,
+      "echo": 42,
+      "checks": [
+        {
+          "name": "raw",
+          "core": true,
+          "exact": true
+        },
+        {
+          "name": "template",
+          "core": true,
+          "exact": true
+        }
+      ],
+      "codes": {
+        "google_control_peer_reported": 30,
+        "control_echo": 12,
+        "ads_echo_unavailable": 6,
+        "reachable_no_source": 18,
+        "connection_failed": 6
+      },
+      "report_sha256": "8a81c7be09e6ad91be0d7450a6f91401cb803a589890f337d88471b75d82859e"
+    },
+    {
+      "campaign": "p64-supplement",
+      "round": 1,
+      "batch": "search-ads-and-recheck",
+      "started": 1794688013771,
+      "finished": 1794688034620,
+      "seconds": 20.848,
+      "samples": 54,
+      "tls": 54,
+      "echo": 54,
+      "checks": [
+        {
+          "name": "raw",
+          "core": true,
+          "exact": true
+        },
+        {
+          "name": "template",
+          "core": true,
+          "exact": true
+        }
+      ],
+      "codes": {
+        "google_control_peer_reported": 18,
+        "control_echo": 12,
+        "ads_peer_reported": 24
+      },
+      "report_sha256": "e583dfa512253260eb9e2d4ed41335e0149a0e0cc59412b2316fb89f4b30b6bd"
+    },
+    {
+      "campaign": "p64-supplement",
+      "round": 2,
+      "batch": "search-ads-and-recheck",
+      "started": 1794688034909,
+      "finished": 1794688056649,
+      "seconds": 21.74,
+      "samples": 54,
+      "tls": 54,
+      "echo": 54,
+      "checks": [
+        {
+          "name": "raw",
+          "core": true,
+          "exact": true
+        },
+        {
+          "name": "template",
+          "core": true,
+          "exact": true
+        }
+      ],
+      "codes": {
+        "google_control_peer_reported": 18,
+        "control_echo": 12,
+        "ads_peer_reported": 24
+      },
+      "report_sha256": "d63f28c61ff07dc1679a893937404094fa8f33c91291a7e443c5f02cb7f0c685"
+    }
+  ],
+  "health": [
+    {
+      "campaign": "p64-expanded",
+      "round": 1,
+      "batch": "doubleclick",
+      "variant": "raw",
+      "providers": [
+        {
+          "provider": "cloudflare",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        },
+        {
+          "provider": "httpbingo",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        }
+      ]
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 1,
+      "batch": "doubleclick",
+      "variant": "template",
+      "providers": [
+        {
+          "provider": "cloudflare",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        },
+        {
+          "provider": "httpbingo",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        }
+      ]
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 1,
+      "batch": "ads-serving",
+      "variant": "raw",
+      "providers": [
+        {
+          "provider": "cloudflare",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        },
+        {
+          "provider": "httpbingo",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        }
+      ]
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 1,
+      "batch": "ads-serving",
+      "variant": "template",
+      "providers": [
+        {
+          "provider": "cloudflare",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        },
+        {
+          "provider": "httpbingo",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        }
+      ]
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 2,
+      "batch": "doubleclick",
+      "variant": "raw",
+      "providers": [
+        {
+          "provider": "cloudflare",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        },
+        {
+          "provider": "httpbingo",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        }
+      ]
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 2,
+      "batch": "doubleclick",
+      "variant": "template",
+      "providers": [
+        {
+          "provider": "cloudflare",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        },
+        {
+          "provider": "httpbingo",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        }
+      ]
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 2,
+      "batch": "ads-serving",
+      "variant": "raw",
+      "providers": [
+        {
+          "provider": "cloudflare",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        },
+        {
+          "provider": "httpbingo",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        }
+      ]
+    },
+    {
+      "campaign": "p64-expanded",
+      "round": 2,
+      "batch": "ads-serving",
+      "variant": "template",
+      "providers": [
+        {
+          "provider": "cloudflare",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        },
+        {
+          "provider": "httpbingo",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        }
+      ]
+    },
+    {
+      "campaign": "p64-supplement",
+      "round": 1,
+      "batch": "search-ads-and-recheck",
+      "variant": "raw",
+      "providers": [
+        {
+          "provider": "cloudflare",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        },
+        {
+          "provider": "httpbingo",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        }
+      ]
+    },
+    {
+      "campaign": "p64-supplement",
+      "round": 1,
+      "batch": "search-ads-and-recheck",
+      "variant": "template",
+      "providers": [
+        {
+          "provider": "cloudflare",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        },
+        {
+          "provider": "httpbingo",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        }
+      ]
+    },
+    {
+      "campaign": "p64-supplement",
+      "round": 2,
+      "batch": "search-ads-and-recheck",
+      "variant": "raw",
+      "providers": [
+        {
+          "provider": "cloudflare",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        },
+        {
+          "provider": "httpbingo",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        }
+      ]
+    },
+    {
+      "campaign": "p64-supplement",
+      "round": 2,
+      "batch": "search-ads-and-recheck",
+      "variant": "template",
+      "providers": [
+        {
+          "provider": "cloudflare",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        },
+        {
+          "provider": "httpbingo",
+          "passed": true,
+          "download_bytes": 65536,
+          "upload_bytes": 65536
+        }
+      ]
+    }
+  ],
+  "calibrations": [
+    {
+      "at": 1794687658898,
+      "samples": 88,
+      "tls": 86,
+      "echo": 76,
+      "codes": {
+        "google_control_peer_reported": 42,
+        "control_echo": 4,
+        "ads_peer_reported": 30,
+        "connection_failed": 2,
+        "ads_echo_unavailable": 2,
+        "reachable_no_source": 8
+      },
+      "source_counts": {
+        "4": 1,
+        "6": 1
+      },
+      "domains": {
+        "www.google.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "ipv4.google.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "www.cloudflare.com": {
+          "codes": {
+            "control_echo": 2
+          },
+          "echo": 2
+        },
+        "api.ipify.org": {
+          "codes": {
+            "control_echo": 2
+          },
+          "echo": 2
+        },
+        "googleads.g.doubleclick.net": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "pubads.g.doubleclick.net": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "securepubads.g.doubleclick.net": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "ad.doubleclick.net": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "adclick.g.doubleclick.net": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "stats.g.doubleclick.net": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "fls.doubleclick.net": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "cm.g.doubleclick.net": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "pagead2.googlesyndication.com": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "tpc.googlesyndication.com": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "www.googlesyndication.com": {
+          "codes": {
+            "connection_failed": 2
+          },
+          "echo": 0
+        },
+        "pagead2.googleadservices.com": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "www.googleadservices.com": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "adservice.google.com": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "www.googletagservices.com": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "partner.googleadservices.com": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "ads.google.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "admanager.google.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "admob.google.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "admob.googleapis.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "googleads.googleapis.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "www.googletagmanager.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "www.google-analytics.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "region1.google-analytics.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "www.googleapis.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "accounts.google.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "play.googleapis.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "android.googleapis.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "connectivitycheck.gstatic.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "www.gstatic.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "fonts.googleapis.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "www.youtube.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "youtubei.googleapis.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "mail.google.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "dns.google": {
+          "codes": {
+            "ads_echo_unavailable": 2
+          },
+          "echo": 0
+        },
+        "play.google.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "t.me": {
+          "codes": {
+            "reachable_no_source": 2
+          },
+          "echo": 0
+        },
+        "www.instagram.com": {
+          "codes": {
+            "reachable_no_source": 2
+          },
+          "echo": 0
+        },
+        "web.whatsapp.com": {
+          "codes": {
+            "reachable_no_source": 2
+          },
+          "echo": 0
+        },
+        "x.com": {
+          "codes": {
+            "reachable_no_source": 2
+          },
+          "echo": 0
+        }
+      }
+    },
+    {
+      "at": 1794688051288,
+      "samples": 18,
+      "tls": 18,
+      "echo": 18,
+      "codes": {
+        "google_control_peer_reported": 6,
+        "control_echo": 4,
+        "ads_peer_reported": 8
+      },
+      "source_counts": {
+        "4": 1,
+        "6": 1
+      },
+      "domains": {
+        "www.google.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "ipv4.google.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "www.cloudflare.com": {
+          "codes": {
+            "control_echo": 2
+          },
+          "echo": 2
+        },
+        "api.ipify.org": {
+          "codes": {
+            "control_echo": 2
+          },
+          "echo": 2
+        },
+        "www.googletagservices.com": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "mail.google.com": {
+          "codes": {
+            "google_control_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "googleads.g.doubleclick.net": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "www.adsensecustomsearchads.com": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        },
+        "syndicatedsearch.goog": {
+          "codes": {
+            "ads_peer_reported": 2
+          },
+          "echo": 2
+        }
+      }
+    }
+  ],
+  "domains": [
+    {
+      "target": {
+        "domain": "www.google.com",
+        "group": "google-search",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "google-normal",
+        "anchor": true,
+        "required": true
+      },
+      "initial": {
+        "domain": "www.google.com",
+        "batch": "doubleclick",
+        "anchor": true,
+        "purpose": "google-normal",
+        "cells": [],
+        "codes": {
+          "google_control_peer_reported": 60
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "ANCHOR",
+        "ip_count": 2
+      },
+      "followup": {
+        "domain": "www.google.com",
+        "batch": "search-ads-and-recheck",
+        "anchor": true,
+        "purpose": "google-normal",
+        "cells": [],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "ANCHOR",
+        "ip_count": 2
+      },
+      "latest_observed_state": "ANCHOR"
+    },
+    {
+      "target": {
+        "domain": "ipv4.google.com",
+        "group": "google-search",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "google-normal",
+        "anchor": true,
+        "required": true
+      },
+      "initial": {
+        "domain": "ipv4.google.com",
+        "batch": "doubleclick",
+        "anchor": true,
+        "purpose": "google-normal",
+        "cells": [],
+        "codes": {
+          "google_control_peer_reported": 60
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "ANCHOR",
+        "ip_count": 1
+      },
+      "followup": {
+        "domain": "ipv4.google.com",
+        "batch": "search-ads-and-recheck",
+        "anchor": true,
+        "purpose": "google-normal",
+        "cells": [],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "ANCHOR",
+        "ip_count": 1
+      },
+      "latest_observed_state": "ANCHOR"
+    },
+    {
+      "target": {
+        "domain": "www.cloudflare.com",
+        "group": "cloudflare",
+        "role": "control",
+        "driver": "cloudflare-trace",
+        "purpose": "baseline",
+        "anchor": true,
+        "required": true
+      },
+      "initial": {
+        "domain": "www.cloudflare.com",
+        "batch": "doubleclick",
+        "anchor": true,
+        "purpose": "baseline",
+        "cells": [],
+        "codes": {
+          "control_echo": 60
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "ANCHOR",
+        "ip_count": 2
+      },
+      "followup": {
+        "domain": "www.cloudflare.com",
+        "batch": "search-ads-and-recheck",
+        "anchor": true,
+        "purpose": "baseline",
+        "cells": [],
+        "codes": {
+          "control_echo": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "ANCHOR",
+        "ip_count": 2
+      },
+      "latest_observed_state": "ANCHOR"
+    },
+    {
+      "target": {
+        "domain": "api.ipify.org",
+        "group": "ipify",
+        "role": "control",
+        "driver": "ipify",
+        "purpose": "baseline",
+        "anchor": true,
+        "required": true
+      },
+      "initial": {
+        "domain": "api.ipify.org",
+        "batch": "doubleclick",
+        "anchor": true,
+        "purpose": "baseline",
+        "cells": [],
+        "codes": {
+          "control_echo": 60
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "ANCHOR",
+        "ip_count": 1
+      },
+      "followup": {
+        "domain": "api.ipify.org",
+        "batch": "search-ads-and-recheck",
+        "anchor": true,
+        "purpose": "baseline",
+        "cells": [],
+        "codes": {
+          "control_echo": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "ANCHOR",
+        "ip_count": 1
+      },
+      "latest_observed_state": "ANCHOR"
+    },
+    {
+      "target": {
+        "domain": "googleads.g.doubleclick.net",
+        "group": "doubleclick",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "googleads.g.doubleclick.net",
+        "batch": "doubleclick",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "TW": 6,
+          "IE": 4,
+          "IL": 2
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SEPARATE",
+        "ip_count": 12
+      },
+      "followup": {
+        "domain": "googleads.g.doubleclick.net",
+        "batch": "search-ads-and-recheck",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "TW": 7,
+          "IE": 5
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SEPARATE",
+        "ip_count": 12
+      },
+      "latest_observed_state": "SEPARATE"
+    },
+    {
+      "target": {
+        "domain": "pubads.g.doubleclick.net",
+        "group": "doubleclick",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "pubads.g.doubleclick.net",
+        "batch": "doubleclick",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "TW": 6,
+          "IE": 4,
+          "IL": 2
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SEPARATE",
+        "ip_count": 12
+      },
+      "followup": null,
+      "latest_observed_state": "SEPARATE"
+    },
+    {
+      "target": {
+        "domain": "securepubads.g.doubleclick.net",
+        "group": "doubleclick",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "securepubads.g.doubleclick.net",
+        "batch": "doubleclick",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 2,
+            "overlap": 0,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "TW": 6,
+          "IE": 4,
+          "PS": 1,
+          "IL": 1
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SEPARATE",
+        "ip_count": 12
+      },
+      "followup": null,
+      "latest_observed_state": "SEPARATE"
+    },
+    {
+      "target": {
+        "domain": "ad.doubleclick.net",
+        "group": "doubleclick",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "ad.doubleclick.net",
+        "batch": "doubleclick",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "TW": 6,
+          "IE": 4,
+          "IL": 2
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SEPARATE",
+        "ip_count": 12
+      },
+      "followup": null,
+      "latest_observed_state": "SEPARATE"
+    },
+    {
+      "target": {
+        "domain": "adclick.g.doubleclick.net",
+        "group": "doubleclick",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "adclick.g.doubleclick.net",
+        "batch": "doubleclick",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "TW": 6,
+          "IE": 4,
+          "IL": 2
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SEPARATE",
+        "ip_count": 12
+      },
+      "followup": null,
+      "latest_observed_state": "SEPARATE"
+    },
+    {
+      "target": {
+        "domain": "stats.g.doubleclick.net",
+        "group": "doubleclick",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "stats.g.doubleclick.net",
+        "batch": "doubleclick",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 2,
+            "overlap": 0,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "TW": 6,
+          "IE": 4,
+          "IL": 2
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SEPARATE",
+        "ip_count": 12
+      },
+      "followup": null,
+      "latest_observed_state": "SEPARATE"
+    },
+    {
+      "target": {
+        "domain": "fls.doubleclick.net",
+        "group": "doubleclick",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "fls.doubleclick.net",
+        "batch": "doubleclick",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "TW": 6,
+          "IE": 4,
+          "IL": 2
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SEPARATE",
+        "ip_count": 12
+      },
+      "followup": null,
+      "latest_observed_state": "SEPARATE"
+    },
+    {
+      "target": {
+        "domain": "cm.g.doubleclick.net",
+        "group": "doubleclick",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "cm.g.doubleclick.net",
+        "batch": "doubleclick",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SEPARATE",
+            "observed": 3,
+            "paired": 3,
+            "overlap": 0,
+            "families": {
+              "4": 3
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "TW": 6,
+          "IE": 4,
+          "IL": 2
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SEPARATE",
+        "ip_count": 12
+      },
+      "followup": null,
+      "latest_observed_state": "SEPARATE"
+    },
+    {
+      "target": {
+        "domain": "pagead2.googlesyndication.com",
+        "group": "ads-serving",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "pagead2.googlesyndication.com",
+        "batch": "ads-serving",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "6": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "IE": 12
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "tpc.googlesyndication.com",
+        "group": "ads-serving",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "tpc.googlesyndication.com",
+        "batch": "ads-serving",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "6": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "6": 3
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "IE": 12
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "www.googlesyndication.com",
+        "group": "ads-serving",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "www.googlesyndication.com",
+        "batch": "ads-serving",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          }
+        ],
+        "codes": {
+          "connection_failed": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "UNRESOLVED",
+        "ip_count": 0
+      },
+      "followup": null,
+      "latest_observed_state": "UNRESOLVED"
+    },
+    {
+      "target": {
+        "domain": "pagead2.googleadservices.com",
+        "group": "ads-serving",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "pagead2.googleadservices.com",
+        "batch": "ads-serving",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "IE": 12
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SHARED",
+        "ip_count": 1
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "www.googleadservices.com",
+        "group": "ads-serving",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "www.googleadservices.com",
+        "batch": "ads-serving",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "IE": 12
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SHARED",
+        "ip_count": 1
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "adservice.google.com",
+        "group": "ads-serving",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "adservice.google.com",
+        "batch": "ads-serving",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "IE": 12
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "www.googletagservices.com",
+        "group": "ads-serving",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "www.googletagservices.com",
+        "batch": "ads-serving",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "MIXED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 1,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "IE": 12
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "INCOMPLETE_OR_MIXED",
+        "ip_count": 2
+      },
+      "followup": {
+        "domain": "www.googletagservices.com",
+        "batch": "search-ads-and-recheck",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "6": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "6": 3
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "IE": 12
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "partner.googleadservices.com",
+        "group": "ads-serving",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "ads-delivery",
+        "required": true
+      },
+      "initial": {
+        "domain": "partner.googleadservices.com",
+        "batch": "ads-serving",
+        "anchor": false,
+        "purpose": "ads-delivery",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "IE": 12
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "ads.google.com",
+        "group": "ads-tools",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "ads-tools-measurement",
+        "required": true
+      },
+      "initial": {
+        "domain": "ads.google.com",
+        "batch": "ads-tools",
+        "anchor": false,
+        "purpose": "ads-tools-measurement",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "admanager.google.com",
+        "group": "ads-tools",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "ads-tools-measurement",
+        "required": true
+      },
+      "initial": {
+        "domain": "admanager.google.com",
+        "batch": "ads-tools",
+        "anchor": false,
+        "purpose": "ads-tools-measurement",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "admob.google.com",
+        "group": "ads-tools",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "ads-tools-measurement",
+        "required": true
+      },
+      "initial": {
+        "domain": "admob.google.com",
+        "batch": "ads-tools",
+        "anchor": false,
+        "purpose": "ads-tools-measurement",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "6": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "admob.googleapis.com",
+        "group": "ads-tools",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "ads-tools-measurement",
+        "required": true
+      },
+      "initial": {
+        "domain": "admob.googleapis.com",
+        "batch": "ads-tools",
+        "anchor": false,
+        "purpose": "ads-tools-measurement",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "6": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "6": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "googleads.googleapis.com",
+        "group": "ads-tools",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "ads-tools-measurement",
+        "required": true
+      },
+      "initial": {
+        "domain": "googleads.googleapis.com",
+        "batch": "ads-tools",
+        "anchor": false,
+        "purpose": "ads-tools-measurement",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "www.googletagmanager.com",
+        "group": "ads-tools",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "ads-tools-measurement",
+        "required": true
+      },
+      "initial": {
+        "domain": "www.googletagmanager.com",
+        "batch": "ads-tools",
+        "anchor": false,
+        "purpose": "ads-tools-measurement",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "www.google-analytics.com",
+        "group": "ads-tools",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "ads-tools-measurement",
+        "required": true
+      },
+      "initial": {
+        "domain": "www.google-analytics.com",
+        "batch": "ads-tools",
+        "anchor": false,
+        "purpose": "ads-tools-measurement",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "region1.google-analytics.com",
+        "group": "ads-tools",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "ads-tools-measurement",
+        "required": true
+      },
+      "initial": {
+        "domain": "region1.google-analytics.com",
+        "batch": "ads-tools",
+        "anchor": false,
+        "purpose": "ads-tools-measurement",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "www.googleapis.com",
+        "group": "google-services",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "google-normal",
+        "required": true
+      },
+      "initial": {
+        "domain": "www.googleapis.com",
+        "batch": "google-services",
+        "anchor": false,
+        "purpose": "google-normal",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "6": 3
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "accounts.google.com",
+        "group": "google-services",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "google-normal",
+        "required": true
+      },
+      "initial": {
+        "domain": "accounts.google.com",
+        "batch": "google-services",
+        "anchor": false,
+        "purpose": "google-normal",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "play.googleapis.com",
+        "group": "google-services",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "google-normal",
+        "required": true
+      },
+      "initial": {
+        "domain": "play.googleapis.com",
+        "batch": "google-services",
+        "anchor": false,
+        "purpose": "google-normal",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "android.googleapis.com",
+        "group": "google-services",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "google-normal",
+        "required": true
+      },
+      "initial": {
+        "domain": "android.googleapis.com",
+        "batch": "google-services",
+        "anchor": false,
+        "purpose": "google-normal",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "6": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "connectivitycheck.gstatic.com",
+        "group": "google-services",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "google-normal",
+        "required": true
+      },
+      "initial": {
+        "domain": "connectivitycheck.gstatic.com",
+        "batch": "google-services",
+        "anchor": false,
+        "purpose": "google-normal",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "6": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "www.gstatic.com",
+        "group": "google-services",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "google-normal",
+        "required": true
+      },
+      "initial": {
+        "domain": "www.gstatic.com",
+        "batch": "google-services",
+        "anchor": false,
+        "purpose": "google-normal",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "fonts.googleapis.com",
+        "group": "google-services",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "google-normal",
+        "required": true
+      },
+      "initial": {
+        "domain": "fonts.googleapis.com",
+        "batch": "google-services",
+        "anchor": false,
+        "purpose": "google-normal",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "6": 3
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "www.youtube.com",
+        "group": "google-services",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "google-normal",
+        "required": true
+      },
+      "initial": {
+        "domain": "www.youtube.com",
+        "batch": "google-services",
+        "anchor": false,
+        "purpose": "google-normal",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "youtubei.googleapis.com",
+        "group": "other-services",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "other",
+        "required": true
+      },
+      "initial": {
+        "domain": "youtubei.googleapis.com",
+        "batch": "other-services",
+        "anchor": false,
+        "purpose": "other",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "mail.google.com",
+        "group": "other-services",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "other",
+        "required": true
+      },
+      "initial": {
+        "domain": "mail.google.com",
+        "batch": "other-services",
+        "anchor": false,
+        "purpose": "other",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "MIXED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 1,
+            "families": {
+              "6": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "INCOMPLETE_OR_MIXED",
+        "ip_count": 2
+      },
+      "followup": {
+        "domain": "mail.google.com",
+        "batch": "search-ads-and-recheck",
+        "anchor": false,
+        "purpose": "other",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "6": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "6": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "dns.google",
+        "group": "other-services",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "other",
+        "required": true
+      },
+      "initial": {
+        "domain": "dns.google",
+        "batch": "other-services",
+        "anchor": false,
+        "purpose": "other",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          }
+        ],
+        "codes": {
+          "ads_echo_unavailable": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "UNRESOLVED",
+        "ip_count": 0
+      },
+      "followup": null,
+      "latest_observed_state": "UNRESOLVED"
+    },
+    {
+      "target": {
+        "domain": "play.google.com",
+        "group": "other-services",
+        "role": "control",
+        "driver": "google-peer",
+        "purpose": "other",
+        "required": true
+      },
+      "initial": {
+        "domain": "play.google.com",
+        "batch": "other-services",
+        "anchor": false,
+        "purpose": "other",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          }
+        ],
+        "codes": {
+          "google_control_peer_reported": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "followup": null,
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "t.me",
+        "group": "other-services",
+        "role": "control",
+        "driver": "https-reachability",
+        "purpose": "other",
+        "required": true
+      },
+      "initial": {
+        "domain": "t.me",
+        "batch": "other-services",
+        "anchor": false,
+        "purpose": "other",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          }
+        ],
+        "codes": {
+          "reachable_no_source": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "UNRESOLVED",
+        "ip_count": 0
+      },
+      "followup": null,
+      "latest_observed_state": "UNRESOLVED"
+    },
+    {
+      "target": {
+        "domain": "www.instagram.com",
+        "group": "other-services",
+        "role": "control",
+        "driver": "https-reachability",
+        "purpose": "other",
+        "required": true
+      },
+      "initial": {
+        "domain": "www.instagram.com",
+        "batch": "other-services",
+        "anchor": false,
+        "purpose": "other",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          }
+        ],
+        "codes": {
+          "connection_failed": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "UNRESOLVED",
+        "ip_count": 0
+      },
+      "followup": null,
+      "latest_observed_state": "UNRESOLVED"
+    },
+    {
+      "target": {
+        "domain": "web.whatsapp.com",
+        "group": "other-services",
+        "role": "control",
+        "driver": "https-reachability",
+        "purpose": "other",
+        "required": true
+      },
+      "initial": {
+        "domain": "web.whatsapp.com",
+        "batch": "other-services",
+        "anchor": false,
+        "purpose": "other",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          }
+        ],
+        "codes": {
+          "reachable_no_source": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "UNRESOLVED",
+        "ip_count": 0
+      },
+      "followup": null,
+      "latest_observed_state": "UNRESOLVED"
+    },
+    {
+      "target": {
+        "domain": "x.com",
+        "group": "other-services",
+        "role": "control",
+        "driver": "https-reachability",
+        "purpose": "other",
+        "required": true
+      },
+      "initial": {
+        "domain": "x.com",
+        "batch": "other-services",
+        "anchor": false,
+        "purpose": "other",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "UNRESOLVED",
+            "observed": 0,
+            "paired": 0,
+            "overlap": 0,
+            "families": {}
+          }
+        ],
+        "codes": {
+          "reachable_no_source": 12
+        },
+        "countries": {},
+        "geo_status": {},
+        "state": "UNRESOLVED",
+        "ip_count": 0
+      },
+      "followup": null,
+      "latest_observed_state": "UNRESOLVED"
+    },
+    {
+      "target": {
+        "domain": "www.adsensecustomsearchads.com",
+        "group": "search-ads",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "search-ads",
+        "required": true
+      },
+      "initial": null,
+      "followup": {
+        "domain": "www.adsensecustomsearchads.com",
+        "batch": "search-ads-and-recheck",
+        "anchor": false,
+        "purpose": "search-ads",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "IE": 12
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "latest_observed_state": "SHARED"
+    },
+    {
+      "target": {
+        "domain": "syndicatedsearch.goog",
+        "group": "search-ads",
+        "role": "ads",
+        "driver": "google-peer",
+        "purpose": "search-ads",
+        "required": true
+      },
+      "initial": null,
+      "followup": {
+        "domain": "syndicatedsearch.goog",
+        "batch": "search-ads-and-recheck",
+        "anchor": false,
+        "purpose": "search-ads",
+        "cells": [
+          {
+            "round": 1,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 3
+            }
+          },
+          {
+            "round": 1,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "raw",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 2,
+            "families": {
+              "4": 1,
+              "6": 2
+            }
+          },
+          {
+            "round": 2,
+            "variant": "template",
+            "state": "SHARED",
+            "observed": 3,
+            "paired": 0,
+            "overlap": 3,
+            "families": {
+              "4": 2,
+              "6": 1
+            }
+          }
+        ],
+        "codes": {
+          "ads_peer_reported": 12
+        },
+        "countries": {
+          "IE": 12
+        },
+        "geo_status": {
+          "located": 12
+        },
+        "state": "SHARED",
+        "ip_count": 2
+      },
+      "latest_observed_state": "SHARED"
+    }
+  ],
+  "asns": {
+    "1680": {
+      "holder": "NV-ASN - Cellcom Fixed Line Communication L.P",
+      "unique_ips": 2,
+      "countries": [
+        "IL"
+      ],
+      "observations": 2
+    },
+    "2110": {
+      "holder": "AS-BTIRE Enet Communications LIMITED",
+      "unique_ips": 1,
+      "countries": [
+        "IE"
+      ],
+      "observations": 1
+    },
+    "3462": {
+      "holder": "HINET - Data Communication Business Group",
+      "unique_ips": 22,
+      "countries": [
+        "TW"
+      ],
+      "observations": 22
+    },
+    "5466": {
+      "holder": "EIRCOM Eircom Limited",
+      "unique_ips": 13,
+      "countries": [
+        "IE"
+      ],
+      "observations": 13
+    },
+    "5607": {
+      "holder": "BSKYB-BROADBAND-AS Sky UK Limited",
+      "unique_ips": 3,
+      "countries": [
+        "IE"
+      ],
+      "observations": 3
+    },
+    "6810": {
+      "holder": "BEZEK \"Bezeq\"- THE ISRAEL TELECOMMUNICATION CORP. LTD.",
+      "unique_ips": 8,
+      "countries": [
+        "IL"
+      ],
+      "observations": 8
+    },
+    "6830": {
+      "holder": "LibertyGlobal Liberty Global Europe Holding B.V.",
+      "unique_ips": 1,
+      "countries": [
+        "IE"
+      ],
+      "observations": 1
+    },
+    "7482": {
+      "holder": "APOL-AS - Asia Pacific On-line Service Inc.",
+      "unique_ips": 2,
+      "countries": [
+        "TW"
+      ],
+      "observations": 2
+    },
+    "8551": {
+      "holder": "BEZEQ-INTERNATIONAL-AS Bezeq International Ltd.",
+      "unique_ips": 1,
+      "countries": [
+        "IL"
+      ],
+      "observations": 1
+    },
+    "9416": {
+      "holder": "MULTIMEDIA-AS-AP - Hoshin Multimedia Center Inc.",
+      "unique_ips": 5,
+      "countries": [
+        "TW"
+      ],
+      "observations": 6
+    },
+    "9674": {
+      "holder": "FET-TW - Far EastTone Telecommunication Co., Ltd.",
+      "unique_ips": 3,
+      "countries": [
+        "TW"
+      ],
+      "observations": 3
+    },
+    "12849": {
+      "holder": "HOTNET-IL Hot-Net internet services Ltd.",
+      "unique_ips": 3,
+      "countries": [
+        "IL"
+      ],
+      "observations": 3
+    },
+    "13280": {
+      "holder": "H3GIE Three Ireland (Hutchison) limited",
+      "unique_ips": 2,
+      "countries": [
+        "IE"
+      ],
+      "observations": 2
+    },
+    "15502": {
+      "holder": "Vodafone-Ireland-ASN Vodafone Ireland Limited",
+      "unique_ips": 9,
+      "countries": [
+        "IE"
+      ],
+      "observations": 9
+    },
+    "16509": {
+      "holder": "AMAZON-02 - Amazon.com, Inc.",
+      "unique_ips": 2,
+      "countries": [
+        "IE"
+      ],
+      "observations": 648
+    },
+    "17421": {
+      "holder": "EMOME-NET - Mobile Business Group",
+      "unique_ips": 2,
+      "countries": [
+        "TW"
+      ],
+      "observations": 2
+    },
+    "18049": {
+      "holder": "TINP-TW - Taiwan Infrastructure Network Technologie",
+      "unique_ips": 3,
+      "countries": [
+        "TW"
+      ],
+      "observations": 3
+    },
+    "24158": {
+      "holder": "taiwanmobile-as - Taiwan Mobile Co., Ltd.",
+      "unique_ips": 4,
+      "countries": [
+        "TW"
+      ],
+      "observations": 4
+    },
+    "24164": {
+      "holder": "UBBNET-AS-TW - UNION BROADBAND NETWORK",
+      "unique_ips": 3,
+      "countries": [
+        "TW"
+      ],
+      "observations": 3
+    },
+    "25441": {
+      "holder": "IBIS-AS Imagine Communications Group Limited",
+      "unique_ips": 1,
+      "countries": [
+        "IE"
+      ],
+      "observations": 1
+    },
+    "31122": {
+      "holder": "DIGIWEB-AS Digiweb ltd",
+      "unique_ips": 1,
+      "countries": [
+        "IE"
+      ],
+      "observations": 1
+    },
+    "38841": {
+      "holder": "kbro-AS-TW - kbro CO. Ltd.",
+      "unique_ips": 5,
+      "countries": [
+        "TW"
+      ],
+      "observations": 6
+    },
+    "39093": {
+      "holder": "WestNet-IE WESTNET BROADBAND MAYO LIMITED",
+      "unique_ips": 1,
+      "countries": [
+        "IE"
+      ],
+      "observations": 1
+    },
+    "42227": {
+      "holder": "AIRWIRE-AS Airwire Ltd",
+      "unique_ips": 1,
+      "countries": [
+        "IE"
+      ],
+      "observations": 1
+    },
+    "51407": {
+      "holder": "Mada-AS Mada Al-Arab General Services Company",
+      "unique_ips": 1,
+      "countries": [
+        "PS"
+      ],
+      "observations": 1
+    },
+    "60636": {
+      "holder": "coolnet-016-AS Coolnet Communications ltd",
+      "unique_ips": 1,
+      "countries": [
+        "IL"
+      ],
+      "observations": 1
+    },
+    "131596": {
+      "holder": "TBCOM-NET - TBC",
+      "unique_ips": 3,
+      "countries": [
+        "TW"
+      ],
+      "observations": 3
+    },
+    "196737": {
+      "holder": "AIRWAVE Airwave Internet",
+      "unique_ips": 1,
+      "countries": [
+        "IE"
+      ],
+      "observations": 1
+    },
+    "205743": {
+      "holder": "munster Munster Wireless Ltd.",
+      "unique_ips": 1,
+      "countries": [
+        "IE"
+      ],
+      "observations": 1
+    },
+    "207044": {
+      "holder": "ENET-AS Enet Telecommunications Networks Limited",
+      "unique_ips": 1,
+      "countries": [
+        "IE"
+      ],
+      "observations": 1
+    },
+    "209854": {
+      "holder": "Cyberzonehub Cyberzone S.A.",
+      "unique_ips": 1,
+      "countries": [
+        "TW"
+      ],
+      "observations": 1
+    },
+    "212493": {
+      "holder": "ClearWave ClearWave LTD",
+      "unique_ips": 1,
+      "countries": [
+        "IE"
+      ],
+      "observations": 1
+    }
+  },
+  "invalid_target": {
+    "domain": "www.googlesyndication.com",
+    "google_dns_status": 3,
+    "cloudflare_dns_status": 3,
+    "direct_measurement_failures": 2,
+    "classification": "TARGET_UNAVAILABLE_NOT_CONFIG_FAILURE"
+  },
+  "production_modified": false,
+  "publication_ready": false,
+  "throughput_1000_tested": false,
+  "udp_quic_tested": false,
+  "android_carriers_tested": false,
+  "asn_holder_lookup_errors": 0
+}

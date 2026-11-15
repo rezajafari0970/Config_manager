@@ -38,7 +38,7 @@ with open(WORK/'fixture.log','w') as log:
   assert maximum<=2
   assert all(db.execute('SELECT attempts,tested FROM egress_jobs WHERE hash=?',(h,)).fetchone()[0]>=2 for h in killed)
   states=dict(db.execute('SELECT state,count(*) FROM egress_jobs GROUP BY state').fetchall())
-  receipt=dict(directory=str(WORK),passed=True,total=total,tested=tested,max_active=maximum,states=states,crash_recovered=True,seconds=round(time.monotonic()-begin,2),live_inputs=3)
+  receipt=dict(directory=str(WORK),passed=True,total=total,tested=tested,max_active=maximum,states=states,crash_recovered=True,seconds=round(time.monotonic()-begin,2),live_inputs=total if os.environ.get('EGRESS_FIXTURE_HASHES_FILE') or os.environ.get('EGRESS_BENCHMARK_INPUTS') else max(0,total-2))
   (WORK/'receipt.json').write_text(json.dumps(receipt,indent=2));print(json.dumps(receipt));db.close()
  finally:
   if worker and worker.poll() is None:worker.terminate();worker.wait(timeout=40)

@@ -35,6 +35,7 @@ type CountryFact struct {
 	Providers []CountryProvider `json:"providers"`
 }
 type CountryResult struct {
+	ProfileKey string            `json:"profile_key,omitempty"`
 	Complete   bool              `json:"complete"`
 	Status     string            `json:"status"`
 	Countries  []string          `json:"countries"`
@@ -43,14 +44,91 @@ type CountryResult struct {
 }
 
 // This supplements, never replaces, the independently validated route decision.
-// Every authenticated Ads observation must carry fresh, agreeing provider facts.
+// Every authenticated observation in the qualified profile needs fresh consensus.
+// The independent Iran veto also inspects Ads outside that profile.
 func Countries(r Report, route Decision, now int64) CountryResult {
 	out := CountryResult{Status: "country_incomplete", Countries: []string{}, Providers: []CountryProvider{}}
 	if !route.Eligible {
 		out.Status = "route_unqualified"
 		return out
 	}
-	return observedCountries(r, route.Until, now)
+	if route.CountryConflict {
+		out.Status = "country_iran_conflict"
+		return out
+	}
+	// Safety still inspects ALL measured Ads, including shared/nonqualifying ones.
+	for _, s := range r.Samples {
+		if !s.ActualAds || !validSource(s, r) {
+			continue
+		}
+		one := r
+		one.Samples = []Sample{s}
+		check := observedCountries(one, route.Until, now)
+		if check.Status == "country_iran_conflict" || check.Complete && len(check.Countries) == 1 && check.Countries[0] == "IR" {
+			out.Status = "country_iran_conflict"
+			return out
+		}
+	}
+	// A second route-qualified profile with unresolved GeoIP cannot suppress a
+	// fully located profile. Keep every observation within each qualifying profile.
+	qualified := map[string]bool{}
+	for _, id := range route.QualifiedProfiles {
+		qualified[id] = true
+	}
+	countries := map[string]bool{}
+	providers := map[string]CountryProvider{}
+	keys := []string{}
+	until := route.Until
+	for _, profile := range profiles {
+		if !qualified[profile.ID] {
+			continue
+		}
+		members := map[string]bool{}
+		for _, name := range profile.Domains {
+			members[name] = true
+		}
+		filtered := r
+		filtered.Samples = nil
+		for _, sample := range r.Samples {
+			if members[sample.Domain] {
+				filtered.Samples = append(filtered.Samples, sample)
+			}
+		}
+		g := observedCountries(filtered, route.Until, now)
+		if !g.Complete {
+			continue
+		}
+		keys = append(keys, profile.ID)
+		until = min(until, g.ValidUntil)
+		for _, country := range g.Countries {
+			countries[country] = true
+		}
+		for _, provider := range g.Providers {
+			providers[provider.Name+":"+provider.Dataset+":"+provider.Country] = provider
+		}
+	}
+	if len(keys) == 0 {
+		return out
+	}
+	sort.Strings(keys)
+	out.ProfileKey = strings.Join(keys, ",")
+	for country := range countries {
+		out.Countries = append(out.Countries, country)
+	}
+	sort.Strings(out.Countries)
+	providerKeys := []string{}
+	for k := range providers {
+		providerKeys = append(providerKeys, k)
+	}
+	sort.Strings(providerKeys)
+	for _, k := range providerKeys {
+		out.Providers = append(out.Providers, providers[k])
+	}
+	out.Complete = true
+	out.Status = "located"
+	out.ValidUntil = until
+
+	return out
 }
 
 // Country consensus independent of the route classifier, shared by the

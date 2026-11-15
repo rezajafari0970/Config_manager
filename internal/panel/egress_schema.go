@@ -152,16 +152,18 @@ func (s *Store) reconcileEgressVersion() error {
 	if e = tx.QueryRow("SELECT version FROM egress_settings").Scan(&previous); e != nil {
 		return e
 	}
-	current := egress.Version + "|" + convert.Version
+	current := egress.Version + "|" + convert.Version + "|" + egress.PolicyDigest()
 	if previous != current {
 		where := "state!='DELETED'"
-		// v7 changes positive coverage, not v6's authenticated shared-egress
-		// rejection or unsupported driver inventory. Preserve those completed
-		// identity verdicts; only affected results need fresh observations.
-		if previous == "ads-egress.v6|"+convert.Version && egress.Version == "ads-egress.v7" {
-			where += " AND NOT (ever_accepted=0 AND tested>0 AND ((state='NO_SPLIT' AND reason='non_ads_uses_ads_egress') OR (state='UNSUPPORTED' AND reason='driver_unavailable')))"
+		// All legacy global NO_SPLIT results may hide a valid profile. Unsupported
+		// driver results remain valid when conversion/protocol support is unchanged.
+		if (previous == "ads-egress.v6|"+convert.Version || previous == "ads-egress.v7|"+convert.Version) && egress.Version == "ads-egress.v8" {
+			where += " AND NOT (ever_accepted=0 AND tested>0 AND state='UNSUPPORTED' AND reason='driver_unavailable')"
 		}
 		if _, e = tx.Exec("UPDATE egress_jobs SET state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE 'PENDING' END,reason='implementation_changed',tested=0,deep_completed=0,retry_streak=0,valid_until=0,revision=revision+1,token='',lease_until=0,next_run=0 WHERE " + where); e != nil {
+			return e
+		}
+		if _, e = tx.Exec("UPDATE egress_geo_results SET valid_until=0; DELETE FROM egress_countries;"); e != nil {
 			return e
 		}
 		if _, e = tx.Exec("UPDATE egress_health SET valid_until=0"); e != nil {
@@ -205,5 +207,12 @@ func (s *Store) migrateV32() error {
 		return nil
 	}
 	_, err := s.db.Exec("PRAGMA user_version=32")
+	return err
+}
+
+// v35 fences old binaries before they can reinterpret the new profile policy.
+// No statistics, input, exclusion, journal or evidence history is reset.
+func (s *Store) migrateV35() error {
+	_, err := s.db.Exec("PRAGMA user_version=35")
 	return err
 }

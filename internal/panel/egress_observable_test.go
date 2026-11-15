@@ -9,7 +9,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/egress"
 )
 
-func TestV7UpgradePreservesUnaffectedIdentityVerdictsAndHistory(t *testing.T) {
+func TestV8UpgradePreservesUnaffectedIdentityVerdictsAndHistory(t *testing.T) {
 	s := testStore(t)
 	states := []struct {
 		state, reason string
@@ -24,7 +24,7 @@ func TestV7UpgradePreservesUnaffectedIdentityVerdictsAndHistory(t *testing.T) {
 	now := egress.Now()
 	for i, x := range states {
 		hash := fmt.Sprintf("%064x", i+1)
-		_, err := s.db.Exec("INSERT INTO egress_jobs(hash,kind,size,first_seen,last_seen,state,reason,ever_accepted,tested,valid_until,attempts,first_completed,deep_completed,retry_streak,report,revision) VALUES(?,'fixture',1,1,1,?,?,?,?,?,3,1,1,2,?,7)", hash, x.state, x.reason, x.accepted, now, now+1000, `{"version":"ads-egress.v6","historical":true}`)
+		_, err := s.db.Exec("INSERT INTO egress_jobs(hash,kind,size,first_seen,last_seen,state,reason,ever_accepted,tested,valid_until,attempts,first_completed,deep_completed,retry_streak,report,revision) VALUES(?,'fixture',1,1,1,?,?,?,?,?,3,1,1,2,?,7)", hash, x.state, x.reason, x.accepted, now, now+1000, `{"version":"ads-egress.v7","historical":true}`)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -37,7 +37,7 @@ func TestV7UpgradePreservesUnaffectedIdentityVerdictsAndHistory(t *testing.T) {
 	if err := s.db.QueryRow(q).Scan(&metrics); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := s.db.Exec("UPDATE egress_settings SET version=?", "ads-egress.v6|"+convert.Version); err != nil {
+	if _, err := s.db.Exec("UPDATE egress_settings SET version=?", "ads-egress.v7|"+convert.Version); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.reconcileEgressVersion(); err != nil {
@@ -53,7 +53,7 @@ func TestV7UpgradePreservesUnaffectedIdentityVerdictsAndHistory(t *testing.T) {
 		if attempts != 3 || first != 1 || !strings.Contains(report, "historical") {
 			t.Fatal("history erased", state, attempts, first, report)
 		}
-		if i < 2 || x.state == "DELETED" {
+		if i == 1 || x.state == "DELETED" {
 			if state != x.state || reason != x.reason || tested != now || revision != 7 || deep != 1 || retry != 2 {
 				t.Fatal("unaffected verdict changed", state, reason, tested, revision, deep, retry)
 			}

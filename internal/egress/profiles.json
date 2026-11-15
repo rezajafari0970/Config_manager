@@ -1,0 +1,18 @@
+[
+  {
+    "id": "doubleclick.v1",
+    "domains": [
+      "googleads.g.doubleclick.net",
+      "pubads.g.doubleclick.net",
+      "securepubads.g.doubleclick.net"
+    ]
+  },
+  {
+    "id": "ads-serving.v1",
+    "domains": [
+      "pagead2.googlesyndication.com",
+      "adservice.google.com",
+      "www.googleadservices.com"
+    ]
+  }
+]

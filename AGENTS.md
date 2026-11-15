@@ -1,3 +1,74 @@
+# P65 named Ads profiles activated / 2026-11-15
+
+Activated `p65-18fa962b-3262f5122928` from `18fa962be64906aac62d896bcd47f4850bc17569`.
+Read docs/reports/P65-report-fa.md and P65-validation.json. Six matching services,
+8 real published identities and all four exact-byte exports were verified after
+activation. Full initial race run had seven failures; corrections and all seven
+race rechecks plus remaining release checks passed. Do not rewrite that history
+as a single green full-suite run. Original user sample currently timed out.
+Requalification continues automatically; no second metrics reset and no 1000/600s
+performance claim. Schema35 must not be opened by older binaries.
+
+The user approved publishing the proven DoubleClick/partial Ads split and explicitly
+requested implementation using the highest OpenAI API model. This supersedes P63's
+unresolved publication choice. Read docs/ADS_PROFILES.md. v8/schema35 accepts any
+complete named profile, keeps mixed/unknown distinct from terminal negatives,
+requires exact raw/template and two stable source-control groups including Google,
+and preserves all-Ads Iran vetoes. Profile/registry digest fences policy changes.
+Do not repeat the statistics reset. Current unique identity scope, archived raw
+history, manual exclusions, sticky Iran guards and country ANY policy remain.
+Preserve concurrent single-output fixes through 01aac40. API design review completed
+with gpt-6-astra max/pro; model output is not network proof. Initial current sample
+retest timed out, including direct entry TCP, so do not report it currently healthy.
+Source/validation/canary/deployment status must be read from the final P65 receipt;
+this note alone is not activation proof. Preserve failed and interrupted test logs.
+Use shared deploy lock, matched stopped DB/blob/key/release backup and six matching
+binaries. Never run schema34 binaries against schema35; never force-push. No all-Ads,
+household, QUIC, Android, 1000/600s or future uptime guarantee.
+
+# P64 expanded route research — not deployed / 2026-11-14
+
+Read docs/reports/P64-expanded-route-report-fa.md and its validation/targets JSON.
+Same private sample:46 destination names,828 raw/template observations,756 valid
+source reports;106 additional direct-calibration observations. Eight DoubleClick
+names repeatedly separated; nine other Ads-related names shared AWS. DoubleClick
+country reports rotated across TW/IE/IL/PS; do not require a fixed IP/country/ASN.
+Two initially incomplete same-family control cells were resolved by supplemental
+paired rounds; preserve initial failures. www.googlesyndication.com returned
+NXDOMAIN from both independent resolvers: target failure is not config failure.
+Telegram/WhatsApp/X had reachability only; Google DNS no usable source echo;
+Instagram failed through the sample.32 ASNs were mapped, not32 physical proxies.
+This commit adds research documentation only; active registry/classifier, DB,
+statistics, queues and exports are unchanged. P63 draft remains discovery-only.
+Keep partial coverage explicit; no all-Ads, household, QUIC, Android or1000/SLO
+claim. Private source IPs/config remain outside Git. Preserve production guards
+and concurrent single-output work; no reset or deployment is implied by research.
+
+# P63 sample-first route discovery — prepared, not deployed / 2026-11-14
+
+The latest explicit user request supersedes the old classification design: first
+investigate their private sample, then rebuild and replace the project strategy.
+Read docs/ADS_ROUTE_DISCOVERY.md and docs/reports/P63-sample-report-fa.md plus the
+validation JSON. Two final isolated rounds each measured72 observations, exact
+raw/template on pinned26.5.9. Three DoubleClick domains repeatedly separated;
+three other Ads domains repeatedly shared controls. Both general payload checks
+passed. Legacy v7 returns NO_SPLIT on these same receipts; the independent new
+ads-route-map.v1 returns PARTIAL_ADS_SPLIT. This is not all-Ads or physical-proxy
+proof. Preliminary rounds3/4 were UNKNOWN because Google controls lacked adequate
+same-family witnesses. The separate discovery registry adds ipv4.google.com,
+retaining hostname/SNI/TLS and ordinary Google; never force destination IPs or
+attribute the IPv4 hostname route to www.google.com. Rotating Ads exits are allowed.
+New config-route-audit uses cgt only, private stdin, bounded runtime and cleanup;
+it never opens production DB or authorizes publication. Existing v7 runtime remains
+active; no reset, migration, export change, production activation or1000 benchmark
+was performed here. Resolve the material output-policy choice: include explicitly
+labeled DoubleClick/partial coverage in the main Residential output, or require all
+tested Ads domains (which excludes this sample). Do not silently redefine partial
+as full. Preserve Iran vetoes, source bytes, previous failures and other branches.
+This branch is based on single-output fix24e417a; do not overwrite later concurrent
+panel changes. Use the existing deployment lock and matched backup requirements
+for any eventual runtime switch. No credentials, raw URI or source IPs in Git.
+
 # P61 live status — classifier fixed, performance follow-up blocked / 2026-11-14
 
 Read docs/reports/P61-report-fa.md and P61-validation.json before further work.
