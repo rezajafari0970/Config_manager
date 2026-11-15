@@ -1,3 +1,38 @@
+# P66 active receipt — 2026-11-15
+
+Runtime source `78c8a19d187a266cf29c39e6373a72544aca486e`, release
+`p66d-78c8a19d-275749e38504`, ads-egress.v9/schema37. Read
+`docs/RESIDENTIAL_POLICY.md`, `docs/reports/P66-report-fa.md` and its validation JSON.
+Six canonical executable hashes and all four exact live exports were verified;
+final recorded snapshot had12 identities/10 distinct templates. Counts are live.
+The authorized schema36 reset occurred once. Schema37 and later accounting changes
+preserve its epoch. Do not reset again or open schema37 with older binaries.
+
+Only Evaluate may publish. Named-profile split, exact raw/template, Ads bootstrap
+assets and all-Ads Iran withdrawal remain required; partial coverage is explicit.
+Downloading an asset does not prove ad fill/rendering. Saved country selection
+still excludes AU; classification and country-filtered publication differ.
+
+OpenAI API review completed with gpt-6-astra max/pro; eight findings were fixed
+and tested. Fifteen provenance-verified automatic pre-hardening deletions were
+requalified under quarantine, without lifting prior/manual/Iran blocks. Their old
+negative definitive flags were retracted, preserving historical events and valid
+independent proof. At the recorded audit3 recovered and12 were correctly retired
+again; no ad-hoc resurrection of other exclusions is authorized by this repair.
+
+Performance remains unresolved: the later600s window measured172 new initial
+assessments/93 definitive results. Original1472-input cohort measured204/173 at600s
+and235/210 at900s after retracting invalidated negative evidence; the pre-correction
+223 receipt is preserved. Different cohorts/conditions are not a controlled speed
+comparison. No1000/600s or2000/900s success claim. At the final inventory snapshot951
+first assessments remained; the automatic enabled service continues. No complete
+inventory, universal detection, actual-render, Android/QUIC or future-uptime claim.
+Validation is composite: full suite on9d04aae plus affected race/vet/driver/migration/
+canary/export checks on refinements. Preserve failed/interrupted logs. Use the shared
+deploy lock and matched stopped DB/blob/key/unit/release backup. Documentation-only
+commits after the runtime commit must preserve its complete runtime source manifest.
+All earlier deployment/policy notes below are historical where they conflict here.
+
 # P66 unified Residential policy — implementation under validation / 2026-11-15
 
 The latest user explicitly authorizes one new Residential test/statistics reset,

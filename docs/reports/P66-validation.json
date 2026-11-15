@@ -1,0 +1,1325 @@
+{
+  "schema": 37,
+  "policy": "ads-egress.v9",
+  "generated_at": 1794724631,
+  "sole_publication_classifier": "internal/egress.Evaluate",
+  "active_release": {
+    "activated": 1794724496,
+    "commit": "78c8a19d187a266cf29c39e6373a72544aca486e",
+    "release": "/opt/config-repair/releases/p66d-78c8a19d-275749e38504",
+    "one_time_statistics_reset": false,
+    "stop_to_panel_ready_seconds": 19.772,
+    "binaries": {
+      "config-panel": "275749e38504c0c1624726b5613fed05f1d546d02c5c8aed52b4b19c15873c05",
+      "config-egress-worker": "a3e739d9c590de3690433d1bb56c5b16366b9129721f9a77394b9aacd6abb5c7",
+      "config-probe-worker": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+      "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+      "config-probe-plan": "62c40caf384f0436300299f61c65364a94d13efddedf4e3bbbf3c66d55f793e9"
+    },
+    "running": {
+      "config-repair-prober": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-smart": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-splash": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-ads": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-egress": "a3e739d9c590de3690433d1bb56c5b16366b9129721f9a77394b9aacd6abb5c7",
+      "config-repair": "275749e38504c0c1624726b5613fed05f1d546d02c5c8aed52b4b19c15873c05"
+    },
+    "schema_before": 37,
+    "schema_after": 37,
+    "reset_clock": 1794719470134
+  },
+  "initial_reset_release": {
+    "activated": 1794719482,
+    "commit": "e887878c8b5a4a8d104fd9227cb4341758cf6529",
+    "release": "/opt/config-repair/releases/p66-e887878c-69f32b6fc4c2",
+    "one_time_statistics_reset": true,
+    "stop_to_panel_ready_seconds": 22.312,
+    "binaries": {
+      "config-panel": "69f32b6fc4c244e083a9614bff3aa2c347a9253c5612ae104bbc9bb80184f9d2",
+      "config-egress-worker": "477c474f8ba9ad5bfa2f0cee57d839ada59cf39b68f1e2c6edbb8fddeff832da",
+      "config-probe-worker": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+      "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+      "config-probe-plan": "62c40caf384f0436300299f61c65364a94d13efddedf4e3bbbf3c66d55f793e9"
+    },
+    "running": {
+      "config-repair-prober": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-smart": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-splash": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-ads": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-egress": "477c474f8ba9ad5bfa2f0cee57d839ada59cf39b68f1e2c6edbb8fddeff832da",
+      "config-repair": "69f32b6fc4c244e083a9614bff3aa2c347a9253c5612ae104bbc9bb80184f9d2"
+    },
+    "schema_before": 35,
+    "schema_after": 36,
+    "reset_clock": 1794719470134
+  },
+  "hardening_release": {
+    "activated": 1794723403,
+    "commit": "2b55a817d9f9043e7166204033d44f82f10ba888",
+    "release": "/opt/config-repair/releases/p66c-2b55a817-e3785ae594ba",
+    "one_time_statistics_reset": false,
+    "stop_to_panel_ready_seconds": 8.354,
+    "binaries": {
+      "config-panel": "e3785ae594bacce30dc135dc0585558f61c0f26f84b5bc999ce53b4e2461a7c0",
+      "config-egress-worker": "a3e739d9c590de3690433d1bb56c5b16366b9129721f9a77394b9aacd6abb5c7",
+      "config-probe-worker": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+      "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+      "config-probe-plan": "62c40caf384f0436300299f61c65364a94d13efddedf4e3bbbf3c66d55f793e9"
+    },
+    "running": {
+      "config-repair-prober": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-smart": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-splash": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-ads": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-egress": "a3e739d9c590de3690433d1bb56c5b16366b9129721f9a77394b9aacd6abb5c7",
+      "config-repair": "e3785ae594bacce30dc135dc0585558f61c0f26f84b5bc999ce53b4e2461a7c0"
+    },
+    "schema_before": 36,
+    "schema_after": 37,
+    "reset_clock": 1794719470134
+  },
+  "one_production_reset_only": true,
+  "openai_review": {
+    "model": "gpt-6-astra",
+    "status": "completed",
+    "elapsed_seconds": 781.72,
+    "reasoning": {
+      "effort": "max",
+      "mode": "pro"
+    }
+  },
+  "reviewed_commit": "f71312733e5148e39828ba00158ba7a10abffd85",
+  "api_is_runtime_dependency": false,
+  "checks": {
+    "full-check": 0,
+    "final-focused": 0,
+    "worker-final": 0,
+    "rehearsal-final": 0,
+    "canonical-build": 0,
+    "watchdog-final": 0,
+    "refinement-unit": 0,
+    "refinement-checks": 0,
+    "pair-recovery-check": 0,
+    "hardening-unit": 0,
+    "hardening-python": 0,
+    "hardening-checks": 0,
+    "hardening-canary": 0,
+    "positive-canary": 0,
+    "corrective-rehearsal": 0,
+    "negative-retraction": 0,
+    "accounting-unit": 0,
+    "accounting-checks": 0,
+    "accounting-deploy": 0,
+    "production-smoke-final": 0
+  },
+  "validation_scope": "Full suite passed at 9d04aae; affected modules/race plus real canaries, migration and exports revalidated after later changes. This is composite validation, not a new monolithic full-suite pass on the final commit.",
+  "test_history": [
+    "An initial full run was intentionally interrupted; it is not reported as passed.",
+    "Two old local test expectations were corrected for actual proof deadlines and unique definitive counts.",
+    "Local worker socket test was unavailable in this sandbox; the complete worker race suite passed on the server.",
+    "A first corrective-requalification fixture used an invalid manual-action label; corrected and passed.",
+    "A first six-input canary harness was interrupted because urgent follow-up could starve its first-pass sample; the isolated harness was corrected.",
+    "A repeated six-input canary completed with five network failures and one unproven asset; its nonempty-export check failed and was preserved.",
+    "The first queue-accounting query revision conflicted with frozen-read SQL composition; it was corrected and all affected tests passed."
+  ],
+  "canaries": {
+    "earlier_six": {
+      "total": 6,
+      "tested": 6,
+      "seconds": 60.08,
+      "same_six_speedray_templates": true,
+      "results": [
+        {
+          "state": "RESIDENTIAL",
+          "reason": "verified_ads_profile",
+          "delivery": {
+            "status": "available",
+            "profiles": {
+              "ads-serving.v1": "available",
+              "doubleclick.v1": "available"
+            },
+            "scope": "HTTPS Ads bootstrap assets in exact raw/template; ad fill and device rendering not measured"
+          },
+          "seconds": 19.769,
+          "failure_codes": null
+        },
+        {
+          "state": "RESIDENTIAL",
+          "reason": "verified_ads_profile",
+          "delivery": {
+            "status": "available",
+            "profiles": {
+              "ads-serving.v1": "available",
+              "doubleclick.v1": "available"
+            },
+            "scope": "HTTPS Ads bootstrap assets in exact raw/template; ad fill and device rendering not measured"
+          },
+          "seconds": 17.483,
+          "failure_codes": null
+        },
+        {
+          "state": "RESIDENTIAL",
+          "reason": "verified_ads_profile",
+          "delivery": {
+            "status": "available",
+            "profiles": {
+              "ads-serving.v1": "available",
+              "doubleclick.v1": "available"
+            },
+            "scope": "HTTPS Ads bootstrap assets in exact raw/template; ad fill and device rendering not measured"
+          },
+          "seconds": 12.593,
+          "failure_codes": null
+        },
+        {
+          "state": "RESIDENTIAL",
+          "reason": "verified_ads_profile",
+          "delivery": {
+            "status": "available",
+            "profiles": {
+              "ads-serving.v1": "available",
+              "doubleclick.v1": "available"
+            },
+            "scope": "HTTPS Ads bootstrap assets in exact raw/template; ad fill and device rendering not measured"
+          },
+          "seconds": 23.211,
+          "failure_codes": {
+            "connection_timeout": 1
+          }
+        },
+        {
+          "state": "RESIDENTIAL",
+          "reason": "verified_ads_profile",
+          "delivery": {
+            "status": "available",
+            "profiles": {
+              "ads-serving.v1": "available",
+              "doubleclick.v1": "available"
+            },
+            "scope": "HTTPS Ads bootstrap assets in exact raw/template; ad fill and device rendering not measured"
+          },
+          "seconds": 17.82,
+          "failure_codes": null
+        },
+        {
+          "state": "RESIDENTIAL",
+          "reason": "verified_ads_profile",
+          "delivery": {
+            "status": "available",
+            "profiles": {
+              "ads-serving.v1": "available",
+              "doubleclick.v1": "available"
+            },
+            "scope": "HTTPS Ads bootstrap assets in exact raw/template; ad fill and device rendering not measured"
+          },
+          "seconds": 16.115,
+          "failure_codes": null
+        }
+      ],
+      "eligible": 6,
+      "published": 6
+    },
+    "later_same_six": {
+      "total": 6,
+      "tested": 6,
+      "seconds": 152.322,
+      "same_six_speedray_templates": true,
+      "results": [
+        {
+          "state": "QUARANTINED",
+          "reason": "ads_delivery_unhealthy",
+          "delivery": {
+            "status": "unavailable",
+            "profiles": {
+              "ads-serving.v1": "unavailable",
+              "doubleclick.v1": "unavailable"
+            },
+            "scope": "HTTPS Ads bootstrap assets in exact raw/template; ad fill and device rendering not measured"
+          },
+          "seconds": 51.009,
+          "failure_codes": {
+            "connection_timeout": 60
+          }
+        },
+        {
+          "state": "QUARANTINED",
+          "reason": "ads_delivery_unhealthy",
+          "delivery": {
+            "status": "unavailable",
+            "profiles": {
+              "ads-serving.v1": "unavailable",
+              "doubleclick.v1": "unavailable"
+            },
+            "scope": "HTTPS Ads bootstrap assets in exact raw/template; ad fill and device rendering not measured"
+          },
+          "seconds": 50.786,
+          "failure_codes": {
+            "connection_timeout": 60
+          }
+        },
+        {
+          "state": "QUARANTINED",
+          "reason": "ads_delivery_unhealthy",
+          "delivery": {
+            "status": "unavailable",
+            "profiles": {
+              "ads-serving.v1": "unavailable",
+              "doubleclick.v1": "unavailable"
+            },
+            "scope": "HTTPS Ads bootstrap assets in exact raw/template; ad fill and device rendering not measured"
+          },
+          "seconds": 50.066,
+          "failure_codes": {
+            "connection_timeout": 60
+          }
+        },
+        {
+          "state": "QUARANTINED",
+          "reason": "ads_delivery_unproven",
+          "delivery": {
+            "status": "unknown",
+            "profiles": {
+              "ads-serving.v1": "unknown",
+              "doubleclick.v1": "unknown"
+            },
+            "scope": "HTTPS Ads bootstrap assets in exact raw/template; ad fill and device rendering not measured"
+          },
+          "seconds": 14.646,
+          "failure_codes": null
+        },
+        {
+          "state": "QUARANTINED",
+          "reason": "ads_delivery_unhealthy",
+          "delivery": {
+            "status": "unavailable",
+            "profiles": {
+              "ads-serving.v1": "unavailable",
+              "doubleclick.v1": "unavailable"
+            },
+            "scope": "HTTPS Ads bootstrap assets in exact raw/template; ad fill and device rendering not measured"
+          },
+          "seconds": 48.988,
+          "failure_codes": {
+            "connection_timeout": 60
+          }
+        },
+        {
+          "state": "QUARANTINED",
+          "reason": "ads_delivery_unhealthy",
+          "delivery": {
+            "status": "unavailable",
+            "profiles": {
+              "ads-serving.v1": "unavailable",
+              "doubleclick.v1": "unavailable"
+            },
+            "scope": "HTTPS Ads bootstrap assets in exact raw/template; ad fill and device rendering not measured"
+          },
+          "seconds": 49.221,
+          "failure_codes": {
+            "connection_timeout": 60
+          }
+        }
+      ],
+      "eligible": 0,
+      "published": 0
+    },
+    "fresh_positive_pair": {
+      "total": 2,
+      "tested": 2,
+      "seconds": 20.031,
+      "two_recently_observed_positives_from_isolated_audit": true,
+      "results": [
+        {
+          "state": "RESIDENTIAL",
+          "reason": "verified_ads_profile",
+          "delivery": {
+            "status": "available",
+            "profiles": {
+              "ads-serving.v1": "available",
+              "doubleclick.v1": "available"
+            },
+            "scope": "HTTPS Ads bootstrap assets in exact raw/template; ad fill and device rendering not measured"
+          },
+          "seconds": 17.671,
+          "failure_codes": null
+        },
+        {
+          "state": "RESIDENTIAL",
+          "reason": "verified_ads_profile",
+          "delivery": {
+            "status": "available",
+            "profiles": {
+              "ads-serving.v1": "available",
+              "doubleclick.v1": "available"
+            },
+            "scope": "HTTPS Ads bootstrap assets in exact raw/template; ad fill and device rendering not measured"
+          },
+          "seconds": 16.836,
+          "failure_codes": null
+        }
+      ],
+      "eligible": 2,
+      "published": 2
+    },
+    "fresh_pair_exports": {
+      "passed": true,
+      "tested_real_inputs": 2,
+      "publishable": 2,
+      "profiles": {
+        "complete_tested_ads": 2,
+        "partial_tested_ads": 0,
+        "profile_counts_overlap": true,
+        "profiles": {
+          "ads-serving.v1": 2,
+          "doubleclick.v1": 2
+        },
+        "published": 2
+      },
+      "formats": {
+        "configs.json": {
+          "status": 200,
+          "count": 2,
+          "exact_bytes": true,
+          "distinct_bodies": 1
+        },
+        "configs.jsonl": {
+          "status": 200,
+          "count": 2,
+          "exact_bytes": true,
+          "distinct_bodies": 1
+        },
+        "next.json": {
+          "status": 200,
+          "count": 1,
+          "exact_bytes": true,
+          "distinct_bodies": 1
+        },
+        "raw.txt": {
+          "status": 200,
+          "count": 2,
+          "exact_bytes": true,
+          "distinct_bodies": 2
+        }
+      },
+      "fixture": "/tmp/shen-egress-p66-positive-audit",
+      "asset_scope": "necessary bootstrap assets; actual ad fill/rendering not measured",
+      "job_seconds": [
+        17.671,
+        16.836
+      ]
+    }
+  },
+  "copied_data": {
+    "hardening": {
+      "passed": true,
+      "schema_before": 36,
+      "schema_after": 37,
+      "no_reset": true,
+      "idempotent": true,
+      "old_binary_rejected": true,
+      "tables_unchanged": [
+        "egress_jobs",
+        "egress_runs",
+        "egress_run_members",
+        "egress_iran_guard",
+        "egress_health",
+        "egress_countries",
+        "input_exclusions",
+        "egress_settings",
+        "settings",
+        "sources",
+        "memberships",
+        "egress_lifecycle"
+      ],
+      "digests": {
+        "egress_jobs": "02405b522e0f426b7a1fd2f0624c8d41247e928004c4005b408b7632c7829f3b",
+        "egress_runs": "dee7b89db1be52e239c4668ec246cbc5c4d05a9744804f44ce03f7ede76a16fd",
+        "egress_run_members": "d55a9b434f3ccea90fb83b81d33ea5176217a5599fc6951d719143b2ee0d2cb7",
+        "egress_iran_guard": "7be930cf00a4ab1d86dff221ede9bfe9720135f052b191c1c7737c3379ec9fda",
+        "egress_health": "134957317e921015e1273623bd44e760f12dc9aaf15a50683c59266ab5643353",
+        "egress_countries": "f94725b080865f049343099a657ed981fc1c39d05e73088dbf6df3d04f43b480",
+        "input_exclusions": "bd115dc7e2e42b6bea40a05c768d18c644266b4f1aa5ac8af5bd9545e2ee2202",
+        "egress_settings": "e91d06d7493d1a8319cc70fca0c307fc7f60750044e310abf1e0f04331cb9095",
+        "settings": "f03759fec0e2f29ff4e90f207f0b8283f39cf9437efc6e1cc98a80d8484dd031",
+        "sources": "2c14627bb9077188ff4a71a532851e90d1c6f1f56cceb4802bd75f9b64e01b06",
+        "memberships": "ebefa910fd346381ac84839dd67be9cd3a8ebd46b48bc4adae407f6ea2025360",
+        "egress_lifecycle": "22fcc639f4af0e4f56868cbceb0859ca4d9d7f9dd73c614bad6e97df14a35e40"
+      },
+      "metrics_before": {
+        "id": 1,
+        "since": 1794719470134,
+        "baseline_inputs": 1472,
+        "registered": 346,
+        "completed": 721,
+        "first_assessments": 253,
+        "definitive": 594,
+        "lease_recoveries": 0,
+        "unhealthy_deleted": 15
+      },
+      "metrics_after": {
+        "id": 1,
+        "since": 1794719470134,
+        "baseline_inputs": 1472,
+        "registered": 346,
+        "completed": 721,
+        "first_assessments": 253,
+        "definitive": 243,
+        "lease_recoveries": 0,
+        "unhealthy_deleted": 15
+      },
+      "withdrawal_preserved": true,
+      "negative_confirmation_counts_reset": true
+    },
+    "final_accounting": {
+      "passed": true,
+      "schema": 37,
+      "no_reset": true,
+      "tables_unchanged": [
+        "egress_jobs",
+        "egress_metrics",
+        "egress_runs",
+        "egress_run_members",
+        "egress_iran_guard",
+        "egress_retirements",
+        "egress_settlements",
+        "egress_health",
+        "egress_countries",
+        "input_exclusions",
+        "egress_settings",
+        "settings",
+        "sources",
+        "memberships",
+        "egress_lifecycle"
+      ],
+      "digests": {
+        "egress_jobs": "416aadc2f2f0f1ff6365cb4435131043172416f259527bc87b6ca7f348b60c11",
+        "egress_metrics": "a7fa2caabbfb30381598b172bf938679c1fe7dbd138563f89ea05a59178fa2a2",
+        "egress_runs": "dee7b89db1be52e239c4668ec246cbc5c4d05a9744804f44ce03f7ede76a16fd",
+        "egress_run_members": "6f711319e7502bc836d2c2a4194bc931bae8ec02bbef4d2f5c07b5c0ad97f113",
+        "egress_iran_guard": "7be930cf00a4ab1d86dff221ede9bfe9720135f052b191c1c7737c3379ec9fda",
+        "egress_retirements": "2799950c2fab92f813e5d8425ba3964fe93647edd3c73aea7082f480db65cbb9",
+        "egress_settlements": "630662c00c39ce6bf19d66857256710d49cc61ad5b580fcb61511662f6a497d5",
+        "egress_health": "d41a50b740af0642a32379ab95552ce276918bf09e62dc507e61f8088d2ba3d4",
+        "egress_countries": "7e55d52ed1a644f76cc93507e4f524fa36e126f9db21b9024818aa5dfd53b1fc",
+        "input_exclusions": "a67c4e0e1691c8d40b3d453e622403d59d1490da350b1200a127b15fb12ee2dc",
+        "egress_settings": "990812748d48f3380eb4789a64b55f4d9d6f81d4606dbe30da61a23df8b864a1",
+        "settings": "f03759fec0e2f29ff4e90f207f0b8283f39cf9437efc6e1cc98a80d8484dd031",
+        "sources": "096d24eb87fdfdc84d491c34531fb822ece61e024ace44b327c10fe932a1c1d4",
+        "memberships": "84ed8f1dc357c4901f65125c08a6723d1c3d8cb49d0c892f9664f9a64b548d5c",
+        "egress_lifecycle": "22fcc639f4af0e4f56868cbceb0859ca4d9d7f9dd73c614bad6e97df14a35e40"
+      }
+    }
+  },
+  "bounded_corrective_requalification": {
+    "count": 15,
+    "provenance_verified": true,
+    "direct_publications": 0,
+    "manual_and_iran_preserved": true,
+    "isolated_recheck": {
+      "available_and_residential": 2,
+      "unavailable": 12,
+      "unknown": 1
+    },
+    "current_states": {
+      "RESIDENTIAL / verified_ads_profile": 3,
+      "DELETED / confirmed_ads_delivery_unhealthy": 12
+    },
+    "file_ownership_repair": {
+      "at": 1794723653,
+      "restored_files_owner_corrected": 13,
+      "all15_readable_by_service": true,
+      "infrastructure_retries_rescheduled": 13,
+      "metrics_reset": false
+    },
+    "old_negative_flags_retracted": 15,
+    "metrics_before_retraction": {
+      "id": 1,
+      "since": 1794719470134,
+      "baseline_inputs": 1472,
+      "registered": 576,
+      "completed": 1066,
+      "first_assessments": 405,
+      "definitive": 337,
+      "lease_recoveries": 19,
+      "unhealthy_deleted": 35
+    },
+    "metrics_after_retraction": {
+      "id": 1,
+      "since": 1794719470134,
+      "baseline_inputs": 1472,
+      "registered": 576,
+      "completed": 1066,
+      "first_assessments": 405,
+      "definitive": 330,
+      "lease_recoveries": 19,
+      "unhealthy_deleted": 35
+    }
+  },
+  "benchmark": {
+    "initial_cohort_total": 1472,
+    "baseline_as_recorded_before_retraction": {
+      "mode": "read_only_reset_cohort",
+      "run": 1,
+      "started": 1794719470134,
+      "observed_at": 1794720443149,
+      "total": 1472,
+      "completed": 235,
+      "settled": 224,
+      "pending": 964,
+      "excluded": 273,
+      "first_states": {
+        "RESIDENTIAL": 172,
+        "QUARANTINED": 32,
+        "UNKNOWN": 7,
+        "NO_SPLIT": 24
+      },
+      "settled_states": {
+        "RESIDENTIAL": 187,
+        "DELETED": 13,
+        "NO_SPLIT": 24
+      },
+      "cohort_sha256": "ab41fb1002718b2484b6fae2b037289fa56aaba631e073a0e64edff1e79e9e1d",
+      "unregistered_current": 0,
+      "unit": "collector_identity",
+      "assessed_1000_seconds": null,
+      "assessed_at_600s": 204,
+      "assessed_1000_target_met": false,
+      "definitive_1000_seconds": null,
+      "definitive_at_600s": 173,
+      "definitive_1000_target_met": false,
+      "1000_cohort_available": true,
+      "assessed_2000_seconds": null,
+      "assessed_at_900s": 235,
+      "assessed_2000_target_met": false,
+      "definitive_2000_seconds": null,
+      "definitive_at_900s": 223,
+      "definitive_2000_target_met": false,
+      "2000_cohort_available": false,
+      "scope": "Current unique reset cohort only; first assessment may be UNKNOWN. Definitive requires verified positive, route negative, confirmed unsafe retirement or confirmed Iran. No ad-render, future-uptime or unmeasured 2000-input claim.",
+      "timeline": [
+        {
+          "total": 1472,
+          "completed": 0,
+          "settled": 0,
+          "pending": 1472,
+          "excluded": 0,
+          "observer_seconds": 0.008,
+          "since_reset_seconds": 13.016
+        },
+        {
+          "total": 1472,
+          "completed": 0,
+          "settled": 0,
+          "pending": 1469,
+          "excluded": 3,
+          "observer_seconds": 30.13,
+          "since_reset_seconds": 43.138
+        },
+        {
+          "total": 1472,
+          "completed": 3,
+          "settled": 2,
+          "pending": 1466,
+          "excluded": 3,
+          "observer_seconds": 60.249,
+          "since_reset_seconds": 73.257
+        },
+        {
+          "total": 1472,
+          "completed": 6,
+          "settled": 5,
+          "pending": 1445,
+          "excluded": 21,
+          "observer_seconds": 90.406,
+          "since_reset_seconds": 103.415
+        },
+        {
+          "total": 1472,
+          "completed": 14,
+          "settled": 11,
+          "pending": 1432,
+          "excluded": 26,
+          "observer_seconds": 120.539,
+          "since_reset_seconds": 133.548
+        },
+        {
+          "total": 1472,
+          "completed": 22,
+          "settled": 18,
+          "pending": 1424,
+          "excluded": 26,
+          "observer_seconds": 150.673,
+          "since_reset_seconds": 163.682
+        },
+        {
+          "total": 1472,
+          "completed": 33,
+          "settled": 27,
+          "pending": 1412,
+          "excluded": 27,
+          "observer_seconds": 180.845,
+          "since_reset_seconds": 193.854
+        },
+        {
+          "total": 1472,
+          "completed": 51,
+          "settled": 45,
+          "pending": 1394,
+          "excluded": 27,
+          "observer_seconds": 211.219,
+          "since_reset_seconds": 224.228
+        },
+        {
+          "total": 1472,
+          "completed": 64,
+          "settled": 53,
+          "pending": 1379,
+          "excluded": 29,
+          "observer_seconds": 241.397,
+          "since_reset_seconds": 254.406
+        },
+        {
+          "total": 1472,
+          "completed": 83,
+          "settled": 65,
+          "pending": 1360,
+          "excluded": 29,
+          "observer_seconds": 271.579,
+          "since_reset_seconds": 284.588
+        },
+        {
+          "total": 1472,
+          "completed": 101,
+          "settled": 78,
+          "pending": 1311,
+          "excluded": 60,
+          "observer_seconds": 301.849,
+          "since_reset_seconds": 314.858
+        },
+        {
+          "total": 1472,
+          "completed": 120,
+          "settled": 96,
+          "pending": 1292,
+          "excluded": 60,
+          "observer_seconds": 332.08,
+          "since_reset_seconds": 345.089
+        },
+        {
+          "total": 1472,
+          "completed": 127,
+          "settled": 103,
+          "pending": 1285,
+          "excluded": 60,
+          "observer_seconds": 362.264,
+          "since_reset_seconds": 375.273
+        },
+        {
+          "total": 1472,
+          "completed": 131,
+          "settled": 107,
+          "pending": 1281,
+          "excluded": 60,
+          "observer_seconds": 392.409,
+          "since_reset_seconds": 405.418
+        },
+        {
+          "total": 1472,
+          "completed": 133,
+          "settled": 109,
+          "pending": 1279,
+          "excluded": 60,
+          "observer_seconds": 422.604,
+          "since_reset_seconds": 435.613
+        },
+        {
+          "total": 1472,
+          "completed": 140,
+          "settled": 116,
+          "pending": 1243,
+          "excluded": 89,
+          "observer_seconds": 452.739,
+          "since_reset_seconds": 465.748
+        },
+        {
+          "total": 1472,
+          "completed": 146,
+          "settled": 120,
+          "pending": 1237,
+          "excluded": 89,
+          "observer_seconds": 482.91,
+          "since_reset_seconds": 495.919
+        },
+        {
+          "total": 1472,
+          "completed": 159,
+          "settled": 131,
+          "pending": 1224,
+          "excluded": 89,
+          "observer_seconds": 513.352,
+          "since_reset_seconds": 526.361
+        },
+        {
+          "total": 1472,
+          "completed": 179,
+          "settled": 150,
+          "pending": 1204,
+          "excluded": 89,
+          "observer_seconds": 543.525,
+          "since_reset_seconds": 556.533
+        },
+        {
+          "total": 1472,
+          "completed": 201,
+          "settled": 170,
+          "pending": 1182,
+          "excluded": 89,
+          "observer_seconds": 573.746,
+          "since_reset_seconds": 586.755
+        },
+        {
+          "total": 1472,
+          "completed": 204,
+          "settled": 176,
+          "pending": 1156,
+          "excluded": 112,
+          "observer_seconds": 603.903,
+          "since_reset_seconds": 616.906
+        },
+        {
+          "total": 1472,
+          "completed": 205,
+          "settled": 182,
+          "pending": 1151,
+          "excluded": 116,
+          "observer_seconds": 634.032,
+          "since_reset_seconds": 647.041
+        },
+        {
+          "total": 1472,
+          "completed": 225,
+          "settled": 201,
+          "pending": 1131,
+          "excluded": 116,
+          "observer_seconds": 664.327,
+          "since_reset_seconds": 677.335
+        },
+        {
+          "total": 1472,
+          "completed": 235,
+          "settled": 209,
+          "pending": 1120,
+          "excluded": 117,
+          "observer_seconds": 694.482,
+          "since_reset_seconds": 707.491
+        },
+        {
+          "total": 1472,
+          "completed": 235,
+          "settled": 218,
+          "pending": 990,
+          "excluded": 247,
+          "observer_seconds": 724.657,
+          "since_reset_seconds": 737.666
+        },
+        {
+          "total": 1472,
+          "completed": 235,
+          "settled": 220,
+          "pending": 990,
+          "excluded": 247,
+          "observer_seconds": 754.815,
+          "since_reset_seconds": 767.823
+        },
+        {
+          "total": 1472,
+          "completed": 235,
+          "settled": 220,
+          "pending": 983,
+          "excluded": 254,
+          "observer_seconds": 784.988,
+          "since_reset_seconds": 797.997
+        },
+        {
+          "total": 1472,
+          "completed": 235,
+          "settled": 222,
+          "pending": 983,
+          "excluded": 254,
+          "observer_seconds": 815.187,
+          "since_reset_seconds": 828.195
+        },
+        {
+          "total": 1472,
+          "completed": 235,
+          "settled": 223,
+          "pending": 983,
+          "excluded": 254,
+          "observer_seconds": 845.394,
+          "since_reset_seconds": 858.403
+        },
+        {
+          "total": 1472,
+          "completed": 235,
+          "settled": 223,
+          "pending": 982,
+          "excluded": 255,
+          "observer_seconds": 875.555,
+          "since_reset_seconds": 888.564
+        },
+        {
+          "total": 1472,
+          "completed": 235,
+          "settled": 224,
+          "pending": 981,
+          "excluded": 256,
+          "observer_seconds": 905.721,
+          "since_reset_seconds": 918.73
+        },
+        {
+          "total": 1472,
+          "completed": 235,
+          "settled": 224,
+          "pending": 964,
+          "excluded": 273,
+          "observer_seconds": 935.976,
+          "since_reset_seconds": 948.983
+        }
+      ]
+    },
+    "baseline_after_invalidated_evidence_retraction": {
+      "assessed_at_600s": 204,
+      "definitive_at_600s": 173,
+      "assessed_at_900s": 235,
+      "definitive_at_900s": 210
+    },
+    "later_dynamic_first_assessment_window": {
+      "mode": "read_only_dynamic_first_assessment_window",
+      "runtime_commit": "2b55a817d9f9043e7166204033d44f82f10ba888",
+      "start": 1794723403000,
+      "observed_at": 1794724003245,
+      "elapsed_seconds": 600.245,
+      "unique_first_assessments": 172,
+      "unique_definitive": 93,
+      "all_events_including_renewals": 400,
+      "first_states": {
+        "UNKNOWN": 75,
+        "UNSUPPORTED": 11,
+        "NO_SPLIT": 86
+      },
+      "published": 14,
+      "eligible": 57,
+      "worker": [
+        15,
+        "capacity_13"
+      ],
+      "metrics_reset": false,
+      "scope": "New first assessments since scheduler activation, across current source inventory as it changes; excludes every input with an earlier event in this reset epoch. Renewals and retries cannot inflate unique counts. Different window from the immutable original reset cohort.",
+      "assessed_1000_seconds": null,
+      "assessed_1000_target_met": false,
+      "assessed_at_600s": 172,
+      "definitive_1000_seconds": null,
+      "definitive_1000_target_met": false,
+      "definitive_at_600s": 93,
+      "timeline": [
+        {
+          "elapsed_seconds": 0.59,
+          "unique_first_assessments": 0,
+          "unique_definitive": 0,
+          "all_events_including_renewals": 0,
+          "published": 0,
+          "worker": [
+            0,
+            "capacity_31"
+          ]
+        },
+        {
+          "elapsed_seconds": 30.747,
+          "unique_first_assessments": 20,
+          "unique_definitive": 15,
+          "all_events_including_renewals": 36,
+          "published": 0,
+          "worker": [
+            30,
+            "capacity_15"
+          ]
+        },
+        {
+          "elapsed_seconds": 60.82,
+          "unique_first_assessments": 37,
+          "unique_definitive": 26,
+          "all_events_including_renewals": 82,
+          "published": 0,
+          "worker": [
+            5,
+            "capacity_6"
+          ]
+        },
+        {
+          "elapsed_seconds": 90.978,
+          "unique_first_assessments": 46,
+          "unique_definitive": 27,
+          "all_events_including_renewals": 96,
+          "published": 0,
+          "worker": [
+            8,
+            "capacity_13"
+          ]
+        },
+        {
+          "elapsed_seconds": 121.156,
+          "unique_first_assessments": 49,
+          "unique_definitive": 29,
+          "all_events_including_renewals": 123,
+          "published": 0,
+          "worker": [
+            21,
+            "capacity_21"
+          ]
+        },
+        {
+          "elapsed_seconds": 151.377,
+          "unique_first_assessments": 68,
+          "unique_definitive": 39,
+          "all_events_including_renewals": 155,
+          "published": 0,
+          "worker": [
+            13,
+            "capacity_9"
+          ]
+        },
+        {
+          "elapsed_seconds": 181.773,
+          "unique_first_assessments": 79,
+          "unique_definitive": 46,
+          "all_events_including_renewals": 173,
+          "published": 0,
+          "worker": [
+            17,
+            "capacity_4"
+          ]
+        },
+        {
+          "elapsed_seconds": 212.135,
+          "unique_first_assessments": 82,
+          "unique_definitive": 50,
+          "all_events_including_renewals": 185,
+          "published": 1,
+          "worker": [
+            13,
+            "capacity_9"
+          ]
+        },
+        {
+          "elapsed_seconds": 242.454,
+          "unique_first_assessments": 93,
+          "unique_definitive": 55,
+          "all_events_including_renewals": 222,
+          "published": 3,
+          "worker": [
+            17,
+            "capacity_17"
+          ]
+        },
+        {
+          "elapsed_seconds": 272.837,
+          "unique_first_assessments": 107,
+          "unique_definitive": 63,
+          "all_events_including_renewals": 244,
+          "published": 9,
+          "worker": [
+            17,
+            "capacity_4"
+          ]
+        },
+        {
+          "elapsed_seconds": 303.18,
+          "unique_first_assessments": 107,
+          "unique_definitive": 63,
+          "all_events_including_renewals": 249,
+          "published": 9,
+          "worker": [
+            13,
+            "capacity_6"
+          ]
+        },
+        {
+          "elapsed_seconds": 333.729,
+          "unique_first_assessments": 120,
+          "unique_definitive": 73,
+          "all_events_including_renewals": 275,
+          "published": 9,
+          "worker": [
+            7,
+            "capacity_13"
+          ]
+        },
+        {
+          "elapsed_seconds": 364.043,
+          "unique_first_assessments": 124,
+          "unique_definitive": 75,
+          "all_events_including_renewals": 284,
+          "published": 11,
+          "worker": [
+            14,
+            "capacity_6"
+          ]
+        },
+        {
+          "elapsed_seconds": 394.548,
+          "unique_first_assessments": 128,
+          "unique_definitive": 76,
+          "all_events_including_renewals": 302,
+          "published": 11,
+          "worker": [
+            17,
+            "capacity_17"
+          ]
+        },
+        {
+          "elapsed_seconds": 425.245,
+          "unique_first_assessments": 150,
+          "unique_definitive": 88,
+          "all_events_including_renewals": 331,
+          "published": 13,
+          "worker": [
+            17,
+            "capacity_15"
+          ]
+        },
+        {
+          "elapsed_seconds": 455.989,
+          "unique_first_assessments": 152,
+          "unique_definitive": 89,
+          "all_events_including_renewals": 341,
+          "published": 14,
+          "worker": [
+            11,
+            "capacity_2"
+          ]
+        },
+        {
+          "elapsed_seconds": 486.367,
+          "unique_first_assessments": 152,
+          "unique_definitive": 89,
+          "all_events_including_renewals": 352,
+          "published": 14,
+          "worker": [
+            3,
+            "capacity_2"
+          ]
+        },
+        {
+          "elapsed_seconds": 516.79,
+          "unique_first_assessments": 152,
+          "unique_definitive": 89,
+          "all_events_including_renewals": 352,
+          "published": 14,
+          "worker": [
+            6,
+            "capacity_9"
+          ]
+        },
+        {
+          "elapsed_seconds": 547.264,
+          "unique_first_assessments": 159,
+          "unique_definitive": 90,
+          "all_events_including_renewals": 363,
+          "published": 14,
+          "worker": [
+            12,
+            "capacity_17"
+          ]
+        },
+        {
+          "elapsed_seconds": 577.798,
+          "unique_first_assessments": 167,
+          "unique_definitive": 92,
+          "all_events_including_renewals": 382,
+          "published": 14,
+          "worker": [
+            15,
+            "capacity_6"
+          ]
+        }
+      ]
+    },
+    "later_window_notes": "Same reset epoch; excludes all previously assessed hashes. Live source churn, normal renewals and limited corrective maintenance continued. It is not the same fixed cohort or a controlled before/after speed comparison.",
+    "target_1000_in_600s_met": false,
+    "target_2000_in_900s_proven": false,
+    "real_2000_cohort_available": false,
+    "resource_observation": {
+      "samples": 35,
+      "api_errors": 0,
+      "api_seconds": {
+        "min": 1.217,
+        "median": 2.722,
+        "max": 3.801
+      },
+      "capacity_min": 2,
+      "capacity_max": 31,
+      "active_min": 0,
+      "active_max": 31,
+      "capacity_histogram": {
+        "2": 3,
+        "4": 6,
+        "6": 6,
+        "9": 7,
+        "13": 4,
+        "15": 1,
+        "17": 3,
+        "21": 3,
+        "31": 2
+      },
+      "memory_events_first": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+      "memory_events_last": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"
+    }
+  },
+  "final_live_exports": {
+    "passed": true,
+    "at": 1794724579,
+    "commit": "78c8a19d187a266cf29c39e6373a72544aca486e",
+    "release": "/opt/config-repair/releases/p66d-78c8a19d-275749e38504",
+    "schema": 37,
+    "published_at_snapshot": 12,
+    "identity_count": 12,
+    "distinct_output_templates": 10,
+    "audit_note": "Output rows preserve each collector identity; different inputs may produce the same template. Verified multiplicities, not a distinct-template-equals-identities assumption.",
+    "profiles": {
+      "complete_tested_ads": 32,
+      "partial_tested_ads": 21,
+      "profile_counts_overlap": true,
+      "profiles": {
+        "ads-serving.v1": 33,
+        "doubleclick.v1": 52
+      },
+      "published": 12
+    },
+    "current_unique": 1214,
+    "retained_outside_current": 103,
+    "coverage_missing": 0,
+    "worker": {
+      "active": 4,
+      "code": "capacity_6",
+      "heartbeat": 1794724571857,
+      "status": "running"
+    },
+    "formats": {
+      "configs.json": {
+        "status": 200,
+        "count": 12,
+        "distinct_bodies": 10,
+        "exact_bytes": true,
+        "body_sha256": "7b5683d76aa37800fa74cfbfefa75fbe0c779af7f88287b88aac495429572dda",
+        "generation": "6e1a9e3af3feaac213e33c1f36909da4d692729b28efa7639367e8a98ff356de"
+      },
+      "configs.jsonl": {
+        "status": 200,
+        "count": 12,
+        "distinct_bodies": 10,
+        "exact_bytes": true,
+        "body_sha256": "86bdd41dee736b17e2b5af22449506754f42ecc71d1a36dadf089cc87b5f4ad9",
+        "generation": "6e1a9e3af3feaac213e33c1f36909da4d692729b28efa7639367e8a98ff356de"
+      },
+      "next.json": {
+        "status": 200,
+        "count": 1,
+        "distinct_bodies": 1,
+        "exact_bytes": true,
+        "body_sha256": "09c222ecd06b96c115b77488a86e643a7f53ebbf76ce20e4a943a6d2102536ce",
+        "generation": "6e1a9e3af3feaac213e33c1f36909da4d692729b28efa7639367e8a98ff356de"
+      },
+      "raw.txt": {
+        "status": 200,
+        "count": 12,
+        "distinct_bodies": 12,
+        "exact_bytes": true,
+        "body_sha256": "41e4449fd619a16ecd2493515e68e3007f15c6369d367f22db7862fcdfb82e42",
+        "generation": "6e1a9e3af3feaac213e33c1f36909da4d692729b28efa7639367e8a98ff356de"
+      }
+    },
+    "services": {
+      "config-repair-prober": {
+        "active": true,
+        "restarts": 0,
+        "tested_binary": true
+      },
+      "config-repair-smart": {
+        "active": true,
+        "restarts": 0,
+        "tested_binary": true
+      },
+      "config-repair-splash": {
+        "active": true,
+        "restarts": 0,
+        "tested_binary": true
+      },
+      "config-repair-ads": {
+        "active": true,
+        "restarts": 0,
+        "tested_binary": true
+      },
+      "config-repair-egress": {
+        "active": true,
+        "restarts": 0,
+        "tested_binary": true
+      },
+      "config-repair": {
+        "active": true,
+        "restarts": 0,
+        "tested_binary": true
+      }
+    },
+    "new_policy_results": [
+      [
+        "DELETED",
+        "confirmed_ads_delivery_unhealthy",
+        2
+      ],
+      [
+        "UNKNOWN",
+        "ads_delivery_unhealthy",
+        2
+      ]
+    ],
+    "since_activation_seconds": 83,
+    "events_since_activation": {
+      "completed": 10,
+      "distinct_inputs": 8,
+      "definitive": 6
+    },
+    "full_inventory_complete": false,
+    "free_disk_gib": 1.916
+  },
+  "active_inventory": {
+    "current_scope": 1315,
+    "awaiting_first": 951,
+    "assessed": 364,
+    "retained": 179
+  },
+  "full_current_inventory_complete": false,
+  "current_retirement_audit": {
+    "current_retired": 62,
+    "remaining_memberships": 0,
+    "remaining_ordinary_inputs": 0,
+    "remaining_residential_exports": 0,
+    "identity_exclusions": 62
+  },
+  "remaining_limits": [
+    "The requested throughput target was not achieved; no claim of 1000/600s or 2000/900s.",
+    "Current inventory still contains first assessments pending; the automatic service continues.",
+    "Necessary HTTPS bootstrap-asset availability is measured, not Android SDK ad fill or actual rendering.",
+    "Scope is the named tested TCP profiles, not all Google Ads/QUIC/mobile networks/future traffic.",
+    "Existing selected-country filter remains separate from classification; AU is excluded by that saved setting."
+  ],
+  "disk_cleanup": {
+    "at": 1794724709,
+    "exact_inactive_generated_duplicates_removed": 12,
+    "bytes": 118538122,
+    "release_and_backups_preserved": true,
+    "free_gib_after": 2.025
+  }
+}
