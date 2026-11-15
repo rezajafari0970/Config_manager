@@ -1,0 +1,1324 @@
+{
+  "recorded_utc": "2026-11-15T23:30:19.699836+00:00",
+  "runtime_commit": "12f4b0859829f4d44bd064b4d1d05213c0adf38a",
+  "release": "p68-12f4b085-f3f20c73ed37",
+  "canonical": {
+    "commit": "12f4b0859829f4d44bd064b4d1d05213c0adf38a",
+    "hashes": {
+      "config-panel": "f3f20c73ed37cee9fba9782bba7640962590014cb5b5ffe6484da43dc7c2387d",
+      "config-egress-worker": "ab985eb3d608486d8ceac3ed4626cbaa5913f514ff0ae21b1e75d7027dee4e4e",
+      "config-probe-worker": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+      "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+      "config-probe-plan": "62c40caf384f0436300299f61c65364a94d13efddedf4e3bbbf3c66d55f793e9"
+    },
+    "composite_provenance": {
+      "config-egress-worker": "fdde1890362c691c82c29337fa0566ea6a75a740",
+      "five_other_binaries": "f00b85a8b5dca13737fcde59b2f03c092271c995",
+      "five_dependency_sources_unchanged": true
+    },
+    "python_only_refinement": true,
+    "deployment_only_refinement": true
+  },
+  "policy": {
+    "classifier": "ads-egress.v9",
+    "schema": 37,
+    "single_authority": "Evaluate",
+    "unchanged_safety_and_exact_bytes": true
+  },
+  "deployment": {
+    "no_reset": true,
+    "metrics_epoch": 1794719470134,
+    "matched_backup": true,
+    "stop_to_panel_ready_seconds": 14.646,
+    "six_running_hashes": {
+      "config-repair-prober": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-smart": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-splash": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-ads": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-repair-egress": "ab985eb3d608486d8ceac3ed4626cbaa5913f514ff0ae21b1e75d7027dee4e4e",
+      "config-repair": "f3f20c73ed37cee9fba9782bba7640962590014cb5b5ffe6484da43dc7c2387d"
+    }
+  },
+  "copied_database": {
+    "passed": true,
+    "schema": 37,
+    "no_reset": true,
+    "idempotent": true,
+    "metrics_since": 1794719470134,
+    "unchanged_tables": [
+      "sources",
+      "memberships",
+      "settings",
+      "config_controls",
+      "input_exclusions",
+      "egress_jobs",
+      "egress_unique",
+      "egress_owners",
+      "egress_metrics",
+      "egress_settings",
+      "egress_runs",
+      "egress_run_members",
+      "egress_iran_guard",
+      "egress_iran_policy",
+      "egress_country_policy",
+      "egress_lifecycle",
+      "egress_health",
+      "egress_retirements",
+      "egress_settlements"
+    ]
+  },
+  "timeout_reproduction": {
+    "comparison": [
+      {
+        "version": "old-frozen",
+        "mode": "cold",
+        "exit": 1,
+        "elapsed": 12.064896805910394,
+        "cpu_user": 1.9999349999999998,
+        "cpu_system": 2.2902649999999998,
+        "in_blocks": 563240,
+        "major_faults": 3
+      },
+      {
+        "version": "old-frozen",
+        "mode": "warm",
+        "exit": 0,
+        "elapsed": 13.572232558159158,
+        "cpu_user": 4.6432590000000005,
+        "cpu_system": 2.016718,
+        "in_blocks": 492672,
+        "major_faults": 0
+      },
+      {
+        "version": "old-frozen",
+        "mode": "cold-again",
+        "exit": 1,
+        "elapsed": 12.031326865078881,
+        "cpu_user": 1.7002990000000002,
+        "cpu_system": 2.3442560000000006,
+        "in_blocks": 539960,
+        "major_faults": 0
+      },
+      {
+        "version": "scoped-frozen",
+        "mode": "cold",
+        "exit": 0,
+        "elapsed": 7.1539587278384715,
+        "cpu_user": 1.5742089999999962,
+        "cpu_system": 1.4436339999999994,
+        "in_blocks": 359560,
+        "major_faults": 0
+      },
+      {
+        "version": "scoped-frozen",
+        "mode": "warm",
+        "exit": 0,
+        "elapsed": 2.760555448010564,
+        "cpu_user": 1.288331999999997,
+        "cpu_system": 0.5527200000000008,
+        "in_blocks": 0,
+        "major_faults": 0
+      },
+      {
+        "version": "scoped-frozen",
+        "mode": "cold-again",
+        "exit": 0,
+        "elapsed": 5.8995992911513895,
+        "cpu_user": 1.3652219999999886,
+        "cpu_system": 1.287628999999999,
+        "in_blocks": 359560,
+        "major_faults": 0
+      }
+    ],
+    "final_cold_first_seconds": 7.143464188,
+    "following_seconds": [
+      1.072406534,
+      0.854190725
+    ],
+    "no_request_timeout_increase": true,
+    "historical_P67_cause_exclusively_proven": false,
+    "private_copy_only": true
+  },
+  "fixed_cohort_benchmark": {
+    "started": 1794784051667,
+    "source_commit": "bfc3aa9adc197510a5aea56f2645d8a08a84e3d5",
+    "worker_cpu_weight": 400,
+    "worker_memory_max_gib": 2,
+    "overlap_with_v2_inputs": 199,
+    "inputs": 200,
+    "overlap_with_v1_inputs": 172,
+    "elapsed": 180.00009038182907,
+    "seconds_to_100_definitive": 95.35574248293415,
+    "samples": [
+      {
+        "seconds": 0.001,
+        "first_assessments": 0,
+        "definitive": 0,
+        "active": 0,
+        "code": "",
+        "host_cpu": 72.92,
+        "helper_cpu": 72.92,
+        "core_cpu": 0,
+        "io_full": 1.3
+      },
+      {
+        "seconds": 2.011,
+        "first_assessments": 0,
+        "definitive": 0,
+        "active": 0,
+        "code": "capacity_31",
+        "host_cpu": 76.55,
+        "helper_cpu": 14.67,
+        "core_cpu": 0,
+        "io_full": 1.06
+      },
+      {
+        "seconds": 4.028,
+        "first_assessments": 0,
+        "definitive": 0,
+        "active": 0,
+        "code": "capacity_31",
+        "host_cpu": 80.44,
+        "helper_cpu": 28.86,
+        "core_cpu": 0.72,
+        "io_full": 0.87
+      },
+      {
+        "seconds": 6.047,
+        "first_assessments": 0,
+        "definitive": 0,
+        "active": 31,
+        "code": "capacity_31",
+        "host_cpu": 83.44,
+        "helper_cpu": 36.67,
+        "core_cpu": 1.31,
+        "io_full": 0.71
+      },
+      {
+        "seconds": 8.065,
+        "first_assessments": 0,
+        "definitive": 0,
+        "active": 31,
+        "code": "capacity_31",
+        "host_cpu": 86.08,
+        "helper_cpu": 47.78,
+        "core_cpu": 2.71,
+        "io_full": 0.58
+      },
+      {
+        "seconds": 10.082,
+        "first_assessments": 0,
+        "definitive": 0,
+        "active": 31,
+        "code": "capacity_31",
+        "host_cpu": 88.42,
+        "helper_cpu": 56.88,
+        "core_cpu": 4.03,
+        "io_full": 0.47
+      },
+      {
+        "seconds": 12.099,
+        "first_assessments": 0,
+        "definitive": 0,
+        "active": 31,
+        "code": "capacity_4",
+        "host_cpu": 90.33,
+        "helper_cpu": 63.96,
+        "core_cpu": 4.93,
+        "io_full": 0.39
+      },
+      {
+        "seconds": 14.115,
+        "first_assessments": 1,
+        "definitive": 1,
+        "active": 31,
+        "code": "capacity_4",
+        "host_cpu": 91.54,
+        "helper_cpu": 67.96,
+        "core_cpu": 6.75,
+        "io_full": 0.32
+      },
+      {
+        "seconds": 16.137,
+        "first_assessments": 2,
+        "definitive": 2,
+        "active": 30,
+        "code": "capacity_4",
+        "host_cpu": 91.26,
+        "helper_cpu": 66.15,
+        "core_cpu": 9.33,
+        "io_full": 0.26
+      },
+      {
+        "seconds": 18.191,
+        "first_assessments": 3,
+        "definitive": 2,
+        "active": 30,
+        "code": "capacity_4",
+        "host_cpu": 91.76,
+        "helper_cpu": 65.94,
+        "core_cpu": 10.54,
+        "io_full": 0.21
+      },
+      {
+        "seconds": 20.205,
+        "first_assessments": 6,
+        "definitive": 5,
+        "active": 30,
+        "code": "capacity_4",
+        "host_cpu": 91.98,
+        "helper_cpu": 67.04,
+        "core_cpu": 11.35,
+        "io_full": 0.17
+      },
+      {
+        "seconds": 22.215,
+        "first_assessments": 9,
+        "definitive": 7,
+        "active": 29,
+        "code": "capacity_4",
+        "host_cpu": 92.71,
+        "helper_cpu": 71.2,
+        "core_cpu": 12.01,
+        "io_full": 0.14
+      },
+      {
+        "seconds": 24.228,
+        "first_assessments": 14,
+        "definitive": 12,
+        "active": 29,
+        "code": "capacity_4",
+        "host_cpu": 93.3,
+        "helper_cpu": 74.97,
+        "core_cpu": 12.37,
+        "io_full": 0.11
+      },
+      {
+        "seconds": 26.238,
+        "first_assessments": 16,
+        "definitive": 14,
+        "active": 22,
+        "code": "capacity_6",
+        "host_cpu": 93.97,
+        "helper_cpu": 73.7,
+        "core_cpu": 12.66,
+        "io_full": 0.09
+      },
+      {
+        "seconds": 28.248,
+        "first_assessments": 23,
+        "definitive": 19,
+        "active": 22,
+        "code": "capacity_6",
+        "host_cpu": 93.61,
+        "helper_cpu": 74.12,
+        "core_cpu": 12.54,
+        "io_full": 0.07
+      },
+      {
+        "seconds": 30.263,
+        "first_assessments": 28,
+        "definitive": 24,
+        "active": 14,
+        "code": "capacity_6",
+        "host_cpu": 93.5,
+        "helper_cpu": 70.47,
+        "core_cpu": 12.26,
+        "io_full": 0.06
+      },
+      {
+        "seconds": 32.288,
+        "first_assessments": 31,
+        "definitive": 25,
+        "active": 14,
+        "code": "capacity_6",
+        "host_cpu": 92.68,
+        "helper_cpu": 63.5,
+        "core_cpu": 12.94,
+        "io_full": 0.05
+      },
+      {
+        "seconds": 34.307,
+        "first_assessments": 38,
+        "definitive": 31,
+        "active": 14,
+        "code": "capacity_6",
+        "host_cpu": 92.38,
+        "helper_cpu": 57.79,
+        "core_cpu": 13.13,
+        "io_full": 0.04
+      },
+      {
+        "seconds": 36.323,
+        "first_assessments": 40,
+        "definitive": 32,
+        "active": 9,
+        "code": "capacity_9",
+        "host_cpu": 91.04,
+        "helper_cpu": 57.11,
+        "core_cpu": 12.74,
+        "io_full": 0.03
+      },
+      {
+        "seconds": 38.341,
+        "first_assessments": 43,
+        "definitive": 34,
+        "active": 9,
+        "code": "capacity_9",
+        "host_cpu": 90.67,
+        "helper_cpu": 57.81,
+        "core_cpu": 12.43,
+        "io_full": 0.02
+      },
+      {
+        "seconds": 40.368,
+        "first_assessments": 46,
+        "definitive": 36,
+        "active": 10,
+        "code": "capacity_9",
+        "host_cpu": 90.18,
+        "helper_cpu": 56.39,
+        "core_cpu": 12.71,
+        "io_full": 0.02
+      },
+      {
+        "seconds": 42.385,
+        "first_assessments": 48,
+        "definitive": 38,
+        "active": 10,
+        "code": "capacity_9",
+        "host_cpu": 89.43,
+        "helper_cpu": 57.23,
+        "core_cpu": 12.76,
+        "io_full": 0.01
+      },
+      {
+        "seconds": 44.425,
+        "first_assessments": 55,
+        "definitive": 43,
+        "active": 10,
+        "code": "capacity_9",
+        "host_cpu": 89.17,
+        "helper_cpu": 57.73,
+        "core_cpu": 12.81,
+        "io_full": 0.01
+      },
+      {
+        "seconds": 46.438,
+        "first_assessments": 58,
+        "definitive": 45,
+        "active": 9,
+        "code": "capacity_9",
+        "host_cpu": 90.04,
+        "helper_cpu": 59.41,
+        "core_cpu": 11.91,
+        "io_full": 0.01
+      },
+      {
+        "seconds": 48.463,
+        "first_assessments": 63,
+        "definitive": 48,
+        "active": 9,
+        "code": "capacity_9",
+        "host_cpu": 89.67,
+        "helper_cpu": 57.16,
+        "core_cpu": 11.56,
+        "io_full": 0
+      },
+      {
+        "seconds": 50.477,
+        "first_assessments": 66,
+        "definitive": 50,
+        "active": 9,
+        "code": "capacity_13",
+        "host_cpu": 89,
+        "helper_cpu": 54.96,
+        "core_cpu": 12.19,
+        "io_full": 0
+      },
+      {
+        "seconds": 52.49,
+        "first_assessments": 71,
+        "definitive": 51,
+        "active": 9,
+        "code": "capacity_13",
+        "host_cpu": 87.19,
+        "helper_cpu": 56.23,
+        "core_cpu": 11.97,
+        "io_full": 0
+      },
+      {
+        "seconds": 54.5,
+        "first_assessments": 73,
+        "definitive": 52,
+        "active": 9,
+        "code": "capacity_13",
+        "host_cpu": 88.97,
+        "helper_cpu": 61.62,
+        "core_cpu": 13.42,
+        "io_full": 0
+      },
+      {
+        "seconds": 56.52,
+        "first_assessments": 77,
+        "definitive": 54,
+        "active": 13,
+        "code": "capacity_13",
+        "host_cpu": 90.24,
+        "helper_cpu": 61.87,
+        "core_cpu": 14.43,
+        "io_full": 0
+      },
+      {
+        "seconds": 58.555,
+        "first_assessments": 83,
+        "definitive": 56,
+        "active": 13,
+        "code": "capacity_13",
+        "host_cpu": 90.92,
+        "helper_cpu": 64.97,
+        "core_cpu": 14.72,
+        "io_full": 0
+      },
+      {
+        "seconds": 60.628,
+        "first_assessments": 86,
+        "definitive": 57,
+        "active": 13,
+        "code": "capacity_13",
+        "host_cpu": 91.84,
+        "helper_cpu": 66.06,
+        "core_cpu": 14.95,
+        "io_full": 0
+      },
+      {
+        "seconds": 62.71,
+        "first_assessments": 90,
+        "definitive": 61,
+        "active": 13,
+        "code": "capacity_13",
+        "host_cpu": 92.59,
+        "helper_cpu": 68.41,
+        "core_cpu": 14.59,
+        "io_full": 0
+      },
+      {
+        "seconds": 64.745,
+        "first_assessments": 94,
+        "definitive": 63,
+        "active": 13,
+        "code": "capacity_13",
+        "host_cpu": 93.21,
+        "helper_cpu": 70.33,
+        "core_cpu": 15.03,
+        "io_full": 0
+      },
+      {
+        "seconds": 66.777,
+        "first_assessments": 97,
+        "definitive": 66,
+        "active": 13,
+        "code": "capacity_17",
+        "host_cpu": 93.71,
+        "helper_cpu": 69.54,
+        "core_cpu": 15.02,
+        "io_full": 0
+      },
+      {
+        "seconds": 68.791,
+        "first_assessments": 100,
+        "definitive": 67,
+        "active": 13,
+        "code": "capacity_17",
+        "host_cpu": 93.95,
+        "helper_cpu": 72.52,
+        "core_cpu": 14.84,
+        "io_full": 0
+      },
+      {
+        "seconds": 70.814,
+        "first_assessments": 100,
+        "definitive": 67,
+        "active": 17,
+        "code": "capacity_17",
+        "host_cpu": 94.68,
+        "helper_cpu": 76.41,
+        "core_cpu": 14.68,
+        "io_full": 0
+      },
+      {
+        "seconds": 72.832,
+        "first_assessments": 106,
+        "definitive": 72,
+        "active": 17,
+        "code": "capacity_17",
+        "host_cpu": 95.28,
+        "helper_cpu": 78.51,
+        "core_cpu": 15.46,
+        "io_full": 0
+      },
+      {
+        "seconds": 74.859,
+        "first_assessments": 109,
+        "definitive": 74,
+        "active": 17,
+        "code": "capacity_17",
+        "host_cpu": 95.59,
+        "helper_cpu": 80.23,
+        "core_cpu": 15.2,
+        "io_full": 0
+      },
+      {
+        "seconds": 76.882,
+        "first_assessments": 114,
+        "definitive": 77,
+        "active": 17,
+        "code": "capacity_15",
+        "host_cpu": 95.48,
+        "helper_cpu": 81.09,
+        "core_cpu": 16.25,
+        "io_full": 0
+      },
+      {
+        "seconds": 78.892,
+        "first_assessments": 116,
+        "definitive": 77,
+        "active": 17,
+        "code": "capacity_15",
+        "host_cpu": 95.58,
+        "helper_cpu": 82.89,
+        "core_cpu": 16.02,
+        "io_full": 0
+      },
+      {
+        "seconds": 80.918,
+        "first_assessments": 118,
+        "definitive": 79,
+        "active": 17,
+        "code": "capacity_15",
+        "host_cpu": 95.83,
+        "helper_cpu": 83.99,
+        "core_cpu": 16.56,
+        "io_full": 0
+      },
+      {
+        "seconds": 82.932,
+        "first_assessments": 123,
+        "definitive": 84,
+        "active": 17,
+        "code": "capacity_15",
+        "host_cpu": 95.86,
+        "helper_cpu": 85.08,
+        "core_cpu": 16.46,
+        "io_full": 0
+      },
+      {
+        "seconds": 84.947,
+        "first_assessments": 127,
+        "definitive": 88,
+        "active": 17,
+        "code": "capacity_15",
+        "host_cpu": 95.73,
+        "helper_cpu": 85.07,
+        "core_cpu": 16.56,
+        "io_full": 0
+      },
+      {
+        "seconds": 87.18,
+        "first_assessments": 129,
+        "definitive": 90,
+        "active": 16,
+        "code": "capacity_15",
+        "host_cpu": 95.96,
+        "helper_cpu": 85.23,
+        "core_cpu": 16.45,
+        "io_full": 0
+      },
+      {
+        "seconds": 89.225,
+        "first_assessments": 132,
+        "definitive": 92,
+        "active": 16,
+        "code": "capacity_15",
+        "host_cpu": 95.96,
+        "helper_cpu": 85.92,
+        "core_cpu": 16.55,
+        "io_full": 0
+      },
+      {
+        "seconds": 91.313,
+        "first_assessments": 136,
+        "definitive": 95,
+        "active": 16,
+        "code": "capacity_15",
+        "host_cpu": 95.97,
+        "helper_cpu": 84.84,
+        "core_cpu": 17.18,
+        "io_full": 0
+      },
+      {
+        "seconds": 93.33,
+        "first_assessments": 138,
+        "definitive": 97,
+        "active": 16,
+        "code": "capacity_15",
+        "host_cpu": 96.15,
+        "helper_cpu": 84.87,
+        "core_cpu": 16.78,
+        "io_full": 0
+      },
+      {
+        "seconds": 95.356,
+        "first_assessments": 142,
+        "definitive": 100,
+        "active": 16,
+        "code": "capacity_15",
+        "host_cpu": 95.94,
+        "helper_cpu": 83.99,
+        "core_cpu": 16.82,
+        "io_full": 0
+      },
+      {
+        "seconds": 97.375,
+        "first_assessments": 144,
+        "definitive": 102,
+        "active": 16,
+        "code": "capacity_15",
+        "host_cpu": 95.95,
+        "helper_cpu": 85.44,
+        "core_cpu": 16.67,
+        "io_full": 0
+      },
+      {
+        "seconds": 99.385,
+        "first_assessments": 148,
+        "definitive": 106,
+        "active": 16,
+        "code": "capacity_15",
+        "host_cpu": 95.78,
+        "helper_cpu": 84.45,
+        "core_cpu": 16.18,
+        "io_full": 0
+      },
+      {
+        "seconds": 101.417,
+        "first_assessments": 151,
+        "definitive": 108,
+        "active": 15,
+        "code": "capacity_15",
+        "host_cpu": 95.46,
+        "helper_cpu": 82.38,
+        "core_cpu": 15.79,
+        "io_full": 0
+      },
+      {
+        "seconds": 103.43,
+        "first_assessments": 157,
+        "definitive": 109,
+        "active": 15,
+        "code": "capacity_15",
+        "host_cpu": 95.73,
+        "helper_cpu": 81.94,
+        "core_cpu": 14.56,
+        "io_full": 0
+      },
+      {
+        "seconds": 105.524,
+        "first_assessments": 158,
+        "definitive": 110,
+        "active": 15,
+        "code": "capacity_15",
+        "host_cpu": 95.24,
+        "helper_cpu": 81.59,
+        "core_cpu": 13.91,
+        "io_full": 0
+      },
+      {
+        "seconds": 107.545,
+        "first_assessments": 162,
+        "definitive": 113,
+        "active": 15,
+        "code": "capacity_15",
+        "host_cpu": 95.01,
+        "helper_cpu": 78.58,
+        "core_cpu": 13.93,
+        "io_full": 0
+      },
+      {
+        "seconds": 109.558,
+        "first_assessments": 167,
+        "definitive": 116,
+        "active": 15,
+        "code": "capacity_15",
+        "host_cpu": 94.65,
+        "helper_cpu": 75.04,
+        "core_cpu": 14.3,
+        "io_full": 0
+      },
+      {
+        "seconds": 111.584,
+        "first_assessments": 171,
+        "definitive": 119,
+        "active": 15,
+        "code": "capacity_19",
+        "host_cpu": 94.89,
+        "helper_cpu": 74.3,
+        "core_cpu": 14.43,
+        "io_full": 0
+      },
+      {
+        "seconds": 113.598,
+        "first_assessments": 173,
+        "definitive": 120,
+        "active": 15,
+        "code": "capacity_19",
+        "host_cpu": 95.27,
+        "helper_cpu": 77.51,
+        "core_cpu": 14.35,
+        "io_full": 0
+      },
+      {
+        "seconds": 115.608,
+        "first_assessments": 173,
+        "definitive": 120,
+        "active": 19,
+        "code": "capacity_19",
+        "host_cpu": 95.4,
+        "helper_cpu": 79.59,
+        "core_cpu": 13.92,
+        "io_full": 0
+      },
+      {
+        "seconds": 117.63,
+        "first_assessments": 179,
+        "definitive": 124,
+        "active": 19,
+        "code": "capacity_19",
+        "host_cpu": 95.51,
+        "helper_cpu": 81.66,
+        "core_cpu": 14.48,
+        "io_full": 0
+      },
+      {
+        "seconds": 119.72,
+        "first_assessments": 183,
+        "definitive": 127,
+        "active": 19,
+        "code": "capacity_19",
+        "host_cpu": 95.6,
+        "helper_cpu": 83.89,
+        "core_cpu": 14.03,
+        "io_full": 0
+      },
+      {
+        "seconds": 121.734,
+        "first_assessments": 185,
+        "definitive": 127,
+        "active": 19,
+        "code": "capacity_15",
+        "host_cpu": 95.67,
+        "helper_cpu": 82.82,
+        "core_cpu": 13.84,
+        "io_full": 0
+      },
+      {
+        "seconds": 123.926,
+        "first_assessments": 189,
+        "definitive": 129,
+        "active": 19,
+        "code": "capacity_15",
+        "host_cpu": 95.91,
+        "helper_cpu": 82.49,
+        "core_cpu": 13.51,
+        "io_full": 0
+      },
+      {
+        "seconds": 125.961,
+        "first_assessments": 195,
+        "definitive": 133,
+        "active": 19,
+        "code": "capacity_15",
+        "host_cpu": 95.56,
+        "helper_cpu": 81.13,
+        "core_cpu": 14.14,
+        "io_full": 0
+      },
+      {
+        "seconds": 128.023,
+        "first_assessments": 197,
+        "definitive": 135,
+        "active": 19,
+        "code": "capacity_15",
+        "host_cpu": 95.46,
+        "helper_cpu": 78.57,
+        "core_cpu": 15.2,
+        "io_full": 0
+      },
+      {
+        "seconds": 130.042,
+        "first_assessments": 198,
+        "definitive": 136,
+        "active": 19,
+        "code": "capacity_15",
+        "host_cpu": 94.29,
+        "helper_cpu": 68.3,
+        "core_cpu": 16.25,
+        "io_full": 0
+      },
+      {
+        "seconds": 132.09,
+        "first_assessments": 198,
+        "definitive": 137,
+        "active": 19,
+        "code": "capacity_15",
+        "host_cpu": 92.24,
+        "helper_cpu": 59.73,
+        "core_cpu": 16.93,
+        "io_full": 0
+      },
+      {
+        "seconds": 134.104,
+        "first_assessments": 199,
+        "definitive": 137,
+        "active": 19,
+        "code": "capacity_15",
+        "host_cpu": 88.03,
+        "helper_cpu": 55.43,
+        "core_cpu": 17.12,
+        "io_full": 0
+      },
+      {
+        "seconds": 136.118,
+        "first_assessments": 199,
+        "definitive": 137,
+        "active": 19,
+        "code": "capacity_19",
+        "host_cpu": 85.85,
+        "helper_cpu": 50.82,
+        "core_cpu": 16.01,
+        "io_full": 0
+      },
+      {
+        "seconds": 138.134,
+        "first_assessments": 200,
+        "definitive": 137,
+        "active": 19,
+        "code": "capacity_19",
+        "host_cpu": 86.24,
+        "helper_cpu": 47.41,
+        "core_cpu": 16.19,
+        "io_full": 0
+      },
+      {
+        "seconds": 140.147,
+        "first_assessments": 200,
+        "definitive": 138,
+        "active": 19,
+        "code": "capacity_19",
+        "host_cpu": 86.56,
+        "helper_cpu": 44.44,
+        "core_cpu": 16.52,
+        "io_full": 0
+      },
+      {
+        "seconds": 142.168,
+        "first_assessments": 200,
+        "definitive": 139,
+        "active": 19,
+        "code": "capacity_19",
+        "host_cpu": 87,
+        "helper_cpu": 45.08,
+        "core_cpu": 16.97,
+        "io_full": 0
+      },
+      {
+        "seconds": 144.187,
+        "first_assessments": 200,
+        "definitive": 140,
+        "active": 19,
+        "code": "capacity_19",
+        "host_cpu": 87.72,
+        "helper_cpu": 47.97,
+        "core_cpu": 15.7,
+        "io_full": 0
+      },
+      {
+        "seconds": 146.201,
+        "first_assessments": 200,
+        "definitive": 140,
+        "active": 19,
+        "code": "capacity_19",
+        "host_cpu": 88.32,
+        "helper_cpu": 48.33,
+        "core_cpu": 17.02,
+        "io_full": 0
+      },
+      {
+        "seconds": 148.263,
+        "first_assessments": 200,
+        "definitive": 141,
+        "active": 19,
+        "code": "capacity_19",
+        "host_cpu": 88.26,
+        "helper_cpu": 51.71,
+        "core_cpu": 17.02,
+        "io_full": 0
+      },
+      {
+        "seconds": 150.382,
+        "first_assessments": 200,
+        "definitive": 141,
+        "active": 19,
+        "code": "capacity_23",
+        "host_cpu": 88.75,
+        "helper_cpu": 51.04,
+        "core_cpu": 16.29,
+        "io_full": 0
+      },
+      {
+        "seconds": 152.423,
+        "first_assessments": 200,
+        "definitive": 141,
+        "active": 19,
+        "code": "capacity_23",
+        "host_cpu": 88.8,
+        "helper_cpu": 49.58,
+        "core_cpu": 16.24,
+        "io_full": 0
+      },
+      {
+        "seconds": 154.436,
+        "first_assessments": 200,
+        "definitive": 141,
+        "active": 19,
+        "code": "capacity_23",
+        "host_cpu": 87.57,
+        "helper_cpu": 43.86,
+        "core_cpu": 15.83,
+        "io_full": 0
+      },
+      {
+        "seconds": 156.446,
+        "first_assessments": 200,
+        "definitive": 141,
+        "active": 19,
+        "code": "capacity_23",
+        "host_cpu": 80.03,
+        "helper_cpu": 38.27,
+        "core_cpu": 14.41,
+        "io_full": 0.18
+      },
+      {
+        "seconds": 158.458,
+        "first_assessments": 200,
+        "definitive": 142,
+        "active": 19,
+        "code": "capacity_23",
+        "host_cpu": 76.4,
+        "helper_cpu": 33.33,
+        "core_cpu": 13.25,
+        "io_full": 0.14
+      },
+      {
+        "seconds": 160.471,
+        "first_assessments": 200,
+        "definitive": 142,
+        "active": 20,
+        "code": "capacity_27",
+        "host_cpu": 73.79,
+        "helper_cpu": 28.74,
+        "core_cpu": 11.57,
+        "io_full": 0.12
+      },
+      {
+        "seconds": 162.492,
+        "first_assessments": 200,
+        "definitive": 142,
+        "active": 20,
+        "code": "capacity_27",
+        "host_cpu": 69.12,
+        "helper_cpu": 25.34,
+        "core_cpu": 9.59,
+        "io_full": 0.28
+      },
+      {
+        "seconds": 164.553,
+        "first_assessments": 200,
+        "definitive": 143,
+        "active": 20,
+        "code": "capacity_27",
+        "host_cpu": 68.19,
+        "helper_cpu": 23.11,
+        "core_cpu": 8.93,
+        "io_full": 0.22
+      },
+      {
+        "seconds": 166.566,
+        "first_assessments": 200,
+        "definitive": 143,
+        "active": 21,
+        "code": "capacity_4",
+        "host_cpu": 65.8,
+        "helper_cpu": 22.72,
+        "core_cpu": 8.4,
+        "io_full": 0.18
+      },
+      {
+        "seconds": 168.581,
+        "first_assessments": 200,
+        "definitive": 143,
+        "active": 21,
+        "code": "capacity_4",
+        "host_cpu": 64.93,
+        "helper_cpu": 21.14,
+        "core_cpu": 7.6,
+        "io_full": 0.15
+      },
+      {
+        "seconds": 170.595,
+        "first_assessments": 200,
+        "definitive": 143,
+        "active": 20,
+        "code": "capacity_4",
+        "host_cpu": 61.86,
+        "helper_cpu": 19.3,
+        "core_cpu": 7.13,
+        "io_full": 0.12
+      },
+      {
+        "seconds": 172.614,
+        "first_assessments": 200,
+        "definitive": 143,
+        "active": 20,
+        "code": "capacity_4",
+        "host_cpu": 58.63,
+        "helper_cpu": 19.97,
+        "core_cpu": 7.47,
+        "io_full": 0.1
+      },
+      {
+        "seconds": 174.685,
+        "first_assessments": 200,
+        "definitive": 143,
+        "active": 20,
+        "code": "capacity_4",
+        "host_cpu": 61.05,
+        "helper_cpu": 19.43,
+        "core_cpu": 8.29,
+        "io_full": 0.08
+      },
+      {
+        "seconds": 176.702,
+        "first_assessments": 200,
+        "definitive": 143,
+        "active": 14,
+        "code": "capacity_6",
+        "host_cpu": 61.58,
+        "helper_cpu": 17.54,
+        "core_cpu": 7.51,
+        "io_full": 0.06
+      },
+      {
+        "seconds": 178.722,
+        "first_assessments": 200,
+        "definitive": 143,
+        "active": 14,
+        "code": "capacity_6",
+        "host_cpu": 58.58,
+        "helper_cpu": 15.27,
+        "core_cpu": 6.51,
+        "io_full": 0.41
+      }
+    ],
+    "scope": "200 deterministic unfiltered current unique inputs, isolated fresh DB, existing accepted flags preserved; production egress worker paused for 180s and automatic resume armed; other services running; no production reset or cached verdicts",
+    "first_assessments": 200,
+    "definitive": 143,
+    "attempts": 252,
+    "states": {
+      "DELETED": 2,
+      "NO_SPLIT": 114,
+      "RESIDENTIAL": 27,
+      "UNKNOWN": 56,
+      "UNSUPPORTED": 1
+    },
+    "definitive_states": {
+      "DELETED": 2,
+      "NO_SPLIT": 114,
+      "RESIDENTIAL": 27
+    },
+    "goal_met": true
+  },
+  "production_observation": {
+    "start": 1794784343808,
+    "elapsed_seconds": 180.615,
+    "new_first_assessments": 97,
+    "new_unique_definitive": 86,
+    "errors": [],
+    "metrics_epoch": 1794719470134,
+    "no_unexpected_restart": true,
+    "api_seconds": {
+      "min": 0.602,
+      "median": 0.842,
+      "max": 1.541
+    },
+    "all_attempts": 191,
+    "scope": "Read-only changing inventory after deployment; new FIRST assessments exclude all earlier events in the epoch. No reset or forced retests. Not a fixed 1000/2000-input benchmark.",
+    "final": {
+      "at": 1794784526720,
+      "formats": {
+        "configs.json": {
+          "count": 88,
+          "distinct_bodies": 77,
+          "exact_bytes": true,
+          "generation": "1ca8c42fec8d17ee4788caa707e1841b8b8717df54ea6f37dfcc17db24452bb6"
+        },
+        "configs.jsonl": {
+          "count": 88,
+          "distinct_bodies": 77,
+          "exact_bytes": true,
+          "generation": "1ca8c42fec8d17ee4788caa707e1841b8b8717df54ea6f37dfcc17db24452bb6"
+        },
+        "next.json": {
+          "count": 1,
+          "distinct_bodies": 1,
+          "exact_bytes": true,
+          "generation": "1ca8c42fec8d17ee4788caa707e1841b8b8717df54ea6f37dfcc17db24452bb6"
+        },
+        "raw.txt": {
+          "count": 88,
+          "distinct_bodies": 88,
+          "exact_bytes": true,
+          "generation": "1ca8c42fec8d17ee4788caa707e1841b8b8717df54ea6f37dfcc17db24452bb6"
+        }
+      },
+      "publication": {
+        "awaiting_proof": 345,
+        "country_filtered": 0,
+        "country_unknown": 0,
+        "distinct_templates": 76,
+        "eligible": 87,
+        "identities": 87,
+        "published": 87,
+        "retained": 432
+      },
+      "current_unique": 1245,
+      "awaiting_first": 0,
+      "coverage_missing": 0
+    }
+  },
+  "real_canary": {
+    "tested": 2,
+    "total": 2,
+    "seconds": 23.215,
+    "selection": "two recently published production identities; not a random accuracy sample",
+    "results": [
+      {
+        "state": "RESIDENTIAL",
+        "reason": "verified_ads_profile",
+        "seconds": 22.449
+      },
+      {
+        "state": "RESIDENTIAL",
+        "reason": "verified_ads_profile",
+        "seconds": 12.897
+      }
+    ]
+  },
+  "isolated_watchdog": {
+    "passed": true,
+    "seconds": 11.34,
+    "before": {
+      "ActiveState": "active",
+      "MainPID": "733793",
+      "NRestarts": "0"
+    },
+    "after": {
+      "ActiveState": "active",
+      "MainPID": "734995",
+      "NRestarts": "1"
+    },
+    "scope": "isolated transient unit; SIGSTOP; watchdog SIGKILL and restart"
+  },
+  "validation": {
+    "composite": true,
+    "local_full_suite_failed_only_unixgram_permission": true,
+    "server_full_disk_attempt_interrupted_for_IO": true,
+    "server_full_suite_owned_tmpfs_passed": true,
+    "full_panel_seconds": 60.588,
+    "affected_race_seconds": {
+      "panel": 50.026,
+      "egress": 2.395,
+      "worker_initial": 1.772,
+      "worker_refinement": 1.408
+    },
+    "vet_passed": true,
+    "python_contract_tests": 38,
+    "final_python_passed": true,
+    "independent_binary_builds_matched": 6
+  },
+  "intermediate_failures": {
+    "deep_overlap_repeated_canary_regression": true,
+    "serial_old_same_two_passed": true,
+    "serial_final_same_two_passed": true,
+    "speed_attempts": [
+      {
+        "inputs": 200,
+        "elapsed": 180.02684868196957,
+        "first_assessments": 80,
+        "definitive": 55,
+        "goal_met": false
+      },
+      {
+        "inputs": 200,
+        "elapsed": 180.0074974030722,
+        "first_assessments": 130,
+        "definitive": 87,
+        "goal_met": false
+      }
+    ],
+    "cohorts_not_identical": true,
+    "no_controlled_speedup_ratio_claim": true
+  },
+  "limits": [
+    "1000/600s and2000/900s not measured",
+    "UNKNOWN and UNSUPPORTED are not definitive",
+    "No actual ad fill/render, Android/QUIC or universal detection proof",
+    "No future uptime guarantee",
+    "All failed/interrupted receipts preserved"
+  ],
+  "disk_audit": {
+    "root_used_percent": 98,
+    "root_available_bytes": 3496329216,
+    "paths_scanned": 230,
+    "project_directories": 143,
+    "broad_deletion": false,
+    "two_unrelated_old_worktree_files_ext4_checksum_errors": true,
+    "mounted_repair_performed": false
+  },
+  "private_receipt_sha256": {
+    "benchmark-v1.json": "91132f65c964dd1e5de3093d11beccefe5e17c544f66ec54f0cccc28799cadf6",
+    "benchmark-v2.json": "7c1a4fd3547929056435503e6b36c8bc7df9bef72a5a6aa53d80008c8f9d8bea",
+    "benchmark.json": "958692238b98830fee83f8274aead6d471551e1e3b1c15a82f2aea200438091d",
+    "canary.json": "a540a414c552b044426b59ff38cc83f6db8690c940f3e00689bcca9fcb2bc1b4",
+    "canonical.json": "2071f14e30a17be1b7b3c6a19c0b9ee6809cf44cacb34189b7afaf7f7122692a",
+    "deployment.json": "bc3b1ac2382adb290dc9e7e0a42366783b5f97bc82c31d5320863d11fbee5bd2",
+    "disk-audit.json": "ccaa3c59dbc179f85a37db7df0ad23c97cc8f202a4fb187365be450f88da36ca",
+    "disk-detail.json": "8cacb532b20352659a0da050575db0c550691a3e807f133f4e774f05fca2f734",
+    "disk-errors.json": "013ddb37c78e08c51ba777ee11fa4334aa075de8068a16d4cadaafb56c66c7b9",
+    "disk-extra.json": "e1eb529748d104cd84cbe0fcc517484bda99687ad6bbbd26cc71d28991892174",
+    "disk-final-detail.json": "910c459deee5caf4402ae464a21010377ef0cc50efa0196836f76030a86c0152",
+    "disk-retention.json": "a3cf4c5960c190784e93fe21b1b983e621124cdaf1484a47e9324eda351be1c3",
+    "disk-validation-extra.json": "b7f449216cda3dc44fbde00ef1439f59d3ddc423d9813000aa093e781885430e",
+    "driver-ab.json": "05f1f8d23fc1910888b60ddd88e524e4c499ca0918d8afcb0d3cd7a2500ba3fc",
+    "final-snapshot.json": "09b788a5cdbedc4d9b21344f308ff27b0ccd334288aa04ff88c4e3f83236e72f",
+    "first-refinement-canary.json": "39a95704a0646fa46ff8e98d71ed1c92b0c571e31a5577d3e5726db59debd567",
+    "live-observation.json": "1a4423e971d9bed5e1aa5cfc174f6b295a8eff0eb67ba6d4f4f85850957bd9f4",
+    "old-helper-canary.json": "7af00387d3bdf7e1d41d780e1325fd3dca1f5e3ea97407c1d960b6cd68541d4c",
+    "owned-cache-cleanup.json": "f1bf778ba1d125add5a19d8f87f65a665500c66fd563430b1a1d94f65ae41490",
+    "rehearsal.json": "4e26c09a2230db0d6821a18083f9276b4c08e85a9e5fa83151a2f1b5ce2d8c27",
+    "second-refinement-canary.json": "5810ea117bfcbb5b6232253393a20cfdbf380bdb159d3e57a0692d4084468ac0",
+    "snapshot-comparison.json": "f4d1743a6df222e2f19cbd1d39127645e29e030238f70c0d7d701ad305ac08a7",
+    "watchdog.json": "00cb8b417932c0d30f529f31abe30b8027f0f9852624240eb6ceecfc95883d3e"
+  }
+}
