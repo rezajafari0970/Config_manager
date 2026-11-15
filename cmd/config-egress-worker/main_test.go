@@ -71,3 +71,34 @@ for line in sys.stdin:print('x'*(2*1024*1024),flush=True)
 		t.Fatal("oversized response accepted")
 	}
 }
+
+func TestDriverIdleCapacityReleaseAndRecovery(t *testing.T) {
+	helper := filepath.Join(t.TempDir(), "driver.py")
+	if err := os.WriteFile(helper, []byte("import sys,os\nif '--cleanup' in sys.argv:sys.exit(0)\nfor line in sys.stdin:print(os.getpid(),flush=True)\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	d := &driverSession{owner: context.Background(), helper: helper, prefix: "cgt", slot: 31}
+	defer d.stop()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	first, err := d.exchange(ctx, []byte(`{}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !d.idleAdmission(31) || d.cmd == nil {
+		t.Fatal("admitted warm helper lost")
+	}
+	if d.idleAdmission(6) || d.cmd != nil || d.input != nil || d.responses != nil {
+		t.Fatal("idle excess helper retained")
+	}
+	if d.idleAdmission(0) {
+		t.Fatal("zero capacity admitted work")
+	}
+	if !d.idleAdmission(31) {
+		t.Fatal("capacity recovery did not admit slot")
+	}
+	next, err := d.exchange(ctx, []byte(`{}`))
+	if err != nil || string(first) == string(next) {
+		t.Fatal("old helper reused after cleanup", err)
+	}
+}

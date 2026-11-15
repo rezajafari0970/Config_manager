@@ -1,0 +1,388 @@
+{
+  "recorded_utc": "2026-11-15T21:48:13.039508+00:00",
+  "runtime_commit": "eb126cce80ffcb26338fe2dac64d9e20a808150f",
+  "release": "p67b-eb126cce-aefb00341aae",
+  "canonical": {
+    "commit": "eb126cce80ffcb26338fe2dac64d9e20a808150f",
+    "hashes": {
+      "config-panel": "aefb00341aaef36f7cee87ebdf7398435f99af1e79e757bcf6f694fcdca82eb6",
+      "config-egress-worker": "9abdcaf94140e985702a4e99df2b4a9a7447b692e67e9ce2a870fce781d54728",
+      "config-probe-worker": "02035f2449ae5b5c11535a1ba1e2685af6cd7287fe5090798c71abec1239e521",
+      "config-compat": "506710a2984f6d1acf9a008f44f3dcc8ce9090aeb7b7e9e1a5538029bd1433d6",
+      "config-repair": "cea1583a7b8d191fb966b45dcd942d331767ce8bc2666bb3a0cb27d0df848106",
+      "config-probe-plan": "62c40caf384f0436300299f61c65364a94d13efddedf4e3bbbf3c66d55f793e9"
+    }
+  },
+  "deployment": {
+    "no_reset": true,
+    "schema": 37,
+    "metrics_epoch": 1794719470134,
+    "controls_proofs_counters_unchanged": true,
+    "matched_backup_taken": true,
+    "stop_to_panel_ready_seconds": 14.727,
+    "all_six_running_executables_match": true
+  },
+  "copied_database": {
+    "passed": true,
+    "schema": 37,
+    "no_reset": true,
+    "idempotent": true,
+    "metrics_since": 1794719470134,
+    "unchanged_tables": [
+      "sources",
+      "memberships",
+      "settings",
+      "config_controls",
+      "input_exclusions",
+      "egress_jobs",
+      "egress_unique",
+      "egress_owners",
+      "egress_metrics",
+      "egress_settings",
+      "egress_runs",
+      "egress_run_members",
+      "egress_iran_guard",
+      "egress_iran_policy",
+      "egress_country_policy",
+      "egress_lifecycle",
+      "egress_health",
+      "egress_retirements",
+      "egress_settlements"
+    ]
+  },
+  "local_validation": {
+    "validation": "composite",
+    "runtime_commit": "1df4cd29c7627ef69a550fd4d170f2f69ece4440",
+    "go_full_attempt_exit": 1,
+    "full_panel_seconds": 773.135,
+    "failed_tests": [
+      {
+        "name": "TestWatchdogNotifiesConfiguredSocket",
+        "cause": "local Unix datagram socket permission; complete worker race suite passed on server"
+      },
+      {
+        "name": "TestBrowserModuleImportsAreServed",
+        "cause": "new module missing from explicit route list",
+        "fixed": true,
+        "focused_recheck_passed": true
+      }
+    ],
+    "final_refinement_race_passed": true,
+    "all_python_and_javascript_checks_passed": true,
+    "six_local_builds_passed_before_final_diagnostic_and_asset_refinement": true,
+    "initial_three_regressions_reproduced_before_fixes": true,
+    "logs": {
+      "full-check.log": "fba6c422df610b46b7b2c6e9d2f7c78119aff6eee3693451c2db8cd76c1a9a2a",
+      "remaining-checks.log": "bab8e76efa0b97387069b047fcbc3eac8000e801655877c1c270d722df86683b",
+      "refinement.log": "b99ba3c86b14733819aa72a12edf7cb2a2df7b87b6415a331d825a2db01df8ee",
+      "asset-final.log": "b7c731d3c86990ac7a00a32dcf72539ae6945089829c86ffefddce72645d218c"
+    },
+    "final_runtime_commit": "eb126cce80ffcb26338fe2dac64d9e20a808150f",
+    "snapshot_refinement_race": {
+      "passed": true,
+      "seconds": 15.042,
+      "note": "Archive/safety and browser import checks; original snapshot/claim SQL restored after live regression",
+      "log_sha256": "b8192f6bbb78852948017d30606dc4cc747a44bf2e7120a825ab140d8cd8d271"
+    },
+    "initial_three_scope_note": "Queue and transient recovery fixes retained. The proposed archive-scan optimization was later reverted after a full-API regression; its scoped-query test was replaced by safety-gate preservation checks."
+  },
+  "final_server_validation": {
+    "affected_panel_race_seconds": 133.372,
+    "egress_race_seconds": 1.918,
+    "adsroute_race_seconds": 1.184,
+    "worker_race_seconds": 1.414,
+    "vet_passed": true,
+    "independent_binaries_matched": 6,
+    "full_readonly_api_gate_passed": true,
+    "full_readonly_api_seconds": [
+      2.695343911,
+      2.269438641,
+      2.269643555,
+      2.227933027,
+      2.52626779,
+      2.642092654
+    ]
+  },
+  "real_canary": {
+    "tested": 2,
+    "total": 2,
+    "seconds": 47.881,
+    "selection": "same two private canaries; one first-pass positive retained, one unproven result followed up once after 30s; not an accuracy rate",
+    "results": [
+      {
+        "state": "RESIDENTIAL",
+        "reason": "verified_ads_profile",
+        "seconds": 20.933
+      },
+      {
+        "state": "RESIDENTIAL",
+        "reason": "verified_ads_profile",
+        "seconds": 17.785
+      }
+    ],
+    "runtime_commit": "1df4cd29c7627ef69a550fd4d170f2f69ece4440"
+  },
+  "canary_exports": {
+    "passed": true,
+    "published": 2,
+    "formats": {
+      "configs.json": {
+        "count": 2,
+        "exact_bytes": true
+      },
+      "configs.jsonl": {
+        "count": 2,
+        "exact_bytes": true
+      },
+      "next.json": {
+        "count": 1,
+        "exact_bytes": true
+      },
+      "raw.txt": {
+        "count": 2,
+        "exact_bytes": true
+      }
+    }
+  },
+  "isolated_watchdog": {
+    "passed": true,
+    "seconds": 11.495,
+    "before": {
+      "ActiveState": "active",
+      "MainPID": "209921",
+      "NRestarts": "0"
+    },
+    "after": {
+      "ActiveState": "active",
+      "MainPID": "211013",
+      "NRestarts": "1"
+    },
+    "scope": "isolated transient unit; SIGSTOP; watchdog SIGKILL and restart",
+    "runtime_commit": "1df4cd29c7627ef69a550fd4d170f2f69ece4440"
+  },
+  "live": {
+    "start": 1794778681523,
+    "elapsed_seconds": 604.394,
+    "new_first_assessments": 165,
+    "new_unique_definitive": 120,
+    "initial": {
+      "at": 1794778681309,
+      "formats": {
+        "configs.json": {
+          "count": 150,
+          "distinct_bodies": 141,
+          "exact_bytes": true,
+          "generation": "7ca4b41b6cdc2948391d6efb1a29487e0a35783e9a5af59ba87d30b2e5f53bb4"
+        },
+        "configs.jsonl": {
+          "count": 150,
+          "distinct_bodies": 141,
+          "exact_bytes": true,
+          "generation": "7ca4b41b6cdc2948391d6efb1a29487e0a35783e9a5af59ba87d30b2e5f53bb4"
+        },
+        "next.json": {
+          "count": 1,
+          "distinct_bodies": 1,
+          "exact_bytes": true,
+          "generation": "7ca4b41b6cdc2948391d6efb1a29487e0a35783e9a5af59ba87d30b2e5f53bb4"
+        },
+        "raw.txt": {
+          "count": 150,
+          "distinct_bodies": 150,
+          "exact_bytes": true,
+          "generation": "7ca4b41b6cdc2948391d6efb1a29487e0a35783e9a5af59ba87d30b2e5f53bb4"
+        }
+      },
+      "publication": {
+        "awaiting_proof": 266,
+        "country_filtered": 0,
+        "country_unknown": 0,
+        "distinct_templates": 141,
+        "eligible": 150,
+        "identities": 150,
+        "published": 150,
+        "retained": 416
+      },
+      "current_unique": 1251,
+      "awaiting_first": 215,
+      "coverage_missing": 0
+    },
+    "final": {
+      "at": 1794779289422,
+      "formats": {
+        "configs.json": {
+          "count": 177,
+          "distinct_bodies": 166,
+          "exact_bytes": true,
+          "generation": "f42255ee6289bd4132605f87f4b1b96cba108b303ba712e5cc41140c04baed3a"
+        },
+        "configs.jsonl": {
+          "count": 177,
+          "distinct_bodies": 166,
+          "exact_bytes": true,
+          "generation": "f42255ee6289bd4132605f87f4b1b96cba108b303ba712e5cc41140c04baed3a"
+        },
+        "next.json": {
+          "count": 1,
+          "distinct_bodies": 1,
+          "exact_bytes": true,
+          "generation": "f42255ee6289bd4132605f87f4b1b96cba108b303ba712e5cc41140c04baed3a"
+        },
+        "raw.txt": {
+          "count": 177,
+          "distinct_bodies": 177,
+          "exact_bytes": true,
+          "generation": "f42255ee6289bd4132605f87f4b1b96cba108b303ba712e5cc41140c04baed3a"
+        }
+      },
+      "publication": {
+        "awaiting_proof": 240,
+        "country_filtered": 0,
+        "country_unknown": 0,
+        "distinct_templates": 166,
+        "eligible": 177,
+        "identities": 177,
+        "published": 177,
+        "retained": 417
+      },
+      "current_unique": 1247,
+      "awaiting_first": 95,
+      "coverage_missing": 0
+    },
+    "errors": [],
+    "api_seconds": {
+      "min": 2.295,
+      "median": 4.282,
+      "max": 6.073
+    },
+    "all_attempts": 443,
+    "no_unexpected_restart": true,
+    "units_after": {
+      "config-repair-prober": {
+        "restarts": 0,
+        "active": true,
+        "enabled": true,
+        "matched_binary": true
+      },
+      "config-repair-smart": {
+        "restarts": 0,
+        "active": true,
+        "enabled": true,
+        "matched_binary": true
+      },
+      "config-repair-splash": {
+        "restarts": 0,
+        "active": true,
+        "enabled": true,
+        "matched_binary": true
+      },
+      "config-repair-ads": {
+        "restarts": 0,
+        "active": true,
+        "enabled": true,
+        "matched_binary": true
+      },
+      "config-repair-egress": {
+        "restarts": 0,
+        "active": true,
+        "enabled": true,
+        "matched_binary": true
+      },
+      "config-repair": {
+        "restarts": 0,
+        "active": true,
+        "enabled": true,
+        "matched_binary": true
+      }
+    },
+    "resources_after": {
+      "helpers": 31,
+      "rss_sum_kib": 1123888,
+      "free_disk": 4305817600
+    },
+    "metrics_epoch": 1794719470134,
+    "scope": "Read-only changing inventory after deployment; new FIRST assessments exclude all earlier events in the epoch. No reset or forced retests. Not a fixed 1000/2000-input benchmark.",
+    "passed": true
+  },
+  "live_resources": {
+    "samples": 31,
+    "helpers_min": 19,
+    "helpers_max": 31,
+    "rss_sum_kib_min": 668868,
+    "rss_sum_kib_max": 1123908,
+    "rss_caveat": "Sum includes shared pages; not exclusive physical RAM. Workload/capacity differs from baseline, so no controlled percentage reduction claim."
+  },
+  "readonly_preflight_history": {
+    "first_process_timed_out_seconds": 12.010643304,
+    "unmodified_recheck_passed_seconds": [
+      1.861824115,
+      1.844419457,
+      1.446134795
+    ],
+    "final_gate": "Two additional fresh processes with original 12-second limit and production GOMEMLIMIT; see hashed logs",
+    "first_timeout_root_cause": "Not conclusively established; occurred immediately after cold build. Do not label every latency regression solved."
+  },
+  "rejected_first_candidate": {
+    "runtime_commit": "1df4cd29c7627ef69a550fd4d170f2f69ece4440",
+    "full_api_seconds": [
+      17.004
+    ],
+    "errors": [
+      {
+        "seconds": 52.18,
+        "code": "TimeoutError"
+      },
+      {
+        "seconds": 87.333,
+        "code": "TimeoutError"
+      }
+    ],
+    "rollback_database_restored": false,
+    "query_optimization_removed": true,
+    "rollback_six_services_verified": true
+  },
+  "storage_cleanup": {
+    "at": 1794778079,
+    "kind": "unused reproducible Go build caches only",
+    "active_build_cache_untouched": true,
+    "before_free_bytes": 1327996928,
+    "after_free_bytes": 4030464000,
+    "caches": [
+      {
+        "path": "/root/.cache/go-build",
+        "before_bytes": 1857167305,
+        "after_bytes": 228
+      },
+      {
+        "path": "/root/projects/config-manager-carrier-p49/.local/go-cache",
+        "before_bytes": 758539908,
+        "after_bytes": 228
+      }
+    ],
+    "source_database_releases_backups_untouched": true
+  },
+  "final_free_disk_bytes": 4305788928,
+  "limits": {
+    "classification_policy": "ads-egress.v9, one complete named Ads profile, exact raw/template, strict evidence and Ads asset health; Iran/country/expiry gates preserved",
+    "actual_ad_render_tested": false,
+    "all_ads_udp_quic_mobile_guarantee": false,
+    "fixed_1000_600s_or_2000_900s_benchmark_passed": false,
+    "future_uptime_or_bug_free_guarantee": false,
+    "openai_api_used_this_audit": false
+  },
+  "log_sha256": {
+    "server-build.log": "f637ee29b5e028712a70673f7bb854c05a1b46974a5817d7530b02ff910b8269",
+    "snapshot-full-readonly.log": "e1b9e447ceabd66783eec00a69ce41d293b10e04b8f670ed73075e26ae2dd88c",
+    "rehearsal-final.log": "2aeb87ffae9c30d2870ac70c755ff0113de96e9b55c721fbb9d58a6d19562faf",
+    "deploy.log": "ca32e868ea12dfa5c48761ff1da946cb9be6e5182b62084d801126b4d8bc8a16",
+    "observe-live.log": "624fa3682c4496be8901e20fb2087dc8c8e846809e2ab47197b2ac8e3b39889e",
+    "rollback.log": "c01d625216e17c06113abaf133582d0e52cf4c3f0a23c746960324958804ddc1",
+    "snapshot-regression.log": "8186fc4cf042724f721271fb2959b371849bbb70f4b993ce6fe100b66084b20c",
+    "first-candidate-server-build.log": "b4fd8e7368b8b67e518e4a4ac0ccd0b611595ecf1709768e7594c2cd97705840",
+    "first-candidate-observe-live.log": "1ab3003cd0b2a95f8a68dcb20cd8146073c75a2f7a367cbd2cf67eb350d92733",
+    "preflight-timeout-server-build.log": "eeb1a9301df447acccbd12bcc99a00416ad9335084f2ebd84f2267784d500963",
+    "preflight-timeout-snapshot-full-readonly.log": "16ac8fac23ecd0b5289af752d2c57bf4c7af34eabd2f9e0fd86043e6097b7094",
+    "snapshot-full-readonly-recheck.log": "dfe29e703e9afa874d7580a08fdf9415fbba548dea8e21af8d6b64b097b0b517"
+  },
+  "composite_note": "Canary and isolated watchdog were checked before the snapshot-query rollback; driver/classification code is unchanged. Final runtime eb126cc passed fresh affected race/vet, independent builds, read-only full API, copied-DB rehearsal and live four-format checks."
+}

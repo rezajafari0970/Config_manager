@@ -33,3 +33,5 @@ python3 scripts/egress-health-test.py
 python3 scripts/egress-country-provider-test.py
 
 node scripts/auto-policy-test.mjs
+
+node scripts/egress-rescan-test.mjs

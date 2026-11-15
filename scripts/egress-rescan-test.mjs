@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const source=fs.readFileSync(new URL('../internal/panel/web/egress-rescan.js',import.meta.url),'utf8').replace("import {fa} from './core.js';",'').replace('export function','function');
+const format=new Function('fa',source+';return rescanSummary;')({format:String});
+assert.equal(format(null),'هنوز دور بازآزمایی کلی آغاز نشده است');
+const text=format({id:1,total:1472,completed:1145,pending:0,excluded:327,settled:967,definitive:612,accepted_completed:204,finished:true,first_1000_ms:14827542});
+assert(text.includes('967 تعیین تکلیف‌شده در این دور (612 در اولین بررسی)'));
+assert(text.includes('بررسی اولیهٔ دور تمام شد'));
+assert(text.includes('بررسی اولیهٔ ۱۰۰۰ هویت: 14828 ثانیه'));
+assert(!text.includes('undefined'));
+console.log('Residential cohort: eventual conclusive results, initial results and current inventory remain distinct');

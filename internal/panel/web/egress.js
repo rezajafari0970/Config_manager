@@ -4,6 +4,7 @@ import {egressEvidence} from './egress-evidence.js';
 import {renderAccounting} from './egress-accounting.js';
 import {profileSummary,profileDetails} from './egress-profiles.js';
 import {healthSettings} from './egress-health.js';
+import {rescanSummary} from './egress-rescan.js';
 export default function Egress(){
  const evidence=egressEvidence($('#egress-list'));
  const health=healthSettings(()=>refresh());
@@ -16,7 +17,7 @@ export default function Egress(){
   state=await api('/api/egress?brief=1&offset='+offset+($('#egress-diagnostics').checked?'&view=diagnostics':''));
   countries.update(state.country);health.update(state);
   const run=state.rescan;
-  $('#egress-rescan-status').textContent=run?.id?'دور '+fa.format(run.id)+' · '+fa.format(run.completed)+' از '+fa.format(run.total)+' هویت یکتا بررسی‌شده · '+fa.format(run.pending)+' در انتظار · '+fa.format(run.excluded)+' کنارگذاشته‌شده · '+fa.format(run.definitive)+' نتیجهٔ قطعی · پذیرفته‌شده‌های قبلی: '+fa.format(run.accepted_completed)+' از '+fa.format(run.accepted)+' بازآزمایی؛ '+fa.format(run.accepted_excluded)+' کنارگذاشته‌شده · '+(run.finished?'دور کامل شد':'در حال اجرا')+(run.first_1000_ms?' · ۱۰۰۰ هویت یکتای اول: '+fa.format(Math.round(run.first_1000_ms/1000))+' ثانیه':'')+(run.first_2000_ms?' · ۲۰۰۰ ورودی اول: '+fa.format(Math.round(run.first_2000_ms/1000))+' ثانیه':''):'هنوز دور بازآزمایی کلی آغاز نشده است';
+  $('#egress-rescan-status').textContent=rescanSummary(run);
   const guard=state.iran_guard; $('#egress-iran-guard').textContent='محافظ ایران: '+fa.format(guard.quarantined_identities)+' هویت قرنطینه · '+fa.format(guard.blocked_identities)+' هویت مسدود پایدار · '+fa.format(guard.overdue_retained)+' کانفیگ نگهداری‌شده با بررسی عقب‌افتاده از ۱۰ دقیقه';
   renderAccounting(state.accounting);
   $('#egress-progress').textContent+=profileSummary(state.profile_stats);

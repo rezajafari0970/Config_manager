@@ -178,6 +178,19 @@ func (d *driverSession) stop() {
 	d.input = nil
 	d.responses = nil
 }
+
+// Called only between jobs by the owning slot. Lowering concurrency must also
+// release idle helpers and their namespace/GeoIP caches; otherwise all 31 warm
+// slots retain memory and can prevent the resource governor from recovering.
+// An in-flight measurement is allowed to finish under its existing deadline.
+func (d *driverSession) idleAdmission(capacity int) bool {
+	if d.slot <= capacity {
+		return true
+	}
+	d.stop()
+	return false
+}
+
 func (d *driverSession) exchange(ctx context.Context, input []byte) ([]byte, error) {
 	if d.cmd == nil {
 		if err := d.start(); err != nil {
@@ -253,7 +266,7 @@ func run() error {
 				var j *egress.Job
 				capacity := int(capacityLimit.Load())
 				lane := investigationLane(slot, capacity, claims)
-				if slot <= capacity && c.call(ctx, "claim", map[string]string{"lane": lane}, &j) == nil && j != nil {
+				if driver.idleAdmission(capacity) && c.call(ctx, "claim", map[string]string{"lane": lane}, &j) == nil && j != nil {
 					claims++
 					active.Add(1)
 					execute(ctx, c, driver, *j)

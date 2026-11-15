@@ -244,8 +244,8 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		failure(w, err)
 		return
 	}
-	var due, recovery, activeLeases int
-	if e = db.QueryRowContext(ctx, "SELECT coalesce(sum(next_run<=? AND (token='' OR lease_until<=?)),0),coalesce(sum(token!='' AND lease_until<=?),0),coalesce(sum(token!='' AND lease_until>?),0) FROM egress_work WHERE paused=0", now, now, now, now).Scan(&due, &recovery, &activeLeases); e != nil {
+	var recovery int
+	if e = db.QueryRowContext(ctx, "SELECT count(*) FROM egress_work WHERE paused=0 AND token!='' AND lease_until<=?", now).Scan(&recovery); e != nil {
 		failure(w, e)
 		return
 	}
@@ -264,6 +264,8 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 		failure(w, err)
 		return
 	}
+	queue := accounting["queue"].(map[string]int)
+	due, activeLeases := queue["due"], queue["running"]
 	run, err := egressRunState(ctx, db)
 	if err != nil {
 		failure(w, err)

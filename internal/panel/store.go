@@ -237,6 +237,9 @@ PRAGMA user_version=1;`)
 	if err = s.ensureEgressIndexes(); err != nil {
 		return nil, err
 	}
+	if err = s.ensureEgressRecovery(); err != nil {
+		return nil, err
+	}
 	if err = s.ensureEgressEligibilityLookup(); err != nil {
 		return nil, err
 	}
