@@ -484,7 +484,7 @@ func (s *SmartPipeline) smartNext(ctx context.Context) (*SmartEntry, []byte, int
 		if e = ctx.Err(); e != nil {
 			return nil, nil, 0, e
 		}
-		tx, e := s.db.BeginTx(ctx, nil)
+		tx, e := s.outputTransaction(ctx)
 		if e != nil {
 			return nil, nil, 0, e
 		}
@@ -548,7 +548,7 @@ func (s *SmartPipeline) smartNext(ctx context.Context) (*SmartEntry, []byte, int
 			}
 			return nil, nil, 0, e
 		}
-		tx, e = s.db.BeginTx(ctx, nil)
+		tx, e = s.outputTransaction(ctx)
 		if e != nil {
 			return nil, nil, 0, e
 		}

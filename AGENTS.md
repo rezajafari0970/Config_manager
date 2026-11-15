@@ -1,3 +1,22 @@
+# P65 authorized profile implementation — validation in progress / 2026-11-15
+
+The user approved publishing the proven DoubleClick/partial Ads split and explicitly
+requested implementation using the highest OpenAI API model. This supersedes P63's
+unresolved publication choice. Read docs/ADS_PROFILES.md. v8/schema35 accepts any
+complete named profile, keeps mixed/unknown distinct from terminal negatives,
+requires exact raw/template and two stable source-control groups including Google,
+and preserves all-Ads Iran vetoes. Profile/registry digest fences policy changes.
+Do not repeat the statistics reset. Current unique identity scope, archived raw
+history, manual exclusions, sticky Iran guards and country ANY policy remain.
+Preserve concurrent single-output fixes through 01aac40. API design review completed
+with gpt-6-astra max/pro; model output is not network proof. Initial current sample
+retest timed out, including direct entry TCP, so do not report it currently healthy.
+Source/validation/canary/deployment status must be read from the final P65 receipt;
+this note alone is not activation proof. Preserve failed and interrupted test logs.
+Use shared deploy lock, matched stopped DB/blob/key/release backup and six matching
+binaries. Never run schema34 binaries against schema35; never force-push. No all-Ads,
+household, QUIC, Android, 1000/600s or future uptime guarantee.
+
 # P64 expanded route research — not deployed / 2026-11-14
 
 Read docs/reports/P64-expanded-route-report-fa.md and its validation/targets JSON.

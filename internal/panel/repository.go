@@ -264,6 +264,14 @@ func (s *Store) Recover(ctx context.Context) error {
 	return s.recoverInventory(ctx)
 }
 func (s *Store) Claim(ctx context.Context, now time.Time, limit int, lease time.Duration) ([]collect.Job, error) {
+	// Dispatch leases are short and drive the collector liveness heartbeat.
+	// Bulk staging and completion still use background admission.
+	release, err := s.operations.acquire(ctx, true)
+	if err != nil {
+		return nil, err
+	}
+	defer release()
+
 	tx, e := s.db.BeginTx(ctx, nil)
 	if e != nil {
 		return nil, e
@@ -324,6 +332,12 @@ func (s *Store) Claim(ctx context.Context, now time.Time, limit int, lease time.
 	return jobs, tx.Commit()
 }
 func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Result, now time.Time) error {
+	release, err := s.operations.acquire(ctx, false)
+	if err != nil {
+		return err
+	}
+	defer release()
+
 	next, e := schedule.Next(now, job.Min, job.Max)
 	if e != nil {
 		return e
@@ -562,6 +576,12 @@ func (s *Store) Complete(ctx context.Context, job collect.Job, result collect.Re
 	return tx.Commit()
 }
 func (s *Store) Expire(ctx context.Context, now time.Time) error {
+	release, err := s.operations.acquire(ctx, false)
+	if err != nil {
+		return err
+	}
+	defer release()
+
 	tx, e := s.db.BeginTx(ctx, nil)
 	if e != nil {
 		return e
@@ -714,6 +734,12 @@ func (s *Store) Stage(ctx context.Context, job collect.Job, item collect.Item) (
 	return n == 1, err
 }
 func (s *Store) StageBatch(ctx context.Context, job collect.Job, items []collect.Item) (int, error) {
+	release, err := s.operations.acquire(ctx, false)
+	if err != nil {
+		return 0, err
+	}
+	defer release()
+
 	if len(items) > 32 {
 		return 0, ErrInvalid
 	}
@@ -772,6 +798,12 @@ func walkOutputs(ctx context.Context, q databaseQuery, visit func(Artifact) erro
 // Abandon releases only a known undelivered claim. An old revision/token cannot
 // revoke a replacement worker or mutate retained source data.
 func (s *Store) Abandon(ctx context.Context, j collect.Job) error {
+	release, err := s.operations.acquire(ctx, false)
+	if err != nil {
+		return err
+	}
+	defer release()
+
 	_, e := s.db.ExecContext(ctx, `UPDATE sources SET lease_token='',lease_until=0,state='queued',next_run=0 WHERE id=? AND revision=? AND lease_token=? AND enabled=1`, j.ID, j.Revision, j.Token)
 	return e
 }

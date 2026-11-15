@@ -194,7 +194,7 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 			d.Eligible = false
 			d.Until = 0
 		}
-		health := egress.AdsHealth(r, plan, now)
+		health := egress.AdsHealthForDecision(r, plan, d, now)
 		if d.Eligible && health != "healthy" {
 			d.Eligible = false
 			d.State = "UNKNOWN"
@@ -342,7 +342,7 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	if d.Eligible {
 		streak = 0
 	}
-	fastRetry := r.Code == "network_retry_pending" || j.Attempt == 1 && (d.Reason == "controls_incomplete" || d.Reason == "ads_peer_echo_incomplete")
+	fastRetry := r.Code == "network_retry_pending" || j.Attempt == 1 && (d.Reason == "controls_incomplete" || d.Reason == "ads_peer_echo_incomplete" || d.Reason == "ads_profile_evidence_incomplete")
 	delay := egressRetryDelay(j.Hash, state, health, accepted, streak, interval, fastRetry)
 	if guard.Quarantined {
 		delay = guard.Delay

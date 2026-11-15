@@ -87,6 +87,22 @@ func (s *Store) migrateV29() error {
 
 func saveEgressCountries(ctx context.Context, tx *sql.Tx, hash string, r egress.Report, d egress.Decision, now int64) error {
 	g := egress.Countries(r, d, now)
+
+	// Preserve the profile key through temporary uncertainty; a successful
+	// change of qualified profile cannot reuse the former profile's countries.
+	var previous string
+	err := tx.QueryRowContext(ctx, "SELECT coalesce(json_extract(summary,'$.profile_key'),'') FROM egress_geo_results WHERE hash=?", hash).Scan(&previous)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+	if d.Eligible && g.ProfileKey != "" && previous != g.ProfileKey {
+		if _, err = tx.ExecContext(ctx, "DELETE FROM egress_countries WHERE hash=?", hash); err != nil {
+			return err
+		}
+	} else if !d.Eligible || !g.Complete {
+		g.ProfileKey = previous
+	}
+
 	b, _ := json.Marshal(g)
 	if _, e := tx.ExecContext(ctx, `INSERT INTO egress_geo_results VALUES(?,?,?,?,?,?) ON CONFLICT(hash) DO UPDATE SET complete=excluded.complete,status=excluded.status,checked_at=excluded.checked_at,valid_until=excluded.valid_until,summary=excluded.summary`, hash, g.Complete, g.Status, now, g.ValidUntil, string(b)); e != nil {
 		return e

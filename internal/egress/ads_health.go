@@ -1,30 +1,41 @@
 package egress
 
-// AdsHealth measures completed bidirectional application exchanges on the actual
-// observed Ads streams. It is NOT a 64KiB upload or a speed certificate. Generic
-// payload results remain separately visible and cannot delete Ads-only inputs.
+// AdsHealth is completed request/response on a whole named profile, not bulk
+// throughput. Generic upload/download remains a diagnostic, never an Ads veto.
 func AdsHealth(r Report, p Plan, now int64) string {
-	if r.Version != Version || r.ResourcePressure || r.Started <= 0 || r.Finished < r.Started || r.Started < now-300000 || r.Finished > now+2000 || Cores[r.Core] == "" || Cores[r.Core] != r.CoreSHA || len(p.Variants) != 2 || len(r.Checks) != 2 {
+	if routeBound(r, p, r.Hash, now) != "" {
 		return "unknown"
 	}
-	for i, v := range p.Variants {
-		c := r.Checks[i]
-		if c.Name != v.Name || c.Hash != v.Hash || !c.Core || len(c.RuntimeHash) != 64 || (p.Driver == "xray" && c.RuntimeHash != v.Hash) {
-			return "unknown"
+	for _, profile := range profiles {
+		if healthyDomains(r, profile.Domains) {
+			return "healthy"
 		}
-		for _, domain := range Domains {
+	}
+	return "unknown"
+}
+func AdsHealthForDecision(r Report, p Plan, d Decision, now int64) string {
+	if !d.Eligible {
+		return AdsHealth(r, p, now)
+	}
+	if routeBound(r, p, r.Hash, now) != "" || len(d.QualifiedDomains) == 0 || !healthyDomains(r, d.QualifiedDomains) {
+		return "unknown"
+	}
+	return "healthy"
+}
+func healthyDomains(r Report, domains []string) bool {
+	connections := connectionCounts(r)
+	for _, variant := range []string{"raw", "template"} {
+		for _, domain := range domains {
 			waves := map[int]bool{}
-			seen := map[string]bool{}
 			for _, s := range r.Samples {
-				if s.Variant == v.Name && s.Domain == domain && s.ActualAds && s.Wave >= 1 && s.Wave <= r.Waves && validSource(s, r) && s.ResponseComplete && s.RequestBytes > 0 && s.RequestBytes <= 32768 && s.ResponseBytes > 0 && s.ResponseBytes <= 131072 && !seen[s.Connection] {
-					seen[s.Connection] = true
+				if s.Variant == variant && s.Domain == domain && s.ActualAds && routeValid(s, r) && connections[s.Connection] == 1 && s.ResponseComplete && s.RequestBytes > 0 && s.RequestBytes <= 32768 && s.ResponseBytes > 0 && s.ResponseBytes <= 131072 {
 					waves[s.Wave] = true
 				}
 			}
 			if len(waves) < 2 {
-				return "unknown"
+				return false
 			}
 		}
 	}
-	return "healthy"
+	return true
 }

@@ -30,9 +30,9 @@ func fixture() (egress.Report, egress.Plan, int64) {
 
 func TestPartialSplitSurvivesUnrelatedAdsOverlap(t *testing.T) {
 	r, p, now := fixture()
-	old := egress.Evaluate(r, p, r.Hash, now)
-	if old.State != "NO_SPLIT" {
-		t.Fatal("regression fixture no longer reproduces legacy veto", old)
+	admitted := egress.Evaluate(r, p, r.Hash, now)
+	if admitted.State != "RESIDENTIAL" || len(admitted.QualifiedProfiles) != 1 || admitted.QualifiedProfiles[0] != "doubleclick.v1" {
+		t.Fatal("authorized profile was not admitted", admitted)
 	}
 	d := Analyze(r, p, r.Hash, now)
 	if d.State != "PARTIAL_ADS_SPLIT" || len(d.SplitDomains) != 3 || len(d.SharedDomains) != 3 || d.PublicationReady {

@@ -28,6 +28,7 @@ type Store struct {
 	workerReadDB  *sql.DB
 	claimOnce     sync.Once
 	claimSlot     chan struct{}
+	operations    operationAdmission
 	aead          cipher.AEAD
 	key           []byte
 	vault         *blob.Vault
@@ -91,7 +92,7 @@ func Open(path string, key []byte) (*Store, error) {
 	if err = db.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
 		return nil, err
 	}
-	if version > 34 {
+	if version > 35 {
 		return nil, errors.New("database schema newer than application")
 	}
 	if version == 0 {
@@ -224,6 +225,9 @@ PRAGMA user_version=1;`)
 	if err = s.migrateV34(); err != nil {
 		return nil, err
 	}
+	if err = s.migrateV35(); err != nil {
+		return nil, err
+	}
 	if err = s.ensureEgressIndexes(); err != nil {
 		return nil, err
 	}
@@ -296,7 +300,14 @@ func (s *Store) workerReader() *sql.DB {
 	}
 	return s.reader()
 }
-func (s *Store) Ping(ctx context.Context) error { return s.db.PingContext(ctx) }
+func (s *Store) Ping(ctx context.Context) error {
+	release, err := s.operations.acquire(ctx, true)
+	if err != nil {
+		return err
+	}
+	defer release()
+	return s.db.PingContext(ctx)
+}
 func randomToken() string {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {

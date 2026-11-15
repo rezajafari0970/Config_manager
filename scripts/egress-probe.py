@@ -101,32 +101,15 @@ def core_order(plan):
      return [CORES[-1]]+CORES[:-1]
  except (ValueError,KeyError,TypeError):pass
  return CORES
-def raw_shared_egress(rows,targets):
- # Negative-only optimization. Go independently revalidates exact raw evidence.
- # Other controls may rotate or be unobservable; a repeated paired overlap with
- # any registered non-Ads control disproves exclusivity for these observations.
- ads={t['domain'] for t in targets if t['role']=='ads'}
- controls={t['domain'] for t in targets if t['role']=='control'}
- observed={};seen=set()
- for row in rows:
-  domain=row.get('domain');nonce=row.get('nonce','');wave=row.get('wave',0)
-  if domain not in ads|controls or not all(row.get(k) for k in ('echo','tls','same_stream')):continue
-  if row.get('actual_ads',False)!=(domain in ads) or wave not in (1,2,3) or len(nonce)!=32 or nonce!=row.get('connection') or nonce in seen:continue
-  try:ip=ipaddress.ip_address(row.get('ip',''))
-  except ValueError:continue
-  if not ip.is_global or ip.is_multicast or ip.is_reserved or ip.version!=row.get('family'):continue
-  seen.add(nonce);observed.setdefault(domain,[]).append(row)
- if any(len({r['wave'] for r in observed.get(d,[])})<2 for d in ads):return False
- for d in controls:
-  shared={r['wave'] for r in observed.get(d,[]) if any(a['wave']==r['wave'] and a['family']==r['family'] and a['ip']==r['ip'] for name in ads for a in observed.get(name,[]))}
-  if len(shared)>=2:return True
- return False
 
 def private_sources(samples,key):
  for row in samples:
   value=row.pop('ip','')
+  try:value=ipaddress.ip_address(value).compressed
+  except ValueError:value=''
   row['source']=hmac.new(key,value.encode(),hashlib.sha256).hexdigest() if value and row.get('echo') else ''
  return samples
+
 def error_code(error):
  return 'driver_subprocess_timeout' if isinstance(error,subprocess.TimeoutExpired) else 'driver_subprocess_failed' if isinstance(error,subprocess.CalledProcessError) else str(error) if isinstance(error,ValueError) and re.fullmatch('[a-z0-9_]{1,60}',str(error)) else 'driver_infrastructure_error'
 def core_independent_failure(code):
@@ -158,7 +141,7 @@ def investigate(req,args,pool=None):
  if pool is None:
   with ResourcePool(args) as own:return investigate(req,args,own)
  discovery=req.get('discovery') is True
- targets=sessions.target_registry(req.get('targets'));plan=req['plan'];r=dict(version='ads-egress.v7',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],health=[],attempts=[],evidence=[],wall_ms=0,waves=3 if req.get('deep') or discovery else 2)
+ targets=sessions.target_registry(req.get('targets'));plan=req['plan'];r=dict(version='ads-egress.v8',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],health=[],attempts=[],evidence=[],wall_ms=0,waves=3 if req.get('deep') or discovery else 2)
  begin=time.monotonic();best=-1;before_resource_failures=resource_failures(args.prefix)
  if len(plan.get('variants',[]))!=2:return r
  for core,path,pin in (core_order(plan) if plan['driver']=='xray' else [NATIVE]):
@@ -202,14 +185,12 @@ def investigate(req,args,pool=None):
       health.append(h)
      else:rows=observe_current()
      samples+=rows
-     if not discovery and not req.get('accepted') and v['name']=='raw' and raw_shared_egress(rows,targets):
-      box.stop();code='raw_shared_egress';mark(v['name']+'_probes');break
      # Existing members always receive a real payload check. New candidates
      # only pay this cost when a dedicated Ads path remains possible.
      if not req.get('accepted') and any(x.get('actual_ads') and x.get('echo') for x in rows):
       health.append(diagnostic_health(box,v['name']))
      box.stop();code='measured';mark(v['name']+'_probes')
-     # Acceptance always requires both variants; a proven raw overlap only rejects.
+     # Acceptance requires both variants; shared targets never veto another profile.
      if not discovery and not req.get('accepted') and not req.get('deep') and not any(x.get('echo') for x in rows):
       code='network_retry_pending';break
    mark('reset')
@@ -219,7 +200,7 @@ def investigate(req,args,pool=None):
    r['attempts'].append(dict(core=core,code=code,ms=(time.monotonic()-at)*1000,stages=stages))
    # A validated running core does not need four repetitions of a network timeout.
    # Schema/start failures still use the full pinned compatibility matrix.
-   if len(checks)==2 and all(x.get('core') for x in checks) or code in ('network_retry_pending','raw_shared_egress'):break
+   if len(checks)==2 and all(x.get('core') for x in checks) or code == 'network_retry_pending':break
   except Exception as error:
    code=error_code(error)
    r['attempts'].append(dict(core=core,code=code,ms=(time.monotonic()-at)*1000,stages=stages))
@@ -239,6 +220,8 @@ def investigate(req,args,pool=None):
    h=json.loads(q.stdout);h['variant']='host';r['health'].append(h)
   except Exception:pass
  r['waves']=max([2]+[x.get('wave',0) for x in r['samples']])
+ # The selected attempt lives in the top-level receipt; do not mirror it.
+ r['evidence']=[part for part in r['evidence'] if part['samples'] is not r['samples']]
  unique={id(s):s for part in [r]+r['evidence'] for s in part.get('samples',[])}
  pool.geo.attach(list(unique.values()))
  private_sources(list(unique.values()),secrets.token_bytes(32))

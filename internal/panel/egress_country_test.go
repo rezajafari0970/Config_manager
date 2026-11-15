@@ -114,7 +114,7 @@ func TestEgressCountryFactsCannotQualifyMissingConflictingOrStale(t *testing.T) 
 		t.Fatal(e)
 	}
 	for _, mode := range []string{"missing", "stale", "disagree", "source-conflict", "future", "wrong-domain"} {
-		r := syntheticEgress(*j)
+		r := partialProfileReport(*j)
 		switch mode {
 		case "missing":
 			r.Samples[0].Geo = egress.CountryFact{}

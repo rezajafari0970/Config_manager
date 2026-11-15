@@ -13,7 +13,7 @@ func TestSupplementaryReachabilityDoesNotEraseObservedSplit(t *testing.T) {
 		}
 	}
 	d := Evaluate(r, p, r.Hash, now)
-	if !d.Eligible || d.State != "RESIDENTIAL" || d.CoverageComplete || d.EvidenceProfile != "ads-stable-controls.v1" {
+	if !d.Eligible || d.State != "RESIDENTIAL" || d.CoverageComplete || d.EvidenceProfile != "ads-profiles.v1" {
 		t.Fatal(d)
 	}
 	for _, s := range d.Services {
@@ -23,21 +23,20 @@ func TestSupplementaryReachabilityDoesNotEraseObservedSplit(t *testing.T) {
 	}
 }
 
-func TestRotatingControlsAreNotDistinctRouteProof(t *testing.T) {
-	for _, domain := range []string{"www.google.com", "www.cloudflare.com", "api.ipify.org"} {
-		t.Run(domain, func(t *testing.T) {
-			r, p, now := fixture()
-			for i := range r.Samples {
-				s := &r.Samples[i]
-				if s.Domain == domain && s.Wave == 2 {
-					s.Source = Hash([]byte("rotating-second-exit"))
-				}
+func TestRotatingRequiredWitnessesCannotSupplySeparation(t *testing.T) {
+	r, p, now := fixture()
+	for i := range r.Samples {
+		s := &r.Samples[i]
+		if !s.ActualAds {
+			if s.Domain == "www.google.com" || s.Domain == "ipv4.google.com" {
+				s.Source = Hash([]byte(s.Domain + string(rune(s.Wave))))
+			} else if s.Domain != "api.ipify.org" {
+				s.Echo = false
 			}
-			d := Evaluate(r, p, r.Hash, now)
-			if d.Eligible || d.Negative || d.State != "UNKNOWN" {
-				t.Fatal(d)
-			}
-		})
+		}
+	}
+	if d := Evaluate(r, p, r.Hash, now); d.Eligible || d.Negative {
+		t.Fatal("rotating witnesses accepted", d.State, d.Reason)
 	}
 }
 
@@ -75,13 +74,13 @@ func TestMixedAdsFamiliesUsePerDestinationWitnesses(t *testing.T) {
 			s.Source = ""
 		}
 	}
-	if d := Evaluate(r, p, r.Hash, now); d.Eligible || d.Negative || d.Reason != "paired_control_coverage_incomplete" {
+	if d := Evaluate(r, p, r.Hash, now); d.Eligible || d.Negative || d.Reason != "ads_profile_evidence_incomplete" {
 		t.Fatal(d)
 	}
 }
 
 func TestRecoveredAdsNeedsControlsInSameWave(t *testing.T) {
-	r, p, now := fixture()
+	r, p, now := singleProfileFixture()
 	first := []Sample{}
 	for _, s := range r.Samples {
 		if s.Wave <= 2 {

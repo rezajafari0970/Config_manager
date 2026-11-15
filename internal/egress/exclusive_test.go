@@ -17,11 +17,11 @@ func TestExclusiveControlsAreIndependentAndGoogleIsRequired(t *testing.T) {
 		t.Fatal(d)
 	}
 	for i := range r.Samples {
-		if r.Samples[i].Domain == "www.google.com" {
+		if r.Samples[i].Domain == "www.google.com" || r.Samples[i].Domain == "ipv4.google.com" {
 			r.Samples[i].Source = Hash([]byte("8.8.8.8"))
 		}
 	}
-	if d := Evaluate(r, p, r.Hash, now); d.Eligible || d.State != "NO_SPLIT" || d.Reason != "non_ads_uses_ads_egress" {
+	if d := Evaluate(r, p, r.Hash, now); d.Eligible || d.State != "NO_SPLIT" || d.Reason != "all_tested_ads_share_control" {
 		t.Fatal(d)
 	}
 }
@@ -31,7 +31,7 @@ func TestReachabilityAndDifferentFamilyAreNotRouteProof(t *testing.T) {
 			r, p, now := fixture()
 			for i := range r.Samples {
 				s := &r.Samples[i]
-				if s.Domain != "www.google.com" {
+				if s.Domain != "www.google.com" && s.Domain != "ipv4.google.com" {
 					continue
 				}
 				switch kind {
@@ -47,34 +47,34 @@ func TestReachabilityAndDifferentFamilyAreNotRouteProof(t *testing.T) {
 					s.Family = 6
 				}
 			}
-			if d := Evaluate(r, p, r.Hash, now); d.Eligible || d.Negative || d.Reason != "controls_incomplete" {
+			if d := Evaluate(r, p, r.Hash, now); d.Eligible || d.Negative || d.Reason != "ads_profile_evidence_incomplete" {
 				t.Fatal(d)
 			}
 		})
 	}
 }
-func TestOnlyBoundLocalBlockCountsAsBlockedControl(t *testing.T) {
+func TestLocalBlockIsNotSourceEvidence(t *testing.T) {
 	r, p, now := fixture()
 	for i := range p.Variants {
 		v := &p.Variants[i]
 		var cfg map[string]any
 		json.Unmarshal(v.Config, &cfg)
 		cfg["outbounds"] = append(cfg["outbounds"].([]any), map[string]any{"tag": "p58-deny", "protocol": "blackhole"})
-		cfg["routing"] = map[string]any{"domainStrategy": "AsIs", "rules": []any{map[string]any{"type": "field", "domain": []string{"full:www.google.com"}, "outboundTag": "p58-deny"}}}
+		cfg["routing"] = map[string]any{"domainStrategy": "AsIs", "rules": []any{map[string]any{"type": "field", "domain": []string{"full:www.google.com", "full:ipv4.google.com"}, "outboundTag": "p58-deny"}}}
 		v.Config, _ = json.Marshal(cfg)
 		v.Hash = Hash(v.Config)
 		r.Checks[i].Hash = v.Hash
 		r.Checks[i].RuntimeHash = v.Hash
 	}
 	for i := range r.Samples {
-		if r.Samples[i].Domain == "www.google.com" {
+		if r.Samples[i].Domain == "www.google.com" || r.Samples[i].Domain == "ipv4.google.com" {
 			r.Samples[i].Echo = false
 			r.Samples[i].TLS = false
 			r.Samples[i].Source = ""
 			r.Samples[i].Code = "socks_connect"
 		}
 	}
-	if d := Evaluate(r, p, r.Hash, now); !d.Eligible || d.CoverageComplete {
+	if d := Evaluate(r, p, r.Hash, now); d.Eligible || d.Negative {
 		t.Fatal(d)
 	}
 	for i := range p.Variants {

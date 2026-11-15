@@ -34,7 +34,7 @@ func fixture() (Report, Plan, int64) {
 	return r, p, now
 }
 func TestFiniteObservationPolicy(t *testing.T) {
-	r, p, now := fixture()
+	r, p, now := singleProfileFixture()
 	r.Waves = 2
 	keep := []Sample{}
 	for _, x := range r.Samples {
@@ -43,7 +43,7 @@ func TestFiniteObservationPolicy(t *testing.T) {
 		}
 	}
 	r.Samples = keep
-	if d := Evaluate(r, p, "fixture", now); !d.Eligible || d.Route != "DIFFERENT" || d.Reason != "repeated_ads_split_observation" {
+	if d := Evaluate(r, p, "fixture", now); !d.Eligible || d.Route != "DIFFERENT" || d.Reason != "verified_ads_profile" {
 		t.Fatal(d)
 	}
 	cases := []struct {
@@ -129,7 +129,7 @@ func TestOverlapNeverQualifiesAsDedicatedResidential(t *testing.T) {
 	}
 }
 func TestPartialEchoRetainsEvidenceWithoutQualifying(t *testing.T) {
-	r, p, now := fixture()
+	r, p, now := singleProfileFixture()
 	stride := len(Domains) + len(ControlDomains)
 	r.Samples = append(r.Samples[1:stride], r.Samples[stride+1:]...)
 	d := Evaluate(r, p, "fixture", now)
@@ -171,16 +171,16 @@ func TestDriverFailureIsActionableAndNeverNegative(t *testing.T) {
 }
 
 func TestRotatingAdsPoolAndConflictingEvidence(t *testing.T) {
-	r, p, now := fixture()
+	r, p, now := singleProfileFixture()
 	r.Samples[1].Source = Hash([]byte("9.9.9.9"))
 	if d := Evaluate(r, p, "fixture", now); !d.Eligible {
 		t.Fatal("rotating split rejected", d)
 	}
 	r.Samples[1].Source = Hash([]byte("1.1.1.1"))
-	if d := Evaluate(r, p, "fixture", now); d.Eligible || d.Negative || d.Reason != "mixed_route_observations" {
+	if d := Evaluate(r, p, "fixture", now); d.Eligible || d.Negative || d.Reason != "ads_profile_evidence_incomplete" {
 		t.Fatal("mixed routes", d)
 	}
-	r, p, now = fixture()
+	r, p, now = singleProfileFixture()
 	for i := range r.Samples {
 		if r.Samples[i].Domain == "www.google.com" {
 			r.Samples[i].Source = Hash([]byte("2.2.2.2"))
@@ -189,7 +189,7 @@ func TestRotatingAdsPoolAndConflictingEvidence(t *testing.T) {
 	if d := Evaluate(r, p, "fixture", now); !d.Eligible || d.Negative {
 		t.Fatal("heterogeneous controls rejected", d)
 	}
-	r, p, now = fixture()
+	r, p, now = singleProfileFixture()
 	r.Samples[1].Source = Hash([]byte("1.1.1.1"))
 	r.Samples[len(Domains)].TLS = false
 	r.Samples[len(Domains)+1].TLS = false
@@ -198,7 +198,7 @@ func TestRotatingAdsPoolAndConflictingEvidence(t *testing.T) {
 	}
 }
 
-func TestRawOnlySharedRouteIsARejectionNeverAcceptance(t *testing.T) {
+func TestRawOnlySharedRouteIsIncompleteNeverTerminal(t *testing.T) {
 	r, p, now := fixture()
 	r.Code = "raw_shared_egress"
 	r.Checks = r.Checks[:1]
@@ -208,7 +208,7 @@ func TestRawOnlySharedRouteIsARejectionNeverAcceptance(t *testing.T) {
 	for i := range r.Samples {
 		r.Samples[i].Source = Hash([]byte("1.1.1.1"))
 	}
-	if d := Evaluate(r, p, "fixture", now); d.Eligible || !d.Negative || d.State != "NO_SPLIT" {
+	if d := Evaluate(r, p, "fixture", now); d.Eligible || d.Negative || d.State != "UNKNOWN" {
 		t.Fatal(d)
 	}
 	for i := range r.Samples {
@@ -219,4 +219,16 @@ func TestRawOnlySharedRouteIsARejectionNeverAcceptance(t *testing.T) {
 	if d := Evaluate(r, p, "fixture", now); d.Eligible || d.Negative || d.State == "NO_SPLIT" {
 		t.Fatal("incomplete raw rejected", d)
 	}
+}
+
+// Only DoubleClick is separate; other Ads legitimately share the main route.
+func singleProfileFixture() (Report, Plan, int64) {
+	r, p, now := fixture()
+	for i := range r.Samples {
+		s := &r.Samples[i]
+		if s.ActualAds && s.Domain != Domains[0] && s.Domain != Domains[1] && s.Domain != Domains[2] {
+			s.Source = Hash([]byte("1.1.1.1"))
+		}
+	}
+	return r, p, now
 }

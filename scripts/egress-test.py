@@ -28,7 +28,7 @@ class DiscoveryContracts(unittest.TestCase):
   req=dict(hash='synthetic',started=int(time.time()*1000),deep=True,accepted=False,plan=dict(driver='xray',variants=[dict(name=v,hash=digest,config=base64.b64encode(config).decode()) for v in ('raw','template')]))
   with patch.object(driver,'runtime',lambda *a:({},{})),patch.object(driver,'resource_failures',lambda *a:0),patch.object(driver,'diagnostic_health',lambda *a:dict(providers=[dict(passed=True)])):
    old=driver.investigate(req,args,pool)
-   self.assertEqual(old['code'],'raw_shared_egress');self.assertEqual(len(old['checks']),1)
+   self.assertEqual(old['code'],'measured');self.assertEqual(len(old['checks']),2);self.assertEqual(old['evidence'],[])
    calls.clear();req['discovery']=True;new=driver.investigate(req,args,pool)
   self.assertEqual(len(new['checks']),2);self.assertEqual(new['code'],'measured')
   self.assertEqual(len(new['samples']),6*len(session.DEFAULT_TARGETS))
@@ -61,31 +61,6 @@ class Contracts(unittest.TestCase):
   self.assertNotEqual(driver.lab.SANDBOX_ADDRESS_BASES['cge'],driver.lab.SANDBOX_ADDRESS_BASES['crw']);self.assertNotEqual(driver.lab.SANDBOX_ADDRESS_BASES['cge'],driver.lab.SANDBOX_ADDRESS_BASES['cgt'])
  def test_second_authority_not_assumed(self):
   self.assertFalse(session.authority({'subjectAltName':[('DNS','*.doubleclick.net')]},'www.google.com'))
-class ExclusiveRejectionContracts(unittest.TestCase):
- def rows(self):
-  rows=[]
-  for wave in (1,2):
-   for i,t in enumerate(session.DEFAULT_TARGETS):
-    nonce=f'{wave:016x}{i:016x}'
-    rows.append(dict(domain=t['domain'],variant='raw',wave=wave,nonce=nonce,connection=nonce,ip='8.8.8.8' if t['role']=='ads' or t['domain']=='www.google.com' else '1.1.1.1',family=4,tls=True,same_stream=True,echo=True,actual_ads=t['role']=='ads'))
-  return rows
- def test_google_overlap_rejects_despite_independent_other_controls(self):
-  rows=self.rows()
-  for r in rows:
-   if r['domain'] in ('t.me','www.instagram.com'):r['echo']=False
-  self.assertTrue(driver.raw_shared_egress(rows,session.DEFAULT_TARGETS))
- def test_single_wave_overlap_cannot_skip_template(self):
-  rows=self.rows()
-  for r in rows:
-   if r['domain']=='www.google.com' and r['wave']==2:r['ip']='1.1.1.1'
-  self.assertFalse(driver.raw_shared_egress(rows,session.DEFAULT_TARGETS))
- def test_missing_ads_and_disjoint_sources_cannot_skip_template(self):
-  rows=self.rows();rows=[r for r in rows if r['domain']!=session.DOMAINS[-1]]
-  self.assertFalse(driver.raw_shared_egress(rows,session.DEFAULT_TARGETS))
-  rows=self.rows()
-  for r in rows:
-   if not r['actual_ads']:r['ip']='1.1.1.1'
-  self.assertFalse(driver.raw_shared_egress(rows,session.DEFAULT_TARGETS))
 
 class PerformanceContracts(unittest.TestCase):
  def test_safe_repeated_nonframing_header(self):

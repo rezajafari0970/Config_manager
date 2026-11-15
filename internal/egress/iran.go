@@ -31,7 +31,26 @@ func Iran(r Report, p Plan, hash string, now int64) *IranObservation {
 	}
 	return nil
 }
+
+// Minority-IR conflicts veto publication without becoming confirmed guard hits.
+func IranCountryConflict(r Report, p Plan, hash string, now int64) bool {
+	if len(r.Evidence) > 4 {
+		return false
+	}
+	if iranSignal(r, p, hash, now, true) != nil {
+		return true
+	}
+	for _, part := range r.Evidence {
+		if len(part.Evidence) == 0 && len(part.Samples) <= 256 && part.Started >= r.Started && part.Finished <= r.Finished && iranSignal(part, p, hash, now, true) != nil {
+			return true
+		}
+	}
+	return false
+}
 func iranRound(r Report, p Plan, hash string, now int64) *IranObservation {
+	return iranSignal(r, p, hash, now, false)
+}
+func iranSignal(r Report, p Plan, hash string, now int64, conflict bool) *IranObservation {
 	if r.Version != Version || r.Hash != hash || r.Started <= 0 || r.Started > r.Finished || r.Started < now-300000 || r.Finished > now+2000 || r.ResourcePressure || Cores[r.Core] == "" || Cores[r.Core] != r.CoreSHA {
 		return nil
 	}
@@ -40,13 +59,13 @@ func iranRound(r Report, p Plan, hash string, now int64) *IranObservation {
 	valid := map[string]bool{}
 	for _, v := range p.Variants {
 		for _, c := range r.Checks {
-			if c.Name == v.Name && c.Hash == v.Hash && c.Core && len(c.RuntimeHash) == 64 && (p.Driver != "xray" || c.RuntimeHash == v.Hash) {
+			if c.Name == v.Name && Hash(v.Config) == v.Hash && c.Hash == v.Hash && c.Core && routeHexBytes(c.RuntimeHash, 32) && (p.Driver != "xray" || c.RuntimeHash == v.Hash) {
 				valid[v.Name] = true
 			}
 		}
 	}
 	for _, s := range r.Samples {
-		if !valid[s.Variant] || !s.ActualAds || s.Geo.Country != "IR" || !validSource(s, r) {
+		if !valid[s.Variant] || !s.ActualAds || (!conflict && s.Geo.Country != "IR") || !validSource(s, r) {
 			continue
 		}
 		// Validate this observation with the same independent provider policy as
@@ -54,7 +73,7 @@ func iranRound(r Report, p Plan, hash string, now int64) *IranObservation {
 		one := r
 		one.Samples = []Sample{s}
 		country := observedCountries(one, r.Finished+IranInterval, now)
-		if country.Complete && len(country.Countries) == 1 && country.Countries[0] == "IR" {
+		if conflict && country.Status == "country_iran_conflict" || !conflict && country.Complete && len(country.Countries) == 1 && country.Countries[0] == "IR" {
 			return &IranObservation{IranVersion, hash, s.Domain, s.Variant, s.At, country}
 		}
 	}

@@ -75,11 +75,38 @@ func TestSourceIdentityRecheckPreservesAliasRanking(t *testing.T) {
 	if err := s.db.QueryRow("SELECT artifact_id FROM memberships WHERE raw_hash=?", repair.Digest([]byte(rawA))).Scan(&identity); err != nil {
 		t.Fatal(err)
 	}
+	candidates := map[string]bool{"missing-candidate": true}
 	for step := 0; step < 2; step++ {
 		for _, scope := range []string{"", a, b} {
 			all, err := querySourceConversions(ctx, s.db, scope, 0, true)
 			if err != nil {
 				t.Fatal(err)
+			}
+			for _, entry := range all {
+				candidates[entry.CandidateHash] = true
+			}
+			for candidate := range candidates {
+				if candidate == "" {
+					continue
+				}
+				matching, err := querySourceCandidateConversions(ctx, s.db, scope, candidate)
+				if err != nil {
+					t.Fatal(err)
+				}
+				wanted := []Conversion{}
+				for _, entry := range all {
+					if entry.CandidateHash == candidate {
+						wanted = append(wanted, entry)
+					}
+				}
+				if len(matching) != len(wanted) {
+					t.Fatal("candidate lookup changed winning aliases", scope, step, len(matching), len(wanted))
+				}
+				for i := range wanted {
+					if matching[i] != wanted[i] {
+						t.Fatal("candidate lookup changed source ranking", scope, step)
+					}
+				}
 			}
 			filtered, err := querySourceIdentityConversions(ctx, s.db, scope, identity, 0, true)
 			if err != nil || len(filtered) != 1 {

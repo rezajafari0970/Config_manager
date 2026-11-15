@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const Version = "ads-egress.v7"
+const Version = "ads-egress.v8"
 
 // Keep slots within the dedicated 32-address sandbox block.
 const MaxWorkers = 31
@@ -215,25 +215,31 @@ type Completion struct {
 	Report Report `json:"report"`
 }
 type Decision struct {
-	EvidenceProfile  string            `json:"evidence_profile,omitempty"`
-	Services         []ServiceDecision `json:"services,omitempty"`
-	CoverageComplete bool              `json:"coverage_complete"`
-	State            string            `json:"state"`
-	Reason           string            `json:"reason"`
-	Route            string            `json:"route"`
-	Scope            string            `json:"scope"`
-	Sources          []string          `json:"sources"`
-	ControlSources   []string          `json:"control_sources"`
-	Eligible         bool              `json:"eligible"`
-	Negative         bool              `json:"negative"`
-	Until            int64             `json:"until"`
-	Missing          int               `json:"missing"`
+	Profiles          []ProfileDecision `json:"profiles,omitempty"`
+	QualifiedProfiles []string          `json:"qualified_profiles,omitempty"`
+	QualifiedDomains  []string          `json:"qualified_domains,omitempty"`
+	AdsCoverage       string            `json:"ads_coverage"`
+	Domains           []DomainRoute     `json:"domains,omitempty"`
+	CountryConflict   bool              `json:"country_conflict,omitempty"`
+	PolicyDigest      string            `json:"policy_digest,omitempty"`
+	EvidenceProfile   string            `json:"evidence_profile,omitempty"`
+	Services          []ServiceDecision `json:"services,omitempty"`
+	CoverageComplete  bool              `json:"coverage_complete"`
+	State             string            `json:"state"`
+	Reason            string            `json:"reason"`
+	Route             string            `json:"route"`
+	Scope             string            `json:"scope"`
+	Sources           []string          `json:"sources"`
+	ControlSources    []string          `json:"control_sources"`
+	Eligible          bool              `json:"eligible"`
+	Negative          bool              `json:"negative"`
+	Until             int64             `json:"until"`
+	Missing           int               `json:"missing"`
 }
 
 // Sources are job-local HMACs. The random key and plaintext IP never leave the helper.
 func validSource(s Sample, r Report) bool {
-	b, err := hex.DecodeString(s.Source)
-	return err == nil && len(b) == 32 && (s.Family == 4 || s.Family == 6) && s.TLS && s.SameStream && s.Echo && s.Transport == "tcp" && len(s.Nonce) == 32 && s.Nonce == s.Connection && len(s.Certificate) == 64 && len(s.Response) == 64 && s.At >= r.Started && s.At <= r.Finished+2000
+	return routeHexBytes(s.Source, 32) && routeHexBytes(s.Certificate, 32) && routeHexBytes(s.Response, 32) && routeHexBytes(s.Nonce, 16) && (s.Family == 4 || s.Family == 6) && s.TLS && s.SameStream && s.Echo && s.Transport == "tcp" && s.Nonce == s.Connection && s.At >= r.Started && s.At <= r.Finished+2000
 }
 func controlGroup(domain string) string {
 	if t, ok := targetFor(domain); ok && t.Role == "control" {
@@ -248,58 +254,10 @@ func controlGroup(domain string) string {
 	return ""
 }
 func Evaluate(r Report, p Plan, hash string, now int64) Decision {
-	d := Decision{State: "UNKNOWN", Reason: "incomplete_observations", Route: "UNKNOWN", Scope: "Observed Ads split against three source-capable control groups; stable same-family witnesses including ordinary Google in two waves for every Ads domain; TCP HTTP/1.1; raw/template; Telegram/Instagram reachability is supplementary, not route proof; no claim about all other traffic, QUIC, household class or full topology", Sources: []string{}, ControlSources: []string{}}
-	if r.Version != Version || r.Hash != hash || r.Started <= 0 || r.Started > r.Finished || r.Finished > now+2000 || r.Started < now-300000 || r.Finished < now-EvidenceTTL {
-		d.Reason = "stale_or_unbound_report"
-		return d
-	}
-	if r.ResourcePressure {
-		d.Reason = "local_resource_pressure"
-		return d
-	}
 	if len(p.Variants) != 2 {
-		d.State = "UNSUPPORTED"
-		d.Reason = "driver_unavailable"
-		return d
+		return Decision{State: "UNSUPPORTED", Reason: "driver_unavailable", Route: "UNKNOWN"}
 	}
-	if p.Variants[0].Name != "raw" || p.Variants[1].Name != "template" {
-		d.Reason = "variant_binding_invalid"
-		return d
-	}
-	if r.Code == "network_retry_pending" {
-		d.Reason = r.Code
-		return d
-	}
-	rawOnly := r.Code == "raw_shared_egress" && len(r.Checks) == 1
-	if (!rawOnly && len(r.Checks) != 2) || Cores[r.Core] == "" || Cores[r.Core] != r.CoreSHA {
-		d.Reason = "core_evidence_missing"
-		switch r.Code {
-		case "direct_route_not_qualified", "direct_default_not_qualified", "endpoint_dns_failed", "ipv6_only_probe_pending", "core_rejected", "core_schema_mismatch", "missing_runtime_asset", "removed_allow_insecure", "unsupported_protocol_or_transport", "public_endpoint_requires_tls", "driver_subprocess_timeout", "driver_infrastructure_error", "runtime_start_failed":
-			d.Reason = r.Code
-		}
-		return d
-	}
-	variants := p.Variants
-	if rawOnly {
-		variants = variants[:1]
-		d.Scope += "; raw-only shared-egress rejection"
-	}
-	for i, v := range variants {
-		c := r.Checks[i]
-		if c.Name != v.Name || c.Hash != v.Hash || !c.Core || len(c.RuntimeHash) != 64 || p.Driver == "xray" && c.RuntimeHash != v.Hash {
-			d.Reason = "core_or_variant_failed"
-			return d
-		}
-	}
-	if !p.Complete {
-		d.Reason = "multiple_or_unresolved_paths"
-		return d
-	}
-	if r.Waves < 2 || r.Waves > 3 {
-		d.Reason = "invalid_wave_count"
-		return d
-	}
-	return evaluateServices(r, p, variants, d, now)
+	return evaluateProfiles(r, p, hash, now)
 }
 
 func Now() int64 { return time.Now().UnixMilli() }
