@@ -1,9 +1,10 @@
-"""Transport scheduling hints only; Go remains the publication authority.
+"""Bounded scheduling only; Go remains the publication authority.
 
-Two paired waves may overlap under the session's shared 12-connection cap.
-Every measurement retains its original timeout, nonce, TLS and wave binding.
-Recovery still measures a complete paired third set when required. Serialized
-transports and discovery retain their conservative ordering.
+Deep and discovery waves remain serial: a real paired canary showed that
+overlapping deep waves can exhaust an upstream proxy's connection capacity.
+Initial checks keep bounded overlap where the transport supports it. Every
+measurement retains its timeout, nonce, TLS and wave binding. Incomplete
+evidence still receives a complete paired third recovery set.
 """
 SERIAL_TRANSPORTS = frozenset(('xhttp', 'splithttp'))
 
@@ -15,7 +16,7 @@ def session_deadline(targets, waves, timeout, sequential):
  return max(25, batches * timeout + 10)
 
 def sequential(request, config):
- if request.get('discovery'):
+ if request.get('deep') or request.get('discovery'):
   return True
  return any(out.get('streamSettings', {}).get('network') in SERIAL_TRANSPORTS
             for out in config.get('outbounds', []))

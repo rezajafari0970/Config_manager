@@ -153,7 +153,7 @@ async def session(req):
  start=req.get('start_wave',1);waves=req.get('waves',3)
  if not 1<=waves<=3:raise ValueError('wave_limit')
  if req.get('adaptive') and waves==3:
-  groups=([await wave(start,targets),await wave(start+1,targets)] if req.get('sequential') else await asyncio.gather(wave(start,targets),wave(start+1,targets,.15)))
+  groups=[await wave(start,targets),await wave(start+1,targets)]
   # Repeating an unsupported source observation cannot reveal an IP. Retain
   # both completed reachability observations and report their limited scope.
   required=[t for t in targets if t.get('required')]

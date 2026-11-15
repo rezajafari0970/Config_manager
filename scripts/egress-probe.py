@@ -197,8 +197,8 @@ def investigate(req,args,pool=None):
       rows=json.loads(result.stdout)
       if not isinstance(rows,list) or not min(waves,2)*len(targets)<=len(rows)<=waves*len(targets):raise ValueError('session_contract')
       return rows
-     # Transport-specific scheduling keeps one shared connection cap. Deep
-     # retries retain 8s budgets and a full paired third wave when needed.
+     # Deep paired waves remain serial to avoid upstream connection saturation;
+     # initial checks retain transport-specific overlap and the shared cap.
      sequential=scheduling.sequential(req,config)
      observe_current=lambda:observe(1,r['waves'],probe_timeout)
      if discovery:rows=observe_current()

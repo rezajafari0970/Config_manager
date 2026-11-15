@@ -224,7 +224,7 @@ class AdaptiveContracts(unittest.TestCase):
    if r['domain'] in ('api.ipify.org','www.cloudflare.com') and r['wave']==2:r['echo']=False
   rows,calls=self.simulate(change)
   self.assertTrue(any(w==3 for d,w in calls))
- def test_adaptive_parallel_pair_keeps_cap_and_wave_ids(self):
+ def test_adaptive_deep_pair_stays_serial_and_keeps_wave_ids(self):
   original=session.measure;active=0;peak=0;overlap=False;active_waves={}
   async def fake(domain,variant,wave,timeout,control_ipv4=None,target=None):
    nonlocal active,peak,overlap
@@ -235,7 +235,7 @@ class AdaptiveContracts(unittest.TestCase):
   session.measure=fake
   try:
    rows=asyncio.run(session.session(dict(variant='raw',waves=3,sequential=False,adaptive=True,targets=[t for t in session.DEFAULT_TARGETS if t.get('required')])) )
-   self.assertTrue(overlap);self.assertLessEqual(peak,12);self.assertEqual({r['wave'] for r in rows},{1,2})
+   self.assertFalse(overlap);self.assertLessEqual(peak,12);self.assertEqual({r['wave'] for r in rows},{1,2})
   finally:session.measure=original
  def test_flat_vless_dispatch_preserves_tls_and_local_semantics(self):
   import base64
@@ -265,7 +265,8 @@ class SchedulingContracts(unittest.TestCase):
  def test_transport_driver_controls_ordering_without_shortening_budget(self):
   for network,want in [('tcp',False),('ws',False),('grpc',False),('xhttp',True),('splithttp',True)]:
    cfg={'outbounds':[{'streamSettings':{'network':network}}]}
-   self.assertEqual(driver.scheduling.sequential({'deep':True,'accepted':True},cfg),want)
+   self.assertEqual(driver.scheduling.sequential({},cfg),want)
+   self.assertTrue(driver.scheduling.sequential({'deep':True,'accepted':True},cfg))
    self.assertTrue(driver.scheduling.sequential({'discovery':True},cfg))
   self.assertEqual(driver.observation_budget({'deep':True,'accepted':True}),(3,8))
 class OverlapContracts(unittest.TestCase):
