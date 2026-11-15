@@ -81,7 +81,7 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	var state, previousToken string
 	base := egressClaimCandidates + `SELECT egress_jobs.hash,kind,size,revision,ever_accepted,attempts,state,token FROM claim_scope c CROSS JOIN egress_work AS egress_jobs ON egress_jobs.hash=c.hash WHERE paused=0 AND next_run<=? AND (token='' OR lease_until<=?)`
 	retirement := `EXISTS(SELECT 1 FROM egress_retirements r WHERE r.hash=egress_jobs.hash)`
-	urgent := `(ever_accepted=1 AND tested>0 AND valid_until>0 AND valid_until<=CAST(unixepoch('subsec')*1000 AS INTEGER)+120000)`
+	urgent := `(ever_accepted=1 AND tested>0 AND valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER) AND valid_until<=CAST(unixepoch('subsec')*1000 AS INTEGER)+120000)`
 	priority := `CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ` + retirement + ` THEN 1 WHEN ` + urgent + ` THEN 2 `
 	order := ` ORDER BY ` + priority + ` WHEN tested=0 AND ever_accepted=1 THEN 3 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 4 WHEN tested=0 THEN 5 WHEN ever_accepted=1 THEN 6 ELSE 7 END,next_run,first_seen,egress_jobs.hash LIMIT 1`
 	filters := []string{""}

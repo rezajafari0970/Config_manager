@@ -93,7 +93,9 @@ being forgotten after the initial retry budget. The UI has no processing buttons
 Configured worker ceiling31 retains CPU/RAM/I/O governors and namespace/cgroup
 limits. After ten seconds of recovery, admission grows by bounded steps of two
 to four jobs; every new pressure sample can still reduce it immediately. Iran,
-pending spaced-removal confirmations and proofs within120s of expiry are urgent.
+pending spaced-removal confirmations and still-valid proofs within120s of expiry
+are urgent. Already expired proofs remain withdrawn and use follow-up recovery;
+their stale deadline cannot monopolize initial capacity forever.
 Routine renewal uses reserved follow-up capacity and cannot monopolize a nonempty
 initial-assessment lane; idle lanes can still steal work. No proof expiry is extended.
 New-input fast checks use two paired3s waves. Accepted renewals and incomplete

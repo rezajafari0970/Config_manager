@@ -282,3 +282,24 @@ func TestUnifiedNegativeConfirmationPrecedesResetBacklog(t *testing.T) {
 		t.Fatal("confirmation starved by reset backlog", next, err)
 	}
 }
+
+func TestUnifiedExpiredProofUsesFollowupWithoutStarvingInitial(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	newExportSource(t, s, "expired", sourceURI(745), sourceURI(746))
+	old, err := s.ClaimEgress(ctx)
+	if err != nil || old == nil {
+		t.Fatal(err)
+	}
+	if _, err = s.db.Exec("UPDATE egress_jobs SET token='',lease_until=0,ever_accepted=1,tested=?,state='RESIDENTIAL',next_run=0,valid_until=? WHERE hash=?", egress.Now(), egress.Now()-1, old.Hash); err != nil {
+		t.Fatal(err)
+	}
+	fresh, err := s.ClaimEgressLane(ctx, "initial")
+	if err != nil || fresh == nil || fresh.Hash == old.Hash {
+		t.Fatal("expired evidence monopolized initial lane", err)
+	}
+	renewal, err := s.ClaimEgressLane(ctx, "followup")
+	if err != nil || renewal == nil || renewal.Hash != old.Hash {
+		t.Fatal("expired proof was abandoned instead of rechecked", err)
+	}
+}
