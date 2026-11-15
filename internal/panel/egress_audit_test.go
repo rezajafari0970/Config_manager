@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/rezajafari0970/Config_manager/internal/egress"
@@ -37,6 +38,7 @@ func TestEgressAuditQueueUsesOneDueDefinition(t *testing.T) {
 	if body.Queue["due"] != 1 || body.Queue["due"] != body.Accounting.Queue["due"] {
 		t.Fatal(body)
 	}
+
 }
 
 func TestEgressAuditTransientFaultRecoversAfterDeepAttempt(t *testing.T) {
@@ -139,5 +141,35 @@ func TestEgressAuditSnapshotPreservesArchiveAndSafetyGates(t *testing.T) {
 				t.Fatal("scope/gate changed", table)
 			}
 		}
+	}
+	// Inventory presentation must not walk the archive; eligibility point reads
+	// must not inherit a materialized presentation scope (the P67 regression).
+	frozen, err := freezeEgress(ctx, s.db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := frozen.(egressSnapshotReader)
+	for _, query := range []string{"SELECT count(*) FROM egress_inventory", "SELECT hash FROM egress_eligible WHERE hash='missing'"} {
+		rows, err := s.db.Query("EXPLAIN QUERY PLAN " + r.query(query))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for rows.Next() {
+			var a, b, c int
+			var detail string
+			if err := rows.Scan(&a, &b, &c, &detail); err != nil {
+				t.Fatal(err)
+			}
+			if strings.Contains(query, "egress_inventory") && strings.HasPrefix(detail, "SCAN j ") {
+				t.Fatal("archive scan", detail)
+			}
+			if strings.Contains(query, "egress_eligible") && strings.Contains(detail, "egress_presentation") {
+				t.Fatal("point lookup inherited presentation scope", detail)
+			}
+		}
+		if err := rows.Err(); err != nil {
+			t.Fatal(err)
+		}
+		rows.Close()
 	}
 }

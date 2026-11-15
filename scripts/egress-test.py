@@ -214,17 +214,49 @@ class AdaptiveContracts(unittest.TestCase):
   def change(r):r['ip']='shared-control'
   rows,calls=self.simulate(change)
   self.assertEqual({w for d,w in calls},{1,2})
- def test_unpaired_controls_do_not_skip_retry(self):
+ def test_redundant_unpaired_control_does_not_repeat_complete_evidence(self):
   def change(r):
    if r['domain']=='api.ipify.org' and r['wave']==2:r['echo']=False
   rows,calls=self.simulate(change)
-  self.assertEqual({d for d,w in calls if w==3},{t['domain'] for t in session.DEFAULT_TARGETS if t.get('required')})
+  self.assertEqual({w for d,w in calls},{1,2})
+ def test_missing_indispensable_control_still_retries(self):
+  def change(r):
+   if r['domain'] in ('api.ipify.org','www.cloudflare.com') and r['wave']==2:r['echo']=False
+  rows,calls=self.simulate(change)
+  self.assertTrue(any(w==3 for d,w in calls))
+ def test_adaptive_parallel_pair_keeps_cap_and_wave_ids(self):
+  original=session.measure;active=0;peak=0;overlap=False;active_waves={}
+  async def fake(domain,variant,wave,timeout,control_ipv4=None,target=None):
+   nonlocal active,peak,overlap
+   active+=1;peak=max(peak,active);active_waves[wave]=active_waves.get(wave,0)+1;overlap=overlap or len(active_waves)>1
+   await asyncio.sleep(.2);active-=1;active_waves[wave]-=1
+   if not active_waves[wave]:del active_waves[wave]
+   return dict(domain=domain,wave=wave,echo=True,family=4,ip=domain)
+  session.measure=fake
+  try:
+   rows=asyncio.run(session.session(dict(variant='raw',waves=3,sequential=False,adaptive=True,targets=[t for t in session.DEFAULT_TARGETS if t.get('required')])) )
+   self.assertTrue(overlap);self.assertLessEqual(peak,12);self.assertEqual({r['wave'] for r in rows},{1,2})
+  finally:session.measure=original
  def test_flat_vless_dispatch_preserves_tls_and_local_semantics(self):
   import base64
   for address,security,encryption,want in [('8.8.8.8','none','none','26.5.9'),('example.com','none','none','26.5.9'),('127.0.0.1','none','none','26.11.9'),('8.8.8.8','tls','none','26.11.9'),('8.8.8.8','none','mlkem768x25519plus.native.0rtt.key','26.11.9')]:
    cfg={'outbounds':[{'protocol':'vless','settings':{'address':address,'port':443,'id':'fixture','encryption':encryption},'streamSettings':{'security':security}}]}
    plan={'variants':[{'config':base64.b64encode(json.dumps(cfg).encode()).decode()}]}
    self.assertEqual(driver.core_order(plan)[0][0],'xray-'+want)
+class SchedulingContracts(unittest.TestCase):
+ def test_outer_deadline_allows_queued_pairs_and_recovery(self):
+  # Ten targets exceed the cap when two waves overlap: 16 seconds for
+  # the pair plus 8 for recovery must not hit the old 26-second wrapper.
+  self.assertGreaterEqual(driver.scheduling.session_deadline(10,3,8,False),34)
+  self.assertGreaterEqual(driver.scheduling.session_deadline(32,3,8,False),82)
+  self.assertEqual(driver.scheduling.session_deadline(10,2,3,False),25)
+  self.assertEqual(driver.scheduling.session_deadline(10,3,8,True),34)
+ def test_transport_driver_controls_ordering_without_shortening_budget(self):
+  for network,want in [('tcp',False),('ws',False),('grpc',False),('xhttp',True),('splithttp',True)]:
+   cfg={'outbounds':[{'streamSettings':{'network':network}}]}
+   self.assertEqual(driver.scheduling.sequential({'deep':True,'accepted':True},cfg),want)
+   self.assertTrue(driver.scheduling.sequential({'discovery':True},cfg))
+  self.assertEqual(driver.observation_budget({'deep':True,'accepted':True}),(3,8))
 class OverlapContracts(unittest.TestCase):
  def test_same_runtime_parallel_join_preserves_both_results(self):
   import threading

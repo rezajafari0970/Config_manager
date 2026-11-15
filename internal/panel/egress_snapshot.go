@@ -18,11 +18,32 @@ type egressSnapshotReader struct {
 }
 
 func (r egressSnapshotReader) QueryContext(ctx context.Context, q string, args ...any) (*sql.Rows, error) {
-	return r.q.QueryContext(ctx, r.prefix+q, args...)
+	return r.q.QueryContext(ctx, r.query(q), args...)
 }
 func (r egressSnapshotReader) QueryRowContext(ctx context.Context, q string, args ...any) *sql.Row {
-	return r.q.QueryRowContext(ctx, r.prefix+q, args...)
+	return r.q.QueryRowContext(ctx, r.query(q), args...)
 }
+
+// Scope only the caller's inventory/work reads. Never shadow the authoritative
+// views inside eligibility: correlated eligibility lookups must keep their hash
+// index. Globally replacing those views previously multiplied the sparse scan
+// for every candidate and country lookup.
+var egressPresentationScope = regexp.MustCompile(`\begress_(inventory|work)\b`)
+
+func (r egressSnapshotReader) query(q string) string {
+	if !egressPresentationScope.MatchString(q) {
+		return r.prefix + q
+	}
+	const candidates = `SELECT u.hash FROM (SELECT DISTINCT artifact_id FROM memberships) m CROSS JOIN egress_unique u ON u.identity=m.artifact_id
+ UNION SELECT hash FROM egress_jobs WHERE ever_accepted=1
+ UNION SELECT u.hash FROM egress_iran_guard g CROSS JOIN egress_unique u ON u.identity=g.identity WHERE g.state='QUARANTINED'`
+	scoped := `egress_presentation_scope(hash) AS MATERIALIZED (` + candidates + `),
+ egress_presentation_inventory AS NOT MATERIALIZED (SELECT j.* FROM egress_presentation_scope c CROSS JOIN egress_inventory j ON j.hash=c.hash),
+ egress_presentation_work AS NOT MATERIALIZED (SELECT j.* FROM egress_presentation_scope c CROSS JOIN egress_work j ON j.hash=c.hash),`
+	q = egressPresentationScope.ReplaceAllString(q, "egress_presentation_$1")
+	return "WITH " + scoped + strings.TrimPrefix(r.prefix, "WITH ") + q
+}
+
 func freezeEgress(ctx context.Context, q databaseQuery) (databaseQuery, error) {
 	parts := []string{}
 	for _, name := range []string{"egress_eligible", "egress_geo_eligible", "egress_export_eligible"} {

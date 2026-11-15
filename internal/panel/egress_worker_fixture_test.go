@@ -64,7 +64,7 @@ func TestEgressWorkerFixture(t *testing.T) {
 		if selection := os.Getenv("EGRESS_FIXTURE_HASHES_FILE"); selection != "" {
 			body, err := os.ReadFile(selection)
 			var hashes []string
-			if err != nil || json.Unmarshal(body, &hashes) != nil || len(hashes) < 1 || len(hashes) > 32 {
+			if err != nil || json.Unmarshal(body, &hashes) != nil || len(hashes) < 1 || len(hashes) > 2000 {
 				t.Fatal("invalid private canary selection")
 			}
 			for _, h := range hashes {

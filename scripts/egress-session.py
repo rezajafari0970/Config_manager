@@ -130,7 +130,7 @@ def needs_pair_recovery(groups,required):
  # alone is insufficient when Ads and its stable comparison use different IP
  # families. Repeat the whole paired set, never just the missing Ads endpoint.
  buckets={t['domain']:[r for g in groups for r in g if r['domain']==t['domain'] and r.get('echo')] for t in required}
- if any(len({r['wave'] for r in rows})<2 for rows in buckets.values()):return True
+ if any(len({r['wave'] for r in buckets[t['domain']]})<2 for t in required if t['role']=='ads'):return True
  controls=[t for t in required if t['role']=='control']
  for t in required:
   if t['role']!='ads':continue
@@ -153,7 +153,7 @@ async def session(req):
  start=req.get('start_wave',1);waves=req.get('waves',3)
  if not 1<=waves<=3:raise ValueError('wave_limit')
  if req.get('adaptive') and waves==3:
-  groups=[await wave(start,targets),await wave(start+1,targets)]
+  groups=([await wave(start,targets),await wave(start+1,targets)] if req.get('sequential') else await asyncio.gather(wave(start,targets),wave(start+1,targets,.15)))
   # Repeating an unsupported source observation cannot reveal an IP. Retain
   # both completed reachability observations and report their limited scope.
   required=[t for t in targets if t.get('required')]
