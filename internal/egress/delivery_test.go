@@ -64,6 +64,12 @@ func TestDeliveryNegativeNeedsExactVariantsAndFreshIndependentControl(t *testing
 	for i := range r.Delivery {
 		for k := range r.Delivery[i].Assets {
 			r.Delivery[i].Assets[k].CurlExit = 28
+			r.Delivery[i].Assets[k].HTTPStatus = 0
+			r.Delivery[i].Assets[k].TLSVerified = false
+			r.Delivery[i].Assets[k].Complete = false
+			r.Delivery[i].Assets[k].ContentMatch = false
+			r.Delivery[i].Assets[k].Bytes = 0
+			r.Delivery[i].Assets[k].BodySHA = ""
 		}
 	}
 	if AdsHealth(r, p, now) == "unhealthy" {
@@ -73,11 +79,43 @@ func TestDeliveryNegativeNeedsExactVariantsAndFreshIndependentControl(t *testing
 	if AdsHealth(r, p, now) != "unhealthy" {
 		t.Fatal("corroborated negative lost")
 	}
+	for i := range r.Delivery[:2] {
+		for k := range r.Delivery[i].Assets {
+			r.Delivery[i].Assets[k].CurlExit = 97
+		}
+	}
+	if AdsHealth(r, p, now) != "unhealthy" {
+		t.Fatal("verified SOCKS refusal not recognized")
+	}
 	for _, mutate := range []func(*Report){func(r *Report) { r.Delivery[2].At = r.Started - 30001 }, func(r *Report) { r.Delivery[2].Assets[0].CurlExit = 28 }, func(r *Report) { r.Checks = r.Checks[:1] }, func(r *Report) { r.ResourcePressure = true }} {
 		x := cloneReceipt(r)
 		mutate(&x)
 		if AdsHealth(x, p, now) == "unhealthy" {
 			t.Fatal("unreliable negative")
 		}
+	}
+}
+
+func TestPartialVerifiedAssetDownloadIsUnknownNotUnhealthy(t *testing.T) {
+	r, p, now := fixture()
+	host := cloneReceipt(r).Delivery[0]
+	host.HostControl = true
+	host.Variant = "host"
+	for i := range host.Assets {
+		host.Assets[i].Nonce = Hash([]byte("host" + host.Assets[i].Profile))[:32]
+	}
+	for i := range r.Delivery {
+		for k := range r.Delivery[i].Assets {
+			r.Delivery[i].Assets[k].CurlExit = 28
+			r.Delivery[i].Assets[k].Complete = false
+			r.Delivery[i].Assets[k].Bytes = 37000
+		}
+	}
+	r.Delivery = append(r.Delivery, host)
+	if AdsHealth(r, p, now) == "unhealthy" {
+		t.Fatal("valid partial JavaScript became destructive failure")
+	}
+	if d := Evaluate(r, p, r.Hash, now); d.Eligible || d.Negative || d.Reason != "ads_delivery_unproven" {
+		t.Fatal(d)
 	}
 }

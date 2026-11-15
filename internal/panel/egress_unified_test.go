@@ -19,6 +19,12 @@ func badDelivery(j egress.Job) egress.Report {
 	for i := range r.Delivery {
 		for k := range r.Delivery[i].Assets {
 			r.Delivery[i].Assets[k].CurlExit = 28
+			r.Delivery[i].Assets[k].HTTPStatus = 0
+			r.Delivery[i].Assets[k].TLSVerified = false
+			r.Delivery[i].Assets[k].Complete = false
+			r.Delivery[i].Assets[k].ContentMatch = false
+			r.Delivery[i].Assets[k].Bytes = 0
+			r.Delivery[i].Assets[k].BodySHA = ""
 		}
 	}
 	r.Delivery = append(r.Delivery, host)
@@ -193,5 +199,43 @@ func TestUnifiedConflictWithdrawalUsesSparseIndex(t *testing.T) {
 	}
 	if !used {
 		t.Fatal("global withdrawal scans archived decision bodies")
+	}
+}
+
+func TestUnifiedUnprovedDeliveryRemainsRecoverableWithoutReimport(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	newExportSource(t, s, "asset-recovery", sourceURI(735))
+	var hash string
+	for i := 0; i < 2; i++ {
+		j, err := s.ClaimEgress(ctx)
+		if err != nil || j == nil {
+			t.Fatal(j, err)
+		}
+		hash = j.Hash
+		r := syntheticEgress(*j)
+		r.Delivery = nil
+		if err = s.CompleteEgress(ctx, egress.Completion{Job: *j, Report: r}); err != nil {
+			t.Fatal(err)
+		}
+		if _, err = s.db.Exec("UPDATE egress_jobs SET next_run=0 WHERE hash=?", hash); err != nil {
+			t.Fatal(err)
+		}
+	}
+	var work int
+	if err := s.db.QueryRow("SELECT count(*) FROM egress_work WHERE hash=?", hash).Scan(&work); err != nil || work != 1 {
+		t.Fatal("asset outage became permanently forgotten", work, err)
+	}
+	j, err := s.ClaimEgress(ctx)
+	if err != nil || j == nil || j.Hash != hash {
+		t.Fatal(j, err)
+	}
+	if err = s.CompleteEgress(ctx, egress.Completion{Job: *j, Report: syntheticEgress(*j)}); err != nil {
+		t.Fatal(err)
+	}
+	var eligible int
+	s.db.QueryRow("SELECT count(*) FROM egress_eligible WHERE hash=?", hash).Scan(&eligible)
+	if eligible != 1 {
+		t.Fatal("asset recovery did not restore eligibility")
 	}
 }

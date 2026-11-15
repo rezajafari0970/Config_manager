@@ -31,7 +31,7 @@ def transfer(t,timeout,host=False):
  return row
 def run(req):
  targets=registry(req.get('targets'));timeout=req.get('timeout',3)
- if timeout not in (3,6):raise ValueError('delivery_timeout')
+ if timeout not in (3,6,8):raise ValueError('delivery_timeout')
  host=req.get('host_control') is True
  with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:assets=list(pool.map(lambda t:transfer(t,timeout,host),targets))
  return dict(version=VERSION,variant='host' if host else req['variant'],host_control=host,at=int(time.time()*1000),assets=assets)

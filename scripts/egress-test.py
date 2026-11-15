@@ -34,6 +34,12 @@ class DiscoveryContracts(unittest.TestCase):
   self.assertEqual(len(new['samples']),6*len(session.DEFAULT_TARGETS))
   self.assertEqual([q['variant'] for q in calls],['raw','template'])
   for q in calls:self.assertEqual(q['waves'],3);self.assertTrue(q['sequential']);self.assertFalse(q['adaptive'])
+class RenewalBudgetContracts(unittest.TestCase):
+ def test_verified_inputs_do_not_silently_use_short_initial_deadline(self):
+  self.assertEqual(driver.observation_budget({'deep':True,'accepted':True}),(3,8))
+  self.assertEqual(driver.observation_budget({'deep':True,'accepted':False}),(3,8))
+  self.assertEqual(driver.observation_budget({}),(2,3))
+  self.assertEqual(driver.observation_budget({'discovery':True}),(3,8))
 class Contracts(unittest.TestCase):
  def test_host_dns_failure_does_not_rotate_compatible_cores(self):
   self.assertTrue(driver.core_independent_failure('endpoint_dns_failed'))

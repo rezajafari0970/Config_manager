@@ -51,9 +51,11 @@ configuration, consent and inventory can prevent display independently of the VP
 Actual render/fill is explicitly not measured by this server-side driver.
 
 A credible transport failure or authenticated blocking response in both runtimes,
+including SOCKS handshake failures ([curl error97](https://curl.se/libcurl/c/libcurl-errors.html)),
 for both profile assets, counts as unhealthy only when the same assets are freshly
 available through the independent host control. Parser errors, local resource
-pressure, missing runtime files, 429, 5xx and failed host controls stay uncertain.
+pressure, missing runtime files, 429, 5xx, verified partial JavaScript downloads
+and failed host controls stay uncertain.
 Controls are cached for at most30s (5s on failure); they never qualify a VPN.
 
 On the first credible unhealthy result, or verified NO_SPLIT for an accepted input,
@@ -71,7 +73,9 @@ Healthy accepted entries are exempt from ordinary age cleanup but require period
 fresh Ads health/routing proof; stale evidence cannot publish. Completed initial
 classifications cache by identity and policy. Accepted safety renewal, bounded
 UNKNOWN follow-up, local infrastructure repair, and an explicit policy change are
-separate from duplicate initial classifications. The UI has no processing buttons.
+separate from duplicate initial classifications. A route-qualified input with
+unproven asset delivery keeps a bounded, backed-off recovery schedule instead of
+being forgotten after the initial retry budget. The UI has no processing buttons.
 
 ## Modules, speed and recovery
 
@@ -87,8 +91,10 @@ separate from duplicate initial classifications. The UI has no processing button
 | common eligibility/export views | Consistent panel and four exact-byte outputs |
 
 Configured worker ceiling31 retains CPU/RAM/I/O governors and namespace/cgroup
-limits. Fast and accepted checks use two paired3s waves. Incomplete initial probes
-have bounded sequential deep retries with6s deadlines. Optional service reachability
+limits. New-input fast checks use two paired3s waves. Accepted renewals and incomplete
+initial probes use two sequential8s waves with a third adaptive recovery wave
+only when required evidence is incomplete. Assets have a6s initial /8s deep completion budget;
+valid partial progress cannot become a destructive health failure. Optional service reachability
 and generic bulk transfers leave the publication critical path; Ads asset retrieval
 and route observations overlap within the same runtime and join before teardown.
 This removes redundant work without relaxing the evidence necessary for acceptance.

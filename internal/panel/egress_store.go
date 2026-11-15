@@ -338,7 +338,7 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	if d.Eligible {
 		streak = 0
 	}
-	fastRetry := r.Code == "network_retry_pending" || j.Attempt == 1 && (d.Reason == "controls_incomplete" || d.Reason == "ads_peer_echo_incomplete" || d.Reason == "ads_profile_evidence_incomplete")
+	fastRetry := r.Code == "network_retry_pending" || j.Attempt == 1 && (d.Reason == "controls_incomplete" || d.Reason == "ads_peer_echo_incomplete" || d.Reason == "ads_profile_evidence_incomplete" || d.Reason == "ads_delivery_unproven")
 	delay := egressRetryDelay(j.Hash, state, health, accepted, streak, interval, fastRetry)
 	if hits > 0 {
 		delay = 30000

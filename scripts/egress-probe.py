@@ -151,11 +151,16 @@ def overlap_assessment(observe,health):
   pending=executor.submit(health)
   rows=observe()
   return rows,pending.result()
+def observation_budget(req):
+ # Accepted inputs retain the deeper budget: real canaries can exceed 3s
+ # while still downloading valid Ads data. Adaptive third waves stay bounded.
+ return (3,8) if req.get('discovery') or req.get('deep') else (2,3)
 def investigate(req,args,pool=None):
  if pool is None:
   with ResourcePool(args) as own:return investigate(req,args,own)
  discovery=req.get('discovery') is True
- targets=sessions.target_registry(req.get('targets'));targets=targets if discovery else [t for t in targets if t.get('driver')!='https-reachability'];plan=req['plan'];r=dict(version='ads-egress.v9',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],health=[],delivery=[],attempts=[],evidence=[],wall_ms=0,waves=3 if discovery or req.get('deep') and not req.get('accepted') else 2)
+ probe_waves,probe_timeout=observation_budget(req)
+ targets=sessions.target_registry(req.get('targets'));targets=targets if discovery else [t for t in targets if t.get('driver')!='https-reachability'];plan=req['plan'];r=dict(version='ads-egress.v9',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],health=[],delivery=[],attempts=[],evidence=[],wall_ms=0,waves=probe_waves)
  begin=time.monotonic();best=-1;before_resource_failures=resource_failures(args.prefix)
  if len(plan.get('variants',[]))!=2:return r
  for core,path,pin in (core_order(plan) if plan['driver']=='xray' else [NATIVE]):
@@ -192,11 +197,11 @@ def investigate(req,args,pool=None):
       if not isinstance(rows,list) or not min(waves,2)*len(targets)<=len(rows)<=waves*len(targets):raise ValueError('session_contract')
       return rows
      # XHTTP and deep retries avoid overloading one remote path with 21 connections.
-     sequential=discovery or bool(req.get('deep') and not req.get('accepted')) or any(o.get('streamSettings',{}).get('network') in ('xhttp','splithttp') for o in config.get('outbounds',[]))
-     observe_current=lambda:observe(1,r['waves'],8 if discovery else 6 if req.get('deep') and not req.get('accepted') else 3)
+     sequential=discovery or bool(req.get('deep')) or any(o.get('streamSettings',{}).get('network') in ('xhttp','splithttp') for o in config.get('outbounds',[]))
+     observe_current=lambda:observe(1,r['waves'],probe_timeout)
      if discovery:rows=observe_current()
      else:
-      rows,assets=overlap_assessment(observe_current,lambda:diagnostic_delivery(box,v['name'],req.get('delivery_targets'),6 if req.get('deep') and not req.get('accepted') else 3))
+      rows,assets=overlap_assessment(observe_current,lambda:diagnostic_delivery(box,v['name'],req.get('delivery_targets'),8 if req.get('deep') else 6))
       delivery.append(assets)
      samples+=rows
      box.stop();code='measured';mark(v['name']+'_probes')

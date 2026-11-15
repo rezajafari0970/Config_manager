@@ -77,12 +77,17 @@ func assetAvailable(a DeliveryAsset) bool {
 	return a.CurlExit == 0 && a.HTTPStatus == 200 && a.TLSVerified && a.Complete && a.ContentMatch && a.Bytes >= 1024 && routeHexBytes(a.BodySHA, 32)
 }
 func assetFailure(a DeliveryAsset) bool {
+	// Verified JavaScript bytes followed by a deadline are incomplete progress,
+	// not evidence that this config cannot deliver advertising.
+	if a.CurlExit != 0 && a.HTTPStatus == 200 && a.TLSVerified && a.ContentMatch && a.Bytes > 0 {
+		return false
+	}
 	// A transport or explicit block response is failure evidence. Parser bugs,
 	// rate limits, unsupported response formats and 5xx are uncertainty.
 	if a.CurlExit == 0 && a.TLSVerified {
 		return a.HTTPStatus == 403 || a.HTTPStatus == 451 || a.HTTPStatus == 200 && a.Complete && !a.ContentMatch
 	}
-	return a.CurlExit == 7 || a.CurlExit == 28 || a.CurlExit == 35 || a.CurlExit == 52 || a.CurlExit == 56 || a.CurlExit == 60
+	return a.CurlExit == 7 || a.CurlExit == 28 || a.CurlExit == 35 || a.CurlExit == 52 || a.CurlExit == 56 || a.CurlExit == 60 || a.CurlExit == 97
 }
 
 // Delivery is a necessary asset-path check, never proof of ad fill or rendering.
