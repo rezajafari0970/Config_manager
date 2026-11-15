@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http/httptest"
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/rezajafari0970/Config_manager/internal/egress"
@@ -86,7 +85,7 @@ func TestEgressAuditTransientFaultRecoversAfterDeepAttempt(t *testing.T) {
 	}
 }
 
-func TestEgressAuditSnapshotScopesArchiveWithoutChangingGates(t *testing.T) {
+func TestEgressAuditSnapshotPreservesArchiveAndSafetyGates(t *testing.T) {
 	s := testStore(t)
 	ctx := context.Background()
 	newExportSource(t, s, "scope", sourceURI(763), sourceURI(764), sourceURI(765))
@@ -140,31 +139,5 @@ func TestEgressAuditSnapshotScopesArchiveWithoutChangingGates(t *testing.T) {
 				t.Fatal("scope/gate changed", table)
 			}
 		}
-	}
-	q, err := freezeEgress(ctx, s.db)
-	if err != nil {
-		t.Fatal(err)
-	}
-	r, ok := q.(egressSnapshotReader)
-	if !ok {
-		t.Fatal("snapshot reader")
-	}
-	rows, err := s.db.Query("EXPLAIN QUERY PLAN " + r.prefix + "SELECT count(*) FROM egress_inventory")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var a, b, c int
-		var detail string
-		if err = rows.Scan(&a, &b, &c, &detail); err != nil {
-			t.Fatal(err)
-		}
-		if strings.HasPrefix(detail, "SCAN j ") {
-			t.Fatal("snapshot still scans archived jobs", detail)
-		}
-	}
-	if err = rows.Err(); err != nil {
-		t.Fatal(err)
 	}
 }

@@ -20,11 +20,11 @@ func (s *Store) ClaimEgress(ctx context.Context) (*egress.Job, error) {
 // Starting with the due-job index instead scans the entire historical archive on
 // every idle worker poll. The authoritative views still apply all exclusions,
 // Iran guards and completed-result rules to each candidate; this is not a cache.
-const egressScopeCandidates = `SELECT u.hash FROM (SELECT DISTINCT artifact_id FROM memberships) m CROSS JOIN egress_unique u ON u.identity=m.artifact_id
+const egressClaimCandidates = `WITH claim_scope(hash) AS MATERIALIZED (
+ SELECT u.hash FROM (SELECT DISTINCT artifact_id FROM memberships) m JOIN egress_unique u ON u.identity=m.artifact_id
  UNION SELECT hash FROM egress_jobs WHERE ever_accepted=1
- UNION SELECT u.hash FROM egress_iran_guard g CROSS JOIN egress_unique u ON u.identity=g.identity WHERE g.state='QUARANTINED'`
-
-const egressClaimCandidates = `WITH claim_scope(hash) AS MATERIALIZED (` + egressScopeCandidates + `) `
+ UNION SELECT u.hash FROM egress_iran_guard g JOIN egress_unique u ON u.identity=g.identity WHERE g.state='QUARANTINED'
+) `
 
 const egressUrgentExpiry = `(ever_accepted=1 AND tested>0 AND valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER) AND valid_until<=CAST(unixepoch('subsec')*1000 AS INTEGER)+120000)`
 

@@ -2,7 +2,7 @@
 
 This turn requests an audit of the working subsystem, not another reset. Preserve
 ads-egress.v9/schema37, current proof/country settings and all Iran/exclusion gates.
-P67 scopes presentation queries, shares queue counts, restores backed-off transient
+P67 preserves the original snapshot query plan, shares queue counts, restores transient
 DNS/subprocess recovery and releases idle helper resources on capacity reduction.
 Read the P67 final receipt for activation/test status; this note is not deployment
 proof. Keep the P66 receipt and its unresolved throughput limits. Use matched

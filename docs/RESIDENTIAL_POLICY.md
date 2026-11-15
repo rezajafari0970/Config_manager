@@ -133,9 +133,9 @@ is an admission/lifecycle specification, not a claim that every current input ha
 already completed or that actual advertising display has been measured.
 
 P67 maintenance keeps ads-egress.v9/schema37 and the original reset epoch.
-Presentation queries enumerate the same current/retained/quarantined scope as
-claims before authoritative filtering; they do not scan the historical archive
-or cache eligibility. Both queue summaries use the same urgent deadline rule.
+Both queue summaries use the same urgent deadline rule. The attempted inventory
+CTE optimization regressed the complete live API and was rolled back; the original
+snapshot query plan is retained. No eligibility cache is introduced.
 The cohort panel distinguishes definitive first assessments from later settlement.
 No classifier, country selection, proof TTL or tested raw/template bytes change.
 Activation and validation status belong to the P67 receipt.
