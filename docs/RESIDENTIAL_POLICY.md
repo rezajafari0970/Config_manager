@@ -93,7 +93,8 @@ being forgotten after the initial retry budget. The UI has no processing buttons
 Configured worker ceiling31 retains CPU/RAM/I/O governors and namespace/cgroup
 limits. New-input fast checks use two paired3s waves. Accepted renewals and incomplete
 initial probes use two sequential8s waves with a third adaptive recovery wave
-only when required evidence is incomplete. Assets have a6s initial /8s deep completion budget;
+only when required evidence is incomplete, including missing same-family paired
+controls despite successful source echoes. Assets have a6s initial /8s deep completion budget;
 valid partial progress cannot become a destructive health failure. Optional service reachability
 and generic bulk transfers leave the publication critical path; Ads asset retrieval
 and route observations overlap within the same runtime and join before teardown.

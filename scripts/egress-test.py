@@ -186,7 +186,7 @@ class AdaptiveContracts(unittest.TestCase):
   original=session.measure;calls=[]
   async def fake(domain,variant,wave,timeout,control_ipv4=None,target=None):
    calls.append((domain,wave))
-   row=dict(domain=domain,wave=wave,echo=True,tls=True,same_stream=True,family=4,actual_ads=domain in session.DOMAINS)
+   row=dict(domain=domain,wave=wave,echo=True,tls=True,same_stream=True,family=4,ip=domain,actual_ads=domain in session.DOMAINS)
    change(row);return row
   session.measure=fake
   try:return asyncio.run(session.session(dict(variant='raw',waves=3,sequential=True,adaptive=True))),calls
@@ -204,7 +204,16 @@ class AdaptiveContracts(unittest.TestCase):
   def change(r):
    if r['domain'] in session.DOMAINS and r['wave']==2:r['family']=6
   rows,calls=self.simulate(change)
-  self.assertEqual({d for d,w in calls if w==3 and d in session.DOMAINS},set())
+  self.assertEqual({d for d,w in calls if w==3},{t['domain'] for t in session.DEFAULT_TARGETS if t.get('required')})
+ def test_all_echoes_with_insufficient_same_family_controls_retry(self):
+  def change(r):
+   if r['domain'] in session.DOMAINS or r['domain']=='www.google.com':r['family']=6
+  rows,calls=self.simulate(change)
+  self.assertTrue(any(w==3 for d,w in calls))
+ def test_shared_same_family_does_not_need_separation_retry(self):
+  def change(r):r['ip']='shared-control'
+  rows,calls=self.simulate(change)
+  self.assertEqual({w for d,w in calls},{1,2})
  def test_unpaired_controls_do_not_skip_retry(self):
   def change(r):
    if r['domain']=='api.ipify.org' and r['wave']==2:r['echo']=False
