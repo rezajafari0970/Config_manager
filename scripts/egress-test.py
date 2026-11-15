@@ -28,7 +28,7 @@ class DiscoveryContracts(unittest.TestCase):
   req=dict(hash='synthetic',started=int(time.time()*1000),deep=True,accepted=False,plan=dict(driver='xray',variants=[dict(name=v,hash=digest,config=base64.b64encode(config).decode()) for v in ('raw','template')]))
   with patch.object(driver,'runtime',lambda *a:({},{})),patch.object(driver,'resource_failures',lambda *a:0),patch.object(driver,'diagnostic_health',lambda *a:dict(providers=[dict(passed=True)])):
    old=driver.investigate(req,args,pool)
-   self.assertEqual(old['code'],'measured');self.assertEqual(len(old['checks']),2);self.assertEqual(old['evidence'],[])
+   self.assertEqual(old['code'],'measured');self.assertEqual(len(old['checks']),2);self.assertEqual(len(old['evidence']),1);self.assertTrue(old['evidence'][0]['selected_samples']);self.assertEqual(old['evidence'][0]['samples'],[])
    calls.clear();req['discovery']=True;new=driver.investigate(req,args,pool)
   self.assertEqual(len(new['checks']),2);self.assertEqual(new['code'],'measured')
   self.assertEqual(len(new['samples']),6*len(session.DEFAULT_TARGETS))

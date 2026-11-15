@@ -113,7 +113,7 @@ func ObserveRoutes(r Report, p Plan, hash string, now int64, targets []Target) R
 			rows := buckets[v.Name+"|"+t.Domain]
 			observed, paired, overlap, healthy := map[int]bool{}, map[int]bool{}, map[int]bool{}, map[int]bool{}
 			sources := map[string]bool{}
-			poolOverlap := false
+			poolOverlap, unsharedObservation := false, false
 			for _, a := range rows {
 				observed[a.Wave], sources[a.Source] = true, true
 				exchange := a.ResponseComplete && a.RequestBytes > 0 && a.RequestBytes <= 32768 && a.ResponseBytes > 0 && a.ResponseBytes <= 131072
@@ -121,6 +121,7 @@ func ObserveRoutes(r Report, p Plan, hash string, now int64, targets []Target) R
 					healthy[a.Wave] = true
 				}
 				groups := map[string]bool{}
+				shared := false
 				for _, c := range targets {
 					if c.Role != "control" {
 						continue
@@ -134,25 +135,23 @@ func ObserveRoutes(r Report, p Plan, hash string, now int64, targets []Target) R
 							poolOverlap = true
 							if b.Wave == a.Wave {
 								overlap[a.Wave] = true
+								shared = true
 							}
 						} else if b.Wave == a.Wave && routeStable(controls, a.Family) {
 							groups[c.Group] = true
 						}
 					}
 				}
+				if !shared {
+					unsharedObservation = true
+				}
 				if groups["google-search"] && len(groups) >= 2 && exchange {
 					paired[a.Wave] = true
 				}
 			}
-			mixed := false
-			for wave := range paired {
-				if !overlap[wave] {
-					mixed = true
-				}
-			}
 			x := RouteVariant{Variant: v.Name, State: "UNRESOLVED", Observed: len(observed), Paired: len(paired), Overlap: len(overlap), SourceCount: len(sources), HealthyWaves: len(healthy)}
 			switch {
-			case len(overlap) >= 2 && !mixed:
+			case len(overlap) >= 2 && !unsharedObservation:
 				x.State = "SHARED"
 			case poolOverlap:
 				x.State = "MIXED"

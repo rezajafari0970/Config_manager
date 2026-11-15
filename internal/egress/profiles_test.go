@@ -130,6 +130,74 @@ func TestMixedSharingCannotBecomeCachedNegative(t *testing.T) {
 		t.Fatal(d)
 	}
 }
+
+func TestUnpairedDifferentObservationPreventsTerminalNegative(t *testing.T) {
+	r, p, now := fixture()
+	for i := range r.Samples {
+		s := &r.Samples[i]
+		if s.ActualAds && s.Wave <= 2 {
+			s.Source = Hash([]byte("1.1.1.1"))
+		}
+		if !s.ActualAds && s.Wave == 3 {
+			s.Echo = false
+		}
+	}
+	if d := Evaluate(r, p, r.Hash, now); d.Eligible || d.Negative || d.State != "UNKNOWN" {
+		t.Fatal(d)
+	}
+}
+
+func TestSelectedAttemptIranSurvivesUnrelatedResourcePressure(t *testing.T) {
+	r, p, now := singleProfileFixture()
+	for i := range r.Samples {
+		if r.Samples[i].ActualAds {
+			profileGeo(&r.Samples[i], "IR", now)
+		}
+	}
+	part := r
+	part.Samples = nil
+	part.SelectedSamples = true
+	r.Evidence = []Report{part}
+	r.ResourcePressure = true
+	if Iran(r, p, r.Hash, now) == nil {
+		t.Fatal("unrelated pressure erased authenticated selected-attempt Iran")
+	}
+	r.Evidence[0].ResourcePressure = true
+	if Iran(r, p, r.Hash, now) != nil {
+		t.Fatal("pressured attempt qualified")
+	}
+	r.Evidence[0].ResourcePressure = false
+	r.Evidence[0].CoreSHA = "invalid"
+	if Iran(r, p, r.Hash, now) != nil {
+		t.Fatal("unbound sample reference qualified")
+	}
+}
+
+func TestEarlierAttemptMinorityIranBlocksCountryOnly(t *testing.T) {
+	r, p, now := fixture()
+	for i := range r.Samples {
+		if r.Samples[i].ActualAds {
+			profileGeo(&r.Samples[i], "TW", now)
+		}
+	}
+	part := r
+	s := r.Samples[0]
+	s.Nonce = Hash([]byte("earlier-independent-connection"))[:32]
+	s.Connection = s.Nonce
+	s.Geo.Providers = append(append([]CountryProvider(nil), s.Geo.Providers...), CountryProvider{Name: "three", Lineage: "three", Kind: "database", Dataset: strings.Repeat("c", 64), ReleasedAt: now - 86400000, Country: "IR"})
+	part.Samples = []Sample{s}
+	r.Evidence = []Report{part}
+	d := Evaluate(r, p, r.Hash, now)
+	g := Countries(r, d, now)
+	if !d.Eligible || g.Complete || g.Status != "country_iran_conflict" || Iran(r, p, r.Hash, now) != nil {
+		t.Fatal(d, g)
+	}
+	r.Evidence[0].CoreSHA = "unbound"
+	d = Evaluate(r, p, r.Hash, now)
+	if !Countries(r, d, now).Complete {
+		t.Fatal("unbound attempt blocked countries")
+	}
+}
 func TestAttemptReplayCannotQualify(t *testing.T) {
 	r, p, now := singleProfileFixture()
 	part := r

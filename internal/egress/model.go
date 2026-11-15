@@ -192,6 +192,7 @@ type Attempt struct {
 	Stages map[string]float64 `json:"stages,omitempty"`
 }
 type Report struct {
+	SelectedSamples  bool           `json:"selected_samples,omitempty"`
 	Evidence         []Report       `json:"evidence,omitempty"`
 	GeneralHealth    string         `json:"general_health,omitempty"`
 	ResourcePressure bool           `json:"resource_pressure,omitempty"`

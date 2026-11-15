@@ -23,6 +23,10 @@ func Iran(r Report, p Plan, hash string, now int64) *IranObservation {
 		return x
 	}
 	for _, part := range r.Evidence {
+		part, ok := resolveAttemptSamples(r, part)
+		if !ok {
+			continue
+		}
 		if len(part.Evidence) == 0 && len(part.Samples) <= 256 && part.Started >= r.Started && part.Finished <= r.Finished {
 			if x := iranRound(part, p, hash, now); x != nil {
 				return x
@@ -41,6 +45,10 @@ func IranCountryConflict(r Report, p Plan, hash string, now int64) bool {
 		return true
 	}
 	for _, part := range r.Evidence {
+		part, ok := resolveAttemptSamples(r, part)
+		if !ok {
+			continue
+		}
 		if len(part.Evidence) == 0 && len(part.Samples) <= 256 && part.Started >= r.Started && part.Finished <= r.Finished && iranSignal(part, p, hash, now, true) != nil {
 			return true
 		}
@@ -78,4 +86,22 @@ func iranSignal(r Report, p Plan, hash string, now int64, conflict bool) *IranOb
 		}
 	}
 	return nil
+}
+
+// Samples are serialized once. A selected-attempt reference may reuse them only
+// with exactly matching core/check bindings; its pressure flag stays independent.
+func resolveAttemptSamples(r, part Report) (Report, bool) {
+	if !part.SelectedSamples {
+		return part, true
+	}
+	if len(part.Samples) != 0 || part.Core != r.Core || part.CoreSHA != r.CoreSHA || part.Hash != r.Hash || part.Version != r.Version || len(part.Checks) != len(r.Checks) {
+		return part, false
+	}
+	for i, c := range part.Checks {
+		if c != r.Checks[i] {
+			return part, false
+		}
+	}
+	part.Samples = r.Samples
+	return part, true
 }

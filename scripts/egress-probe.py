@@ -220,8 +220,9 @@ def investigate(req,args,pool=None):
    h=json.loads(q.stdout);h['variant']='host';r['health'].append(h)
   except Exception:pass
  r['waves']=max([2]+[x.get('wave',0) for x in r['samples']])
- # The selected attempt lives in the top-level receipt; do not mirror it.
- r['evidence']=[part for part in r['evidence'] if part['samples'] is not r['samples']]
+ # Reference selected samples once while preserving their attempt-local safety
+ # metadata; unrelated attempts under resource pressure cannot erase valid IR.
+ r['evidence']=[dict(part,samples=[],selected_samples=True) if part['samples'] is r['samples'] else part for part in r['evidence']]
  unique={id(s):s for part in [r]+r['evidence'] for s in part.get('samples',[])}
  pool.geo.attach(list(unique.values()))
  private_sources(list(unique.values()),secrets.token_bytes(32))
