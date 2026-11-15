@@ -1,3 +1,14 @@
+# P67 Residential maintenance — under validation
+
+This turn requests an audit of the working subsystem, not another reset. Preserve
+ads-egress.v9/schema37, current proof/country settings and all Iran/exclusion gates.
+P67 scopes presentation queries, shares queue counts, restores backed-off transient
+DNS/subprocess recovery and releases idle helper resources on capacity reduction.
+Read the P67 final receipt for activation/test status; this note is not deployment
+proof. Keep the P66 receipt and its unresolved throughput limits. Use matched
+backup, deploy lock and six independently matched binaries. Never claim a fully
+debugged system or future uptime from finite tests.
+
 # P66 active receipt — 2026-11-15
 
 Runtime source `78c8a19d187a266cf29c39e6373a72544aca486e`, release

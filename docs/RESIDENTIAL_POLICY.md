@@ -75,7 +75,7 @@ classifications cache by identity and policy. Accepted safety renewal, bounded
 UNKNOWN follow-up, local infrastructure repair, and an explicit policy change are
 separate from duplicate initial classifications. A route-qualified input with
 unproven asset delivery keeps a bounded, backed-off recovery schedule instead of
-being forgotten after the initial retry budget. The UI has no processing buttons.
+being forgotten after the initial retry budget. Explicit transient DNS and driver subprocess faults also remain recoverable after deep attempts, with the existing bounded backoff. Generic route uncertainty and completed negatives keep their finite/cache rules. The UI has no processing buttons.
 
 ## Modules, speed and recovery
 
@@ -92,7 +92,7 @@ being forgotten after the initial retry budget. The UI has no processing buttons
 
 Configured worker ceiling31 retains CPU/RAM/I/O governors and namespace/cgroup
 limits. After ten seconds of recovery, admission grows by bounded steps of two
-to four jobs; every new pressure sample can still reduce it immediately. Iran,
+to four jobs; every new pressure sample can still reduce it immediately. Idle slots above the reduced capacity release their helper, namespace and country caches after their current job ends; recovered capacity starts a clean helper. Iran,
 pending spaced-removal confirmations and still-valid proofs within120s of expiry
 are urgent. Already expired proofs remain withdrawn and use follow-up recovery;
 their stale deadline cannot monopolize initial capacity forever.
@@ -131,3 +131,11 @@ P66 is active with schema37. The measured throughput targets were not met; see
 [the final report](reports/P66-report-fa.md) and its validation receipt. This policy
 is an admission/lifecycle specification, not a claim that every current input has
 already completed or that actual advertising display has been measured.
+
+P67 maintenance keeps ads-egress.v9/schema37 and the original reset epoch.
+Presentation queries enumerate the same current/retained/quarantined scope as
+claims before authoritative filtering; they do not scan the historical archive
+or cache eligibility. Both queue summaries use the same urgent deadline rule.
+The cohort panel distinguishes definitive first assessments from later settlement.
+No classifier, country selection, proof TTL or tested raw/template bytes change.
+Activation and validation status belong to the P67 receipt.
