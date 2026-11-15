@@ -261,17 +261,24 @@ func TestInventorySnapshotUsesOneExpiryMoment(t *testing.T) {
 	id, _ := s.Save(ctx, "", 0, testSource())
 	r := acquisitionResult(t, s, "vless://one@vpn.example:443")
 	s.Complete(ctx, claimOne(t, s, id), r, time.Now())
-	s.db.Exec("UPDATE artifacts SET expires=?", time.Now().Add(75*time.Millisecond).UnixMilli())
 	snap, finish, e := s.readSnapshot(ctx)
 	if e != nil {
 		t.Fatal(e)
 	}
 	defer finish()
+	// Put expiry just after the captured response clock, then cross it before
+	// the first query. Slow CI cannot expire the fixture before its snapshot.
+	expires := readStamp(snap) + 1
+	if _, e := s.db.Exec("UPDATE artifacts SET expires=?", expires); e != nil {
+		t.Fatal(e)
+	}
+	if remaining := time.Until(time.UnixMilli(expires + 1)); remaining > 0 {
+		time.Sleep(remaining)
+	}
 	sources, e := s.List(snap)
 	if e != nil || sources[0].ConfigCount != 1 {
 		t.Fatal(sources, e)
 	}
-	time.Sleep(100 * time.Millisecond)
 	stats, e := s.Stats(snap)
 	if e != nil || stats.Configs != 1 || stats.GivingConfigs != 1 {
 		t.Fatal("mixed expiry moments", stats, e)
