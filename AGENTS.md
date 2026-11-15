@@ -1,13 +1,33 @@
-# P67 Residential maintenance — under validation
+# P67 Residential maintenance active — 2026-11-15
 
-This turn requests an audit of the working subsystem, not another reset. Preserve
-ads-egress.v9/schema37, current proof/country settings and all Iran/exclusion gates.
-P67 preserves the original snapshot query plan, shares queue counts, restores transient
-DNS/subprocess recovery and releases idle helper resources on capacity reduction.
-Read the P67 final receipt for activation/test status; this note is not deployment
-proof. Keep the P66 receipt and its unresolved throughput limits. Use matched
-backup, deploy lock and six independently matched binaries. Never claim a fully
-debugged system or future uptime from finite tests.
+Runtime `eb126cce80ffcb26338fe2dac64d9e20a808150f`, release
+`p67b-eb126cce-aefb00341aae`, ads-egress.v9/schema37. Read
+`docs/reports/P67-report-fa.md` and `P67-validation.json` for the composite receipt.
+All six running binaries matched; final four formats held177 identities/166
+byte-distinct templates and one next.json. Counts are time-bound observations.
+No reset: epoch1794719470134 and proofs/source/country/Iran/exclusion controls
+were preserved. One authority remains Evaluate; no classification relaxation.
+
+Temporary DNS/subprocess failures remain backed-off recovery work; generic UNKNOWN
+and cached negatives retain their finite/cache rules. Capacity reductions release
+idle helpers only after current work completes. Queue counts and cohort settlement
+labels now agree. No AI runtime dependency was added.
+
+The initial snapshot CTE optimization regressed the full API (17s then20s timeout)
+and was rolled back without restoring DB. Original snapshot/claim SQL is retained.
+One subsequent read-only preflight exceeded12s; unchanged-code rechecks and two
+fresh-process gates passed, but its exact cause is not established. Preserve all
+failed logs. Final600s live observation:165 new first assessments,120 conclusive
+from those inputs,443 total attempts; API median4.282s/max6.073s, no API errors or
+unexpected restarts. This is not a fixed1000/2000-input benchmark or a speed/uptime
+or bug-free guarantee.95 first assessments were pending at the recorded end.
+
+Full-suite first-attempt failures and final affected race/vet/build/copied-data/
+canary/watchdog/export checks are explicitly distinguished in the receipt. Use the
+shared deploy lock, matched stopped backup and six independently matching binaries.
+Documentation-only commits must preserve the installed runtime source manifest.
+Do not repeat the reset or erase earlier failed/interrupted receipts. Historical
+notes below are superseded where they conflict with this active maintenance.
 
 # P66 active receipt — 2026-11-15
 

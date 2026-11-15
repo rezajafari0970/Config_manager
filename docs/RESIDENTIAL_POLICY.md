@@ -127,8 +127,9 @@ copied-database rehearsal and six tested matching binaries. Validate full checks
 real canaries, all four exports, isolated crash/watchdog/UI recovery, then the live
 cohort benchmark. No AI service is a runtime dependency or network-evidence source.
 
-P66 is active with schema37. The measured throughput targets were not met; see
-[the final report](reports/P66-report-fa.md) and its validation receipt. This policy
+P67 maintenance is active with schema37. The throughput targets are not validated; see
+[the P67 report](reports/P67-report-fa.md) and its validation receipt. The earlier
+[P66 report](reports/P66-report-fa.md) retains its historical cohort measurements. This policy
 is an admission/lifecycle specification, not a claim that every current input has
 already completed or that actual advertising display has been measured.
 
