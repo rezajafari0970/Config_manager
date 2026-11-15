@@ -1,4 +1,13 @@
-# P65 authorized profile implementation — validation in progress / 2026-11-15
+# P65 named Ads profiles activated / 2026-11-15
+
+Activated `p65-18fa962b-3262f5122928` from `18fa962be64906aac62d896bcd47f4850bc17569`.
+Read docs/reports/P65-report-fa.md and P65-validation.json. Six matching services,
+8 real published identities and all four exact-byte exports were verified after
+activation. Full initial race run had seven failures; corrections and all seven
+race rechecks plus remaining release checks passed. Do not rewrite that history
+as a single green full-suite run. Original user sample currently timed out.
+Requalification continues automatically; no second metrics reset and no 1000/600s
+performance claim. Schema35 must not be opened by older binaries.
 
 The user approved publishing the proven DoubleClick/partial Ads split and explicitly
 requested implementation using the highest OpenAI API model. This supersedes P63's

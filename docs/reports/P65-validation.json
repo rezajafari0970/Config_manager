@@ -1,0 +1,41 @@
+{
+  "activated": true,
+  "runtime_commit": "18fa962be64906aac62d896bcd47f4850bc17569",
+  "release": "p65-18fa962b-3262f5122928",
+  "schema": 35,
+  "version": "ads-egress.v8",
+  "snapshot_utc": "2026-11-15T03:09:44+00:00",
+  "publication": {
+    "unique": 8,
+    "all_tested_ads": 7,
+    "partial": 1,
+    "profiles": {
+      "doubleclick.v1": 7,
+      "ads-serving.v1": 8
+    },
+    "four_formats_exact_bytes": true
+  },
+  "current_unique_at_snapshot": 1783,
+  "current_inventory_complete": false,
+  "no_statistics_reset": true,
+  "six_matching_services": true,
+  "initial_full_race_exit": 1,
+  "initial_failures": 7,
+  "all_failed_cases_rechecked_race": true,
+  "remaining_release_checks_passed": true,
+  "canonical_six_binary_match": true,
+  "migration_rehearsal_passed": true,
+  "worker_crash_recovery_passed": true,
+  "api_design_review": {
+    "model": "gpt-6-astra",
+    "reasoning": "max",
+    "mode": "pro",
+    "status": "completed",
+    "raw_configs_sent": false,
+    "credentials_sent": false
+  },
+  "api_final_code_review_status": "incomplete_output_limit_not_relied_on",
+  "supplied_sample_current_status": "UNKNOWN_entry_tcp_timeout",
+  "performance_target_1000_in_600s_verified": false,
+  "all_domain_quic_android_carrier_claim": false
+}
