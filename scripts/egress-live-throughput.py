@@ -1,65 +1,44 @@
 #!/usr/bin/env python3
-"""Read-only measurement of first assessments in the real production queue.
-No source, job, lease, eligibility or worker settings are mutated. Report actual
-wall time and first-result states; inconclusive is never counted as definitive.
+"""Read-only measurement from the durable one-time reset cohort.
+Unknown/unsupported, retries, aliases and archive rows cannot inflate settlement.
 """
-import argparse, collections, hashlib, json, pathlib, sqlite3, time
+import argparse,collections,hashlib,json,pathlib,sqlite3,time
 
+def snapshot(db,run=None):
+ db.execute('BEGIN')
+ try:
+  row=db.execute('SELECT id,started FROM egress_runs WHERE id=?' if run else 'SELECT id,started FROM egress_runs ORDER BY id DESC LIMIT 1',(run,) if run else ()).fetchone()
+  if row is None:raise ValueError('no_reset_cohort')
+  run,started=row
+  members=db.execute('SELECT hash,status,completed_at,state,settled_at,settled_state FROM egress_run_members WHERE run=?',(run,)).fetchall()
+  missing=db.execute('SELECT count(DISTINCT m.raw_hash) FROM memberships m WHERE NOT EXISTS(SELECT 1 FROM egress_jobs j WHERE j.hash=m.raw_hash)').fetchone()[0]
+ finally:db.commit()
+ completed=sorted(m[2] for m in members if m[1]=='completed')
+ settled=sorted(m[4] for m in members if m[1]=='completed' and m[4]>0)
+ result=dict(mode='read_only_reset_cohort',run=run,started=started,observed_at=int(time.time()*1000),total=len(members),completed=len(completed),settled=len(settled),pending=sum(m[1]=='pending' for m in members),excluded=sum(m[1]=='excluded' for m in members),first_states=dict(collections.Counter(m[3] for m in members if m[1]=='completed')),settled_states=dict(collections.Counter(m[5] for m in members if m[4]>0)),cohort_sha256=hashlib.sha256('\n'.join(sorted(m[0] for m in members)).encode()).hexdigest(),unregistered_current=missing,unit='collector_identity')
+ for count,deadline in [(1000,600),(2000,900)]:
+  for label,values in [('assessed',completed),('definitive',settled)]:
+   clock=(values[count-1]-started)/1000 if len(values)>=count else None
+   result[f'{label}_{count}_seconds']=clock
+   result[f'{label}_at_{deadline}s']=sum(v<=started+deadline*1000 for v in values)
+   result[f'{label}_{count}_target_met']=clock is not None and clock<=deadline
+  result[f'{count}_cohort_available']=len(members)>=count
+ result['scope']='Current unique reset cohort only; first assessment may be UNKNOWN. Definitive requires verified positive, route negative, confirmed unsafe retirement or confirmed Iran. No ad-render, future-uptime or unmeasured 2000-input claim.'
+ return result
 
-def observe(database, count, seconds, output):
-    db = sqlite3.connect('file:' + str(pathlib.Path(database).resolve()) + '?mode=ro', uri=True)
-    db.execute('PRAGMA query_only=ON')
-    begin = time.monotonic()
-    begin_ms = int(time.time() * 1000)
-    db.execute('BEGIN')
-    cursor = db.execute('SELECT coalesce(max(id),0) FROM egress_events').fetchone()[0]
-    pending = {r[0] for r in db.execute("SELECT hash FROM egress_jobs WHERE tested=0 AND state!='DELETED' AND paused=0")}
-    db.commit()
-    if len(pending) < count:
-        raise ValueError('insufficient_pending_inputs')
-    initial = {}; all_hashes = set(); timeline = []; at600 = None
-    while time.monotonic() - begin < seconds:
-        for event_id, hash_, at, state in db.execute('SELECT id,hash,at,state FROM egress_events WHERE id>? ORDER BY id', (cursor,)):
-            cursor = event_id
-            if at < begin_ms:
-                continue
-            all_hashes.add(hash_)
-            if hash_ in pending and hash_ not in initial:
-                initial[hash_] = (at, state)
-                if len(initial) == count:
-                    break
-        elapsed = time.monotonic() - begin
-        if elapsed >= 600 and at600 is None:
-            at600 = sum(at <= begin_ms + 600000 for at, _ in initial.values())
-        if not timeline or elapsed - timeline[-1]['seconds'] >= 30 or len(initial) >= count:
-            row = dict(seconds=round(elapsed, 3), first_assessments=len(initial), distinct_total=len(all_hashes))
-            timeline.append(row); print(json.dumps(row), flush=True)
-        if len(initial) >= count:
-            break
-        time.sleep(1)
-    completion = (max((at for at, _ in initial.values()), default=begin_ms) - begin_ms) / 1000
-    states = dict(collections.Counter(s for _, s in initial.values()))
-    missing = db.execute('SELECT count(DISTINCT m.raw_hash) FROM memberships m WHERE NOT EXISTS(SELECT 1 FROM egress_jobs j WHERE j.hash=m.raw_hash)').fetchone()[0]
-    db.close()
-    receipt = dict(mode='read_only_live_queue', requested=count, first_assessments=len(initial), seconds=completion,
-                   observation_seconds=round(time.monotonic()-begin, 3), assessed_at_600s=at600 if at600 is not None else len(initial),
-                   target_600s_met=len(initial) >= count and completion <= 600, states=states,
-                   definitive=states.get('RESIDENTIAL', 0)+states.get('NO_SPLIT', 0), initial_pending=len(pending),
-                   pending_snapshot_sha256=hashlib.sha256('\n'.join(sorted(pending)).encode()).hexdigest(),
-                   unregistered_current=missing, timeline=timeline,
-                   scope='First assessments of distinct real pending inputs under normal production scheduling; UNKNOWN/UNSUPPORTED are not conclusive route decisions.')
-    pathlib.Path(output).write_text(json.dumps(receipt, indent=2))
-    print(json.dumps({k:v for k,v in receipt.items() if k!='timeline'}), flush=True)
+def observe(database,seconds,output,run=None):
+ db=sqlite3.connect('file:'+str(pathlib.Path(database).resolve())+'?mode=ro',uri=True,timeout=5)
+ db.execute('PRAGMA query_only=ON');begin=time.monotonic();timeline=[];out=pathlib.Path(output)
+ while True:
+  receipt=snapshot(db,run);run=receipt['run'];elapsed=time.monotonic()-begin
+  if not timeline or elapsed-timeline[-1]['observer_seconds']>=30:
+   progress={k:receipt[k] for k in ['total','completed','settled','pending','excluded']};progress.update(observer_seconds=round(elapsed,3),since_reset_seconds=round((receipt['observed_at']-receipt['started'])/1000,3));timeline.append(progress);print(json.dumps(progress),flush=True)
+  receipt['timeline']=timeline;out.write_text(json.dumps(receipt,indent=2))
+  if elapsed>=seconds:break
+  time.sleep(min(2,seconds-elapsed))
+ db.close();print(json.dumps({k:v for k,v in receipt.items() if k!='timeline'}),flush=True)
 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--panel-config', default='/etc/config-repair/panel.json')
-    parser.add_argument('--count', type=int, default=1000)
-    parser.add_argument('--seconds', type=int, default=1200)
-    parser.add_argument('--output', required=True)
-    args = parser.parse_args()
-    if not 1 <= args.count <= 2000 or not 10 <= args.seconds <= 3600:
-        raise SystemExit('invalid measurement bounds')
-    cfg = json.loads(pathlib.Path(args.panel_config).read_text())
-    observe(cfg['database'], args.count, args.seconds, args.output)
+if __name__=='__main__':
+ p=argparse.ArgumentParser();p.add_argument('--panel-config',default='/etc/config-repair/panel.json');p.add_argument('--seconds',type=int,default=960);p.add_argument('--run',type=int);p.add_argument('--output',required=True);a=p.parse_args()
+ if not 10<=a.seconds<=3600:raise SystemExit('invalid measurement bounds')
+ cfg=json.loads(pathlib.Path(a.panel_config).read_text());observe(cfg['database'],a.seconds,a.output,a.run)

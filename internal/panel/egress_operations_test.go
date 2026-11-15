@@ -38,7 +38,7 @@ func TestEgressCountersCommitOnceSurviveCleanupAndRestart(t *testing.T) {
 		t.Fatal(err)
 	}
 	m, err := egressMetricState(ctx, s.db)
-	if err != nil || m.Registered != 2 || m.Completed != 3 || m.FirstAssessments != 2 || m.Definitive != 3 || m.LeaseRecoveries != 1 {
+	if err != nil || m.Registered != 2 || m.Completed != 3 || m.FirstAssessments != 2 || m.Definitive != 2 || m.LeaseRecoveries != 1 {
 		t.Fatal(m, err)
 	}
 	app, _ := NewServer(s, "http://127.0.0.1:18191")

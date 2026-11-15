@@ -1,3 +1,5 @@
+> Historical release description. The sole current policy is [RESIDENTIAL_POLICY.md](RESIDENTIAL_POLICY.md).
+
 # Ads-exclusive strategy v6 / schema32
 
 The user defines Residential as Ads-only dedicated egress. Controls may independently use different exits, server egress, IPv6 or explicit block. This is a finite observed routing label, not household ISP classification or proof of all Google Ads flows.

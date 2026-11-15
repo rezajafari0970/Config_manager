@@ -31,6 +31,14 @@ func fixture() (Report, Plan, int64) {
 			}
 		}
 	}
+
+	for _, variant := range []string{"raw", "template"} {
+		sample := DeliverySample{Version: DeliveryVersion, Variant: variant, At: now}
+		for _, target := range DeliveryTargets() {
+			sample.Assets = append(sample.Assets, DeliveryAsset{Profile: target.Profile, Domain: target.Domain, Path: target.Path, Nonce: Hash([]byte("delivery" + variant + target.Profile))[:32], HTTPStatus: 200, TLSVerified: true, Complete: true, ContentMatch: true, Bytes: 2048, BodySHA: Hash([]byte("asset")), Code: "asset_available"})
+		}
+		r.Delivery = append(r.Delivery, sample)
+	}
 	return r, p, now
 }
 func TestFiniteObservationPolicy(t *testing.T) {

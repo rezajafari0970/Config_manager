@@ -1,3 +1,5 @@
+> Historical release description. The sole current policy is [RESIDENTIAL_POLICY.md](RESIDENTIAL_POLICY.md).
+
 # P55 Residential Ads operations
 
 This release hardens the existing finite Ads split detector. It preserves route

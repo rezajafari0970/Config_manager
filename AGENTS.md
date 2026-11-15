@@ -1,3 +1,60 @@
+# P66 active receipt — 2026-11-15
+
+Runtime source `78c8a19d187a266cf29c39e6373a72544aca486e`, release
+`p66d-78c8a19d-275749e38504`, ads-egress.v9/schema37. Read
+`docs/RESIDENTIAL_POLICY.md`, `docs/reports/P66-report-fa.md` and its validation JSON.
+Six canonical executable hashes and all four exact live exports were verified;
+final recorded snapshot had12 identities/10 distinct templates. Counts are live.
+The authorized schema36 reset occurred once. Schema37 and later accounting changes
+preserve its epoch. Do not reset again or open schema37 with older binaries.
+
+Only Evaluate may publish. Named-profile split, exact raw/template, Ads bootstrap
+assets and all-Ads Iran withdrawal remain required; partial coverage is explicit.
+Downloading an asset does not prove ad fill/rendering. Saved country selection
+still excludes AU; classification and country-filtered publication differ.
+
+OpenAI API review completed with gpt-6-astra max/pro; eight findings were fixed
+and tested. Fifteen provenance-verified automatic pre-hardening deletions were
+requalified under quarantine, without lifting prior/manual/Iran blocks. Their old
+negative definitive flags were retracted, preserving historical events and valid
+independent proof. At the recorded audit3 recovered and12 were correctly retired
+again; no ad-hoc resurrection of other exclusions is authorized by this repair.
+
+Performance remains unresolved: the later600s window measured172 new initial
+assessments/93 definitive results. Original1472-input cohort measured204/173 at600s
+and235/210 at900s after retracting invalidated negative evidence; the pre-correction
+223 receipt is preserved. Different cohorts/conditions are not a controlled speed
+comparison. No1000/600s or2000/900s success claim. At the final inventory snapshot951
+first assessments remained; the automatic enabled service continues. No complete
+inventory, universal detection, actual-render, Android/QUIC or future-uptime claim.
+Validation is composite: full suite on9d04aae plus affected race/vet/driver/migration/
+canary/export checks on refinements. Preserve failed/interrupted logs. Use the shared
+deploy lock and matched stopped DB/blob/key/unit/release backup. Documentation-only
+commits after the runtime commit must preserve its complete runtime source manifest.
+All earlier deployment/policy notes below are historical where they conflict here.
+
+# P66 unified Residential policy — implementation under validation / 2026-11-15
+
+The latest user explicitly authorizes one new Residential test/statistics reset,
+superseding older no-reset instructions for schema36 only. Read
+`docs/RESIDENTIAL_POLICY.md`; it is the sole active policy specification. v9 keeps
+complete named-profile split evidence, adds exact raw/template bootstrap-asset
+availability, all-output minority-Iran withdrawal, and three independent spaced
+negative confirmations before global retirement. Never equate script download
+with actual ad fill/rendering. Preserve source/country settings, immutable raw,
+manual exclusions and sticky Iran guards. Current unique identities alone drive
+initial work; accepted safety renewal and bounded unknown/infrastructure repair
+are distinct. Schema36 reset is atomic and must never repeat on restart.
+Require real1000/600s and2000/900s cohort measurements; UNKNOWN is not definitive.
+Hold the existing deploy lock, matched stopped backup and six canonical binaries.
+Schema37 hardening preserves the schema36 reset epoch and all positive proofs.
+Discard old pending-negative hit counts but retain sticky withdrawal, and correct
+definitive totals by unique input rather than renewal. No second reset.
+No older binary may open schema37. No universal detection, rendering, mobile,
+QUIC, future uptime or unmeasured performance claim. P66 activation/result status
+must be read from its final receipt; this instruction is not deployment evidence.
+All policy descriptions below are historical where they conflict with P66.
+
 # P65 named Ads profiles activated / 2026-11-15
 
 Activated `p65-18fa962b-3262f5122928` from `18fa962be64906aac62d896bcd47f4850bc17569`.

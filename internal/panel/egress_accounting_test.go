@@ -83,7 +83,7 @@ func TestEgressAccountingPartitionsAndOutputUnits(t *testing.T) {
 	}
 }
 
-func TestEgressDueAcceptedStartsBeforeLastMinute(t *testing.T) {
+func TestEgressDueAcceptedUsesReservedEarlyRenewal(t *testing.T) {
 	s := testStore(t)
 	ctx := context.Background()
 	newExportSource(t, s, "lead", sourceURI(257), sourceURI(258))
@@ -91,11 +91,12 @@ func TestEgressDueAcceptedStartsBeforeLastMinute(t *testing.T) {
 	if err := s.CompleteEgress(ctx, egress.Completion{Job: *j, Report: syntheticEgress(*j)}); err != nil {
 		t.Fatal(err)
 	}
-	// A slow probe is deliberately due four minutes before proof expiry.
+	// A slow probe is deliberately due four minutes before proof expiry. The
+	// reserved follow-up lane starts it while initial capacity remains available.
 	if _, err := s.db.Exec("UPDATE egress_jobs SET next_run=0,valid_until=? WHERE hash=?", egress.Now()+240000, j.Hash); err != nil {
 		t.Fatal(err)
 	}
-	renewal, err := s.ClaimEgressLane(ctx, "initial")
+	renewal, err := s.ClaimEgressLane(ctx, "followup")
 	if err != nil || renewal == nil || renewal.Hash != j.Hash {
 		t.Fatal("renewal lead ignored", renewal, err)
 	}

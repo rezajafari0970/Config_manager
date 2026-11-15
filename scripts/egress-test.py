@@ -26,7 +26,7 @@ class DiscoveryContracts(unittest.TestCase):
   box=Box();pool=types.SimpleNamespace(verify=lambda *a:None,lease=lambda *a:contextlib.nullcontext(box),geo=types.SimpleNamespace(attach=lambda rows:None))
   args=types.SimpleNamespace(prefix='cgt',run_id='abcdef',slot=31)
   req=dict(hash='synthetic',started=int(time.time()*1000),deep=True,accepted=False,plan=dict(driver='xray',variants=[dict(name=v,hash=digest,config=base64.b64encode(config).decode()) for v in ('raw','template')]))
-  with patch.object(driver,'runtime',lambda *a:({},{})),patch.object(driver,'resource_failures',lambda *a:0),patch.object(driver,'diagnostic_health',lambda *a:dict(providers=[dict(passed=True)])):
+  with patch.object(driver,'runtime',lambda *a:({},{})),patch.object(driver,'resource_failures',lambda *a:0),patch.object(driver,'diagnostic_delivery',lambda *a:dict(assets=[dict(curl_exit=0,http_status=200,tls_verified=True,complete=True,content_match=True)])):
    old=driver.investigate(req,args,pool)
    self.assertEqual(old['code'],'measured');self.assertEqual(len(old['checks']),2);self.assertEqual(len(old['evidence']),1);self.assertTrue(old['evidence'][0]['selected_samples']);self.assertEqual(old['evidence'][0]['samples'],[])
    calls.clear();req['discovery']=True;new=driver.investigate(req,args,pool)
@@ -34,6 +34,12 @@ class DiscoveryContracts(unittest.TestCase):
   self.assertEqual(len(new['samples']),6*len(session.DEFAULT_TARGETS))
   self.assertEqual([q['variant'] for q in calls],['raw','template'])
   for q in calls:self.assertEqual(q['waves'],3);self.assertTrue(q['sequential']);self.assertFalse(q['adaptive'])
+class RenewalBudgetContracts(unittest.TestCase):
+ def test_verified_inputs_do_not_silently_use_short_initial_deadline(self):
+  self.assertEqual(driver.observation_budget({'deep':True,'accepted':True}),(3,8))
+  self.assertEqual(driver.observation_budget({'deep':True,'accepted':False}),(3,8))
+  self.assertEqual(driver.observation_budget({}),(2,3))
+  self.assertEqual(driver.observation_budget({'discovery':True}),(3,8))
 class Contracts(unittest.TestCase):
  def test_host_dns_failure_does_not_rotate_compatible_cores(self):
   self.assertTrue(driver.core_independent_failure('endpoint_dns_failed'))
@@ -180,7 +186,7 @@ class AdaptiveContracts(unittest.TestCase):
   original=session.measure;calls=[]
   async def fake(domain,variant,wave,timeout,control_ipv4=None,target=None):
    calls.append((domain,wave))
-   row=dict(domain=domain,wave=wave,echo=True,tls=True,same_stream=True,family=4,actual_ads=domain in session.DOMAINS)
+   row=dict(domain=domain,wave=wave,echo=True,tls=True,same_stream=True,family=4,ip=domain,actual_ads=domain in session.DOMAINS)
    change(row);return row
   session.measure=fake
   try:return asyncio.run(session.session(dict(variant='raw',waves=3,sequential=True,adaptive=True))),calls
@@ -198,7 +204,16 @@ class AdaptiveContracts(unittest.TestCase):
   def change(r):
    if r['domain'] in session.DOMAINS and r['wave']==2:r['family']=6
   rows,calls=self.simulate(change)
-  self.assertEqual({d for d,w in calls if w==3 and d in session.DOMAINS},set())
+  self.assertEqual({d for d,w in calls if w==3},{t['domain'] for t in session.DEFAULT_TARGETS if t.get('required')})
+ def test_all_echoes_with_insufficient_same_family_controls_retry(self):
+  def change(r):
+   if r['domain'] in session.DOMAINS or r['domain']=='www.google.com':r['family']=6
+  rows,calls=self.simulate(change)
+  self.assertTrue(any(w==3 for d,w in calls))
+ def test_shared_same_family_does_not_need_separation_retry(self):
+  def change(r):r['ip']='shared-control'
+  rows,calls=self.simulate(change)
+  self.assertEqual({w for d,w in calls},{1,2})
  def test_unpaired_controls_do_not_skip_retry(self):
   def change(r):
    if r['domain']=='api.ipify.org' and r['wave']==2:r['echo']=False
@@ -228,8 +243,8 @@ class OverlapContracts(unittest.TestCase):
  def test_health_subprocess_failure_does_not_destroy_route_evidence(self):
   class Box:
    def net(self,*a,**kw):raise TimeoutError()
-  h=driver.diagnostic_health(Box(),'raw')
-  self.assertEqual(h['variant'],'raw');self.assertEqual(h['providers'],[])
+  h=driver.diagnostic_delivery(Box(),'raw',[],3)
+  self.assertEqual(h['variant'],'raw');self.assertEqual(h['assets'],[])
 if __name__=='__main__':unittest.main()
 
 

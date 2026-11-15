@@ -48,12 +48,12 @@ type CountryResult struct {
 // The independent Iran veto also inspects Ads outside that profile.
 func Countries(r Report, route Decision, now int64) CountryResult {
 	out := CountryResult{Status: "country_incomplete", Countries: []string{}, Providers: []CountryProvider{}}
-	if !route.Eligible {
-		out.Status = "route_unqualified"
-		return out
-	}
 	if route.CountryConflict {
 		out.Status = "country_iran_conflict"
+		return out
+	}
+	if !route.Eligible {
+		out.Status = "route_unqualified"
 		return out
 	}
 	// Safety still inspects ALL measured Ads, including shared/nonqualifying ones.

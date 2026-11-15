@@ -46,7 +46,7 @@ func TestEgressEligibilityLookupUpgradePreservesEvidenceAndGates(t *testing.T) {
 		if err = s.db.QueryRow("SELECT (SELECT count(*) FROM egress_eligible),(SELECT count(*) FROM input_blocked WHERE hash=?)", j.Hash).Scan(&eligible, &blocked); err != nil || eligible != 1 || blocked != 0 {
 			t.Fatal("qualified member changed", eligible, blocked, err)
 		}
-		if err = s.db.QueryRow("PRAGMA user_version").Scan(&schema); err != nil || schema != 35 {
+		if err = s.db.QueryRow("PRAGMA user_version").Scan(&schema); err != nil || schema != 37 {
 			t.Fatal("schema changed", schema, err)
 		}
 	}

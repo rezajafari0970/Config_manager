@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"github.com/rezajafari0970/Config_manager/internal/egress"
-	"net/http"
 )
 
 // A reset is a durable finite cohort, not a reset of lifetime audit counters.
@@ -102,6 +101,12 @@ func recordEgressRun(ctx context.Context, tx *sql.Tx, hash, state string, defini
 	_, err := tx.ExecContext(ctx, `UPDATE egress_run_members SET status='completed',completed_at=?,state=?,definitive=?,duration_ms=?
  WHERE hash=? AND status!='completed' AND run=(SELECT max(id) FROM egress_runs)
  AND EXISTS(SELECT 1 FROM egress_runs r WHERE r.id=run AND r.started<=?)`, finished, state, definitive, duration, hash, started)
+	if err != nil {
+		return err
+	}
+	if definitive {
+		_, err = tx.ExecContext(ctx, `UPDATE egress_run_members SET settled_at=?,settled_state=? WHERE hash=? AND settled_at=0 AND status='completed' AND run=(SELECT max(id) FROM egress_runs) AND EXISTS(SELECT 1 FROM egress_runs r WHERE r.id=run AND r.started<=?)`, finished, state, hash, started)
+	}
 	return err
 }
 
@@ -136,24 +141,26 @@ func egressRunState(ctx context.Context, q databaseQuery) (map[string]any, error
 	if err = q.QueryRowContext(ctx, "SELECT count(*) FROM egress_run_members m JOIN egress_jobs j ON j.hash=m.hash WHERE m.run=? AND m.status='pending' AND j.paused!=0", id).Scan(&paused); err != nil {
 		return nil, err
 	}
-	return map[string]any{"id": id, "started": started, "total": total, "pending": pending, "completed": completed, "excluded": excluded, "definitive": definitive,
+
+	var twoThousand, defThousand, defTwoThousand int64
+	for _, measure := range []struct {
+		offset    int
+		clock     string
+		predicate string
+		dest      *int64
+	}{{1999, "completed_at", "", &twoThousand}, {999, "settled_at", " AND settled_at>0", &defThousand}, {1999, "settled_at", " AND settled_at>0", &defTwoThousand}} {
+		err = q.QueryRowContext(ctx, "SELECT "+measure.clock+" FROM egress_run_members WHERE run=? AND status='completed'"+measure.predicate+" ORDER BY "+measure.clock+",hash LIMIT 1 OFFSET ?", id, measure.offset).Scan(measure.dest)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, err
+		}
+	}
+	var at900, def600, def900, settled int
+	if err = q.QueryRowContext(ctx, "SELECT coalesce(sum(completed_at<=?),0),coalesce(sum(settled_at>0 AND settled_at<=?),0),coalesce(sum(settled_at>0 AND settled_at<=?),0),coalesce(sum(settled_at>0),0) FROM egress_run_members WHERE run=? AND status='completed'", started+900000, started+600000, started+900000, id).Scan(&at900, &def600, &def900, &settled); err != nil {
+		return nil, err
+	}
+	return map[string]any{"id": id, "started": started, "total": total, "pending": pending, "completed": completed, "excluded": excluded, "definitive": definitive, "settled": settled,
 		"accepted": accepted, "accepted_completed": acceptedDone, "accepted_excluded": acceptedExcluded, "paused_pending": paused,
 		"elapsed_ms": elapsed, "first_1000_ms": max(int64(0), thousand-started), "assessed_at_600s": at600,
+		"first_2000_ms": max(int64(0), twoThousand-started), "first_1000_definitive_ms": max(int64(0), defThousand-started), "first_2000_definitive_ms": max(int64(0), defTwoThousand-started), "assessed_at_900s": at900, "definitive_at_600s": def600, "definitive_at_900s": def900, "target_900s_met": twoThousand > 0 && twoThousand-started <= 900000, "definitive_target_600s_met": defThousand > 0 && defThousand-started <= 600000, "definitive_target_900s_met": defTwoThousand > 0 && defTwoThousand-started <= 900000,
 		"target_600s_met": thousand > 0 && thousand-started <= 600000, "finished": pending == 0, "unit": "collector_identity"}, nil
-}
-
-func (m egressModule) rescan(w http.ResponseWriter, r *http.Request) {
-	var b struct {
-		Revision int64 `json:"revision"`
-	}
-	if decode(r, &b) != nil || b.Revision < 0 {
-		failure(w, ErrInvalid)
-		return
-	}
-	id, err := m.s.store.ResetEgress(r.Context(), b.Revision)
-	if err != nil {
-		failure(w, err)
-		return
-	}
-	respond(w, 200, map[string]any{"id": id})
 }

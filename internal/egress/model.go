@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const Version = "ads-egress.v8"
+const Version = "ads-egress.v9"
 
 // Keep slots within the dedicated 32-address sandbox block.
 const MaxWorkers = 31
@@ -192,30 +192,33 @@ type Attempt struct {
 	Stages map[string]float64 `json:"stages,omitempty"`
 }
 type Report struct {
-	SelectedSamples  bool           `json:"selected_samples,omitempty"`
-	Evidence         []Report       `json:"evidence,omitempty"`
-	GeneralHealth    string         `json:"general_health,omitempty"`
-	ResourcePressure bool           `json:"resource_pressure,omitempty"`
-	Health           []HealthSample `json:"health,omitempty"`
-	Version          string         `json:"version"`
-	Hash             string         `json:"hash"`
-	Started          int64          `json:"started"`
-	Finished         int64          `json:"finished"`
-	Core             string         `json:"core"`
-	CoreSHA          string         `json:"core_sha"`
-	Infrastructure   bool           `json:"infrastructure"`
-	Code             string         `json:"code"`
-	Checks           []Check        `json:"checks"`
-	Samples          []Sample       `json:"samples"`
-	Attempts         []Attempt      `json:"attempts"`
-	WallMS           float64        `json:"wall_ms"`
-	Waves            int            `json:"waves"`
+	Delivery         []DeliverySample `json:"delivery,omitempty"`
+	SelectedSamples  bool             `json:"selected_samples,omitempty"`
+	Evidence         []Report         `json:"evidence,omitempty"`
+	GeneralHealth    string           `json:"general_health,omitempty"`
+	ResourcePressure bool             `json:"resource_pressure,omitempty"`
+	Health           []HealthSample   `json:"health,omitempty"`
+	Version          string           `json:"version"`
+	Hash             string           `json:"hash"`
+	Started          int64            `json:"started"`
+	Finished         int64            `json:"finished"`
+	Core             string           `json:"core"`
+	CoreSHA          string           `json:"core_sha"`
+	Infrastructure   bool             `json:"infrastructure"`
+	Code             string           `json:"code"`
+	Checks           []Check          `json:"checks"`
+	Samples          []Sample         `json:"samples"`
+	Attempts         []Attempt        `json:"attempts"`
+	WallMS           float64          `json:"wall_ms"`
+	Waves            int              `json:"waves"`
 }
 type Completion struct {
 	Job    Job    `json:"job"`
 	Report Report `json:"report"`
 }
 type Decision struct {
+	FailureCodes      map[string]int    `json:"failure_codes,omitempty"`
+	Delivery          DeliveryDecision  `json:"delivery"`
 	Profiles          []ProfileDecision `json:"profiles,omitempty"`
 	QualifiedProfiles []string          `json:"qualified_profiles,omitempty"`
 	QualifiedDomains  []string          `json:"qualified_domains,omitempty"`
@@ -255,10 +258,35 @@ func controlGroup(domain string) string {
 	return ""
 }
 func Evaluate(r Report, p Plan, hash string, now int64) Decision {
+	var d Decision
 	if len(p.Variants) != 2 {
-		return Decision{State: "UNSUPPORTED", Reason: "driver_unavailable", Route: "UNKNOWN"}
+		d = Decision{State: "UNSUPPORTED", Reason: "driver_unavailable", Route: "UNKNOWN"}
+	} else {
+		d = qualifyDelivery(evaluateProfiles(r, p, hash, now), r, p, now)
 	}
-	return evaluateProfiles(r, p, hash, now)
+	d.FailureCodes = map[string]int{}
+	add := func(code string) {
+		if len(code) > 0 && len(code) <= 64 {
+			for _, c := range code {
+				if c != '_' && (c < 'a' || c > 'z') && (c < '0' || c > '9') {
+					return
+				}
+			}
+			d.FailureCodes[code]++
+		}
+	}
+	if d.State == "UNSUPPORTED" {
+		add(p.Code)
+	}
+	for _, s := range r.Samples {
+		if !s.Echo {
+			add(s.Code)
+		}
+	}
+	if r.Code != "measured" {
+		add(r.Code)
+	}
+	return d
 }
 
 func Now() int64 { return time.Now().UnixMilli() }

@@ -155,11 +155,6 @@ func (s *Store) reconcileEgressVersion() error {
 	current := egress.Version + "|" + convert.Version + "|" + egress.PolicyDigest()
 	if previous != current {
 		where := "state!='DELETED'"
-		// All legacy global NO_SPLIT results may hide a valid profile. Unsupported
-		// driver results remain valid when conversion/protocol support is unchanged.
-		if (previous == "ads-egress.v6|"+convert.Version || previous == "ads-egress.v7|"+convert.Version) && egress.Version == "ads-egress.v8" {
-			where += " AND NOT (ever_accepted=0 AND tested>0 AND state='UNSUPPORTED' AND reason='driver_unavailable')"
-		}
 		if _, e = tx.Exec("UPDATE egress_jobs SET state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE 'PENDING' END,reason='implementation_changed',tested=0,deep_completed=0,retry_streak=0,valid_until=0,revision=revision+1,token='',lease_until=0,next_run=0 WHERE " + where); e != nil {
 			return e
 		}
@@ -186,6 +181,8 @@ func (s *Store) ensureEgressIndexes() error {
 		"CREATE INDEX IF NOT EXISTS egress_tested ON egress_jobs(tested)",
 		"CREATE INDEX IF NOT EXISTS egress_retention ON egress_jobs(first_seen) WHERE ever_accepted=0 AND tested>0 AND state!='DELETED'",
 		"CREATE INDEX IF NOT EXISTS egress_events_time ON egress_events(at)",
+		// Every output checks this view; scan only conflicted identities, not large archived decisions.
+		"CREATE INDEX IF NOT EXISTS egress_iran_conflicts ON egress_jobs(hash) WHERE json_extract(decision,'$.country_conflict')=1",
 		// Claims and counters must not fetch large report pages for every archived input.
 		"CREATE INDEX IF NOT EXISTS egress_schedule_cover ON egress_jobs(paused,next_run,lease_until,state,token,ever_accepted,tested,reason,first_seen,hash,kind,size,revision,attempts,valid_until) WHERE state!='DELETED'",
 	} {
@@ -213,6 +210,13 @@ func (s *Store) migrateV32() error {
 // v35 fences old binaries before they can reinterpret the new profile policy.
 // No statistics, input, exclusion, journal or evidence history is reset.
 func (s *Store) migrateV35() error {
+	var v int
+	if err := s.db.QueryRow("PRAGMA user_version").Scan(&v); err != nil {
+		return err
+	}
+	if v >= 35 {
+		return nil
+	}
 	_, err := s.db.Exec("PRAGMA user_version=35")
 	return err
 }

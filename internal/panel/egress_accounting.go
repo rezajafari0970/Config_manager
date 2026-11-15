@@ -10,11 +10,11 @@ func egressAccounting(ctx context.Context, q databaseQuery) (map[string]any, err
 	err := q.QueryRowContext(ctx, `SELECT count(*),
  coalesce(sum(paused!=0),0),
  coalesce(sum(paused=0 AND token!='' AND lease_until>?),0),
- coalesce(sum(paused=0 AND (token='' OR lease_until<=?) AND hash IN(SELECT hash FROM egress_work) AND next_run<=?),0),
- coalesce(sum(paused=0 AND (token='' OR lease_until<=?) AND hash IN(SELECT hash FROM egress_work) AND next_run>?),0),
+ coalesce(sum(paused=0 AND (token='' OR lease_until<=?) AND hash IN(SELECT hash FROM egress_work) AND (next_run<=? OR (ever_accepted=1 AND tested>0 AND valid_until>? AND valid_until<=?))),0),
+ coalesce(sum(paused=0 AND (token='' OR lease_until<=?) AND hash IN(SELECT hash FROM egress_work) AND NOT (next_run<=? OR (ever_accepted=1 AND tested>0 AND valid_until>? AND valid_until<=?))),0),
  coalesce(sum(paused=0 AND (token='' OR lease_until<=?) AND hash NOT IN(SELECT hash FROM egress_work)),0),
  coalesce(sum(tested=0),0),coalesce(sum(tested>0),0),coalesce(sum(ever_accepted=1),0)
- FROM egress_inventory`, now, now, now, now, now, now).Scan(&total, &paused, &running, &due, &scheduled, &cached, &first, &assessed, &retained)
+ FROM egress_inventory`, now, now, now, now, now+120000, now, now, now, now+120000, now).Scan(&total, &paused, &running, &due, &scheduled, &cached, &first, &assessed, &retained)
 	if err != nil {
 		return nil, err
 	}

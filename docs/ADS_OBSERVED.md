@@ -1,3 +1,5 @@
+> Historical release description. The sole current policy is [RESIDENTIAL_POLICY.md](RESIDENTIAL_POLICY.md).
+
 # Observed Ads split correction / v7
 
 The user explicitly requested correction of zero Residential detection after P60, while preserving the unique current-identity queue. v6 required source proof from two reachability-only drivers; it also incorrectly quantified same-family pairing across all Ads domains. Adaptive wave3 retried missing destinations without their comparison controls.

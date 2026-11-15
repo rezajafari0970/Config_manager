@@ -125,6 +125,24 @@ async def measure(domain,variant,wave,timeout,control_ipv4=None,target=None):
   if writer:writer.close()
  return row
 
+def needs_pair_recovery(groups,required):
+ # Scheduling hint only: Go remains the sole classification authority. An echo
+ # alone is insufficient when Ads and its stable comparison use different IP
+ # families. Repeat the whole paired set, never just the missing Ads endpoint.
+ buckets={t['domain']:[r for g in groups for r in g if r['domain']==t['domain'] and r.get('echo')] for t in required}
+ if any(len({r['wave'] for r in rows})<2 for rows in buckets.values()):return True
+ controls=[t for t in required if t['role']=='control']
+ for t in required:
+  if t['role']!='ads':continue
+  for a in buckets[t['domain']]:
+   paired=set();shared=False
+   for c in controls:
+    rows=[r for r in buckets[c['domain']] if r.get('family')==a.get('family')]
+    same=[r for r in rows if r['wave']==a['wave']]
+    if any(r.get('ip') and r['ip']==a.get('ip') for r in same):shared=True
+    if same and len({r.get('ip') for r in rows})==1 and len({r['wave'] for r in rows})>=2:paired.add(c['group'])
+   if not shared and ('google-search' not in paired or len(paired)<2):return True
+ return False
 async def session(req):
  targets=target_registry(req.get('targets'));limit=asyncio.Semaphore(12)
  async def run(t,n):
@@ -138,13 +156,11 @@ async def session(req):
   groups=[await wave(start,targets),await wave(start+1,targets)]
   # Repeating an unsupported source observation cannot reveal an IP. Retain
   # both completed reachability observations and report their limited scope.
-  complete=[{x['domain'] for x in g if x.get('echo')} for g in groups]
   required=[t for t in targets if t.get('required')]
-  missing=[t for t in required if t['domain'] not in complete[0]&complete[1]]
   # Recovery must remeasure the comparison destinations in the SAME wave.
   # Repeating only a failed Ads request leaves its recovered observation unpaired.
   # Reachability-only destinations cannot supply source evidence by retrying.
-  if missing:groups.append(await wave(start+2,required))
+  if needs_pair_recovery(groups,required):groups.append(await wave(start+2,required))
  elif req.get('sequential'):
   groups=[]
   for i in range(waves):groups.append(await wave(start+i,targets))
