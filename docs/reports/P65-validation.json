@@ -37,5 +37,24 @@
   "api_final_code_review_status": "incomplete_output_limit_not_relied_on",
   "supplied_sample_current_status": "UNKNOWN_entry_tcp_timeout",
   "performance_target_1000_in_600s_verified": false,
-  "all_domain_quic_android_carrier_claim": false
+  "all_domain_quic_android_carrier_claim": false,
+  "followup": {
+    "at_utc": "2026-11-15T03:15:21+00:00",
+    "published_input_identities": 99,
+    "distinct_output_templates": 50,
+    "all_tested_ads": 94,
+    "partial_ads": 5,
+    "four_formats_exact_bytes_and_multiplicities": true,
+    "same_generation": true,
+    "current_unique": 1762,
+    "completed_events_since_activation": 204,
+    "distinct_inputs_since_activation": 203,
+    "elapsed_seconds": 441,
+    "latest_positive": 99,
+    "latest_no_split": 79,
+    "latest_unknown": 25,
+    "full_inventory_complete": false,
+    "six_services_no_restarts": true,
+    "initial_audit_unique_template_assumption_corrected": true
+  }
 }
