@@ -18,6 +18,7 @@ TimeoutStopSec=40
 KillMode=control-group
 UMask=0077
 Environment=GOMEMLIMIT=128MiB
+CPUWeight=400
 MemoryMax=2G
 TasksMax=4096
 LimitNOFILE=8192
