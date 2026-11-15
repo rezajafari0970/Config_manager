@@ -27,7 +27,7 @@ func pressure(data []byte, kind string) float64 {
 	}
 	return 0
 }
-func sampleResources() resourceSample {
+func sampleResources(prefix string) resourceSample {
 	s := resourceSample{availableKB: -1}
 	b, err := os.ReadFile("/proc/meminfo")
 	if err == nil {
@@ -40,6 +40,9 @@ func sampleResources() resourceSample {
 	}
 	b, _ = os.ReadFile("/proc/pressure/cpu")
 	s.cpu = pressure(b, "some")
+	if scoped, ok := scopedCPUPressure(prefix, os.ReadFile); ok {
+		s.cpu = scoped
+	}
 	b, _ = os.ReadFile("/proc/pressure/io")
 	s.io = pressure(b, "full")
 	return s

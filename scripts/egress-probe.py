@@ -56,7 +56,8 @@ class ResourcePool:
  def verify(self,path,pin):
   p=pathlib.Path(path);st=p.stat();key=(st.st_dev,st.st_ino,st.st_size,st.st_mtime_ns,pin)
   if self.pins.get(path)!=key:
-   if lab.digest(p.read_bytes())!=pin:raise ValueError('core_pin_mismatch')
+   with p.open('rb') as f:actual=hashlib.file_digest(f,'sha256').hexdigest()
+   if actual!=pin:raise ValueError('core_pin_mismatch')
    self.pins[path]=key
  @contextlib.contextmanager
  def lease(self,path,driver):

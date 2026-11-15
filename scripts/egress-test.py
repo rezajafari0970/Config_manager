@@ -244,6 +244,17 @@ class AdaptiveContracts(unittest.TestCase):
    plan={'variants':[{'config':base64.b64encode(json.dumps(cfg).encode()).decode()}]}
    self.assertEqual(driver.core_order(plan)[0][0],'xray-'+want)
 class SchedulingContracts(unittest.TestCase):
+ def test_core_pin_streams_bytes_and_rejects_changed_binary(self):
+  import tempfile,hashlib
+  from unittest import mock
+  with tempfile.TemporaryDirectory() as directory:
+   p=pathlib.Path(directory)/'core';p.write_bytes(b'core-fixture'*1024)
+   pin=hashlib.sha256(b'core-fixture'*1024).hexdigest();pool=driver.ResourcePool(None)
+   with mock.patch.object(pathlib.Path,'read_bytes',side_effect=AssertionError('whole binary allocation')):
+    pool.verify(str(p),pin)
+    p.write_bytes(b'changed-core')
+    with self.assertRaisesRegex(ValueError,'core_pin_mismatch'):pool.verify(str(p),pin)
+   pool.close();pool.geo.close()
  def test_outer_deadline_allows_queued_pairs_and_recovery(self):
   # Ten targets exceed the cap when two waves overlap: 16 seconds for
   # the pair plus 8 for recovery must not hit the old 26-second wrapper.
