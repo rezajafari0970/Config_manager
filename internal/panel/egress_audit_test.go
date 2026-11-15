@@ -40,28 +40,49 @@ func TestEgressAuditQueueUsesOneDueDefinition(t *testing.T) {
 	}
 }
 
-func TestEgressAuditTransientDNSRecoversAfterDeepAttempt(t *testing.T) {
-	s := testStore(t)
-	ctx := context.Background()
-	newExportSource(t, s, "dns-recovery", sourceURI(762))
-	j, err := s.ClaimEgress(ctx)
-	if err != nil || j == nil {
-		t.Fatal(err)
-	}
-	// A transient resolver fault can outlive both initial and deep budgets.
-	if _, err = s.db.Exec("UPDATE egress_jobs SET state='UNKNOWN',reason='endpoint_dns_failed',tested=?,first_completed=1,deep_completed=1,retry_streak=3,token='',lease_until=0,next_run=0 WHERE hash=?", egress.Now(), j.Hash); err != nil {
-		t.Fatal(err)
-	}
-	retry, err := s.ClaimEgressLane(ctx, "followup")
-	if err != nil || retry == nil || retry.Hash != j.Hash || !retry.Deep {
-		t.Fatal("temporary infrastructure fault abandoned", retry, err)
-	}
-	if err = s.CompleteEgress(ctx, egress.Completion{Job: *retry, Report: syntheticEgress(*retry)}); err != nil {
-		t.Fatal(err)
-	}
-	var n int
-	if err = s.db.QueryRow("SELECT count(*) FROM egress_eligible").Scan(&n); err != nil || n != 1 {
-		t.Fatal("recovery did not require new eligible proof", n, err)
+func TestEgressAuditTransientFaultRecoversAfterDeepAttempt(t *testing.T) {
+	for _, code := range []string{"endpoint_dns_failed", "driver_subprocess_failed"} {
+		t.Run(code, func(t *testing.T) {
+			s := testStore(t)
+			ctx := context.Background()
+			newExportSource(t, s, "infrastructure-recovery", sourceURI(762))
+			for attempt := 0; attempt < 2; attempt++ {
+				j, err := s.ClaimEgress(ctx)
+				if err != nil || j == nil {
+					t.Fatal(err)
+				}
+				r := syntheticEgress(*j)
+				r.Code = code
+				r.Checks = nil
+				r.Samples = nil
+				r.Delivery = nil
+				if err = s.CompleteEgress(ctx, egress.Completion{Job: *j, Report: r}); err != nil {
+					t.Fatal(err)
+				}
+				var reason, state string
+				var delay int64
+				if err = s.db.QueryRow("SELECT reason,state,next_run-tested FROM egress_jobs WHERE hash=?", j.Hash).Scan(&reason, &state, &delay); err != nil {
+					t.Fatal(err)
+				}
+				if reason != code || state != "UNKNOWN" || delay < 300000 || delay > 3600000 {
+					t.Fatal("transient fault lost or retry unbounded", reason, state, delay)
+				}
+				if _, err = s.db.Exec("UPDATE egress_jobs SET next_run=0 WHERE hash=?", j.Hash); err != nil {
+					t.Fatal(err)
+				}
+			}
+			retry, err := s.ClaimEgressLane(ctx, "followup")
+			if err != nil || retry == nil || !retry.Deep {
+				t.Fatal("temporary infrastructure fault abandoned", retry, err)
+			}
+			if err = s.CompleteEgress(ctx, egress.Completion{Job: *retry, Report: syntheticEgress(*retry)}); err != nil {
+				t.Fatal(err)
+			}
+			var n int
+			if err = s.db.QueryRow("SELECT count(*) FROM egress_eligible").Scan(&n); err != nil || n != 1 {
+				t.Fatal("recovery did not require new eligible proof", n, err)
+			}
+		})
 	}
 }
 
