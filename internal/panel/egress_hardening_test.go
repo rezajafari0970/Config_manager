@@ -39,6 +39,32 @@ func TestHardeningUrgentExpiryOverridesFutureNextRun(t *testing.T) {
 		t.Fatal("deadline missed by stale next_run", err)
 	}
 }
+
+func TestHardeningQueueAccountingMatchesUrgentClaim(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	newExportSource(t, s, "accounting-deadline", sourceURI(757))
+	j, _ := s.ClaimEgress(ctx)
+	now := egress.Now()
+	s.db.Exec("UPDATE egress_jobs SET token='',lease_until=0,ever_accepted=1,tested=?,state='RESIDENTIAL',valid_until=?,next_run=? WHERE hash=?", now, now+60000, now+180000, j.Hash)
+	a, err := egressAccounting(ctx, s.db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	queue := a["queue"].(map[string]int)
+	if queue["due"] != 1 || queue["scheduled"] != 0 {
+		t.Fatal("claimable urgent renewal displayed as scheduled", queue)
+	}
+	s.db.Exec("UPDATE egress_jobs SET valid_until=? WHERE hash=?", now-1, j.Hash)
+	a, err = egressAccounting(ctx, s.db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	queue = a["queue"].(map[string]int)
+	if queue["due"] != 0 || queue["scheduled"] != 1 {
+		t.Fatal("expired proof incorrectly urgent", queue)
+	}
+}
 func TestHardeningWithdrawalSurvivesWindowExpiryAndNeedsOneWindow(t *testing.T) {
 	s := testStore(t)
 	ctx := context.Background()
