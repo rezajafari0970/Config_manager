@@ -77,15 +77,18 @@ func assetAvailable(a DeliveryAsset) bool {
 	return a.CurlExit == 0 && a.HTTPStatus == 200 && a.TLSVerified && a.Complete && a.ContentMatch && a.Bytes >= 1024 && routeHexBytes(a.BodySHA, 32)
 }
 func assetFailure(a DeliveryAsset) bool {
+	if a.HTTPStatus == 429 || a.HTTPStatus >= 500 && a.HTTPStatus <= 599 {
+		return false
+	}
 	// Verified JavaScript bytes followed by a deadline are incomplete progress,
 	// not evidence that this config cannot deliver advertising.
-	if a.CurlExit != 0 && a.HTTPStatus == 200 && a.TLSVerified && a.ContentMatch && a.Bytes > 0 {
+	if a.CurlExit != 0 && a.HTTPStatus == 200 && a.TLSVerified && a.Bytes > 0 {
 		return false
 	}
 	// A transport or explicit block response is failure evidence. Parser bugs,
 	// rate limits, unsupported response formats and 5xx are uncertainty.
 	if a.CurlExit == 0 && a.TLSVerified {
-		return a.HTTPStatus == 403 || a.HTTPStatus == 451 || a.HTTPStatus == 200 && a.Complete && !a.ContentMatch
+		return a.HTTPStatus == 403 || a.HTTPStatus == 451
 	}
 	return a.CurlExit == 7 || a.CurlExit == 28 || a.CurlExit == 35 || a.CurlExit == 52 || a.CurlExit == 56 || a.CurlExit == 60 || a.CurlExit == 97
 }
@@ -103,14 +106,15 @@ func Delivery(r Report, p Plan, now int64) DeliveryDecision {
 	byVariant := map[string]map[string]DeliveryAsset{}
 	nonces := map[string]bool{}
 	for _, s := range r.Delivery {
+		// Optional host corroboration expires at decision time, not report start.
+		// Stale host data cannot erase independently valid VPN asset evidence.
+		if s.HostControl && (s.Variant != "host" || s.At < max(now, r.Finished)-30000) {
+			continue
+		}
 		if s.Version != DeliveryVersion || len(s.Assets) != len(deliveryTargets) || s.At > r.Finished+2000 {
 			return d
 		}
-		if s.HostControl {
-			if s.Variant != "host" || s.At < r.Started-30000 {
-				return d
-			}
-		} else if (s.Variant != "raw" && s.Variant != "template") || s.At < r.Started {
+		if !s.HostControl && ((s.Variant != "raw" && s.Variant != "template") || s.At < r.Started) {
 			return d
 		}
 		if byVariant[s.Variant] != nil {

@@ -26,6 +26,8 @@ const egressClaimCandidates = `WITH claim_scope(hash) AS MATERIALIZED (
  UNION SELECT u.hash FROM egress_iran_guard g JOIN egress_unique u ON u.identity=g.identity WHERE g.state='QUARANTINED'
 ) `
 
+const egressUrgentExpiry = `(ever_accepted=1 AND tested>0 AND valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER) AND valid_until<=CAST(unixepoch('subsec')*1000 AS INTEGER)+120000)`
+
 // Independent first-assessment and follow-up lanes share revision-fenced leases.
 // Iran, spaced retirement confirmations and near-expiry accepted proofs can use
 // either lane. Routine accepted renewal has reserved follow-up slots and may
@@ -50,7 +52,7 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
  OR EXISTS(SELECT 1 FROM egress_run_members WHERE run=(SELECT max(id) FROM egress_runs) AND status='pending' AND NOT EXISTS(SELECT 1 FROM egress_inventory i WHERE i.hash=egress_run_members.hash))
  OR (EXISTS(SELECT 1 FROM egress_settings WHERE id=1 AND enabled!=0)
  AND (SELECT count(*) FROM egress_jobs WHERE token!='' AND lease_until>?)<?
- AND EXISTS(SELECT 1 FROM claim_scope c CROSS JOIN egress_work j ON j.hash=c.hash WHERE paused=0 AND next_run<=? AND (token='' OR lease_until<=?)))`, now, egress.MaxWorkers, now, now).Scan(&needed)
+	AND EXISTS(SELECT 1 FROM claim_scope c CROSS JOIN egress_work j ON j.hash=c.hash WHERE paused=0 AND (next_run<=? OR `+egressUrgentExpiry+`) AND (token='' OR lease_until<=?)))`, now, egress.MaxWorkers, now, now).Scan(&needed)
 	if e != nil || !needed {
 		return nil, e
 	}
@@ -79,18 +81,19 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	j := &egress.Job{}
 	var size int64
 	var state, previousToken string
-	base := egressClaimCandidates + `SELECT egress_jobs.hash,kind,size,revision,ever_accepted,attempts,state,token FROM claim_scope c CROSS JOIN egress_work AS egress_jobs ON egress_jobs.hash=c.hash WHERE paused=0 AND next_run<=? AND (token='' OR lease_until<=?)`
+	base := egressClaimCandidates + `SELECT egress_jobs.hash,kind,size,revision,ever_accepted,attempts,state,token FROM claim_scope c CROSS JOIN egress_work AS egress_jobs ON egress_jobs.hash=c.hash WHERE paused=0 AND (next_run<=? OR ` + egressUrgentExpiry + `) AND (token='' OR lease_until<=?)`
 	retirement := `EXISTS(SELECT 1 FROM egress_retirements r WHERE r.hash=egress_jobs.hash)`
-	urgent := `(ever_accepted=1 AND tested>0 AND valid_until>CAST(unixepoch('subsec')*1000 AS INTEGER) AND valid_until<=CAST(unixepoch('subsec')*1000 AS INTEGER)+120000)`
+	urgent := egressUrgentExpiry
+	safety := ` AND (reason='ads_iran_quarantined' OR ` + retirement + ` OR ` + urgent + `)`
 	priority := `CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ` + retirement + ` THEN 1 WHEN ` + urgent + ` THEN 2 `
 	order := ` ORDER BY ` + priority + ` WHEN tested=0 AND ever_accepted=1 THEN 3 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 4 WHEN tested=0 THEN 5 WHEN ever_accepted=1 THEN 6 ELSE 7 END,next_run,first_seen,egress_jobs.hash LIMIT 1`
-	filters := []string{""}
+	filters := []string{safety, ""}
 	if lane == "initial" {
-		filters = []string{` AND (tested=0 OR reason='ads_iran_quarantined' OR ` + retirement + ` OR ` + urgent + `)`, ""}
+		filters = []string{safety, ` AND tested=0`, ""}
 	}
 	if lane == "followup" {
-		filters = []string{` AND (ever_accepted=1 OR tested>0)`, ` AND tested=0`, ""}
-		order = ` ORDER BY ` + priority + ` WHEN ever_accepted=1 THEN 3 ELSE 4 END,next_run,first_seen,egress_jobs.hash LIMIT 1`
+		filters = []string{safety, ` AND (ever_accepted=1 OR tested>0)`, ` AND tested=0`, ""}
+		order = ` ORDER BY ` + priority + ` ELSE 3 END,next_run,first_seen,egress_jobs.hash LIMIT 1`
 	}
 	for _, filter := range filters {
 		args := []any{now, now}
@@ -309,7 +312,19 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	if _, e = tx.ExecContext(ctx, "INSERT INTO egress_events(hash,at,state,reason,definitive,duration_ms) VALUES(?,?,?,?,?,?)", j.Hash, now, state, eventReason, definitive, max(0, r.Finished-r.Started)); e != nil {
 		return e
 	}
-	if _, e = tx.ExecContext(ctx, "UPDATE egress_metrics SET completed=completed+1,first_assessments=first_assessments+?,definitive=definitive+? WHERE id=1", firstCompleted == 0, definitive); e != nil {
+	uniqueDefinitive := false
+	if definitive {
+		result, err := tx.ExecContext(ctx, "INSERT OR IGNORE INTO egress_settlements(hash,at,state) VALUES(?,?,?)", j.Hash, now, state)
+		if err != nil {
+			return err
+		}
+		n, err := result.RowsAffected()
+		if err != nil {
+			return err
+		}
+		uniqueDefinitive = n == 1
+	}
+	if _, e = tx.ExecContext(ctx, "UPDATE egress_metrics SET completed=completed+1,first_assessments=first_assessments+?,definitive=definitive+? WHERE id=1", firstCompleted == 0, uniqueDefinitive); e != nil {
 		return e
 	}
 	if e = recordEgressRun(ctx, tx, j.Hash, state, definitive, r.Started, now, max(int64(0), r.Finished-r.Started)); e != nil {
@@ -347,6 +362,9 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	}
 	if guard.Quarantined {
 		delay = guard.Delay
+	}
+	if d.Eligible {
+		delay = min(delay, max(int64(0), d.Until-max(lead, int64(120000))-now))
 	}
 	_, e = tx.ExecContext(ctx, `UPDATE egress_jobs SET state=?,reason=?,ever_accepted=?,tested=?,valid_until=?,candidate_hash=?,candidate_size=?,format=?,decision=?,report=?,token='',lease_until=0,next_run=?,failures=?,last_failure=?,retry_streak=?,first_completed=1 WHERE hash=?`, state, d.Reason, accepted, now, d.Until, candidateHash, candidateSize, plan.Format, string(decision), string(report), now+delay, failures, last, streak, j.Hash)
 	if e != nil {

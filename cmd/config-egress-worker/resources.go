@@ -45,10 +45,13 @@ func sampleResources() resourceSample {
 	return s
 }
 func resourceCapacity(maximum int, s resourceSample) int {
+	if s.io >= 25 {
+		return 0
+	}
 	if s.availableKB < 0 {
 		return min(maximum, 2)
 	}
-	if s.availableKB < 512*1024 || s.io >= 25 {
+	if s.availableKB < 512*1024 {
 		return 0
 	}
 	limit := maximum

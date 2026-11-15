@@ -1,4 +1,4 @@
-# Residential: sole active policy, P66 / ads-egress.v9 / schema36
+# Residential: sole active policy, P66 / ads-egress.v9 / schema37
 
 This document supersedes earlier policy descriptions. Historical reports remain
 records of their own releases, not selectable strategies. `internal/egress.Evaluate`
@@ -54,9 +54,9 @@ A credible transport failure or authenticated blocking response in both runtimes
 including SOCKS handshake failures ([curl error97](https://curl.se/libcurl/c/libcurl-errors.html)),
 for both profile assets, counts as unhealthy only when the same assets are freshly
 available through the independent host control. Parser errors, local resource
-pressure, missing runtime files, 429, 5xx, verified partial JavaScript downloads
+pressure, missing runtime files, 429, 5xx, authenticated partial HTTP200 downloads or unfamiliar HTTP200 content
 and failed host controls stay uncertain.
-Controls are cached for at most30s (5s on failure); they never qualify a VPN.
+Healthy controls are cached for at most20s (5s on failure), and negative corroboration must still be within30s of the decision, not report start. Stale optional controls cannot erase valid VPN-positive evidence.
 
 On the first credible unhealthy result, or verified NO_SPLIT for an accepted input,
 withdraw it from every output, including aliases. After three independent reports
@@ -64,7 +64,7 @@ spaced at least30s with the same failure reason, remove usable records, membersh
 candidates, reports and source-response references globally. Retain a minimal
 identity exclusion/tombstone so recurring source imports cannot resurrect it.
 Successful eligible recovery clears pending retirement. Unknown does not count
-as a negative. Confirmation has a10min window; a reason change starts a new series.
+as a negative. Confirmation has a10min window measured from the first confirmation; a reason change starts a new series. An expired confirmation series resets its hits but does not lift identity withdrawal without eligible recovery.
 Confirmed Iran retains the existing stronger, independent guard and external
 revocation semantics. All-Ads minority Iran conflicts immediately withdraw all
 output types without pretending that conflict is confirmed country consensus.
@@ -97,7 +97,7 @@ pending spaced-removal confirmations and still-valid proofs within120s of expiry
 are urgent. Already expired proofs remain withdrawn and use follow-up recovery;
 their stale deadline cannot monopolize initial capacity forever.
 Routine renewal uses reserved follow-up capacity and cannot monopolize a nonempty
-initial-assessment lane; idle lanes can still steal work. No proof expiry is extended.
+initial-assessment lane; idle lanes can still steal work. No proof expiry is extended. Near-expiry work overrides a stale future next_run; completion schedules from the actual proof deadline. Ordinary follow-ups are FIFO so unaccepted recovery cannot starve behind renewals.
 New-input fast checks use two paired3s waves. Accepted renewals and incomplete
 initial probes use two sequential8s waves with a third adaptive recovery wave
 only when required evidence is incomplete, including missing same-family paired
@@ -119,8 +119,7 @@ The user's P66 instruction authorizes exactly one new Residential reset. Atomic
 schema36 clears old test receipts/statistics and seeds current unique plus retained
 safety inventory. Preserve source controls/raw inputs, country selection, ordinary
 settings, manual exclusions and sticky Iran protection. Durable feature/schema
-markers prevent repetition on restart or unrelated schema repair. Older binaries
-must reject schema36. Generic version reconciliation only invalidates stale proof;
+markers prevent repetition on restart or unrelated schema repair. Schema37 is a non-reset hardening migration: preserve the original reset clock, proofs and settings; retain pending withdrawals while discarding their old confirmation counts, and correct definitive totals using a durable unique-input settlement ledger. Renewals increment attempts, not unique definitive counts. Older binaries must reject schema37. Generic version reconciliation only invalidates stale proof;
 it must never reset statistics implicitly.
 
 Deploy with the shared lock, matched stopped database/blob/key/unit/release backup,

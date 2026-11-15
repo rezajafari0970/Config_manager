@@ -36,3 +36,9 @@ func TestResourceRecoveryRespectsFreshCapsAndHardStops(t *testing.T) {
 		t.Fatal("recovery bypassed a fresh resource cap", g)
 	}
 }
+
+func TestSevereIOStopsAdmissionEvenWhenMemoryReadFails(t *testing.T) {
+	if n := resourceCapacity(31, resourceSample{availableKB: -1, io: 25}); n != 0 {
+		t.Fatal(n)
+	}
+}

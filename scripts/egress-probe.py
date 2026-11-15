@@ -137,7 +137,7 @@ def cached_delivery_control(prefix,targets):
   path=pathlib.Path('/run/'+prefix+'-ads-control.json')
   try:
    old=json.loads(path.read_text());age=int(time.time()*1000)-old['value']['at']
-   ttl=30000 if all(asset_available(a) for a in old['value']['assets']) else 5000
+   ttl=20000 if all(asset_available(a) for a in old['value']['assets']) else 5000
    if old['key']==key and 0<=age<ttl:return old['value']
   except Exception:pass
   try:

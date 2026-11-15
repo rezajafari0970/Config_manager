@@ -12,7 +12,10 @@ initial work; accepted safety renewal and bounded unknown/infrastructure repair
 are distinct. Schema36 reset is atomic and must never repeat on restart.
 Require real1000/600s and2000/900s cohort measurements; UNKNOWN is not definitive.
 Hold the existing deploy lock, matched stopped backup and six canonical binaries.
-No older binary may open schema36. No universal detection, rendering, mobile,
+Schema37 hardening preserves the schema36 reset epoch and all positive proofs.
+Discard old pending-negative hit counts but retain sticky withdrawal, and correct
+definitive totals by unique input rather than renewal. No second reset.
+No older binary may open schema37. No universal detection, rendering, mobile,
 QUIC, future uptime or unmeasured performance claim. P66 activation/result status
 must be read from its final receipt; this instruction is not deployment evidence.
 All policy descriptions below are historical where they conflict with P66.

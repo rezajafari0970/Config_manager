@@ -271,7 +271,7 @@ func TestUnifiedNegativeConfirmationPrecedesResetBacklog(t *testing.T) {
 	if _, err = s.db.Exec("UPDATE egress_jobs SET token='',lease_until=0,ever_accepted=1,tested=?,state='QUARANTINED',next_run=1,valid_until=0 WHERE hash=?", egress.Now(), old.Hash); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = s.db.Exec("INSERT INTO egress_retirements VALUES(?,'confirmed_ads_delivery_unhealthy',1,?)", old.Hash, egress.Now()-60000); err != nil {
+	if _, err = s.db.Exec("INSERT INTO egress_retirements(hash,reason,hits,at) VALUES(?,'confirmed_ads_delivery_unhealthy',1,?)", old.Hash, egress.Now()-60000); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = s.db.Exec("UPDATE egress_jobs SET ever_accepted=1 WHERE hash!=?", old.Hash); err != nil {
