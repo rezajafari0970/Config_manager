@@ -171,3 +171,27 @@ func TestSettledRescanResultDoesNotOverwriteFirstAssessment(t *testing.T) {
 		t.Fatal(first, settled, state)
 	}
 }
+
+func TestUnifiedConflictWithdrawalUsesSparseIndex(t *testing.T) {
+	s := testStore(t)
+	rows, err := s.db.Query("EXPLAIN QUERY PLAN SELECT hash FROM egress_jobs WHERE json_extract(decision,'$.country_conflict')=1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rows.Close()
+	used := false
+	for rows.Next() {
+		var id, parent, unused int
+		var detail string
+		if err = rows.Scan(&id, &parent, &unused, &detail); err != nil {
+			t.Fatal(err)
+		}
+		used = used || strings.Contains(detail, "egress_iran_conflicts")
+	}
+	if err = rows.Err(); err != nil {
+		t.Fatal(err)
+	}
+	if !used {
+		t.Fatal("global withdrawal scans archived decision bodies")
+	}
+}
