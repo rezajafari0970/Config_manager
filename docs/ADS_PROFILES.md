@@ -1,3 +1,5 @@
+> Historical release description. The sole current policy is [RESIDENTIAL_POLICY.md](RESIDENTIAL_POLICY.md).
+
 # Named Ads routing profiles (v8)
 
 Residential is this project's label for a verified destination-specific Ads split.

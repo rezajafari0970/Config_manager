@@ -24,7 +24,7 @@ func dropEgressForMigration(t *testing.T, s *Store) {
 			t.Fatal(e)
 		}
 	}
-	for _, q := range []string{"DROP INDEX egress_membership_identity", "DROP TRIGGER egress_metric_unique", "DROP VIEW egress_work", "DROP VIEW egress_inventory", "DROP TABLE egress_unique", "DROP TRIGGER egress_excluded_alias_insert", "DROP TRIGGER egress_excluded_alias_update", "DROP TRIGGER egress_run_deleted", "DROP TABLE egress_run_members", "DROP TABLE egress_runs", "DROP TABLE IF EXISTS egress_iran_policy", "DROP TABLE IF EXISTS egress_iran_guard", "DROP TRIGGER IF EXISTS egress_metric_ingest", "DROP TRIGGER egress_metric_delete", "DROP TRIGGER egress_retry_revived", "DROP TABLE egress_metrics", "DROP TRIGGER egress_stage", "DROP TABLE egress_health", "DROP TABLE egress_lifecycle", "DROP VIEW egress_export_eligible", "DROP VIEW egress_geo_eligible", "DROP TABLE egress_geo_results", "DROP TABLE egress_countries", "DROP TABLE egress_country_policy", "DROP TRIGGER egress_ingest", "DROP VIEW input_blocked_identities", "DROP VIEW input_blocked", "DROP VIEW egress_eligible", "DROP TABLE egress_owners", "DROP TABLE egress_jobs", "DROP TABLE egress_turns", "DROP TABLE egress_events", "DROP TABLE egress_settings", "DROP TABLE egress_worker"} {
+	for _, q := range []string{"DROP INDEX egress_membership_identity", "DROP TRIGGER egress_metric_unique", "DROP VIEW egress_work", "DROP VIEW egress_inventory", "DROP TABLE egress_retirements", "DROP TABLE egress_unique", "DROP TRIGGER egress_excluded_alias_insert", "DROP TRIGGER egress_excluded_alias_update", "DROP TRIGGER egress_run_deleted", "DROP TABLE egress_run_members", "DROP TABLE egress_runs", "DROP TABLE IF EXISTS egress_iran_policy", "DROP TABLE IF EXISTS egress_iran_guard", "DROP TRIGGER IF EXISTS egress_metric_ingest", "DROP TRIGGER egress_metric_delete", "DROP TRIGGER egress_retry_revived", "DROP TABLE egress_metrics", "DROP TRIGGER egress_stage", "DROP TABLE egress_health", "DROP TABLE egress_lifecycle", "DROP VIEW egress_export_eligible", "DROP VIEW egress_geo_eligible", "DROP TABLE egress_geo_results", "DROP TABLE egress_countries", "DROP TABLE egress_country_policy", "DROP TRIGGER egress_ingest", "DROP VIEW input_blocked_identities", "DROP VIEW input_blocked", "DROP VIEW egress_eligible", "DROP TABLE egress_owners", "DROP TABLE egress_jobs", "DROP TABLE egress_turns", "DROP TABLE egress_events", "DROP TABLE egress_settings", "DROP TABLE egress_worker"} {
 		if _, e := s.db.Exec(q); e != nil {
 			t.Fatal(e)
 		}
@@ -56,6 +56,14 @@ func syntheticEgress(j egress.Job) egress.Report {
 	for _, v := range []string{"raw", "template"} {
 		tr := egress.Transfer{Bytes: egress.HealthBytes, CurlExit: 0, HTTPStatus: 200, TLSVerified: true}
 		r.Health = append(r.Health, egress.HealthSample{Version: egress.HealthVersion, Variant: v, At: now, Providers: []egress.HealthProvider{{Provider: "cloudflare", Download: tr, Upload: tr}, {Provider: "httpbingo", Download: tr, Upload: tr}}})
+	}
+
+	for _, variant := range []string{"raw", "template"} {
+		sample := egress.DeliverySample{Version: egress.DeliveryVersion, Variant: variant, At: now}
+		for _, target := range egress.DeliveryTargets() {
+			sample.Assets = append(sample.Assets, egress.DeliveryAsset{Profile: target.Profile, Domain: target.Domain, Path: target.Path, Nonce: egress.Hash([]byte("delivery" + variant + target.Profile))[:32], HTTPStatus: 200, TLSVerified: true, Complete: true, ContentMatch: true, Bytes: 2048, BodySHA: egress.Hash([]byte("asset")), Code: "asset_available"})
+		}
+		r.Delivery = append(r.Delivery, sample)
 	}
 	return r
 }
@@ -222,7 +230,7 @@ func TestEgressLanesProtectInitialAndDeepRetry(t *testing.T) {
 	}
 }
 
-func TestEgressManualRecheckPrecedesCurrentFirstAssessment(t *testing.T) {
+func TestRetiredManualMarkerCannotBypassCompletedCache(t *testing.T) {
 	s := testStore(t)
 	ctx := context.Background()
 	newExportSource(t, s, "active", sourceURI(131), sourceURI(132))
@@ -232,8 +240,8 @@ func TestEgressManualRecheckPrecedesCurrentFirstAssessment(t *testing.T) {
 		t.Fatal(e)
 	}
 	j, e := s.ClaimEgress(ctx)
-	if e != nil || j == nil || j.Hash != target {
-		t.Fatal("manual check starved", j, e)
+	if e != nil || j == nil || j.Hash == target {
+		t.Fatal("retired manual marker bypassed cache", j, e)
 	}
 }
 

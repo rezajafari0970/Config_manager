@@ -25,6 +25,13 @@ func fixture() (egress.Report, egress.Plan, int64) {
 			}
 		}
 	}
+	for _, variant := range []string{"raw", "template"} {
+		sample := egress.DeliverySample{Version: egress.DeliveryVersion, Variant: variant, At: now}
+		for _, target := range egress.DeliveryTargets() {
+			sample.Assets = append(sample.Assets, egress.DeliveryAsset{Profile: target.Profile, Domain: target.Domain, Path: target.Path, Nonce: egress.Hash([]byte("delivery" + variant + target.Profile))[:32], HTTPStatus: 200, TLSVerified: true, Complete: true, ContentMatch: true, Bytes: 2048, BodySHA: egress.Hash([]byte("asset")), Code: "asset_available"})
+		}
+		r.Delivery = append(r.Delivery, sample)
+	}
 	return r, p, now
 }
 

@@ -121,15 +121,29 @@ def resource_failures(prefix):
   fields=dict(line.split() for line in (pathlib.Path('/sys/fs/cgroup')/(prefix+'-sandboxes')/'memory.events').read_text().splitlines())
   return int(fields.get('oom',0))+int(fields.get('oom_kill',0))
  except (OSError,ValueError):return 0
-def diagnostic_health(box,variant):
- # An optional payload diagnostic failure must not discard valid route/IR proof.
+def diagnostic_delivery(box,variant,targets,timeout):
  try:
-  result=box.net(['/usr/bin/python3',str(HERE/'egress-health.py')],timeout=12)
-  h=json.loads(result.stdout)
-  if not isinstance(h,dict):raise ValueError('health_contract')
- except Exception:h=dict(version='ads-health.v1',at=int(time.time()*1000),providers=[])
- h['variant']=variant
- return h
+  q=box.net(['/usr/bin/python3',str(HERE/'egress-delivery.py')],input=json.dumps(dict(variant=variant,targets=targets,timeout=timeout)).encode(),timeout=timeout+3)
+  result=json.loads(q.stdout)
+  if not isinstance(result,dict):raise ValueError('delivery_contract')
+  return result
+ except Exception:return dict(version='ads-delivery.v1',variant=variant,at=int(time.time()*1000),assets=[])
+def asset_available(a):return a.get('curl_exit')==0 and a.get('http_status')==200 and a.get('tls_verified') and a.get('complete') and a.get('content_match')
+def cached_delivery_control(prefix,targets):
+ # Shared outage calibration is reusable for at most 30s, never VPN proof.
+ key=hashlib.sha256(json.dumps(targets,sort_keys=True).encode()).hexdigest()
+ with open('/run/'+prefix+'-ads-control.lock','a') as lock:
+  fcntl.flock(lock,fcntl.LOCK_EX)
+  path=pathlib.Path('/run/'+prefix+'-ads-control.json')
+  try:
+   old=json.loads(path.read_text());age=int(time.time()*1000)-old['value']['at']
+   ttl=30000 if all(asset_available(a) for a in old['value']['assets']) else 5000
+   if old['key']==key and 0<=age<ttl:return old['value']
+  except Exception:pass
+  try:
+   q=subprocess.run(['/usr/bin/python3',str(HERE/'egress-delivery.py')],input=json.dumps(dict(targets=targets,host_control=True,timeout=3)).encode(),capture_output=True,timeout=6)
+   value=json.loads(q.stdout);tmp=path.with_suffix('.tmp');tmp.write_text(json.dumps(dict(key=key,value=value)));tmp.chmod(0o600);tmp.replace(path);return value
+  except Exception:return None
 def overlap_assessment(observe,health):
  # Two independent bounded processes in the SAME runtime. Join before core
  # shutdown, even on failure; no thread may leak into the next variant/job.
@@ -141,11 +155,11 @@ def investigate(req,args,pool=None):
  if pool is None:
   with ResourcePool(args) as own:return investigate(req,args,own)
  discovery=req.get('discovery') is True
- targets=sessions.target_registry(req.get('targets'));plan=req['plan'];r=dict(version='ads-egress.v8',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],health=[],attempts=[],evidence=[],wall_ms=0,waves=3 if req.get('deep') or discovery else 2)
+ targets=sessions.target_registry(req.get('targets'));targets=targets if discovery else [t for t in targets if t.get('driver')!='https-reachability'];plan=req['plan'];r=dict(version='ads-egress.v9',hash=req['hash'],started=req['started'],finished=0,core='',core_sha='',infrastructure=False,code='driver_unavailable',checks=[],samples=[],health=[],delivery=[],attempts=[],evidence=[],wall_ms=0,waves=3 if discovery or req.get('deep') and not req.get('accepted') else 2)
  begin=time.monotonic();best=-1;before_resource_failures=resource_failures(args.prefix)
  if len(plan.get('variants',[]))!=2:return r
  for core,path,pin in (core_order(plan) if plan['driver']=='xray' else [NATIVE]):
-  at=time.monotonic();attempt_started=int(time.time()*1000);attempt_pressure=resource_failures(args.prefix);checks=[];samples=[];health=[];code='core_unavailable';stages={};checkpoint=at
+  at=time.monotonic();attempt_started=int(time.time()*1000);attempt_pressure=resource_failures(args.prefix);checks=[];samples=[];health=[];delivery=[];code='core_unavailable';stages={};checkpoint=at
   def mark(name):
    nonlocal checkpoint
    current=time.monotonic();stages[name]=(current-checkpoint)*1000;checkpoint=current
@@ -178,17 +192,13 @@ def investigate(req,args,pool=None):
       if not isinstance(rows,list) or not min(waves,2)*len(targets)<=len(rows)<=waves*len(targets):raise ValueError('session_contract')
       return rows
      # XHTTP and deep retries avoid overloading one remote path with 21 connections.
-     sequential=discovery or bool(req.get('deep')) or any(o.get('streamSettings',{}).get('network') in ('xhttp','splithttp') for o in config.get('outbounds',[]))
-     observe_current=lambda:observe(1,r['waves'],8 if req.get('deep') or discovery else 3)
-     if req.get('accepted'):
-      rows,h=overlap_assessment(observe_current,lambda:diagnostic_health(box,v['name']))
-      health.append(h)
-     else:rows=observe_current()
+     sequential=discovery or bool(req.get('deep') and not req.get('accepted')) or any(o.get('streamSettings',{}).get('network') in ('xhttp','splithttp') for o in config.get('outbounds',[]))
+     observe_current=lambda:observe(1,r['waves'],8 if discovery else 6 if req.get('deep') and not req.get('accepted') else 3)
+     if discovery:rows=observe_current()
+     else:
+      rows,assets=overlap_assessment(observe_current,lambda:diagnostic_delivery(box,v['name'],req.get('delivery_targets'),6 if req.get('deep') and not req.get('accepted') else 3))
+      delivery.append(assets)
      samples+=rows
-     # Existing members always receive a real payload check. New candidates
-     # only pay this cost when a dedicated Ads path remains possible.
-     if not req.get('accepted') and any(x.get('actual_ads') and x.get('echo') for x in rows):
-      health.append(diagnostic_health(box,v['name']))
      box.stop();code='measured';mark(v['name']+'_probes')
      # Acceptance requires both variants; shared targets never veto another profile.
      if not discovery and not req.get('accepted') and not req.get('deep') and not any(x.get('echo') for x in rows):
@@ -196,7 +206,7 @@ def investigate(req,args,pool=None):
    mark('reset')
    score=sum(bool(x.get('echo')) for x in samples)
    if len(checks)==2 and all(x['core'] for x in checks):score+=100
-   if score>best:r.update(core=core,core_sha=pin,checks=checks,samples=samples,health=health,code=code);best=score
+   if score>best:r.update(core=core,core_sha=pin,checks=checks,samples=samples,health=health,delivery=delivery,code=code);best=score
    r['attempts'].append(dict(core=core,code=code,ms=(time.monotonic()-at)*1000,stages=stages))
    # A validated running core does not need four repetitions of a network timeout.
    # Schema/start failures still use the full pinned compatibility matrix.
@@ -208,17 +218,13 @@ def investigate(req,args,pool=None):
    if core_independent_failure(code):break
   finally:
    if samples:r['evidence'].append(dict(version=r['version'],hash=r['hash'],started=attempt_started,finished=int(time.time()*1000),core=core,core_sha=pin,checks=checks,samples=samples,resource_pressure=resource_failures(args.prefix)>attempt_pressure))
- # A separate host control is only an outage check, never Ads IP evidence.
- try:
-  if any(x.get('echo') for x in r['samples']):raise ValueError('outage_check_unnecessary')
-  result=subprocess.run(['/usr/bin/curl','--noproxy','*','--silent','--fail','--max-time','5','https://1.1.1.1/cdn-cgi/trace'],capture_output=True,timeout=6)
-  r['infrastructure']=result.returncode==0 and b'ip=' in result.stdout
- except Exception:pass
- if len(r['health'])==2 and all(not any(x.get('passed') for x in h.get('providers',[])) for h in r['health']):
-  try:
-   q=subprocess.run(['/usr/bin/python3',str(HERE/'egress-health.py'),'--host-control'],capture_output=True,timeout=12)
-   h=json.loads(q.stdout);h['variant']='host';r['health'].append(h)
-  except Exception:pass
+ # An independent host asset check is outage calibration only. Cache avoids
+ # repeating two unrelated public probes for every disconnected input.
+ if r['delivery'] and not any(asset_available(a) for part in r['delivery'] for a in part.get('assets',[])):
+  control=cached_delivery_control(args.prefix,req.get('delivery_targets'))
+  if control:
+   r['infrastructure']=any(asset_available(a) for a in control.get('assets',[]))
+   r['delivery'].append(control)
  r['waves']=max([2]+[x.get('wave',0) for x in r['samples']])
  # Reference selected samples once while preserving their attempt-local safety
  # metadata; unrelated attempts under resource pressure cannot erase valid IR.

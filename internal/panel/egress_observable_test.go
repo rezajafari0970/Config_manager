@@ -9,7 +9,7 @@ import (
 	"github.com/rezajafari0970/Config_manager/internal/egress"
 )
 
-func TestV8UpgradePreservesUnaffectedIdentityVerdictsAndHistory(t *testing.T) {
+func TestPolicyUpgradeFencesLegacyReceiptsWithoutImplicitReset(t *testing.T) {
 	s := testStore(t)
 	states := []struct {
 		state, reason string
@@ -53,7 +53,7 @@ func TestV8UpgradePreservesUnaffectedIdentityVerdictsAndHistory(t *testing.T) {
 		if attempts != 3 || first != 1 || !strings.Contains(report, "historical") {
 			t.Fatal("history erased", state, attempts, first, report)
 		}
-		if i == 1 || x.state == "DELETED" {
+		if x.state == "DELETED" {
 			if state != x.state || reason != x.reason || tested != now || revision != 7 || deep != 1 || retry != 2 {
 				t.Fatal("unaffected verdict changed", state, reason, tested, revision, deep, retry)
 			}

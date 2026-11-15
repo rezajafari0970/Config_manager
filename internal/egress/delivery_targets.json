@@ -1,0 +1,4 @@
+[
+  {"profile":"doubleclick.v1","domain":"securepubads.g.doubleclick.net","path":"/tag/js/gpt.js","marker":"googletag"},
+  {"profile":"ads-serving.v1","domain":"pagead2.googlesyndication.com","path":"/pagead/js/adsbygoogle.js","marker":"adsbygoogle"}
+]

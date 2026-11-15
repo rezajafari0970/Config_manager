@@ -61,7 +61,8 @@ func PolicyDigest() string {
 		Version  string
 		Profiles []Profile
 		Targets  []Target
-	}{ProfileVersion, Profiles(), Targets()})
+		Delivery []DeliveryTarget
+	}{ProfileVersion, Profiles(), Targets(), DeliveryTargets()})
 	return Hash(b)
 }
 
@@ -76,7 +77,7 @@ func evaluateProfiles(r Report, p Plan, hash string, now int64) Decision {
 		}
 		if len(r.Checks) != 2 {
 			switch r.Code {
-			case "direct_route_not_qualified", "direct_default_not_qualified", "endpoint_dns_failed", "ipv6_only_probe_pending", "core_rejected", "core_schema_mismatch", "missing_runtime_asset", "removed_allow_insecure", "unsupported_protocol_or_transport", "public_endpoint_requires_tls", "driver_subprocess_timeout", "driver_infrastructure_error", "runtime_start_failed", "network_retry_pending":
+			case "driver_session_failed", "direct_route_not_qualified", "direct_default_not_qualified", "endpoint_dns_failed", "ipv6_only_probe_pending", "core_rejected", "core_schema_mismatch", "missing_runtime_asset", "removed_allow_insecure", "unsupported_protocol_or_transport", "public_endpoint_requires_tls", "driver_subprocess_timeout", "driver_infrastructure_error", "runtime_start_failed", "network_retry_pending":
 				d.Reason = r.Code
 			}
 		}
@@ -165,9 +166,12 @@ func evaluateProfiles(r Report, p Plan, hash string, now int64) Decision {
 	if len(d.Sources) > 0 {
 		d.Route = "PARTIAL_DIFFERENCE"
 	}
-	if m.IranObserved {
+	if m.IranObserved || d.CountryConflict {
 		d.State = "QUARANTINED"
 		d.Reason = "ads_iran_quarantined"
+		if !m.IranObserved {
+			d.Reason = "ads_iran_conflict"
+		}
 		return d
 	}
 	if len(d.QualifiedProfiles) > 0 && m.Until > now {

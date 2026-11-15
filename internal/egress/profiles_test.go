@@ -173,7 +173,7 @@ func TestSelectedAttemptIranSurvivesUnrelatedResourcePressure(t *testing.T) {
 	}
 }
 
-func TestEarlierAttemptMinorityIranBlocksCountryOnly(t *testing.T) {
+func TestEarlierAttemptMinorityIranWithdrawsAllPublication(t *testing.T) {
 	r, p, now := fixture()
 	for i := range r.Samples {
 		if r.Samples[i].ActualAds {
@@ -189,7 +189,7 @@ func TestEarlierAttemptMinorityIranBlocksCountryOnly(t *testing.T) {
 	r.Evidence = []Report{part}
 	d := Evaluate(r, p, r.Hash, now)
 	g := Countries(r, d, now)
-	if !d.Eligible || g.Complete || g.Status != "country_iran_conflict" || Iran(r, p, r.Hash, now) != nil {
+	if d.Eligible || g.Complete || g.Status != "country_iran_conflict" || Iran(r, p, r.Hash, now) != nil {
 		t.Fatal(d, g)
 	}
 	r.Evidence[0].CoreSHA = "unbound"

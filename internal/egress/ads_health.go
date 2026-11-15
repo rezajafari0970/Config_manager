@@ -3,11 +3,14 @@ package egress
 // AdsHealth is completed request/response on a whole named profile, not bulk
 // throughput. Generic upload/download remains a diagnostic, never an Ads veto.
 func AdsHealth(r Report, p Plan, now int64) string {
+	if Delivery(r, p, now).Status == "unavailable" {
+		return "unhealthy"
+	}
 	if routeBound(r, p, r.Hash, now) != "" {
 		return "unknown"
 	}
 	for _, profile := range profiles {
-		if healthyDomains(r, profile.Domains) {
+		if healthyDomains(r, profile.Domains) && Delivery(r, p, now).Profiles[profile.ID] == "available" {
 			return "healthy"
 		}
 	}

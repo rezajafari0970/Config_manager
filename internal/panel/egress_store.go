@@ -81,14 +81,14 @@ func (s *Store) ClaimEgressLane(ctx context.Context, lane string) (*egress.Job, 
 	var size int64
 	var state, previousToken string
 	base := egressClaimCandidates + `SELECT egress_jobs.hash,kind,size,revision,ever_accepted,attempts,state,token FROM claim_scope c CROSS JOIN egress_work AS egress_jobs ON egress_jobs.hash=c.hash WHERE paused=0 AND next_run<=? AND (token='' OR lease_until<=?)`
-	order := ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 THEN 0 WHEN reason='manual_recheck' THEN 1 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 2 WHEN tested=0 THEN 3 WHEN ever_accepted=1 THEN 4 WHEN state='UNKNOWN' AND attempts=1 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 5 ELSE 6 END,next_run,first_seen,egress_jobs.hash LIMIT 1`
+	order := ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 THEN 0 WHEN tested=0 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 2 WHEN tested=0 THEN 3 WHEN ever_accepted=1 THEN 4 WHEN state='UNKNOWN' AND attempts=1 AND EXISTS(SELECT 1 FROM memberships m WHERE m.raw_hash=egress_jobs.hash) THEN 5 ELSE 6 END,next_run,first_seen,egress_jobs.hash LIMIT 1`
 	filters := []string{""}
 	if lane == "initial" {
-		filters = []string{` AND (tested=0 OR reason='manual_recheck' OR reason='ads_iran_quarantined' OR ever_accepted=1)`, ""}
+		filters = []string{` AND (tested=0 OR reason='ads_iran_quarantined' OR ever_accepted=1)`, ""}
 	}
 	if lane == "followup" {
-		filters = []string{` AND (reason='manual_recheck' OR ever_accepted=1 OR tested>0)`, ` AND tested=0`, ""}
-		order = ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 THEN 0 WHEN reason='manual_recheck' THEN 1 ELSE 2 END,next_run,first_seen,egress_jobs.hash LIMIT 1`
+		filters = []string{` AND (ever_accepted=1 OR tested>0)`, ` AND tested=0`, ""}
+		order = ` ORDER BY CASE WHEN reason='ads_iran_quarantined' THEN 0 WHEN ever_accepted=1 THEN 0 ELSE 2 END,next_run,first_seen,egress_jobs.hash LIMIT 1`
 	}
 	for _, filter := range filters {
 		args := []any{now, now}
@@ -166,11 +166,11 @@ func (s *Store) RenewEgress(ctx context.Context, j egress.Job) error {
 }
 func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	j, r := c.Job, c.Report
-	if !validDigest(j.Hash) || r.Hash != j.Hash || r.Version != egress.Version || len(r.Samples) > 256 || len(r.Attempts) > 8 || len(r.Checks) > 2 || len(r.Health) > 3 || len(r.Evidence) > 4 {
+	if !validDigest(j.Hash) || r.Hash != j.Hash || r.Version != egress.Version || len(r.Samples) > 256 || len(r.Attempts) > 8 || len(r.Checks) > 2 || len(r.Health) > 3 || len(r.Evidence) > 4 || len(r.Delivery) > 3 {
 		return ErrInvalid
 	}
 	for _, part := range r.Evidence {
-		if len(part.Evidence) != 0 || len(part.Samples) > 256 || len(part.Checks) > 2 || len(part.Health) > 3 || part.Hash != j.Hash || part.Version != egress.Version {
+		if len(part.Evidence) != 0 || len(part.Samples) > 256 || len(part.Checks) > 2 || len(part.Health) > 3 || len(part.Delivery) > 3 || part.Hash != j.Hash || part.Version != egress.Version {
 			return ErrInvalid
 		}
 	}
@@ -258,12 +258,12 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	if d.Eligible {
 		d.Until = min(d.Until, healthUntil, r.Finished+egress.IranInterval)
 	}
-	hb, _ := json.Marshal(map[string]any{"scope": "ads_application_exchange", "status": health, "general_status": r.GeneralHealth, "general_payload": r.Health})
+	hb, _ := json.Marshal(map[string]any{"scope": "ads_application_exchange", "status": health, "general_status": r.GeneralHealth, "general_payload": r.Health, "delivery": d.Delivery})
 	if _, e = tx.ExecContext(ctx, `INSERT INTO egress_health VALUES(?,?,?,?,?) ON CONFLICT(hash) DO UPDATE SET status=excluded.status,checked_at=excluded.checked_at,valid_until=excluded.valid_until,report=excluded.report`, j.Hash, health, now, healthUntil, string(hb)); e != nil {
 		return e
 	}
-	if accepted && health == "unhealthy" {
-		d.Reason = "payload_health_unhealthy"
+	if health == "unhealthy" {
+		d.Reason = "ads_delivery_unhealthy"
 	}
 	guard, e := s.applyIran(ctx, tx, r, plan, now)
 	if e != nil {
@@ -283,48 +283,44 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	if accepted && !d.Eligible && !guard.Blocked {
 		state = "QUARANTINED"
 	}
+	reason := retirementReason(d, health, accepted)
+	retired, hits, err := s.retirement(ctx, tx, j.Hash, reason, d.Eligible, r.Started, r.Finished, now)
+	if err != nil {
+		return err
+	}
+	failures = hits
 	if d.Eligible {
 		accepted = true
-		failures = 0
 		last = 0
-	} else if accepted && health == "unhealthy" && now-last >= 30000 {
-		failures++
+	} else if reason != "" {
 		last = now
-	} else if health != "unhealthy" {
-		failures = 0
-		last = 0
 	}
+	definitive := d.Eligible || d.Negative || retired || guard.Blocked
 	eventReason := d.Reason
-	if accepted && health == "unhealthy" && !guard.Blocked {
-		eventReason = "payload_health_unhealthy"
+	if retired {
+		state = "DELETED"
+		eventReason = reason
 	}
-	if _, e = tx.ExecContext(ctx, "INSERT INTO egress_events(hash,at,state,reason,definitive,duration_ms) VALUES(?,?,?,?,?,?)", j.Hash, now, state, eventReason, d.Eligible || d.State == "NO_SPLIT", max(0, r.Finished-r.Started)); e != nil {
+	if health == "unhealthy" && !guard.Blocked && !retired {
+		eventReason = "ads_delivery_unhealthy"
+	}
+	if _, e = tx.ExecContext(ctx, "INSERT INTO egress_events(hash,at,state,reason,definitive,duration_ms) VALUES(?,?,?,?,?,?)", j.Hash, now, state, eventReason, definitive, max(0, r.Finished-r.Started)); e != nil {
 		return e
 	}
-	if _, e = tx.ExecContext(ctx, "UPDATE egress_metrics SET completed=completed+1,first_assessments=first_assessments+?,definitive=definitive+? WHERE id=1", firstCompleted == 0, d.Eligible || d.State == "NO_SPLIT"); e != nil {
+	if _, e = tx.ExecContext(ctx, "UPDATE egress_metrics SET completed=completed+1,first_assessments=first_assessments+?,definitive=definitive+? WHERE id=1", firstCompleted == 0, definitive); e != nil {
 		return e
 	}
-	if e = recordEgressRun(ctx, tx, j.Hash, state, d.Eligible || d.State == "NO_SPLIT", r.Started, now, max(int64(0), r.Finished-r.Started)); e != nil {
+	if e = recordEgressRun(ctx, tx, j.Hash, state, definitive, r.Started, now, max(int64(0), r.Finished-r.Started)); e != nil {
 		return e
 	}
 	if guard.Blocked {
 		return tx.Commit()
 	}
-	var correlated int
-	if e = tx.QueryRowContext(ctx, "SELECT count(DISTINCT hash) FROM egress_events WHERE at>? AND reason='payload_health_unhealthy' AND state='QUARANTINED'", now-60000).Scan(&correlated); e != nil {
-		return e
-	}
-	if correlated >= 3 {
-		if _, e = tx.ExecContext(ctx, "UPDATE egress_settings SET circuit_until=? WHERE circuit_until<=?", now+300000, now-300000); e != nil {
+	if retired {
+		if e = s.revokeEgress(ctx, tx, j.Hash, reason, now); e != nil {
 			return e
 		}
-	}
-	var circuit int64
-	if e = tx.QueryRowContext(ctx, "SELECT circuit_until FROM egress_settings").Scan(&circuit); e != nil {
-		return e
-	}
-	if accepted && failures >= 3 && now >= circuit {
-		if e = s.revokeEgress(ctx, tx, j.Hash, "confirmed_unhealthy", now); e != nil {
+		if _, e = tx.ExecContext(ctx, "UPDATE egress_metrics SET unhealthy_deleted=unhealthy_deleted+1 WHERE id=1"); e != nil {
 			return e
 		}
 		return tx.Commit()
@@ -344,6 +340,9 @@ func (s *Store) CompleteEgress(ctx context.Context, c egress.Completion) error {
 	}
 	fastRetry := r.Code == "network_retry_pending" || j.Attempt == 1 && (d.Reason == "controls_incomplete" || d.Reason == "ads_peer_echo_incomplete" || d.Reason == "ads_profile_evidence_incomplete")
 	delay := egressRetryDelay(j.Hash, state, health, accepted, streak, interval, fastRetry)
+	if hits > 0 {
+		delay = 30000
+	}
 	if guard.Quarantined {
 		delay = guard.Delay
 	}
@@ -369,16 +368,25 @@ func (s *Store) revokeEgress(ctx context.Context, tx *sql.Tx, hash, reason strin
 			return e
 		}
 	}
+	aliases := "SELECT o.hash FROM egress_owners o WHERE o.identity IN(SELECT identity FROM egress_owners WHERE hash=?)"
 	for _, q := range []string{
-		"DELETE FROM responses WHERE source_id IN (SELECT source FROM egress_owners WHERE hash=?)",
-		"DELETE FROM artifacts WHERE id IN (SELECT identity FROM egress_owners WHERE hash=?)",
-		"DELETE FROM egress_geo_results WHERE hash=?", "DELETE FROM egress_countries WHERE hash=?", "DELETE FROM conversion_results WHERE hash=?", "DELETE FROM conversion_jobs WHERE hash=?", "DELETE FROM repairs WHERE raw_hash=?", "DELETE FROM egress_turns WHERE hash=?",
+		"DELETE FROM responses WHERE source_id IN(SELECT source FROM egress_owners WHERE identity IN(SELECT identity FROM egress_owners WHERE hash=?))",
+		"DELETE FROM staged WHERE identity IN(SELECT identity FROM egress_owners WHERE hash=?)",
+		"DELETE FROM artifacts WHERE id IN(SELECT identity FROM egress_owners WHERE hash=?)",
 	} {
-		if _, e := tx.ExecContext(ctx, q, hash); e != nil {
-			return e
+		if _, err := tx.ExecContext(ctx, q, hash); err != nil {
+			return err
 		}
 	}
-	_, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET state='DELETED',reason=?,revision=revision+1,token='',lease_until=0,valid_until=0,candidate_hash='',candidate_size=0,report='{}',decision='{}' WHERE hash=?", reason, hash)
+	for _, table := range []string{"egress_health", "egress_geo_results", "egress_countries", "conversion_results", "conversion_jobs", "egress_turns", "egress_retirements"} {
+		if _, err := tx.ExecContext(ctx, "DELETE FROM "+table+" WHERE hash=? OR hash IN("+aliases+")", hash, hash); err != nil {
+			return err
+		}
+	}
+	if _, err := tx.ExecContext(ctx, "DELETE FROM repairs WHERE raw_hash=? OR raw_hash IN("+aliases+")", hash, hash); err != nil {
+		return err
+	}
+	_, e := tx.ExecContext(ctx, "UPDATE egress_jobs SET state='DELETED',reason=CASE WHEN hash=? THEN ? ELSE 'identity_excluded' END,ever_accepted=0,revision=revision+1,token='',lease_until=0,valid_until=0,candidate_hash='',candidate_size=0,report='{}',decision='{}' WHERE hash=? OR hash IN("+aliases+")", hash, reason, hash, hash)
 	return e
 }
 func (s *Store) manageEgress(ctx context.Context, tx *sql.Tx, action string, all bool, now int64) error {

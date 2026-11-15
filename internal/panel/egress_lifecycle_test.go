@@ -46,9 +46,10 @@ func TestEgressHealthScheduleRetentionAndRouteLoss(t *testing.T) {
 	if next != tested+300000 {
 		t.Fatal(next, tested)
 	}
-	// A healthy member changing route is withdrawn, never globally erased.
-	for step := 0; step < 4; step++ {
+	// Three independent measured route-loss rounds revoke all live copies.
+	for step := 0; step < 3; step++ {
 		s.db.Exec("UPDATE egress_jobs SET next_run=0,last_failure=0,first_seen=1 WHERE hash=?", j.Hash)
+		s.db.Exec("UPDATE egress_retirements SET at=? WHERE hash=?", egress.Now()-60000, j.Hash)
 		j, e = s.ClaimEgress(ctx)
 		if e != nil || j == nil {
 			t.Fatal(e)
@@ -70,7 +71,7 @@ func TestEgressHealthScheduleRetentionAndRouteLoss(t *testing.T) {
 	var blocked int
 	s.db.QueryRow("SELECT state FROM egress_jobs WHERE hash=?", j.Hash).Scan(&state)
 	s.db.QueryRow("SELECT count(*) FROM input_exclusions WHERE hash=?", j.Hash).Scan(&blocked)
-	if state == "DELETED" || blocked != 0 {
+	if state != "DELETED" || blocked != 1 {
 		t.Fatal(state, blocked)
 	}
 }

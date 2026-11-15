@@ -26,7 +26,7 @@ class DiscoveryContracts(unittest.TestCase):
   box=Box();pool=types.SimpleNamespace(verify=lambda *a:None,lease=lambda *a:contextlib.nullcontext(box),geo=types.SimpleNamespace(attach=lambda rows:None))
   args=types.SimpleNamespace(prefix='cgt',run_id='abcdef',slot=31)
   req=dict(hash='synthetic',started=int(time.time()*1000),deep=True,accepted=False,plan=dict(driver='xray',variants=[dict(name=v,hash=digest,config=base64.b64encode(config).decode()) for v in ('raw','template')]))
-  with patch.object(driver,'runtime',lambda *a:({},{})),patch.object(driver,'resource_failures',lambda *a:0),patch.object(driver,'diagnostic_health',lambda *a:dict(providers=[dict(passed=True)])):
+  with patch.object(driver,'runtime',lambda *a:({},{})),patch.object(driver,'resource_failures',lambda *a:0),patch.object(driver,'diagnostic_delivery',lambda *a:dict(assets=[dict(curl_exit=0,http_status=200,tls_verified=True,complete=True,content_match=True)])):
    old=driver.investigate(req,args,pool)
    self.assertEqual(old['code'],'measured');self.assertEqual(len(old['checks']),2);self.assertEqual(len(old['evidence']),1);self.assertTrue(old['evidence'][0]['selected_samples']);self.assertEqual(old['evidence'][0]['samples'],[])
    calls.clear();req['discovery']=True;new=driver.investigate(req,args,pool)
@@ -228,8 +228,8 @@ class OverlapContracts(unittest.TestCase):
  def test_health_subprocess_failure_does_not_destroy_route_evidence(self):
   class Box:
    def net(self,*a,**kw):raise TimeoutError()
-  h=driver.diagnostic_health(Box(),'raw')
-  self.assertEqual(h['variant'],'raw');self.assertEqual(h['providers'],[])
+  h=driver.diagnostic_delivery(Box(),'raw',[],3)
+  self.assertEqual(h['variant'],'raw');self.assertEqual(h['assets'],[])
 if __name__=='__main__':unittest.main()
 
 

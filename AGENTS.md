@@ -1,3 +1,22 @@
+# P66 unified Residential policy — implementation under validation / 2026-11-15
+
+The latest user explicitly authorizes one new Residential test/statistics reset,
+superseding older no-reset instructions for schema36 only. Read
+`docs/RESIDENTIAL_POLICY.md`; it is the sole active policy specification. v9 keeps
+complete named-profile split evidence, adds exact raw/template bootstrap-asset
+availability, all-output minority-Iran withdrawal, and three independent spaced
+negative confirmations before global retirement. Never equate script download
+with actual ad fill/rendering. Preserve source/country settings, immutable raw,
+manual exclusions and sticky Iran guards. Current unique identities alone drive
+initial work; accepted safety renewal and bounded unknown/infrastructure repair
+are distinct. Schema36 reset is atomic and must never repeat on restart.
+Require real1000/600s and2000/900s cohort measurements; UNKNOWN is not definitive.
+Hold the existing deploy lock, matched stopped backup and six canonical binaries.
+No older binary may open schema36. No universal detection, rendering, mobile,
+QUIC, future uptime or unmeasured performance claim. P66 activation/result status
+must be read from its final receipt; this instruction is not deployment evidence.
+All policy descriptions below are historical where they conflict with P66.
+
 # P65 named Ads profiles activated / 2026-11-15
 
 Activated `p65-18fa962b-3262f5122928` from `18fa962be64906aac62d896bcd47f4850bc17569`.

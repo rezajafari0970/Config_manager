@@ -17,7 +17,6 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"runtime"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -98,11 +97,11 @@ func execute(ctx context.Context, c client, driver *driverSession, j egress.Job)
 				}
 			}
 		}()
-		input, _ := json.Marshal(map[string]any{"hash": j.Hash, "started": started, "plan": p, "targets": egress.Targets(), "deep": j.Deep, "attempt": j.Attempt, "accepted": j.Accepted})
+		input, _ := json.Marshal(map[string]any{"hash": j.Hash, "started": started, "plan": p, "targets": egress.Targets(), "delivery_targets": egress.DeliveryTargets(), "deep": j.Deep, "attempt": j.Attempt, "accepted": j.Accepted})
 		output, err := driver.exchange(job, input)
 		if err != nil || json.Unmarshal(output, &r) != nil {
 			driver.stop()
-			r = egress.Report{Version: egress.Version, Hash: j.Hash, Started: started, Finished: egress.Now(), Code: "driver_unavailable"}
+			r = egress.Report{Version: egress.Version, Hash: j.Hash, Started: started, Finished: egress.Now(), Code: "driver_session_failed"}
 		}
 	}
 	if r.Finished == 0 {
@@ -216,7 +215,7 @@ func run() error {
 	helper := flag.String("helper", "/opt/config-repair/current/scripts/egress-probe.py", "trusted driver")
 	prefix := flag.String("prefix", "cge", "isolated scope")
 	lockPath := flag.String("lock-file", "/run/config-repair-egress.lock", "single supervisor")
-	workers := flag.Int("workers", min(egress.MaxWorkers, runtime.NumCPU()*4), "maximum concurrent isolated jobs")
+	workers := flag.Int("workers", egress.MaxWorkers, "maximum concurrent isolated jobs")
 	flag.Parse()
 	if *workers < 1 || *workers > egress.MaxWorkers {
 		return errors.New("invalid worker limit")

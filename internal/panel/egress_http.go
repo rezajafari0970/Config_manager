@@ -283,42 +283,6 @@ func (m egressModule) state(w http.ResponseWriter, r *http.Request) {
 	}
 	respond(w, 200, map[string]any{"profile_stats": profileStats, "profiles": egress.Profiles(), "rescan": run, "now": readStamp(ctx), "accounting": accounting, "iran_guard": iran, "metrics": metrics, "queue": map[string]any{"due": due, "recoverable_leases": recovery, "active_leases": activeLeases}, "lifecycle": lifecycle, "coverage_missing": missing, "retained": retained, "country": countryInfo, "throughput": map[string]any{"unique_definitive_5m": conclusive5, "unique_definitive_10m": conclusive10, "unique_5m": unique5, "unique_10m": unique10, "completed_5m": completed, "definitive_5m": definitive, "completed_10m": completed10, "definitive_10m": definitive10, "target_10m": 1000, "max_workers": egress.MaxWorkers}, "version": egress.Version, "total": total, "pending": pending, "partial": partial, "eligible": eligible, "counts": counts, "entries": entries, "offset": offset, "links": m.links(), "domains": egress.Domains, "targets": egress.Targets(), "worker": map[string]any{"status": status, "heartbeat": heartbeat, "active": active, "code": code}, "classification": "Project label: at least one complete named Ads profile repeatedly separated in exact raw/template; other Ads can share controls; partial coverage explicit; no household or universal exclusivity claim", "scope": "TCP HTTP/1.1 / versioned Ads profiles / same-family stable controls including ordinary Google / raw and template; source-unobservable controls and QUIC remain unknown"})
 }
-func (m egressModule) action(w http.ResponseWriter, r *http.Request) {
-	var b struct {
-		Hash     string `json:"hash"`
-		Revision int64  `json:"revision"`
-		Action   string `json:"action"`
-	}
-	if decode(r, &b) != nil || !validDigest(b.Hash) || (b.Action != "recheck" && b.Action != "delete") {
-		failure(w, ErrInvalid)
-		return
-	}
-	tx, e := m.s.store.db.BeginTx(r.Context(), nil)
-	if e != nil {
-		failure(w, e)
-		return
-	}
-	defer tx.Rollback()
-	var rev int64
-	if e = tx.QueryRowContext(r.Context(), "SELECT revision FROM egress_jobs WHERE hash=? AND state!='DELETED'", b.Hash).Scan(&rev); e != nil || rev != b.Revision {
-		failure(w, ErrConflict)
-		return
-	}
-	if b.Action == "delete" {
-		e = m.s.store.revokeEgress(r.Context(), tx, b.Hash, "manual_delete", egress.Now())
-	} else {
-		_, e = tx.ExecContext(r.Context(), "UPDATE egress_jobs SET revision=revision+1,token='',lease_until=0,next_run=0,valid_until=0,retry_streak=0,reason='manual_recheck',state=CASE WHEN ever_accepted=1 THEN 'QUARANTINED' ELSE 'PENDING' END WHERE hash=?", b.Hash)
-	}
-	if e != nil {
-		failure(w, e)
-		return
-	}
-	if e = tx.Commit(); e != nil {
-		failure(w, e)
-		return
-	}
-	respond(w, 200, true)
-}
 
 type egressExportEntry struct {
 	Hash      string

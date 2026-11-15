@@ -1,3 +1,5 @@
+> Historical release description. The sole current policy is [RESIDENTIAL_POLICY.md](RESIDENTIAL_POLICY.md).
+
 > Current v6/schema32 behavior: see [ADS_EXCLUSIVE.md](ADS_EXCLUSIVE.md). The historical policy below is superseded where it conflicts with Ads-only health, independent controls, preserved history and multi-attempt IR evidence.
 
 # Ads split-egress assessment, version 5
